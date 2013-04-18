@@ -89,7 +89,7 @@ def create_hdf5_container(hdf_name):
 
 def text_to_dictionary(dict_name):
     
-    input_filename = os.path.join(abm_path, 'Dictionaries',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
     
@@ -103,7 +103,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join(abm_path, 'Dictionaries',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
