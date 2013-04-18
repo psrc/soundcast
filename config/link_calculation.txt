@@ -1,0 +1,9 @@
+{
+    "result": "@tmpl1",
+    "expression": "1",
+    "aggregation": null,
+    "selections": {
+        "link": "all"
+    },
+    "type": "NETWORK_CALCULATION"
+}

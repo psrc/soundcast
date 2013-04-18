@@ -1,0 +1,9 @@
+{
+    "result": "@timau",
+    "expression": "0",
+    "aggregation": null,
+    "selections": {
+        "node": "all"
+    },
+    "type": "NETWORK_CALCULATION"
+}
