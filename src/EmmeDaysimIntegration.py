@@ -40,6 +40,7 @@ hdf5_daysim_subgroups=["Household","Person","Trip","Tour"]
 skim_matrix_designation=['t','c']
 #skim for distance for only these time periods
 distance_skim_tod = ['5to6']
+transit_skim_tod = ['6to7', '7to8', '8to9', '9to10']
 transit_submodes=['b', 'c', 'f', 'p', 'r']
 
 def create_hdf5_container(hdf_name):
@@ -103,7 +104,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config/',dict_name+'.txt').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
@@ -212,21 +213,23 @@ def define_matrices(my_project):
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
-    #Create Transit Skims in Emme
+    
+    #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
     # Actual In Vehicle Times by Mode
-    for item in transit_submodes:
-         create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+    if tod in transit_skim_tod:
+        for item in transit_submodes:
+             create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
                           matrix_name= 'ivtwa' + item,
                           matrix_description= "Actual IVTs by Mode: " + item,
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
    
-    #Transit, All Modes:
-    dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
+        #Transit, All Modes:
+        dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
 
-    for key, value in dct_aggregate_transit_skim_names.iteritems():
-        create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+        for key, value in dct_aggregate_transit_skim_names.iteritems():
+            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
                           matrix_name= key,
                           matrix_description= value,
                           default_value=0,
@@ -443,14 +446,45 @@ def transit_assignment(my_project):
     end_transit_assignment = time.time()
     print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
 
+def transit_assignment2(my_project, tod):
+
+    start_transit_assignment = time.time()
+    assign_transit = my_project.tool("inro.emme.transit_assignment.extended_transit_assignment")
+    data_explorer = my_project.desktop.data_explorer()
+    for database in data_explorer.databases():
+        emmebank = database.core_emmebank
+        if emmebank.title == tod:
+            #Define the Emme Tools used in this function
+            
+
+            #Load in the necessary Dictionaries
+            assignment_specification = json_to_dictionary("extended_transit_assignment")
+            assign_transit(assignment_specification)
+            
+    end_transit_assignment = time.time()
+    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
 def transit_skims(my_project):
-    start_time_skim = time.time()
+
     skim_transit = my_project.tool("inro.emme.transit_assignment.extended.matrix_results")
     #specs are stored in a dictionary where "spec1" is the key and a list of specs for each skim is the value 
     skim_specs = json_to_dictionary("transit_skim_setup")
     my_spec_list = skim_specs["spec1"]
     for item in my_spec_list:
+        print item
         skim_transit(item)
+def transit_skims2(my_project, tod):
+    start_time_skim = time.time()
+    skim_transit = my_project.tool("inro.emme.transit_assignment.extended.matrix_results")
+    data_explorer = my_project.desktop.data_explorer()
+    for database in data_explorer.databases():
+        emmebank = database.core_emmebank
+        if emmebank.title == tod:
+        #specs are stored in a dictionary where "spec1" is the key and a list of specs for each skim is the value 
+            skim_specs = json_to_dictionary("transit_skim_setup")
+            my_spec_list = skim_specs["spec1"]
+            for item in my_spec_list:
+                print item
+                skim_transit(item)
     
     end_time_skim = time.time()
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the transit skim'
@@ -516,6 +550,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
         mod_skim["path_analysis"]["link_component"] = my_extra
         
     skim_traffic(mod_skim)
+    #json.dump(mod_skim, open('c://time_mod_skim.ems', 'wb'))
 
     #delete the temporary extra attributes
     delete_extras(t1)
@@ -523,6 +558,35 @@ def attribute_based_skims(my_project,my_skim_attribute):
     end_time_skim = time.time()
 
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the ' +skim_type+'.'
+
+def attribute_based_toll_cost_skims(my_project, toll_attribute):
+    #Function to calculate true/toll cost skims. Should fold this into attribute_based_skims function. 
+    
+     start_time_skim = time.time()
+
+     skim_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
+     skim_specification = json_to_dictionary("general_attribute_based_skim")
+     my_user_classes = json_to_dictionary("user_classes")
+
+     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+     my_bank = current_scenario.emmebank
+
+     my_skim_attribute = "Toll"
+     skim_desig = "c"
+     #at this point, mod_skim is an empty spec ready to be populated with 21 classes. Here we are only populating the classes that
+     #that have the appropriate occupancy(sv, hov2, hov3) to skim for the passed in toll_attribute (@toll1, @toll2, @toll3) 
+     #no need to create the extra attribute, already done in initial_extra_attributes
+     mod_skim = skim_specification
+     for x in range (0, len(mod_skim["classes"])):
+        if my_user_classes["Highway"][x][my_skim_attribute] == toll_attribute:
+            my_extra = my_user_classes["Highway"][x][my_skim_attribute]
+            matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
+            matrix_id = my_bank.matrix(matrix_name).id
+            mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
+            mod_skim["path_analysis"]["link_component"] = my_extra
+     skim_traffic(mod_skim)
+
+
 
 def cost_skims(my_project):
     
@@ -542,6 +606,7 @@ def cost_skims(my_project):
     for x in range (0, len(mod_skim["classes"])):
         matrix_name= 'mf'+my_user_classes["Highway"][x]["Name"]+'c'        
         mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = matrix_name
+
     skim_traffic(mod_skim)
     
         
@@ -650,25 +715,26 @@ def skims_to_hdf5(my_project, hdf_filename):
                 matrix_name= matrix_dict["Highway"][y]["Name"]+skim_matrix_designation[x]
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype(int),compression='gzip')
+                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
-
-        for item in transit_submodes:
-             matrix_name= 'ivtwa' + item
-             matrix_id = my_bank.matrix(matrix_name).id
-             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-             my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype(int),compression='gzip')
-             print matrix_name+' was transferred to the HDF5 container.'
+        #transit
+        if tod in transit_skim_tod:
+            for item in transit_submodes:
+                matrix_name= 'ivtwa' + item
+                matrix_id = my_bank.matrix(matrix_name).id
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                print matrix_name+' was transferred to the HDF5 container.'
          
                 #Transit, All Modes:
-        dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
+            dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
 
-        for key, value in dct_aggregate_transit_skim_names.iteritems():
-            matrix_name= key
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype(int),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.' 
+            for key, value in dct_aggregate_transit_skim_names.iteritems():
+                matrix_name= key
+                matrix_id = my_bank.matrix(matrix_name).id
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                print matrix_name+' was transferred to the HDF5 container.' 
         
     my_store.close()
     end_export_hdf5 = time.time()
@@ -855,88 +921,113 @@ def start_pool(project_list):
     #An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and 
     #it cannot be destroyed/recreated in same script. In order to run things con-currently in the same script, must have 
     #seperate projects/banks for each time period and have a pool for each project/bank. 
-    #Fewer pools than projects/banks will cause script to crash. So if we want to reduce number of pools, we would have to 
-    #to run this function (start_pool) 12/pool size and specify project list as a parameter. 
+    #Fewer pools than projects/banks will cause script to crash.
+    
+    #Doing some testing on best approaches to con-currency
+    pool = Pool(processes=12)
+    pool.map(run_assignments_parallel,project_list[0:12])
 
-    pool = Pool(processes=2)
-    pool.map(run_assignments_parallel,project_list[1:3])
-   
-    #pool = Pool(processes=1)
-    #pool.map(run_assignments_parallel,project_list[2:3])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_assignments_parallel,project_list[3:4])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_assignments_parallel,project_list[4:5])
-
-    #pool = Pool(processes=3)
-    #pool.map(run_assignments_parallel,project_list[9:12])
-
-def run_assignments_parallel(project_name):
-     start_of_run = time.time()
+    
     
 
-     my_desktop = app.start_dedicated(True, "cth", project_name)
-     m = _m.Modeller(my_desktop)
-     print m.emmebank.title
+def start_transit_pool(project_list):
+    #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one 
+    #instance of modeler issue. Will change code to be more generalized later. 
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[1:2])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[2:3])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[3:4])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[4:5])
+    
+def run_transit(project_name):
+    start_of_run = time.time()
+     
+    my_desktop = app.start_dedicated(True, "cth", project_name)
+    print project_name
+    m = _m.Modeller(my_desktop)
+    transit_assignment(m)
+    transit_skims(m)
+
+def run_assignments_parallel(project_name):
+
+    start_of_run = time.time()
+    
+
+    my_desktop = app.start_dedicated(True, "cth", project_name)
+    m = _m.Modeller(my_desktop)
+     
      
      
      #delete and create new demand and skim matrices:
-     delete_matrices(m, "FULL")
-     define_matrices(m)
+    delete_matrices(m, "FULL")
+    define_matrices(m)
      
      #Import demand/trip tables to emme. This is actually quite fast con-currently. 
-     hdf5_trips_to_Emme(m, hdf5_file_path)
+    hdf5_trips_to_Emme(m, hdf5_file_path)
      
      #set up for assignments
-     intitial_extra_attributes(m)
-     import_extra_attributes(m)
-     arterial_delay_calc(m)
-     vdf_initial(m)
+    intitial_extra_attributes(m)
+    import_extra_attributes(m)
+    arterial_delay_calc(m)
+    vdf_initial(m)
      
      
      #run auto assignment/skims
-     traffic_assignment(m)
-     attribute_based_skims(m, "Time")
+    traffic_assignment(m)
+    attribute_based_skims(m, "Time")
 
      #get tod from bank name. Only skim for distance if in global distance_skim_tod list
-     tod = m.emmebank.title
-     if tod in distance_skim_tod:
+    tod = m.emmebank.title
+    if tod in distance_skim_tod:
         print tod
         attribute_based_skims(m,"Distance")
-     cost_skims(m)
-     class_specific_volumes(m)
+    #Toll skims
+    attribute_based_toll_cost_skims( m, "@toll1")
+    attribute_based_toll_cost_skims( m, "@toll2")
+    attribute_based_toll_cost_skims( m, "@toll3")
+    class_specific_volumes(m)
      
-     #run transit assignment skims
-     transit_assignment(m)
-     transit_skims(m)
      
-     print tod + " finished"
-     end_of_run = time.time()
-     print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
+     
+     
+    print tod + " finished"
+    end_of_run = time.time()
+    print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
             
 def main():
     #Start Daysim-Emme Equilibration
+    #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always 
+    #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.   
     for x in range(0, global_iterations):
+        start_of_run = time.time()
         #launch daysim 
         #retcode = subprocess.call(["Daysim.exe"])
         
         #Daysim Finished Running, now start Emme Assignment & Skimming code
-        start_of_run = time.time()
+        
         #want pooled processes finished before executing more code in main:
         project_list=['C:/ABM/Projects/5to6/5to6.emp','C:/ABM/Projects/6to7/6to7.emp','C:/ABM/Projects/7to8/7to8.emp','C:/ABM/Projects/8to9/8to9.emp', 'C:/ABM/Projects/9to10/9to10.emp', 'C:/ABM/Projects/10to14/10to14.emp', 'C:/ABM/Projects/14to15/14to15.emp','C:/ABM/Projects/15to16/15to16.emp', 'C:/ABM/Projects/16to17/16to17.emp', 'C:/ABM/Projects/17to18/17to18.emp', 'C:/ABM/Projects/18to20/18to20.emp', 'C:/ABM/Projects/20to5/20to5.emp' ]
-        #project_list=['C:/ABM/Projects/5to6/5to6.emp','C:/ABM/Projects/6to7/6to7.emp','C:/ABM/Projects/7to8/7to8.emp', 'C:/ABM/Projects/8to9/8to9.emp']
+       
         start_pool(project_list)
+        start_transit_pool(project_list)
         
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each time period, and then merging them
         #all to one HDF5 file at the end, but this was signigicantly slower than writing out sequentially. Below we are able to 
         #launch another instance of modeler because the others were launched/closed in their own pool/process. 
         #This project points to all TOD Banks:
         project_name = 'C:/ABM/Projects/LoadTripTables/LoadTripTables.emp'
-        my_desktop = app.start_dedicated(False, "cth", project_name)
+        my_desktop = app.start_dedicated(True, "cth", project_name)
         m = _m.Modeller(my_desktop)
-        #skims_to_hdf5(m, hdf5_file_path)
+        app.App.refresh_data
+        #Calc Wait Times
+
+        skims_to_hdf5(m, hdf5_file_path)
     
         end_of_run = time.time()
 
