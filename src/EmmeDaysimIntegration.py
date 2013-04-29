@@ -939,11 +939,11 @@ def start_transit_pool(project_list):
     pool = Pool(processes=1)
     pool.map(run_transit,project_list[2:3])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[3:4])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[3:4])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[4:5])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[4:5])
     
 def run_transit(project_name):
     start_of_run = time.time()
@@ -951,8 +951,27 @@ def run_transit(project_name):
     my_desktop = app.start_dedicated(True, "cth", project_name)
     print project_name
     m = _m.Modeller(my_desktop)
+    my_bank = m.emmebank
     transit_assignment(m)
     transit_skims(m)
+
+    #Calc Wait Times
+    app.App.refresh_data
+    matrix_calculator = json_to_dictionary("matrix_calculation")
+    matrix_calc = m.tool("inro.emme.matrix_calculation.matrix_calculator")
+
+    #Hard coded for now, generalize later
+    total_wait_matrix = my_bank.matrix('twtwa').id
+    initial_wait_matrix = my_bank.matrix('iwtwa').id
+    transfer_wait_matrix = my_bank.matrix('xfrwa').id
+    
+    mod_calc = matrix_calculator
+    mod_calc["result"] = transfer_wait_matrix
+    mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
+    matrix_calc(mod_calc)
+
+
+
 
 def run_assignments_parallel(project_name):
 
@@ -1025,7 +1044,7 @@ def main():
         my_desktop = app.start_dedicated(True, "cth", project_name)
         m = _m.Modeller(my_desktop)
         app.App.refresh_data
-        #Calc Wait Times
+        
 
         skims_to_hdf5(m, hdf5_file_path)
     
