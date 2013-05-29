@@ -16,14 +16,14 @@ from multiprocessing import Pool
 
 #Hard-coded paths/data will be moved to a Config file 
 # Number of Global Interations
-global_iterations = 1
+global_iterations = 2
 # Assignment Convergence Criteria
 max_iter = 50
 b_rel_gap = 0.0001
 
 #Hardcoded Path for ABM Project File & HDF5 File
-abm_path = 'C:/ABM'
-hdf5_file_path = 'C:/ABM/HDF5/PSRC_Daysim.hdf5'
+abm_path = 'D:/ABM'
+hdf5_file_path = 'D:/ABM/HDF5/PSRC_Daysim.hdf5'
 
 #HDF5 Groups and Subgroups
 hdf5_maingroups=["Daysim","Emme","Truck Model","UrbanSim"]
@@ -36,12 +36,47 @@ hdf5_urbansim_subgroups=["Households","Parcels","Persons"]
 hdf5_freight_subgroups=["Inputs","Outputs","Rates"]
 hdf5_daysim_subgroups=["Household","Person","Trip","Tour"]
 
-#Skim for time, distance, cost
-skim_matrix_designation=['t','c']
+#Skim for time, cost
+skim_matrix_designation_all_tods=['t','c']
+skim_matrix_designation_limited = ['d']
+
+
+
 #skim for distance for only these time periods
 distance_skim_tod = ['5to6']
+
+#bike/walk
+bike_walk_skim_tod = ['5to6']
+bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time', 'demand' : 'walk', 'modes' : ["w", "x"], 'intrazonal_time' : 'izwtim'}, 'bike':{'time' : 'biket', 'description' : 'bike time', 'demand' : 'bike', 'modes' : ["k", "l", "q"], 'intrazonal_time' : 'izbtim'}}
+
+#transit inputs:
 transit_skim_tod = ['6to7', '7to8', '8to9', '9to10']
 transit_submodes=['b', 'c', 'f', 'p', 'r']
+
+#fare
+zone_file = 'D:/ABM/MiscInputs/Fares/transit_fare_zones.grt'
+peak_fare_box = 'D:/ABM/MiscInputs/Fares/am_fares_farebox.in'
+peak_monthly_pass = 'D:/ABM/MiscInputs/Fares/am_fares_monthly_pass.in'
+offpeak_fare_box = 'D:/ABM/MiscInputs/Fares/md_fares_farebox.in'
+offpeak_monthly_pass ='D:/ABM/MiscInputs/Fares/md_fares_monthly_pass.in'
+fare_matrices_tod = ['6to7', '9to10']
+fare_dict = {'5to6':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+             '6to7':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass},'Names':{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '7to8':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names':{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '8to9':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' :{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '9to10':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
+            '10to14':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
+            '14to15':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
+            '15to16':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' :{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '16to17':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '17to18':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
+            '18to20':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
+            '20to5':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}}}
+
+#intrazonals
+intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
+taz_area_file = 'D:/ABM/MiscInputs/IntraZonals/taz_acres.in'
+
 
 def create_hdf5_container(hdf_name):
    
@@ -87,7 +122,69 @@ def create_hdf5_container(hdf_name):
     
     return hdf_filename
 
+def create_hdf5_skim_container(hdf5_name):
+    #create containers for TOD skims
+    start_time = time.time()
 
+     
+    
+    hdf5_filename = os.path.join(abm_path, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
+    print hdf5_filename
+    my_user_classes = json_to_dictionary('user_classes')
+
+    #IOError will occur if file already exists with "w-", so in this case just prints it exists
+    #If file does not exist, opens new hdf5 file and create groups based on the subgroup list above.
+
+    #Create a sub groups with the same name as the container, e.g. 5to6, 7to8
+    #These facilitate multi-processing and will be imported to a master HDF5 file at the end of the run
+    try:
+        my_store=h5py.File(hdf5_filename, "w-")
+        my_store.create_group(hdf5_name)
+        print 'HDF5 File was successfully created'
+        my_store.close()
+    
+    except IOError:
+        print 'HDF5 File already exists - no file was created'
+        
+
+     
+    end_time = time.time()
+    print 'It took', round((end_time-start_time),2), 'seconds to create the HDF5 file.'
+    
+    return hdf5_filename
+def create_hdf5_skim_container2(hdf5_name):
+    #create containers for TOD skims
+    start_time = time.time()
+
+     
+    
+    hdf5_filename = os.path.join(abm_path, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
+    print hdf5_filename
+    my_user_classes = json_to_dictionary('user_classes')
+
+    #IOError will occur if file already exists with "w-", so in this case just prints it exists
+    #If file does not exist, opens new hdf5 file and create groups based on the subgroup list above.
+
+    #Create a sub groups with the same name as the container, e.g. 5to6, 7to8
+    #These facilitate multi-processing and will be imported to a master HDF5 file at the end of the run
+    if os.path.exists(hdf5_filename):
+         print 'HDF5 File already exists - no file was created'
+        
+    else:
+        my_store=h5py.File(hdf5_filename, "w-")
+        my_store.create_group(hdf5_name)
+        print 'HDF5 File was successfully created'
+        my_store.close()
+    
+
+       
+        
+
+     
+    end_time = time.time()
+    print 'It took', round((end_time-start_time),2), 'seconds to create the HDF5 file.'
+    
+    return hdf5_filename
 def text_to_dictionary(dict_name):
     
     input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
@@ -163,6 +260,7 @@ def delete_matrices(my_project, matrix_type):
     
 
 def define_matrices(my_project):
+    print 'starting define matrices'
 
     start_define_matrices = time.time()
 
@@ -200,19 +298,21 @@ def define_matrices(my_project):
         #Check to see if we want to make Distance skims for this period:
         if tod in distance_skim_tod:
             #overide the global skim matrix designation (time & cost most likely) to make sure distance skims are created for this tod
-            skim_matrix_designation=['t','c', 'd']
+            my_skim_matrix_designation=skim_matrix_designation_limited + skim_matrix_designation_all_tods
         else:
-            skim_matrix_designation=['t','c']
+            my_skim_matrix_designation = skim_matrix_designation_all_tods
+           
             
-        for x in range (0, len(skim_matrix_designation)):
+        for x in range (0, len(my_skim_matrix_designation)):
 
             for y in range (0, len(matrix_dict["Highway"])):
                 create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= matrix_dict["Highway"][y]["Name"]+skim_matrix_designation[x],
+                          matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x],
                           matrix_description= matrix_dict["Highway"][y]["Description"],
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
+
     
     #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
     # Actual In Vehicle Times by Mode
@@ -235,11 +335,111 @@ def define_matrices(my_project):
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
+    #bike & walk, do not need for all time periods. most likely just 1:
+    if tod in bike_walk_skim_tod:
+        for key in bike_walk_matrix_dict.keys():
+            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+                          matrix_name= bike_walk_matrix_dict[key]['time'],
+                          matrix_description= bike_walk_matrix_dict[key]['description'],
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
     
+    #transit fares, farebox & monthly matrices :
+    if tod in fare_matrices_tod:
+        for value in fare_dict[tod]['Names'].itervalues():
+            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+                          matrix_name= value,
+                          matrix_description= 'transit fare',
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+    #intrazonals:
+    for key, value in intrazonal_dict.iteritems():
+        create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+                          matrix_name= value,
+                          matrix_description= key,
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+    #origin matrix to hold TAZ Area:
+    create_matrix(matrix_id= my_bank.available_matrix_identifier("ORIGIN"),
+                          matrix_name= 'tazacr',
+                          matrix_description= 'taz area',
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+
     end_define_matrices = time.time()
 
     print 'It took', round((end_define_matrices-start_define_matrices)/60,2), 'minutes to define all matrices in Emme.'
 
+def create_fare_zones(my_project, zone_file, fare_file):
+    my_bank = my_project.emmebank
+    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+   
+    
+    init_partition = my_project.tool("inro.emme.data.zone_partition.init_partition")
+    gt = my_bank.partition("gt")
+    init_partition(partition=gt) 
+
+    process_zone_partition = my_project.tool("inro.emme.data.zone_partition.partition_transaction")
+    process_zone_partition(transaction_file = zone_file,
+                           throw_on_error = True,
+                           scenario = current_scenario)
+
+  
+
+    matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
+    matrix_transaction(transaction_file = fare_file, 
+                       throw_on_error = True,
+                       scenario = current_scenario)
+   
+  
+def populate_intrazonals(my_project):
+    #populate origin matrix with zone areas:
+   
+    my_bank = my_project.emmebank
+    print my_bank.title
+    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+    matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
+    matrix_transaction(transaction_file = taz_area_file, 
+                       throw_on_error = True,
+                       scenario = current_scenario)
+
+    matrix_calculator = json_to_dictionary("matrix_calculation")
+    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
+
+    app.App.refresh_data
+    print my_bank.matrix('tazacr').id
+    taz_area_matrix = my_bank.matrix('tazacr').id
+    distance_matrix = my_bank.matrix(intrazonal_dict['distance']).id
+
+    #Hard coded for now, generalize later
+    for key, value in intrazonal_dict.iteritems():
+        if key == 'distance':
+            print 'dist'
+            mod_calc = matrix_calculator
+            mod_calc["result"] = value
+            mod_calc["expression"] = "sqrt(" +taz_area_matrix + "/640) * 45/60*(p.eq.q)"
+            matrix_calc(mod_calc)
+        if key == 'time auto':
+            mod_calc = matrix_calculator
+            mod_calc["result"] = value
+            mod_calc["expression"] = distance_matrix + " *(60/15)"
+            matrix_calc(mod_calc)
+        if key == 'time bike':
+            mod_calc = matrix_calculator
+            mod_calc["result"] = value
+            mod_calc["expression"] = distance_matrix + " *(60/10)"
+            matrix_calc(mod_calc)
+        if key == 'time walk':
+            mod_calc = matrix_calculator
+            mod_calc["result"] = value
+            mod_calc["expression"] = distance_matrix + " *(60/3)"
+            matrix_calc(mod_calc)
+
+        
 
 
 def intitial_extra_attributes(my_project):
@@ -400,7 +600,7 @@ def arterial_delay_calc(my_project):
 def traffic_assignment(my_project):
     
     start_traffic_assignment = time.time()
-
+    print 'starting traffic assignment for' +  my_project.emmebank.title
     #Define the Emme Tools used in this function
     assign_extras = my_project.tool("inro.emme.traffic_assignment.set_extra_function_parameters")
     assign_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_assignment")
@@ -490,6 +690,7 @@ def transit_skims2(my_project, tod):
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the transit skim'
 
 def attribute_based_skims(my_project,my_skim_attribute):
+    #Use only for Time or Distance!
 
     start_time_skim = time.time()
 
@@ -550,7 +751,32 @@ def attribute_based_skims(my_project,my_skim_attribute):
         mod_skim["path_analysis"]["link_component"] = my_extra
         
     skim_traffic(mod_skim)
-    #json.dump(mod_skim, open('c://time_mod_skim.ems', 'wb'))
+    
+    #add in intazonal values:
+    matrix_calculator = json_to_dictionary("matrix_calculation")
+    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
+    inzone_auto_time = my_bank.matrix(intrazonal_dict['time auto']).id
+    inzone_distance = my_bank.matrix(intrazonal_dict['distance']).id
+    if my_skim_attribute =="Time":
+        for x in range (0, len(mod_skim["classes"])):
+            matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
+            matrix_id = my_bank.matrix(matrix_name).id
+            mod_calc = matrix_calculator
+            mod_calc["result"] = matrix_id
+            mod_calc["expression"] = inzone_auto_time + "+" + matrix_id
+            matrix_calc(mod_calc)
+    if my_skim_attribute =="Distance":
+        for x in range (0, len(mod_skim["classes"])):
+            matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
+            matrix_id = my_bank.matrix(matrix_name).id
+            mod_calc = matrix_calculator
+            mod_calc["result"] = matrix_id
+            mod_calc["expression"] = inzone_distance + "+" + matrix_id
+            matrix_calc(mod_calc)
+
+
+
+    #json.dump(mod_skim, open('D://time_mod_skim.ems', 'wb'))
 
     #delete the temporary extra attributes
     delete_extras(t1)
@@ -639,7 +865,7 @@ def class_specific_volumes(my_project):
 
 
    
-def skims_to_hdf5(my_project, hdf_filename):
+def skims_to_hdf5(my_project):
 #This is for multiple banks in one project
 
     start_export_hdf5 = time.time()
@@ -658,26 +884,27 @@ def skims_to_hdf5(my_project, hdf_filename):
         emmebank = database.core_emmebank
         all_emmebanks.update({emmebank.title: emmebank})
     
-    my_store=h5py.File(hdf_filename)
+   
         
     #See if there is a group called Skims.IF so, it probably has old data in it. Delete the group and create a new one. 
-    e = "Skims" in my_store
-    if e:
-        del my_store["Skims"]
-        skims_group = my_store.create_group("Skims")
-        print "Group Skims Exists. Group deleted then created"
-        #If not there, create the group
-    else:
-        skims_group = my_store.create_group("Skims")
-        print "Group Skims Created"
-        #Now create the TOD group inside the skims group:
+   
     
 
    
     for tod in uniqueTOD:
-
         print tod
-        skims_group.create_group(tod)
+        hdf5_filename = create_hdf5_skim_container2(tod)
+        my_store=h5py.File(hdf5_filename, "r+")
+        e = "Skims" in my_store
+        if e:
+            del my_store["Skims"]
+            skims_group = my_store.create_group("Skims")
+            print "Group Skims Exists. Group deleted then created"
+            #If not there, create the group
+        else:
+            skims_group = my_store.create_group("Skims")
+            print "Group Skims Created"
+        
         my_bank = all_emmebanks[tod]
         #need a scenario, get the first one
         current_scenario = list(my_bank.scenarios())[0]
@@ -694,28 +921,34 @@ def skims_to_hdf5(my_project, hdf_filename):
         try:
             mat_id=my_bank.matrix("mf01")
             em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
-            my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+            my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
         except RuntimeError:
-            del my_store["indices"]
-            my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+            del my_store["Skims"]["indices"]
+            my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
         
         # Loop through the Subgroups in the HDF5 Container
         #highway, walk, bike, transit
         #need to make sure we include Distance skims for TOD specified in distance_skim_tod
         if tod in distance_skim_tod:
-            skim_matrix_designation = ['t','c', 'd']
+            my_skim_matrix_designation = skim_matrix_designation_limited + skim_matrix_designation_all_tods
         else:
-            skim_matrix_designation = ['t','c']
+            my_skim_matrix_designation = skim_matrix_designation_all_tods
 
-        for x in range (0, len(skim_matrix_designation)):
+        for x in range (0, len(my_skim_matrix_designation)):
 
             for y in range (0, len(matrix_dict["Highway"])):
-                matrix_name= matrix_dict["Highway"][y]["Name"]+skim_matrix_designation[x]
+                matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
                 matrix_id = my_bank.matrix(matrix_name).id
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                if my_skim_matrix_designation[x] == 'c':
+                    matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
+                else:
+                    matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                
+                print matrix_name
+                
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
         #transit
         if tod in transit_skim_tod:
@@ -723,7 +956,7 @@ def skims_to_hdf5(my_project, hdf_filename):
                 matrix_name= 'ivtwa' + item
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
          
                 #Transit, All Modes:
@@ -733,8 +966,141 @@ def skims_to_hdf5(my_project, hdf_filename):
                 matrix_name= key
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.' 
+        #bike/walk
+        if tod in bike_walk_skim_tod:
+            for key in bike_walk_matrix_dict.keys():
+                matrix_name= bike_walk_matrix_dict[key]['time']
+                matrix_id = my_bank.matrix(matrix_name).id
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                print matrix_name+' was transferred to the HDF5 container.' 
+        #transit/fare
+        if tod in fare_matrices_tod:
+            for value in fare_dict[tod]['Names'].values():
+                matrix_name= 'mf' + value
+                print matrix_name
+                print my_bank.matrix(matrix_name).id
+                matrix_id = my_bank.matrix(matrix_name).id
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                print matrix_name+' was transferred to the HDF5 container.' 
+
+        
+        my_store.close()
+    end_export_hdf5 = time.time()
+
+    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to export all skims to the HDF5 File.'
+
+def skims_to_hdf5_concurrent(my_project):
+#one project, one bank
+
+    start_export_hdf5 = time.time()
+ 
+    #Determine the Path and Scenario File
+    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+    my_bank = current_scenario.emmebank
+    zones=current_scenario.zone_numbers
+    bank_name = my_project.emmebank.title
+    tod = bank_name
+
+    #matrix_dict = text_to_dictionary('demand_matrix_dictionary')
+    #uniqueMatrices = set(matrix_dict.values())
+    #Load in the necessary Dictionaries
+    my_user_classes = json_to_dictionary("user_classes")
+
+    #Create the HDF5 Container if needed and open it in read/write mode using "r+"
+    
+    #hdf_filename = create_hdf5_container(bank_name)
+    hdf5_filename = create_hdf5_skim_container(bank_name)
+    
+    my_store=h5py.File(hdf5_filename, "r+")
+
+        
+    #See if there is a group called Skims.IF so, it probably has old data in it. Delete the group and create a new one. 
+    e = "Skims" in my_store
+    if e:
+        del my_store["Skims"]
+        skims_group = my_store.create_group("Skims")
+        print "Group Skims Exists. Group deleted then created"
+        #If not there, create the group
+    else:
+        skims_group = my_store.create_group("Skims")
+        print "Group Skims Created"
+        #Now create the TOD group inside the skims group:
+    
+
+   
+   
+    skims_group.create_group(tod)
+    
+        #need a scenario, get the first one
+    current_scenario = list(my_bank.scenarios())[0]
+        #Determine the Path and Scenario File
+        
+    zones=current_scenario.zone_numbers
+    
+
+        #Load in the necessary Dictionaries
+    matrix_dict = json_to_dictionary("user_classes")
+
+
+        # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
+    try:
+        mat_id=my_bank.matrix("mf01")
+        em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
+        my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+
+    except RuntimeError:
+        del my_store["indices"]
+        my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+
+        
+        # Loop through the Subgroups in the HDF5 Container
+        #highway, walk, bike, transit
+        #need to make sure we include Distance skims for TOD specified in distance_skim_tod
+    if tod in distance_skim_tod:
+        my_skim_matrix_designation = skim_matrix_designation_limited + skim_matrix_designation_all_tods
+    else:
+        my_skim_matrix_designation = skim_matrix_designation_all_tods
+
+    for x in range (0, len(my_skim_matrix_designation)):
+
+        for y in range (0, len(matrix_dict["Highway"])):
+                matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
+                matrix_id = my_bank.matrix(matrix_name).id
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                print matrix_name+' was transferred to the HDF5 container.'
+        #transit
+    if tod in transit_skim_tod:
+        for item in transit_submodes:
+            matrix_name= 'ivtwa' + item
+            matrix_id = my_bank.matrix(matrix_name).id
+            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+            print matrix_name
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.'
+         
+                #Transit, All Modes:
+            dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
+
+        for key, value in dct_aggregate_transit_skim_names.iteritems():
+            matrix_name= key
+            matrix_id = my_bank.matrix(matrix_name).id
+            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.' 
+        
+    if tod in bike_walk_skim_tod:
+        for key in bike_walk_matrix_dict.keys():
+            matrix_name= bike_walk_matrix_dict[key]['time']
+            matrix_id = my_bank.matrix(matrix_name).id
+            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.' 
+
         
     my_store.close()
     end_export_hdf5 = time.time()
@@ -944,7 +1310,8 @@ def start_transit_pool(project_list):
 
     #pool = Pool(processes=1)
     #pool.map(run_transit,project_list[4:5])
-    
+
+
 def run_transit(project_name):
     start_of_run = time.time()
      
@@ -970,8 +1337,115 @@ def run_transit(project_name):
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
 
+def bike_walk_assignment(my_project, tod, assign_for_all_tods):
+    #One bank
+    #this runs the assignment and produces a time skim as well, which we need is all we need- converted 
+    #to distance in Daysim. 
+    #Assignment is run for all time periods (at least it should be for the final iteration). Only need to 
+    #skim for one TOD. Skim is an optional output of the assignment. 
+    
+    start_transit_assignment = time.time()
+    my_bank = my_project.emmebank
+    #Define the Emme Tools used in this function
+    assign_transit = my_project.tool("inro.emme.transit_assignment.standard_transit_assignment")
 
+    #Load in the necessary Dictionaries
+    
+    
+    assignment_specification = json_to_dictionary("bike_walk_assignment")
+    #get demand matrix name from here:
+    user_classes = json_to_dictionary("user_classes")
+    mod_assign = assignment_specification
+    #only skim for time for certain tod
+    #Also fill in intrazonals
+    matrix_calculator = json_to_dictionary("matrix_calculation")
+    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
+    intrazonal_dict
+   
+    if tod in bike_walk_skim_tod:
+        for key in bike_walk_matrix_dict.keys():
+            mod_assign['demand'] = 'mf' + bike_walk_matrix_dict[key]['demand']
+            mod_assign['od_results']['transit_times'] = bike_walk_matrix_dict[key]['time']
+            mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
+            assign_transit(mod_assign)    
+          
+            #intrazonal
+            matrix_name= bike_walk_matrix_dict[key]['intrazonal_time']
+            matrix_id = my_bank.matrix(matrix_name).id
+            mod_calc = matrix_calculator
+            mod_calc["result"] = 'mf' + bike_walk_matrix_dict[key]['time']
+            mod_calc["expression"] = 'mf' + bike_walk_matrix_dict[key]['time'] + "+" + matrix_id
+            matrix_calc(mod_calc)
+    elif assign_for_all_tods == 'true':
+        #Dont Skim
+        for key in bike_walk_matrix_dict.keys():
+            mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
+            mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
+            assign_transit(mod_assign) 
+       
 
+    end_transit_assignment = time.time()
+    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the bike/walk assignment.'
+
+def bike_walk_assignment_NonConcurrent(project_name):
+    #One bank
+    #this runs the assignment and produces a time skim as well, which we need is all we need- converted 
+    #to distance in Daysim. 
+    #Assignment is run for all time periods (at least it should be for the final iteration). Only need to 
+    #skim for one TOD. Skim is an optional output of the assignment. 
+    tod_dict = text_to_dictionary('time_of_day')  
+    uniqueTOD = set(tod_dict.values())
+    uniqueTOD = list(uniqueTOD)
+ 
+    #populate a dictionary of with key=bank name, value = emmebank object 
+    data_explorer = project_name.desktop.data_explorer()
+    all_emmebanks = {}
+    for database in data_explorer.databases():
+        emmebank = database.core_emmebank
+        all_emmebanks.update({emmebank.title: emmebank})
+    start_transit_assignment = time.time()
+
+    #Define the Emme Tools used in this function
+    
+    for tod in uniqueTOD:
+
+        print tod
+        my_bank = all_emmebanks[tod]
+        #need a scenario, get the first one
+        current_scenario = list(my_bank.scenarios())[0]
+        #Determine the Path and Scenario File
+        
+        zones=current_scenario.zone_numbers
+        bank_name = my_bank.title
+    
+    
+        assign_transit = project_name.tool("inro.emme.transit_assignment.standard_transit_assignment")
+
+    #Load in the necessary Dictionaries
+    
+    
+        assignment_specification = json_to_dictionary("bike_walk_assignment")
+        #get demand matrix name from here:
+        user_classes = json_to_dictionary("user_classes")
+        mod_assign = assignment_specification
+        #only skim for time for certain tod
+        if tod in bike_walk_skim_tod:
+            for key in bike_walk_matrix_dict.keys():
+                mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
+                print bike_walk_matrix_dict[key]['time']
+                mod_assign['od_results']['transit_times'] = bike_walk_matrix_dict[key]['time']
+                mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
+                assign_transit(mod_assign)    
+        else:
+            #Dont Skim
+            for key in bike_walk_matrix_dict.keys():
+                mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
+                mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
+                assign_transit(mod_assign) 
+       
+
+    end_transit_assignment = time.time()
+    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the bike/walk assignment.'
 
 def run_assignments_parallel(project_name):
 
@@ -983,29 +1457,43 @@ def run_assignments_parallel(project_name):
      
      
      
-     #delete and create new demand and skim matrices:
+    #delete and create new demand and skim matrices:
     delete_matrices(m, "FULL")
+    delete_matrices(m, "ORIGIN")
+
     define_matrices(m)
      
-     #Import demand/trip tables to emme. This is actually quite fast con-currently. 
-    hdf5_trips_to_Emme(m, hdf5_file_path)
+    #Import demand/trip tables to emme. This is actually quite fast con-currently. 
+    #hdf5_trips_to_Emme(m, hdf5_file_path)
+    tod = m.emmebank.title
+    populate_intrazonals(m)
+    #create transit fare matrices:
+    if tod in fare_matrices_tod:
+        fare_file = fare_dict[tod]['Files']['fare_box_file']
+       #fare box:
+        create_fare_zones(m, zone_file, fare_file)
+        #monthly:
+        fare_file = fare_dict[tod]['Files']['monthly_pass_file']
+        create_fare_zones(m, zone_file, fare_file)
      
-     #set up for assignments
+    #set up for assignments
     intitial_extra_attributes(m)
     import_extra_attributes(m)
     arterial_delay_calc(m)
     vdf_initial(m)
      
      
-     #run auto assignment/skims
+    #run auto assignment/skims
     traffic_assignment(m)
     attribute_based_skims(m, "Time")
 
-     #get tod from bank name. Only skim for distance if in global distance_skim_tod list
-    tod = m.emmebank.title
+    #get tod from bank name. Only skim for distance if in global distance_skim_tod list
+    
+    #bike/walk:
+    bike_walk_assignment(m, tod, 'false')
     if tod in distance_skim_tod:
-        print tod
         attribute_based_skims(m,"Distance")
+     
     #Toll skims
     attribute_based_toll_cost_skims( m, "@toll1")
     attribute_based_toll_cost_skims( m, "@toll2")
@@ -1013,8 +1501,8 @@ def run_assignments_parallel(project_name):
     class_specific_volumes(m)
      
      
-     
-     
+    #skims_to_hdf5_concurrent(m)
+    #app.App.refresh_data
     print tod + " finished"
     end_of_run = time.time()
     print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
@@ -1031,24 +1519,29 @@ def main():
         #Daysim Finished Running, now start Emme Assignment & Skimming code
         
         #want pooled processes finished before executing more code in main:
-        project_list=['C:/ABM/Projects/5to6/5to6.emp','C:/ABM/Projects/6to7/6to7.emp','C:/ABM/Projects/7to8/7to8.emp','C:/ABM/Projects/8to9/8to9.emp', 'C:/ABM/Projects/9to10/9to10.emp', 'C:/ABM/Projects/10to14/10to14.emp', 'C:/ABM/Projects/14to15/14to15.emp','C:/ABM/Projects/15to16/15to16.emp', 'C:/ABM/Projects/16to17/16to17.emp', 'C:/ABM/Projects/17to18/17to18.emp', 'C:/ABM/Projects/18to20/18to20.emp', 'C:/ABM/Projects/20to5/20to5.emp' ]
-       
-        start_pool(project_list)
+        project_list=['D:/ABM/Projects/5to6/5to6.emp','D:/ABM/Projects/6to7/6to7.emp','D:/ABM/Projects/7to8/7to8.emp','D:/ABM/Projects/8to9/8to9.emp', 'D:/ABM/Projects/9to10/9to10.emp', 'D:/ABM/Projects/10to14/10to14.emp', 'D:/ABM/Projects/14to15/14to15.emp','D:/ABM/Projects/15to16/15to16.emp', 'D:/ABM/Projects/16to17/16to17.emp', 'D:/ABM/Projects/17to18/17to18.emp', 'D:/ABM/Projects/18to20/18to20.emp', 'D:/ABM/Projects/20to5/20to5.emp' ]
+        #project_list='D:/ABM/Projects/6to7/6to7.emp', 'D:/ABM/Projects/9to10/9to10.emp'
+        #run_assignments_parallel('D:/ABM/Projects/6to7/6to7.emp')
+        #start_pool(project_list)
         start_transit_pool(project_list)
+        
         
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each time period, and then merging them
         #all to one HDF5 file at the end, but this was signigicantly slower than writing out sequentially. Below we are able to 
         #launch another instance of modeler because the others were launched/closed in their own pool/process. 
         #This project points to all TOD Banks:
-        project_name = 'C:/ABM/Projects/LoadTripTables/LoadTripTables.emp'
+        
+        project_name = 'D:/ABM/Projects/LoadTripTables/LoadTripTables.emp'
         my_desktop = app.start_dedicated(True, "cth", project_name)
         m = _m.Modeller(my_desktop)
-        app.App.refresh_data
+        #app.App.refresh_data
+        skims_to_hdf5(m)
         
-
-        skims_to_hdf5(m, hdf5_file_path)
     
         end_of_run = time.time()
+        f = open('c:/workfile', 'a')
+        f.writeline('ran_once_')
+        f.close()
 
         print "Emme Skim Creation and Export to HDF5 completed normally"
         print 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
