@@ -1,0 +1,189 @@
+{
+    "type": "PATH_BASED_TRAFFIC_ASSIGNMENT",
+    "classes": [
+        {
+            "mode": "e",
+            "demand": "mfsvtl1v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "e",
+            "demand": "mfsvtl2v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "e",
+            "demand": "mfsvtl3v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "s",
+            "demand": "mfsvnt1v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "s",
+            "demand": "mfsvnt2v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "s",
+            "demand": "mfsvnt3v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "mfh2tl1v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "mfh2tl2v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "mfh2tl3v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "h",
+            "demand": "mfh2nt1v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "h",
+            "demand": "mfh2nt2v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "h",
+            "demand": "mfh2nt3v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "mfh3tl1v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "mfh3tl2v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "mfh3tl3v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "i",
+            "demand": "mfh3nt1v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "i",
+            "demand": "mfh3nt2v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "i",
+            "demand": "mfh3nt3v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "v",
+            "demand": "mflttrkv",
+            "generalized_cost": {
+                "link_costs": "@trkc1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "u",
+            "demand": "mfmdtrkv",
+            "generalized_cost": {
+                "link_costs": "@trkc2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "t",
+            "demand": "mfhvtrkv",
+            "generalized_cost": {
+                "link_costs": "@trkc3",
+                "perception_factor": 1.0
+            }
+        }
+    ],
+    "performance_settings": {
+        "max_path_memory": 3000,
+        "gap_computation_freq": 5,
+        "path_cost_equality_tolerance": {
+            "initial_proportion": 0.001,
+            "refinement_iteration": 30,
+            "refined_proportion": 0.00001
+        }
+    },
+    "background_traffic": null,
+    "stopping_criteria": {
+        "max_iterations": 10,
+        "best_relative_gap": 0.05,
+        "relative_gap": 0.01,
+        "normalized_gap": 0.01
+    }
+}
