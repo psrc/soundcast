@@ -22,7 +22,7 @@ max_iter = 50
 b_rel_gap = 0.0001
 
 #Hardcoded Path for ABM Project File & HDF5 File
-rundir = 'D:/Run1'
+rundir = '.'
 hdf5_file_path = rundir + '/Inputs/seed_trips.hdf5'
 
 #HDF5 Groups and Subgroups
@@ -39,8 +39,6 @@ hdf5_daysim_subgroups=["Household","Person","Trip","Tour"]
 #Skim for time, cost
 skim_matrix_designation_all_tods=['t','c']
 skim_matrix_designation_limited = ['d']
-
-
 
 #skim for distance for only these time periods
 distance_skim_tod = ['5to6']
