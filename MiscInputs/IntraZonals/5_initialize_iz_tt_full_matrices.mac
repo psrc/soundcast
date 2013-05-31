@@ -1,0 +1,23 @@
+~?!i&32768
+~o|295
+batchin=?
+reports=5_initialize_iz_tt_full_matrices.rpt
+~/
+~/
+~/begin: 5_initialize_iz_tt_full_matrices.mac
+~/ ...set active scenario to 9999
+s=9999
+~/ ...call module 3.12: input/modify matrices interactively
+~/ ...initialize full matrices
+3.12
+~+|1|mf01|termtm|total terminal time|0
+~+|1|mf02|izdist|intrazonal distance|0
+~+|1|mf03|izatim|intrazonal time (auto) @ 15 mph|0
+~+|1|mf04|izbtim|intrazonal time (bike) @ 10 mph|0
+~+|1|mf05|izwtim|intrazonal time (walk) @ 3 mph|0
+q
+~#
+~/end: 5_initialize_iz_tt_full_matrices.mac
+~/exit emme
+~/
+q
