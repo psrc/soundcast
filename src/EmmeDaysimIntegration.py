@@ -16,14 +16,14 @@ from multiprocessing import Pool
 
 #Hard-coded paths/data will be moved to a Config file 
 # Number of Global Interations
-global_iterations = 2
+global_iterations = 1
 # Assignment Convergence Criteria
 max_iter = 50
 b_rel_gap = 0.0001
 
 #Hardcoded Path for ABM Project File & HDF5 File
-abm_path = 'D:/ABM'
-hdf5_file_path = 'D:/ABM/HDF5/PSRC_Daysim.hdf5'
+rundir = 'D:/Run1'
+hdf5_file_path = rundir + '/Inputs/seed_trips.hdf5'
 
 #HDF5 Groups and Subgroups
 hdf5_maingroups=["Daysim","Emme","Truck Model","UrbanSim"]
@@ -54,11 +54,11 @@ transit_skim_tod = ['6to7', '7to8', '8to9', '9to10']
 transit_submodes=['b', 'c', 'f', 'p', 'r']
 
 #fare
-zone_file = 'D:/ABM/MiscInputs/Fares/transit_fare_zones.grt'
-peak_fare_box = 'D:/ABM/MiscInputs/Fares/am_fares_farebox.in'
-peak_monthly_pass = 'D:/ABM/MiscInputs/Fares/am_fares_monthly_pass.in'
-offpeak_fare_box = 'D:/ABM/MiscInputs/Fares/md_fares_farebox.in'
-offpeak_monthly_pass ='D:/ABM/MiscInputs/Fares/md_fares_monthly_pass.in'
+zone_file = rundir + '/Inputs/Fares/transit_fare_zones.grt'
+peak_fare_box = rundir + '/Inputs/Fares/am_fares_farebox.in'
+peak_monthly_pass = rundir + '/Inputs/Fares/am_fares_monthly_pass.in'
+offpeak_fare_box = rundir + '/Inputs/Fares/md_fares_farebox.in'
+offpeak_monthly_pass =rundir + '/Inputs/Fares/md_fares_monthly_pass.in'
 fare_matrices_tod = ['6to7', '9to10']
 fare_dict = {'5to6':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
              '6to7':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass},'Names':{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
@@ -75,7 +75,7 @@ fare_dict = {'5to6':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_f
 
 #intrazonals
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
-taz_area_file = 'D:/ABM/MiscInputs/IntraZonals/taz_acres.in'
+taz_area_file = rundir + '/Inputs/IntraZonals/taz_acres.in'
 
 
 def create_hdf5_container(hdf_name):
@@ -85,7 +85,7 @@ def create_hdf5_container(hdf_name):
     #Create the HDF5 Container with subgroups (only creates it if one does not already exist using "w-")
     #Currently uses the subgroups as shown in the "hdf5_subgroups" list hardcoded above, this could be read from a control file.
     
-    hdf_filename = os.path.join(abm_path, 'HDF5',hdf_name +'.hdf5').replace("\\","/")
+    hdf_filename = os.path.join(rundir, 'HDF5',hdf_name +'.hdf5').replace("\\","/")
     print hdf_filename
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -128,7 +128,7 @@ def create_hdf5_skim_container(hdf5_name):
 
      
     
-    hdf5_filename = os.path.join(abm_path, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
+    hdf5_filename = os.path.join(rundir, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
     print hdf5_filename
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -158,7 +158,7 @@ def create_hdf5_skim_container2(hdf5_name):
 
      
     
-    hdf5_filename = os.path.join(abm_path, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
+    hdf5_filename = os.path.join(rundir, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
     print hdf5_filename
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -187,7 +187,7 @@ def create_hdf5_skim_container2(hdf5_name):
     return hdf5_filename
 def text_to_dictionary(dict_name):
     
-    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join(rundir, 'EmmeDaysimIntegration/config',dict_name+'.txt').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
     
@@ -201,7 +201,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join(abm_path, 'EmmeDaysimIntegration/config/',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join(rundir, 'EmmeDaysimIntegration/config/',dict_name+'.txt').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
@@ -1185,7 +1185,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     mode_dict = text_to_dictionary('modes')
 
     #Stores in the HDF5 Container to read or write to
-    daysim_set = my_store["Daysim"]["Trip"]
+    daysim_set = my_store['Trip']
    
     #Store arrays from Daysim/Trips Group into numpy arrays, indexed by TOD. 
     #This means that only trip info for the current Time Period will be included in each array.
@@ -1228,8 +1228,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         elif vot[x] < 8.00: vot[x]=2
         else: vot[x]=3
         
-        #get the matrix name from matrix_dict
-        mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
+        #get the matrix name from matrix_dict. Throw out school bus (8) for now. 
+        if mode[x]<>8:
+            mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
 
        #Only want drivers, transit trips. 
         if dorp[x] <= 1:
@@ -1267,7 +1268,7 @@ def create_trip_tod_indices(tod):
      
      #Now for the given tod, get the index of all the trips for that Time Period
      my_store=h5py.File(hdf5_file_path, "r+")
-     daysim_set = my_store["Daysim"]["Trip"]
+     daysim_set = my_store["Trip"]
      #open departure time array
      deptm = np.asarray(daysim_set["deptm"])
      #convert to hours
@@ -1336,6 +1337,21 @@ def run_transit(project_name):
     mod_calc["result"] = transfer_wait_matrix
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
+
+def export_to_hdf5_pool(project_list):
+    
+    pool = Pool(processes=1)
+    pool.map(start_export_to_hdf5, project_list[0:1])
+    pool.close()
+
+def start_export_to_hdf5(test):
+    print test
+    my_desktop = app.start_dedicated(True, "cth", test)
+    m = _m.Modeller(my_desktop)
+    #app.App.refresh_data
+    skims_to_hdf5(m)
+    print 'done'
+
 
 def bike_walk_assignment(my_project, tod, assign_for_all_tods):
     #One bank
@@ -1464,7 +1480,7 @@ def run_assignments_parallel(project_name):
     define_matrices(m)
      
     #Import demand/trip tables to emme. This is actually quite fast con-currently. 
-    #hdf5_trips_to_Emme(m, hdf5_file_path)
+    hdf5_trips_to_Emme(m, hdf5_file_path)
     tod = m.emmebank.title
     populate_intrazonals(m)
     #create transit fare matrices:
@@ -1502,7 +1518,7 @@ def run_assignments_parallel(project_name):
      
      
     #skims_to_hdf5_concurrent(m)
-    #app.App.refresh_data
+    app.App.refresh_data
     print tod + " finished"
     end_of_run = time.time()
     print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
@@ -1515,14 +1531,15 @@ def main():
         start_of_run = time.time()
         #launch daysim 
         #retcode = subprocess.call(["Daysim.exe"])
+        #print 'Daysim Finished'
         
         #Daysim Finished Running, now start Emme Assignment & Skimming code
         
         #want pooled processes finished before executing more code in main:
-        project_list=['D:/ABM/Projects/5to6/5to6.emp','D:/ABM/Projects/6to7/6to7.emp','D:/ABM/Projects/7to8/7to8.emp','D:/ABM/Projects/8to9/8to9.emp', 'D:/ABM/Projects/9to10/9to10.emp', 'D:/ABM/Projects/10to14/10to14.emp', 'D:/ABM/Projects/14to15/14to15.emp','D:/ABM/Projects/15to16/15to16.emp', 'D:/ABM/Projects/16to17/16to17.emp', 'D:/ABM/Projects/17to18/17to18.emp', 'D:/ABM/Projects/18to20/18to20.emp', 'D:/ABM/Projects/20to5/20to5.emp' ]
-        #project_list='D:/ABM/Projects/6to7/6to7.emp', 'D:/ABM/Projects/9to10/9to10.emp'
-        #run_assignments_parallel('D:/ABM/Projects/6to7/6to7.emp')
-        #start_pool(project_list)
+        project_list=[rundir + '/Projects/5to6/5to6.emp',rundir + '/Projects/6to7/6to7.emp',rundir + '/Projects/7to8/7to8.emp',rundir + '/Projects/8to9/8to9.emp', rundir + '/Projects/9to10/9to10.emp', rundir + '/Projects/10to14/10to14.emp', rundir + '/Projects/14to15/14to15.emp',rundir + '/Projects/15to16/15to16.emp', rundir + '/Projects/16to17/16to17.emp', rundir + '/Projects/17to18/17to18.emp', rundir + '/Projects/18to20/18to20.emp', rundir + '/Projects/20to5/20to5.emp' ]
+        #project_list=rundir + '/Projects/6to7/6to7.emp', rundir + '/Projects/9to10/9to10.emp'
+        #run_assignments_parallel(rundir + '/Projects/7to8/7to8.emp')
+        start_pool(project_list)
         start_transit_pool(project_list)
         
         
@@ -1531,17 +1548,13 @@ def main():
         #launch another instance of modeler because the others were launched/closed in their own pool/process. 
         #This project points to all TOD Banks:
         
-        project_name = 'D:/ABM/Projects/LoadTripTables/LoadTripTables.emp'
-        my_desktop = app.start_dedicated(True, "cth", project_name)
-        m = _m.Modeller(my_desktop)
-        #app.App.refresh_data
-        skims_to_hdf5(m)
-        
+       
+       
+        export_project_list = [rundir + '/Projects/LoadTripTables/LoadTripTables.emp']
+        export_to_hdf5_pool(export_project_list)
     
         end_of_run = time.time()
-        f = open('c:/workfile', 'a')
-        f.writeline('ran_once_')
-        f.close()
+       
 
         print "Emme Skim Creation and Export to HDF5 completed normally"
         print 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
