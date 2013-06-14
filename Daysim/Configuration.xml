@@ -5,126 +5,30 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
 
-ReadHDF5 = "true" 
+BasePath = "c:\run1\inputs"
+WorkingDirectory="working"
+OutputSubpath = "output"
+WorkingSubpath = "working"
+EstimationSubpath = "estimation"
+
+RosterPath="psrc_roster_test_write_small.csv"
+RosterCombinationsPath="psrc-roster.combinations.csv"
+
+HDF5Filename = "hhs_and_persons.h5"
+HDF5Path="daysim_outputs.h5"
+ReadHDF5 = "true"
 WriteTripsToHDF5="true"
-HDF5Filename="hhs_and_persons.hdf5"
-HDF5Path="D:\Run1\output\daysim_outputs.hdf5"
 
 NProcessors="8"
-UseShortDistanceNodeToNodeMeasures="true"
-RawParcelNodePath="D:\Run1\Inputs\psrc_parcel_nodes.dat"
-RawParcelNodeDelimiter="32"
-NodeIndexPath="D:\Run1\Inputs\psrc_node_node_index.dat"
-NodeIndexDelimiter="32"
-NodeDistancesPath="D:\Run1\Inputs\psrc_node_node_distances_binary.dat"
 
-
-UseShortDistanceCircuityMeasures="false"
-
-ReportInvalidPersonDays="true"
-
-IsInEstimationMode="false"
-EstimationModel="HTourModeTimeModel"
-ShouldOutputAlogitData="false"
-OutputAlogitDataPath="D:\Run1\Inputs\estimation\HTourModeTimeModel.dat"
-OutputAlogitControlPath="D:\Run1\Inputs\estimation\HTourModeTimeModel.alo"
-
-LengthUnitsPerFoot="1"
-DistanceUnitsPerMile="1"
-MonetaryUnitsPerDollar="1"
-
-UseJointTours="false"
-
-RandomSeed="12345"
-ShouldSynchronizeRandomSeed="true"
-NumberOfRandomSeeds="1000"
-
-RosterPath="D:\Run1\Inputs\psrc_roster_test_write.csv"
-RosterCombinationsPath="D:\Run1\Inputs\psrc-roster.combinations.csv"
-
-
-VotVeryLowLow="-1"
-VotLowMedium="0"
-VotMediumHigh="10000"
-VotHighVeryHigh="10001"
-
-IxxiPath="D:\Run1\Inputs\psrc_worker_ixxifractions.dat"
-IxxiDelimiter="32"
-IxxiFirstLineIsHeader="false"
-
-ImportParkAndRideNodes="false"
-RawParkAndRideNodePath="D:\Run1\Inputs\PSRC_p_rNodes.dat"
-RawParkAndRideNodeDelimiter="9"
-ShouldReadParkAndRideNodeSkim="false"
-
-RawParcelPath="D:\Run1\Inputs\psrc_parcel_decay_2006.dat"
-RawParcelDelimiter="32"
-
-RawZonePath="D:\Run1\Inputs\psrc_taz_indexes.dat"
-RawZoneDelimiter="9"
-
-ImportHouseholds="false"
-RawHouseholdPath="D:\Run1\Inputs\hrecx7.dat"
-RawHouseholdDelimiter="32"
-OutputHouseholdPath="D:\Run1\output\_household.tsv"
-OutputHouseholdDelimiter="9"
-
-ImportPersons="false"
-RawPersonPath="D:\Run1\Inputs\precx7.dat"
-RawPersonDelimiter="32"
-OutputPersonPath="D:\Run1\output\_person.tsv"
-OutputPersonDelimiter="9"
-
-ImportHouseholdDays="false"
-RawHouseholdDayPath="D:\Run1\Inputs\hdayx7.dat"
-RawHouseholdDayDelimiter="32"
-OutputHouseholdDayPath="D:\Run1\output\_household_day.tsv"
-OutputHouseholdDayDelimiter="9"
-
-ImportPersonDays="false"
-RawPersonDayPath="D:\Run1\Inputs\pdayx7.dat"
-RawPersonDayDelimiter="32"
-OutputPersonDayPath="D:\Run1\output\_person_day.tsv"
-OutputPersonDayDelimiter="9"
-
-ImportTours="false"
-RawTourPath="D:\Run1\Inputs\tourx7.dat"
-RawTourDelimiter="32"
-OutputTourPath="D:\Run1\output\_tour.tsv"
-OutputTourDelimiter="9"
-
-ImportTrips="false"
-RawTripPath="D:\Run1\Inputs\tripx7.dat"
-RawTripDelimiter="32"
-OutputTripPath="D:\Run1\output\_trip.tsv"
-OutputTripDelimiter="9"
-
-ImportJointTours="false"
-RawJointTourPath="D:\Run1\Inputs\jtourx7.dat"
-RawJointTourDelimiter="32"
-OutputJointTourDelimiter="9"
-OutputJointTourPath="D:\Run1\output\_joint_tour.tsv"
-
-ImportFullHalfTours="false"
-RawFullHalfTourPath="D:\Run1\Inputs\fhtourx7.dat"
-RawFullHalfTourDelimiter="32"
-OutputFullHalfTourPath="D:\Run1\output\_full_half_tour.tsv"
-OutputFullHalfTourDelimiter="9"
-
-ImportPartialHalfTours="false"
-RawPartialHalfTourPath="D:\Run1\Inputs\phtourx7.dat"
-RawPartialHalfTourDelimiter="32"
-OutputPartialHalfTourPath="D:\Run1\output\_partial_half_tour.tsv"
-OutputPartialHalfTourDelimiter="9"
-
-ShouldRunRawConversion="true"
-WorkingDirectory="D:\temp\working"
 HouseholdSamplingRateOneInX="1"
 HouseholdSamplingStartWithY="1"
+ReportInvalidPersonDays="false"
+
+ShouldRunRawConversion="true"
+
 MinParcelSize="10"
 UrbanThreshold="500"
-
-ChoiceModelRunner="ChoiceModelRunner"
 ShouldRunChoiceModels="true"
 ShouldRunHouseholdModels="true"
 ShouldRunPersonModels="true"
@@ -136,13 +40,96 @@ ShouldRunSubtourTripModels="true"
 DestinationScale="0"
 ShowRunChoiceModelsStatus="true"
 
+UseShortDistanceNodeToNodeMeasures="false"
+
+
+VotVeryLowLow="-1"
+VotLowMedium="0"
+VotMediumHigh="10000"
+VotHighVeryHigh="10001"
+
+UseJointTours="false"
+
+IsInEstimationMode="false"
+EstimationModel="OtherHomeBasedTourModeModel"
+ShouldOutputAlogitData="true"
+OutputAlogitDataPath="estimation\otmode22x.dat"
+OutputAlogitControlPath="estimation\otmode22x.alo"
+
+LengthUnitsPerFoot="1"
+DistanceUnitsPerMile="1"
+MonetaryUnitsPerDollar="1"
+
+RandomSeed="23456"
+ShouldSynchronizeRandomSeed="true"
+NumberOfRandomSeeds="1000"
+
+
+RawParcelNodePath="psrc_parcel_nodes.dat"
+RawParcelNodeDelimiter="32"
+NodeIndexPath="psrc_node_node_index.dat"
+NodeIndexDelimiter="32"
+NodeDistancesPath="psrc_node_node_distances_binary.dat"
+
+IxxiPath="psrc_worker_ixxifractions.dat"
+IxxiDelimiter="32"
+IxxiFirstLineIsHeader="false"
+
+ImportParkAndRideNodes="true"
+RawParkAndRideNodePath="PSRC_p_rNodes.dat"
+RawParkAndRideNodeDelimiter="9"
+ShouldReadParkAndRideNodeSkim="false"
+
+ImportZones="true"
+RawZonePath="psrc_taz_indexes.dat"
+RawZoneDelimiter="9"
+
+ImportParcels="true"
+RawParcelPath="psrc_parcel_decay_2006.dat"
+RawParcelDelimiter="32"
+
+ImportHouseholds="true"
+RawHouseholdPath="hrecx7.dat"
+RawHouseholdDelimiter="32"
+OutputHouseholdPath="_household.tsv"
+OutputHouseholdDelimiter="9"
+
+ImportPersons="true"
+RawPersonPath="precx7.dat"
+RawPersonDelimiter="32"
+OutputPersonPath="_person.tsv"
+OutputPersonDelimiter="9"
+
+OutputHouseholdDayPath="_household_day.tsv"
+OutputHouseholdDayDelimiter="9"
+
+OutputPersonDayPath="_person_day.tsv"
+OutputPersonDayDelimiter="9"
+
+OutputTourPath="_tour.tsv"
+OutputTourDelimiter="9"
+
+OutputTripPath="_trip.tsv"
+OutputTripDelimiter="9"
+
+OutputJointTourDelimiter="9"
+OutputJointTourPath="_joint_tour.tsv"
+
+OutputFullHalfTourPath="_full_half_tour.tsv"
+OutputFullHalfTourDelimiter="9"
+
+OutputPartialHalfTourPath="_partial_half_tour.tsv"
+OutputPartialHalfTourDelimiter="9"
+
+
+
 MaximumBlendingDistance="3"
-ShouldOutputTDMTripList="false"
-OutputTDMTripListPath="D:\Run1\output\tdm_trip_list.csv"
+ShouldOutputTDMTripList="true"
+OutputTDMTripListPath="tdm_trip_list.csv"
 TDMTripListDelimiter="44"
 
 PathImpedance_PathChoiceScaleFactor="1.5"
-PathImpedance_AutoOperatingCostPerDistanceUnit="0.15"
+PathImpedance_AutoOperatingCostPerMile="0.12"
 PathImpedance_TransitInVehicleTimeWeight="1.0"
 PathImpedance_TransitFirstWaitTimeWeight="2.0"
 PathImpedance_TransitTransferWaitTimeWeight="2.0"
@@ -151,7 +138,7 @@ PathImpedance_TransitDriveAccessTimeWeight="2.0"
 PathImpedance_TransitWalkAccessTimeWeight="2.0"
 PathImpedance_WalkTimeWeight="2.0"
 PathImpedance_BikeTimeWeight="2.0"
-PathImpedance_WalkMinutesPerDistanceUnit="20.0"
+PathImpedance_WalkMinutesPerMile="20.0"
 PathImpedance_TransitWalkAccessDistanceLimit="2.0"
 PathImpedance_TransitWalkAccessDirectLimit="1.0"
 PathImpedance_TransitSingleBoardingLimit="1.1"
@@ -180,132 +167,105 @@ PathImpedance_TransitFareDiscountFractionUniverityStudent="0.5"
 PathImpedance_TransitFareDiscountFractionAge65Up="0.5"
 PathImpedance_TransitPassCostPercentChangeVersusBase="0"
 
-Coefficients_BaseCostCoefficientPerMonetaryUnit="-0.15"
+Coefficients_BaseCostCoefficientPerDollar="-0.15"
 Coefficients_BaseCostCoefficientIncomeLevel="30000"
 Coefficients_CostCoefficientIncomePower_Work="0.6"
 Coefficients_CostCoefficientIncomePower_Other="0.5"
 Coefficients_MeanTimeCoefficient_Work="-0.03"
 Coefficients_MeanTimeCoefficient_Other="-0.015"
-Coefficients_StdDeviationTimeCoefficient_Work="0.80"
-Coefficients_StdDeviationTimeCoefficient_Other="1.00"
+Coefficients_StdDeviationTimeCoefficient_Work="0.8"
+Coefficients_StdDeviationTimeCoefficient_Other="1.0"
 Coefficients_HOV2CostDivisor_Work="1.741"
-Coefficients_HOV2CostDivisor_Other="1.625"
+Coefficients_HOV2CostDivisor_Other="1.741"
 Coefficients_HOV3CostDivisor_Work="2.408"
 Coefficients_HOV3CostDivisor_Other="2.158"
 UseRandomVotDistribution="true"
 
 ShouldLoadAggregateLogsumsFromFile="true"
-ShouldOutputAggregateLogsums="false"
-OutputAggregateLogsumsPath="D:\Run1\output\aggregate_logsums.dat"
+ShouldOutputAggregateLogsums="true"
+OutputAggregateLogsumsPath="aggregate_logsums.dat"
 
 ShouldLoadSamplingWeightsFromFile="false"
 ShouldOutputSamplingWeights="false"
-OutputSamplingWeightsPath="D:\Run1\output\sampling_weights.dat"
+OutputSamplingWeightsPath="sampling_weights.dat"
 
-WorkLocationModelSampleSize="100"
-WorkLocationModelCoefficients="D:\Run1\Inputs\WorkLocationCoefficients_sacog-v1.5.f12"
-ShouldRunWorkLocationModel="false"
+WorkLocationModelSampleSize="50"
+WorkLocationModelCoefficients="WorkLocationCoefficients_sacog-v1.5.f12"
+ShouldRunWorkLocationModel="true"
 IncludeWorkLocationModel="true"
 
-SchoolLocationModelSampleSize="100"
-SchoolLocationModelCoefficients="D:\Run1\Inputs\SchoolLocationCoefficients_sacog-v1.5.f12"
-ShouldRunSchoolLocationModel="false"
+SchoolLocationModelSampleSize="50"
+SchoolLocationModelCoefficients="SchoolLocationCoefficients_sacog-v1.5.f12"
+ShouldRunSchoolLocationModel="true"
 IncludeSchoolLocationModel="true"
 
-PayToParkAtWorkplaceModelCoefficients="D:\Run1\Inputs\PayToParkAtWorkplaceCoefficients_sacog-v1.5.F12"
+PayToParkAtWorkplaceModelCoefficients="PayToParkAtWorkplaceCoefficients_sacog-v1.5.F12"
 ShouldRunPayToParkAtWorkplaceModel="true"
 IncludePayToParkAtWorkplaceModel="true"
 
-TransitPassOwnershipModelCoefficients="D:\Run1\Inputs\TransitPassOwnershipCoefficients_sacog-v1.5.f12"
+TransitPassOwnershipModelCoefficients="TransitPassOwnershipCoefficients_sacog-v1.5.f12"
 ShouldRunTransitPassOwnershipModel="true"
 IncludeTransitPassOwnershipModel="true"
 
-AutoOwnershipModelCoefficients="D:\Run1\Inputs\AutoOwnershipCoefficients_sacog-v1.5.f12"
+AutoOwnershipModelCoefficients="AutoOwnershipCoefficients_sacog-v1.5.f12"
 ShouldRunAutoOwnershipModel="true"
 
-HouseholdDayPatternTypeModelCoefficients="D:\Run1\Inputs\PSRCHouseholdDayPatternTypeModelCoefficients.f12"
-PersonDayPatternTypeModelCoefficients="D:\Run1\Inputs\PSRCPersonDayPatternTypeModelCoefficients.f12"
-ShouldRunHouseholdDayPatternTypeModel="true"
-
-WorkAtHomeModelCoefficients="D:\Run1\Inputs\PSRCWorkAtHomeModelCoefficients.f12"
-ShouldRunWorkAtHomeModel="true"
-
-MandatoryTourGenerationModelCoefficients="D:\Run1\Inputs\PSRCMandatoryTourGenerationModelCoefficients.f12"
-MandatoryStopPresenceModelCoefficients="D:\Run1\Inputs\PSRCMandatoryStopPresenceModelCoefficients.f12"
-ShouldRunMandatoryTourGenerationModel="false"
-
-
-JointHalfTourGenerationModelCoefficients="D:\Run1\Inputs\PSRCJointHalfTourGenerationModelCoefficients.f12"
-FullJointHalfTourParticipationModelCoefficients="D:\Run1\Inputs\PSRCFullJointHalfTourParticipationModelCoefficients.f12"
-PartialJointHalfTourParticipationModelCoefficients="D:\Run1\Inputs\PSRCPartialJointHalfTourParticipationModelCoefficients.f12"
-PartialJointHalfTourChauffeurModelCoefficients="D:\Run1\Inputs\HPartialJointHalfTourChauffeurModel_PSRC.f12"
-ShouldRunJointHalfTourGenerationModels="false"
-
-JointTourGenerationModelCoefficients="D:\Run1\Inputs\PSRCJointTourGenerationModelCoefficients.f12"
-JointTourParticipationModelCoefficients="D:\Run1\Inputs\PSRCJointTourParticipationModelCoefficients.f12"
-ShouldRunJointTourGenerationModel="false"
-
-HouseholdPersonDayPatternModelCoefficients="D:\Run1\Inputs\HouseholdPersonDayPatternCoefficients.f12"
-ShouldRunHouseholdPersonDayPatternModel="false"
-
-IndividualPersonDayPatternModelCoefficients="D:\Run1\Inputs\IndividualPersonDayPatternCoefficients_SACOG-v1.5.f12"
+IndividualPersonDayPatternModelCoefficients="IndividualPersonDayPatternCoefficients_sacog-v1.5.f12"
 ShouldRunIndividualPersonDayPatternModel="true"
 
-PersonExactNumberOfToursModelCoefficients="D:\Run1\Inputs\PersonExactNumberOfToursCoefficients_sacog-v1.5.F12"
+PersonExactNumberOfToursModelCoefficients="PersonExactNumberOfToursCoefficients_sacog-v1.5.F12"
 ShouldRunPersonExactNumberOfToursModel="true"
 
 WorkTourDestinationModelSampleSize="25"
-WorkTourDestinationModelCoefficients="D:\Run1\Inputs\WorkTourDestinationCoefficients_sacog-v1.5.F12"
+WorkTourDestinationModelCoefficients="WorkTourDestinationCoefficients_sacog-v1.5.F12"
 ShouldRunWorkTourDestinationModel="true"
 
 OtherTourDestinationModelSampleSize="25"
-OtherTourDestinationModelCoefficients="D:\Run1\Inputs\OtherTourDestinationCoefficients_SACOG-v1.5.F12"
+OtherTourDestinationModelCoefficients="OtherTourDestinationCoefficients_sacog-v1.5.F12"
 ShouldRunOtherTourDestinationModel="true"
 
-WorkBasedSubtourGenerationModelCoefficients="D:\Run1\Inputs\WorkbasedSubtourGenerationCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourGenerationModelCoefficients="WorkbasedSubtourGenerationCoefficients_sacog-v1.5.F12"
 ShouldRunWorkBasedSubtourGenerationModel="true"
-WorkTourModeModelCoefficients="D:\Run1\Inputs\WorkTourModeCoefficients_sacog-v1.5.F12"
+
+WorkTourModeModelCoefficients="WorkTourModeCoefficients_sacog-v1.5.F12"
 ShouldRunWorkTourModeModel="true"
 
-SchoolTourModeModelCoefficients="D:\Run1\Inputs\SchoolTourModeCoefficients_sacog-v1.5.F12"
+SchoolTourModeModelCoefficients="SchoolTourModeCoefficients_sacog-v1.5.F12"
 ShouldRunSchoolTourModeModel="true"
 
-WorkBasedSubtourModeModelCoefficients="D:\Run1\Inputs\WorkBasedSubtourModeCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourModeModelCoefficients="WorkBasedSubtourModeCoefficients_sacog-v1.5.F12"
 ShouldRunWorkBasedSubtourModeModel="true"
 
-EscortTourModeModelCoefficients="D:\Run1\Inputs\EscortTourModeCoefficients_sacog-v1.5.F12"
+EscortTourModeModelCoefficients="EscortTourModeCoefficients_sacog-v1.5.F12"
 ShouldRunEscortTourModeModel="true"
 
-OtherHomeBasedTourModeModelCoefficients="D:\Run1\Inputs\OtherHomeBasedTourModeCoefficients_sacog-v1.5.F12"
+OtherHomeBasedTourModeModelCoefficients="OtherHomeBasedTourModeCoefficients_sacog-v1.5.F12"
 ShouldRunOtherHomeBasedTourModeModel="true"
 
-WorkTourTimeModelCoefficients="D:\Run1\Inputs\WorkTourTimeCoefficients_SACOG-v1.5.F12"
+WorkTourTimeModelCoefficients="WorkTourTimeCoefficients_sacog-v1.5.F12"
 ShouldRunWorkTourTimeModel="true"
 
-SchoolTourTimeModelCoefficients="D:\Run1\Inputs\SchoolTourTimeCoefficients_SACOG-v1.5.F12"
+SchoolTourTimeModelCoefficients="SchoolTourTimeCoefficients_sacog-v1.5.F12"
 ShouldRunSchoolTourTimeModel="true"
 
-OtherHomeBasedTourTimeModelCoefficients="D:\Run1\Inputs\OtherHomeBasedTourTimeCoefficients_sacog-v1.5.F12"
+OtherHomeBasedTourTimeModelCoefficients="OtherHomeBasedTourTimeCoefficients_sacog-v1.5.F12"
 ShouldRunOtherHomeBasedTourTimeModel="true"
 
-WorkBasedSubtourTimeModelCoefficients="D:\Run1\Inputs\WorkbasedSubtourTimeCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourTimeModelCoefficients="WorkbasedSubtourTimeCoefficients_sacog-v1.5.F12"
 ShouldRunWorkBasedSubtourTimeModel="true"
 
-IntermediateStopGenerationModelCoefficients="D:\Run1\Inputs\IntermediateStopGenerationCoefficients_sacog-v1.5.F12"
+IntermediateStopGenerationModelCoefficients="IntermediateStopGenerationCoefficients_sacog-v1.5.F12"
 ShouldRunIntermediateStopGenerationModel="true"
 
 IntermediateStopLocationModelSampleSize="25"
-IntermediateStopLocationModelCoefficients="D:\Run1\Inputs\IntermediateStopLocationCoefficients_sacog-v1.5.F12"
+IntermediateStopLocationModelCoefficients="IntermediateStopLocationCoefficients_sacog-v1.5.F12"
 ShouldRunIntermediateStopLocationModel="true"
 
-TripModeModelCoefficients="D:\Run1\Inputs\TripModeCoefficients_sacog-v1.5.f12"
+TripModeModelCoefficients="TripModeCoefficients_sacog-v1.5.f12"
 ShouldRunTripModeModel="true"
 
-TripTimeModelCoefficients="D:\Run1\Inputs\TripTimeCoefficients_sacog-v1.5.f12"
+TripTimeModelCoefficients="TripTimeCoefficients_sacog-v1.5.f12"
 ShouldRunTripTimeModel="true"
-
-TourModeTimeModelCoefficients="D:\Run1\Inputs\TourModeTimeCoefficients_test1.f12"
-ShouldRunTourModeTimeModel="false"
 
 ShouldUseShadowPricing="false"
 UsualWorkParcelThreshold="5"
@@ -318,11 +278,4 @@ UsualSchoolPercentTolerance="0"
 UsualSchoolAbsoluteTolerance="0"
 UsualUniversityPercentTolerance="0"
 UsualUniversityAbsoluteTolerance="0"
-ShadowPriceDelimiter="9"
-
-ShouldUseParkAndRideShadowPricing="false"
-ParkAndRideShadowPriceDelimiter="9"
-ParkAndRideShadowPriceMaximumPenalty="-20.0"
-ParkAndRideShadowPriceTimeSpread="5"
-ParkAndRideShadowPriceStepSize="0.09524"
- />
+ShadowPriceDelimiter="9" />

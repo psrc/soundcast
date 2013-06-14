@@ -1,8 +1,0 @@
-1:Walk
-2:Bike
-3:Highway
-4:Highway
-5:Highway
-6:Transit
-7:Transit
-8:Transit

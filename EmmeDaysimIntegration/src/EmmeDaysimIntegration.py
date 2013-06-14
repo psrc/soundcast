@@ -7,7 +7,7 @@ import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
 import time
-import os
+import os,sys
 import h5py
 import Tkinter, tkFileDialog
 import multiprocessing as mp
@@ -21,9 +21,21 @@ global_iterations = 1
 max_iter = 50
 b_rel_gap = 0.0001
 
+if '-use_seed_trips' in sys.argv:
+	seed_trips = True
+else:
+	seed_trips = False
+
 #Hardcoded Path for ABM Project File & HDF5 File
-rundir = '.'
-hdf5_file_path = rundir + '/Inputs/seed_trips.hdf5'
+rundir ='C:/Run1'
+
+if seed_trips:
+	print 'Using SEED TRIPS.'
+	hdf5_file_path = rundir + '/Inputs/seed_trips.h5'
+else:
+	print 'Using DAYSIM OUTPUTS'
+	hdf5_file_path = rundir + '/Inputs/output/daysim_outputs.h5'
+
 
 #HDF5 Groups and Subgroups
 hdf5_maingroups=["Daysim","Emme","Truck Model","UrbanSim"]
@@ -39,6 +51,8 @@ hdf5_daysim_subgroups=["Household","Person","Trip","Tour"]
 #Skim for time, cost
 skim_matrix_designation_all_tods=['t','c']
 skim_matrix_designation_limited = ['d']
+
+
 
 #skim for distance for only these time periods
 distance_skim_tod = ['5to6']
@@ -156,7 +170,7 @@ def create_hdf5_skim_container2(hdf5_name):
 
      
     
-    hdf5_filename = os.path.join(rundir, 'HDF5',hdf5_name +'.hdf5').replace("\\","/")
+    hdf5_filename = os.path.join(rundir, 'Inputs', hdf5_name +'.h5').replace("\\","/")
     print hdf5_filename
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -409,14 +423,14 @@ def populate_intrazonals(my_project):
     matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
 
     app.App.refresh_data
-    print my_bank.matrix('tazacr').id
+   
     taz_area_matrix = my_bank.matrix('tazacr').id
     distance_matrix = my_bank.matrix(intrazonal_dict['distance']).id
 
     #Hard coded for now, generalize later
     for key, value in intrazonal_dict.iteritems():
         if key == 'distance':
-            print 'dist'
+            
             mod_calc = matrix_calculator
             mod_calc["result"] = value
             mod_calc["expression"] = "sqrt(" +taz_area_matrix + "/640) * 45/60*(p.eq.q)"
@@ -486,6 +500,7 @@ def import_extra_attributes(my_project):
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     attr_file = os.path.join(os.path.dirname(my_project.emmebank.path),"Inputs/tolls.txt").replace("\\","/")
 
+    
     import_attributes(attr_file, scenario = current_scenario,
               column_labels={0: "inode", 
                              1: "jnode", 
@@ -668,7 +683,6 @@ def transit_skims(my_project):
     skim_specs = json_to_dictionary("transit_skim_setup")
     my_spec_list = skim_specs["spec1"]
     for item in my_spec_list:
-        print item
         skim_transit(item)
 def transit_skims2(my_project, tod):
     start_time_skim = time.time()
@@ -681,8 +695,7 @@ def transit_skims2(my_project, tod):
             skim_specs = json_to_dictionary("transit_skim_setup")
             my_spec_list = skim_specs["spec1"]
             for item in my_spec_list:
-                print item
-                skim_transit(item)
+               skim_transit(item)
     
     end_time_skim = time.time()
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the transit skim'
@@ -741,6 +754,8 @@ def attribute_based_skims(my_project,my_skim_attribute):
     mod_skim = skim_specification
     
     for x in range (0, len(mod_skim["classes"])):
+       
+       
         
         my_extra = my_user_classes["Highway"][x][my_skim_attribute]
         matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
@@ -1188,26 +1203,38 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #Store arrays from Daysim/Trips Group into numpy arrays, indexed by TOD. 
     #This means that only trip info for the current Time Period will be included in each array.
     otaz = np.asarray(daysim_set["otaz"])
+    otaz = otaz.astype('int')
     otaz = otaz[tod_index]
    
+    
 
     dtaz = np.asarray(daysim_set["dtaz"])
+    dtaz = dtaz.astype('int')
     dtaz = dtaz[tod_index]
    
 
     mode = np.asarray(daysim_set["mode"])
+    mode = mode.astype("int")
     mode = mode[tod_index]
 
-    vot = np.asarray(daysim_set["vot"])
-    vot = vot[tod_index]
+    trexpfac = np.asarray(daysim_set["trexpfac"])
+    trexpfac = trexpfac.astype('int')
+    trexpfac = trexpfac[tod_index]
+    
+    if not seed_trips:
+        vot = np.asarray(daysim_set["vot"])
+        vot = vot[tod_index]
+    
     
     deptm = np.asarray(daysim_set["deptm"])
     deptm =deptm[tod_index]
 
     dorp = np.asarray(daysim_set["dorp"])
+    dorp = dorp.astype('int')
     dorp = dorp[tod_index]
 
     toll_path = np.asarray(daysim_set["pathtype"])
+    toll_path = toll_path.astype('int')
     toll_path = toll_path[tod_index]
     
     my_store.close
@@ -1221,25 +1248,33 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
 
     for x in range (0, len(otaz)):
-        #Start building the tuple key, 3 VOT of categories...       
-        if vot[x] < 2.50: vot[x]=1
-        elif vot[x] < 8.00: vot[x]=2
-        else: vot[x]=3
+        #Start building the tuple key, 3 VOT of categories...   
+        if seed_trips:
+            vot = 2
+            if mode[x]<7:
+                mat_name = matrix_dict[mode[x], vot, toll_path[x]]
+                
+                if dorp[x] <= 1:
+                    #account for zero based numpy matrices
+                    myOtaz = otaz[x] - 1
+                    myDtaz = dtaz[x] - 1
+                    demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + trexpfac[x]
+        
+        else:    
+            if vot[x] < 2.50: vot[x]=1
+            elif vot[x] < 8.00: vot[x]=2
+            else: vot[x]=3
         
         #get the matrix name from matrix_dict. Throw out school bus (8) for now. 
-        if mode[x]<>8:
-            mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
-
-       #Only want drivers, transit trips. 
-        if dorp[x] <= 1:
-
-            #account for zero based numpy matrices
-            myOtaz = otaz[x] - 1
-            myDtaz = dtaz[x] - 1
-            
-            #add the trip       
-            demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + 1
-                  
+            if mode[x]<8:
+                #Only want drivers, transit trips. 
+                if dorp[x] <= 1:
+                    mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
+                    #account for zero based numpy matrices
+                    myOtaz = otaz[x] - 1
+                    myDtaz = dtaz[x] - 1
+                    #add the trip   
+                    demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + 1  
         
            #all in-memory numpy matrices populated, now write out to emme 
     for mat_name in uniqueMatrices:
@@ -1269,13 +1304,21 @@ def create_trip_tod_indices(tod):
      daysim_set = my_store["Trip"]
      #open departure time array
      deptm = np.asarray(daysim_set["deptm"])
-     #convert to hours
-     deptm = deptm/60
+     if seed_trips:
+        deptm = deptm.astype('float')
+        deptm = deptm / 100
+        deptm = deptm.astype('int')
+     else:
+        #convert to hours
+        deptm = deptm.astype('float')
+        deptm = deptm/60
+        deptm = deptm.astype('int')
      #Get the list of hours for this tod
+     
      todValues = todIDListdict[tod]
      # ix is an array of true/false
      ix = np.in1d(deptm.ravel(), todValues)
-     #An index for trips from this tod, e.g. [3, 5, 7) means that there are trips from this time period from the 4th, 5th, & 6th index in deptm
+     #An index for trips from this tod, e.g. [3, 5, 7) means that there are trips from this time period from the index 3, 5, 7 (0 based) in deptm
      indexArray = np.where(ix)
      
      return indexArray
@@ -1304,11 +1347,11 @@ def start_transit_pool(project_list):
     pool = Pool(processes=1)
     pool.map(run_transit,project_list[2:3])
 
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[3:4])
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[3:4])
 
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[4:5])
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[4:5])
 
 
 def run_transit(project_name):
@@ -1343,7 +1386,7 @@ def export_to_hdf5_pool(project_list):
     pool.close()
 
 def start_export_to_hdf5(test):
-    print test
+   
     my_desktop = app.start_dedicated(True, "cth", test)
     m = _m.Modeller(my_desktop)
     #app.App.refresh_data
@@ -1474,6 +1517,7 @@ def run_assignments_parallel(project_name):
     #delete and create new demand and skim matrices:
     delete_matrices(m, "FULL")
     delete_matrices(m, "ORIGIN")
+    
 
     define_matrices(m)
      
@@ -1501,10 +1545,11 @@ def run_assignments_parallel(project_name):
     traffic_assignment(m)
     attribute_based_skims(m, "Time")
 
-    #get tod from bank name. Only skim for distance if in global distance_skim_tod list
+    #get tod from bank name. 
     
     #bike/walk:
     bike_walk_assignment(m, tod, 'false')
+    #Only skim for distance if in global distance_skim_tod list
     if tod in distance_skim_tod:
         attribute_based_skims(m,"Distance")
      
@@ -1535,8 +1580,8 @@ def main():
         
         #want pooled processes finished before executing more code in main:
         project_list=[rundir + '/Projects/5to6/5to6.emp',rundir + '/Projects/6to7/6to7.emp',rundir + '/Projects/7to8/7to8.emp',rundir + '/Projects/8to9/8to9.emp', rundir + '/Projects/9to10/9to10.emp', rundir + '/Projects/10to14/10to14.emp', rundir + '/Projects/14to15/14to15.emp',rundir + '/Projects/15to16/15to16.emp', rundir + '/Projects/16to17/16to17.emp', rundir + '/Projects/17to18/17to18.emp', rundir + '/Projects/18to20/18to20.emp', rundir + '/Projects/20to5/20to5.emp' ]
-        #project_list=rundir + '/Projects/6to7/6to7.emp', rundir + '/Projects/9to10/9to10.emp'
-        #run_assignments_parallel(rundir + '/Projects/7to8/7to8.emp')
+        #project_list=[rundir + '/Projects/9to10/9to10.emp']
+        #run_assignments_parallel(rundir + '/Projects/6to7/6to7.emp')
         start_pool(project_list)
         start_transit_pool(project_list)
         
