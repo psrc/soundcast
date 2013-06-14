@@ -1,3 +1,8 @@
 Our daily development is NOT on the master branch.  Master will be for major releases only.
 
 Checkout the 'dev' branch to see the most recent work.
+e.g.:
+
+git checkout --track -b dev origin/dev
+
+
