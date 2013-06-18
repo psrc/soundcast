@@ -1,3 +1,7 @@
 Banks/
+working/
+Daysim/working
+Daysim/last-run.log
 *.pyc
+*.tsv
 
