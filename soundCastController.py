@@ -1,3 +1,5 @@
+#!python.exe
+
 # PSRC SoundCast Model Runner
 # ===========================
 
@@ -33,8 +35,9 @@ time_skims = datetime.datetime.now()
 print '###### Finished skimbuilding:', time_skims - time_copy
 
 ### RUN DAYSIM ################################################################
-daysim_runner = subprocess.Popen('/Daysim/Daysim.exe', cwd='/Daysim')
-daysim_runner.wait()
+returncode = subprocess.call('./Daysim/Daysim.exe')
+if returncode != 0:
+    sys.exit(1)
 
 time_daysim = datetime.datetime.now()
 print '###### Finished running Daysim:',time_daysim - time_skims

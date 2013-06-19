@@ -5,7 +5,7 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
 
-BasePath = "c:\run1\inputs"
+BasePath = "inputs"
 WorkingDirectory="working"
 OutputSubpath = "output"
 WorkingSubpath = "working"
