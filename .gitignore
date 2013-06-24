@@ -1,6 +1,7 @@
 Banks/
 working/
-Daysim/working
+outputs/
+projects/
 Daysim/last-run.log
 *.pyc
 *.tsv
