@@ -1207,7 +1207,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     mode = mode[tod_index]
 
     trexpfac = np.asarray(daysim_set["trexpfac"])
-    trexpfac = trexpfac.astype('int')
+    trexpfac = trexpfac.astype('float')
     trexpfac = trexpfac[tod_index]
 
     if not seed_trips:
