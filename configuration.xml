@@ -191,12 +191,12 @@ OutputSamplingWeightsPath="sampling_weights.dat"
 
 WorkLocationModelSampleSize="50"
 WorkLocationModelCoefficients="coefficients/WorkLocationCoefficients_sacog-v1.5.f12"
-ShouldRunWorkLocationModel="true"
+ShouldRunWorkLocationModel="false"
 IncludeWorkLocationModel="true"
 
 SchoolLocationModelSampleSize="50"
 SchoolLocationModelCoefficients="coefficients/SchoolLocationCoefficients_sacog-v1.5.f12"
-ShouldRunSchoolLocationModel="true"
+ShouldRunSchoolLocationModel="false"
 IncludeSchoolLocationModel="true"
 
 PayToParkAtWorkplaceModelCoefficients="coefficients/PayToParkAtWorkplaceCoefficients_sacog-v1.5.F12"
