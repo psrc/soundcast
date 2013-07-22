@@ -11,7 +11,7 @@ WorkingDirectory="..\working"
 WorkingSubpath = "..\working"
 EstimationSubpath = "estimation"
 
-RosterPath="psrc_roster_test_write_small.csv"
+RosterPath="psrc_full_roster.csv"
 RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hhs_and_persons.h5"
@@ -76,12 +76,12 @@ IxxiDelimiter="32"
 IxxiFirstLineIsHeader="false"
 
 ImportParkAndRideNodes="true"
-RawParkAndRideNodePath="PSRC_p_rNodes.dat"
+RawParkAndRideNodePath="p_rNodes_wgaps.txt"
 RawParkAndRideNodeDelimiter="9"
 ShouldReadParkAndRideNodeSkim="false"
 
 ImportZones="true"
-RawZonePath="psrc_taz_indexes.dat"
+RawZonePath="taz_indexes_wgaps.txt"
 RawZoneDelimiter="9"
 
 ImportParcels="true"

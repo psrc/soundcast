@@ -2,7 +2,6 @@
 \usepackage[sc]{mathpazo}
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
-\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=0.5cm,rmargin=0.5cm}
 \setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{2}
 \usepackage{url}
@@ -16,11 +15,10 @@
 \usepackage{lscape}            % for landscape mode tables
 
 
-
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 \SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
-\setlength{\textwidth}{6in}
+
 \def\Sweavesize{\smallsize}
 
 \title{Daysim Summary}
@@ -31,19 +29,9 @@
 \small
 
 \begin{abstract}
-This document is comparing the results from two model runs.
-
-One is a model run using a 2006 synthetic population produced in 2011.
-
-We are unsure of exactly how it was made.
-
-The other is a model run using a 2000 synthetic population produced
-in April 2013.
-
-The "NewPopulation" is the population made in April 2013.
-
-The "OldPopulation" is the population made in 2011.
-
+This document is comparing the results from two model runs. One is a run with the shortened roster list on the survey population. The other is a run with the full roster
+list on the survey population
+\end{abstract}
 <<echo=false>>=
 options(width=100)
 @
@@ -80,11 +68,11 @@ options(width=100)
 
 # how can I make this work with only one dataset if I want?
 paths<- vector(mode = "list", length=2)
-paths <-c("C:/DaysimOutputsForTesting/daysim_outputs5.h5",
-          "C:/DaysimOutputsForTesting/daysim_outputs6.h5")
+paths <-c("C:/DaysimOutputsForTesting/daysim_outputs4.h5",
+          "C:/DaysimOutputsForTesting/daysim_outputs8.h5")
 
 # Give a descriptive name of the two datasets that are being compared
-names(paths)<- c("New Population", "Old Population")
+names(paths)<- c("ShortenedRoster", "FullRoster")
 type <- names(paths)
 
 district_file <- "C:/DaysimOutputsForTesting/Districts.csv"
@@ -391,13 +379,13 @@ print(Totals_HHTrips)
                                      type = paste(type[1], "6 to 9"))
 
 
-    Trip_1_o_69 <-  sqldf("SELECT dtaz,sum(trexpfac) as NumTrips,
-                          District as OriginDistrict FROM Trip_1_6_9
-                          INNER JOIN zone_district
-                          on Trip_1_6_9.otaz= zone_district.TAZ
-                          Group by District")
+  Trip_1_o_69 <-  sqldf("SELECT dtaz, sum(trexpfac) as NumTrips,
+                        District as OriginDistrict FROM Trip_1_6_9
+                               INNER JOIN zone_district
+                               on Trip_1_6_9.otaz= zone_district.TAZ
+                               Group by District,  dtaz")
 
-    Trip_1_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
+  Trip_1_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
                             District as DestinationDistrict FROM Trip_1_o_69
                             INNER JOIN zone_district
                             on Trip_1_o_69.dtaz= zone_district.TAZ
@@ -455,9 +443,9 @@ if(sum(Trip_2$trexpfac)<1){
 
 }else{
 
-  Trip_2_dest_d <- sqldf("SELECT sum(trexpfac), District FROM Trip_2_6_9
+  Trip_2_dest_d <- sqldf("SELECT sum(trexpfac), District FROM Trip_2
                          INNER JOIN zone_district
-                         on Trip_2_6_9.dtaz= zone_district.TAZ
+                         on Trip_2.dtaz= zone_district.TAZ
                          Group by District")
 
   Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
@@ -471,7 +459,7 @@ if(sum(Trip_2$trexpfac)<1){
                              min_dist = min(travdist),
                              type = type[2])
 
-  Trip_2_6_9_mode_time  <- ddply(Trip_2, .(mode), summarise,
+  Trip_2_6_9_mode_time  <- ddply(Trip_2_6_9, .(mode), summarise,
                                  total_trips  =  sum(trexpfac),
                                  modeshare = sum(trexpfac)/Trip_2_total,
                                  mean_time = mean(travtime),
@@ -486,7 +474,7 @@ if(sum(Trip_2$trexpfac)<1){
                                mean_time = mean(travtime),
                                mean_dist = mean(travdist),
                                type = paste(type[2]))
-  Trip_2_6_9_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
+  Trip_2_6_9_mode_purpose <- ddply(Trip_2_6_9 , .(mode,dpurp), summarise,
                                    total_trips =  sum(trexpfac),
                                    mean_time = mean(travtime),
                                    mean_dist = mean(travdist),
