@@ -992,8 +992,7 @@ def skims_to_hdf5(my_project):
 
         my_store.close()
     end_export_hdf5 = time.time()
-
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to export all skims to the HDF5 File.'
+    print 'It took', round((end_import_hdf5-start_import_hdf5)/60,2), 'minutes to import matrices to Emme.'
 
 def skims_to_hdf5_concurrent(my_project):
 #one project, one bank
@@ -1164,6 +1163,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     zonesDim=len(current_scenario.zone_numbers)
     zones=current_scenario.zone_numbers
     bank_name = my_project.emmebank.title
+    print bank_name
 
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
     tod_index = create_trip_tod_indices(bank_name)
@@ -1230,8 +1230,13 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     #create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
     demand_matrices={}
-    for matrices in uniqueMatrices:
-        demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.uint16 )})
+    if seed_trips:
+        for matrices in uniqueMatrices:
+             #demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.float16 )})
+             demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.uint16 )})
+    else: 
+        for matrices in uniqueMatrices:
+             demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.uint16 )})
 
     #Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
     #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
@@ -1248,7 +1253,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     myOtaz = otaz[x] - 1
                     myDtaz = dtaz[x] - 1
                     demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + trexpfac[x]
-
+            
         else:
             if vot[x] < 2.50: vot[x]=1
             elif vot[x] < 8.00: vot[x]=2
@@ -1262,10 +1267,14 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     #account for zero based numpy matrices
                     myOtaz = otaz[x] - 1
                     myDtaz = dtaz[x] - 1
+                    
                     #add the trip
                     demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + 1
 
            #all in-memory numpy matrices populated, now write out to emme
+    if seed_trips:
+        for matrix in demand_matrices.itervalues():
+            matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
         print mat_name
         matrix_id = my_bank.matrix(str(mat_name)).id
@@ -1295,7 +1304,7 @@ def create_trip_tod_indices(tod):
      deptm = np.asarray(daysim_set["deptm"])
      if seed_trips:
         deptm = deptm.astype('float')
-        deptm = deptm / 100
+        deptm = deptm / 60
         deptm = deptm.astype('int')
      else:
         #convert to hours
@@ -1517,7 +1526,7 @@ def run_assignments_parallel(project_name):
     #create transit fare matrices:
     if tod in fare_matrices_tod:
         fare_file = fare_dict[tod]['Files']['fare_box_file']
-       #fare box:
+        #fare box:
         create_fare_zones(m, zone_file, fare_file)
         #monthly:
         fare_file = fare_dict[tod]['Files']['monthly_pass_file']
@@ -1561,8 +1570,6 @@ def main():
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     for x in range(0, global_iterations):
         start_of_run = time.time()
-
-        #want pooled processes finished before executing more code in main:
         project_list=['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
                       'Projects/7to8/7to8.emp',
@@ -1576,9 +1583,10 @@ def main():
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
 
-        #project_list=['Projects/9to10/9to10.emp']
-        #run_assignments_parallel('Projects/6to7/6to7.emp')
 
+
+        #want pooled processes finished before executing more code in main:
+       
         start_pool(project_list)
         start_transit_pool(project_list)
 
