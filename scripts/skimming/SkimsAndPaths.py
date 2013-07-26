@@ -992,7 +992,7 @@ def skims_to_hdf5(my_project):
 
         my_store.close()
     end_export_hdf5 = time.time()
-    print 'It took', round((end_import_hdf5-start_import_hdf5)/60,2), 'minutes to import matrices to Emme.'
+    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to import matrices to Emme.'
 
 def skims_to_hdf5_concurrent(my_project):
 #one project, one bank
@@ -1587,6 +1587,7 @@ def main():
 
         #want pooled processes finished before executing more code in main:
        
+
         start_pool(project_list)
         start_transit_pool(project_list)
 
