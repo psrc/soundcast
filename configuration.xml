@@ -4,6 +4,11 @@
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
+SamplingWeightsSettingsType="SamplingWeightsSettingsSimple"
+TraceSimulatedChoiceOutcomes="true"
+TraceModelResultValidity="true"
+InvalidAttemptsBeforeTrace="0" 
+InvalidAttemptsBeforeContinue="50" 
 
 BasePath = "inputs"
 OutputSubpath = "..\outputs"
@@ -16,14 +21,14 @@ RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hhs_and_persons.h5"
 HDF5Path="daysim_outputs.h5"
-ReadHDF5 = "true"
+ReadHDF5 = "false"
 WriteTripsToHDF5="true"
 
 NProcessors="8"
 
 HouseholdSamplingRateOneInX="1"
 HouseholdSamplingStartWithY="1"
-ReportInvalidPersonDays="false"
+ReportInvalidPersonDays="true"
 
 ShouldRunRawConversion="true"
 
@@ -42,19 +47,15 @@ ShowRunChoiceModelsStatus="true"
 
 UseShortDistanceNodeToNodeMeasures="false"
 
+VotVeryLowLow="3"
+VotLowMedium="7"
+VotMediumHigh="14"
+VotHighVeryHigh="28"
 
-VotVeryLowLow="-1"
-VotLowMedium="0"
-VotMediumHigh="10000"
-VotHighVeryHigh="10001"
 
 UseJointTours="false"
 
 IsInEstimationMode="false"
-EstimationModel="OtherHomeBasedTourModeModel"
-ShouldOutputAlogitData="true"
-OutputAlogitDataPath="estimation\otmode22x.dat"
-OutputAlogitControlPath="estimation\otmode22x.alo"
 
 LengthUnitsPerFoot="1"
 DistanceUnitsPerMile="1"
@@ -62,11 +63,21 @@ MonetaryUnitsPerDollar="1"
 
 RandomSeed="23456"
 ShouldSynchronizeRandomSeed="true"
-NumberOfRandomSeeds="1000"
+NumberOfRandomSeeds="1"
 
 
-RawParcelNodePath="psrc_parcel_nodes.dat"
-RawParcelNodeDelimiter="32"
+ImportHouseholds="true"
+RawHouseholdPath="hrecx7.dat"
+RawHouseholdDelimiter="32"
+OutputHouseholdPath="_household.tsv"
+OutputHouseholdDelimiter="9"
+
+ImportPersons="true"
+RawPersonPath="precx7.dat"
+RawPersonDelimiter="32"
+OutputPersonPath="_person.tsv"
+OutputPersonDelimiter="9"
+
 NodeIndexPath="psrc_node_node_index.dat"
 NodeIndexDelimiter="32"
 NodeDistancesPath="psrc_node_node_distances_binary.dat"
@@ -88,43 +99,51 @@ ImportParcels="true"
 RawParcelPath="psrc_parcel_decay_2006.dat"
 RawParcelDelimiter="32"
 
-ImportHouseholds="true"
-RawHouseholdPath="hrecx7.dat"
-RawHouseholdDelimiter="32"
-OutputHouseholdPath="_household.tsv"
-OutputHouseholdDelimiter="9"
-
-ImportPersons="true"
-RawPersonPath="precx7.dat"
-RawPersonDelimiter="32"
-OutputPersonPath="_person.tsv"
-OutputPersonDelimiter="9"
-
-OutputHouseholdDayPath="_household_day.tsv"
-OutputHouseholdDayDelimiter="9"
-
+ImportPersonDays="false"
+RawPersonDayPath="pdayx7.dat"
+RawPersonDayDelimiter="32"
 OutputPersonDayPath="_person_day.tsv"
 OutputPersonDayDelimiter="9"
 
+ImportHouseholdDays="false"
+RawHouseholdDayPath="hdayx7.dat"
+RawHouseholdDayDelimiter="32"
+OutputHouseholdDayPath="_household_day.tsv"
+OutputHouseholdDayDelimiter="9"
+
+ImportTours="false"
+RawTourPath="tourx7.dat"
+RawTourDelimiter="32"
 OutputTourPath="_tour.tsv"
 OutputTourDelimiter="9"
 
+ImportTrips="false"
+RawTripPath="tripx7.dat"
+RawTripDelimiter="32"
 OutputTripPath="_trip.tsv"
 OutputTripDelimiter="9"
 
+ImportJointTours="false"
+RawJointTourPath="jtourx7.dat"
+RawJointTourDelimiter="32"
 OutputJointTourDelimiter="9"
 OutputJointTourPath="_joint_tour.tsv"
 
+ImportFullHalfTours="false"
+RawFullHalfTourPath="fhtourx7.dat"
+RawFullHalfTourDelimiter="32"
 OutputFullHalfTourPath="_full_half_tour.tsv"
 OutputFullHalfTourDelimiter="9"
 
+ImportPartialHalfTours="false"
+RawPartialHalfTourPath="phtourx7.dat"
+RawPartialHalfTourDelimiter="32"
 OutputPartialHalfTourPath="_partial_half_tour.tsv"
 OutputPartialHalfTourDelimiter="9"
 
 
-
 MaximumBlendingDistance="3"
-ShouldOutputTDMTripList="true"
+ShouldOutputTDMTripList="false"
 OutputTDMTripListPath="tdm_trip_list.csv"
 TDMTripListDelimiter="44"
 
@@ -181,7 +200,7 @@ Coefficients_HOV3CostDivisor_Work="2.408"
 Coefficients_HOV3CostDivisor_Other="2.158"
 UseRandomVotDistribution="true"
 
-ShouldLoadAggregateLogsumsFromFile="true"
+ShouldLoadAggregateLogsumsFromFile="false"
 ShouldOutputAggregateLogsums="true"
 OutputAggregateLogsumsPath="aggregate_logsums.dat"
 
@@ -190,81 +209,81 @@ ShouldOutputSamplingWeights="false"
 OutputSamplingWeightsPath="sampling_weights.dat"
 
 WorkLocationModelSampleSize="50"
-WorkLocationModelCoefficients="coefficients/WorkLocationCoefficients_sacog-v1.5.f12"
+WorkLocationModelCoefficients="coefficients/WorkLocationModel_psrcper1.f12"
 ShouldRunWorkLocationModel="false"
 IncludeWorkLocationModel="true"
 
 SchoolLocationModelSampleSize="50"
-SchoolLocationModelCoefficients="coefficients/SchoolLocationCoefficients_sacog-v1.5.f12"
-ShouldRunSchoolLocationModel="false"
+SchoolLocationModelCoefficients="coefficients/SchoolLocationModel_psrcper1.f12"
+ShouldRunSchoolLocationModel="true"
 IncludeSchoolLocationModel="true"
 
-PayToParkAtWorkplaceModelCoefficients="coefficients/PayToParkAtWorkplaceCoefficients_sacog-v1.5.F12"
+PayToParkAtWorkplaceModelCoefficients="coefficients/PayToParkAtWorkplaceModel_psrcper1.F12"
 ShouldRunPayToParkAtWorkplaceModel="true"
 IncludePayToParkAtWorkplaceModel="true"
 
-TransitPassOwnershipModelCoefficients="coefficients/TransitPassOwnershipCoefficients_sacog-v1.5.f12"
+TransitPassOwnershipModelCoefficients="coefficients/TransitPassOwnershipModel_psrcper1.f12"
 ShouldRunTransitPassOwnershipModel="true"
 IncludeTransitPassOwnershipModel="true"
 
-AutoOwnershipModelCoefficients="coefficients/AutoOwnershipCoefficients_sacog-v1.5.f12"
+AutoOwnershipModelCoefficients="coefficients/AutoOwnershipModel_psrcper1.f12"
 ShouldRunAutoOwnershipModel="true"
 
-IndividualPersonDayPatternModelCoefficients="coefficients/IndividualPersonDayPatternCoefficients_sacog-v1.5.f12"
+IndividualPersonDayPatternModelCoefficients="coefficients/IndividualPersonDayPatternModel_psrcper1.f12"
 ShouldRunIndividualPersonDayPatternModel="true"
 
-PersonExactNumberOfToursModelCoefficients="coefficients/PersonExactNumberOfToursCoefficients_sacog-v1.5.F12"
+PersonExactNumberOfToursModelCoefficients="coefficients/PersonExactNumberOfToursModel_psrcper1.F12"
 ShouldRunPersonExactNumberOfToursModel="true"
 
 WorkTourDestinationModelSampleSize="25"
-WorkTourDestinationModelCoefficients="coefficients/WorkTourDestinationCoefficients_sacog-v1.5.F12"
+WorkTourDestinationModelCoefficients="coefficients/WorkTourDestinationModel_psrcper1.F12"
 ShouldRunWorkTourDestinationModel="true"
 
 OtherTourDestinationModelSampleSize="25"
-OtherTourDestinationModelCoefficients="coefficients/OtherTourDestinationCoefficients_sacog-v1.5.F12"
+OtherTourDestinationModelCoefficients="coefficients/OtherTourDestinationModel_psrcper1.F12"
 ShouldRunOtherTourDestinationModel="true"
 
-WorkBasedSubtourGenerationModelCoefficients="coefficients/WorkbasedSubtourGenerationCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourGenerationModelCoefficients="coefficients/WorkBasedSubtourGenerationModel_psrcper1.F12"
 ShouldRunWorkBasedSubtourGenerationModel="true"
 
-WorkTourModeModelCoefficients="coefficients/WorkTourModeCoefficients_sacog-v1.5.F12"
+WorkTourModeModelCoefficients="coefficients/WorkTourModeModel_psrcper1.F12"
 ShouldRunWorkTourModeModel="true"
 
-SchoolTourModeModelCoefficients="coefficients/SchoolTourModeCoefficients_sacog-v1.5.F12"
+SchoolTourModeModelCoefficients="coefficients/SchoolTourModeModel_psrcper1.F12"
 ShouldRunSchoolTourModeModel="true"
 
-WorkBasedSubtourModeModelCoefficients="coefficients/WorkBasedSubtourModeCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourModeModelCoefficients="coefficients/WorkBasedSubtourModeModel_psrcper1.F12"
 ShouldRunWorkBasedSubtourModeModel="true"
 
-EscortTourModeModelCoefficients="coefficients/EscortTourModeCoefficients_sacog-v1.5.F12"
+EscortTourModeModelCoefficients="coefficients/EscortTourModeModel_psrcper1.L12"
 ShouldRunEscortTourModeModel="true"
 
-OtherHomeBasedTourModeModelCoefficients="coefficients/OtherHomeBasedTourModeCoefficients_sacog-v1.5.F12"
+OtherHomeBasedTourModeModelCoefficients="coefficients/OtherHomeBasedTourModeModel_psrcper1.F12"
 ShouldRunOtherHomeBasedTourModeModel="true"
 
-WorkTourTimeModelCoefficients="coefficients/WorkTourTimeCoefficients_sacog-v1.5.F12"
+WorkTourTimeModelCoefficients="coefficients/WorkTourTimeModel_psrcper1.F12"
 ShouldRunWorkTourTimeModel="true"
 
-SchoolTourTimeModelCoefficients="coefficients/SchoolTourTimeCoefficients_sacog-v1.5.F12"
+SchoolTourTimeModelCoefficients="coefficients/SchoolTourTimeModel_psrcper1.F12"
 ShouldRunSchoolTourTimeModel="true"
 
-OtherHomeBasedTourTimeModelCoefficients="coefficients/OtherHomeBasedTourTimeCoefficients_sacog-v1.5.F12"
+OtherHomeBasedTourTimeModelCoefficients="coefficients/OtherHomeBasedTourTimeModel_psrcper1.F12"
 ShouldRunOtherHomeBasedTourTimeModel="true"
 
-WorkBasedSubtourTimeModelCoefficients="coefficients/WorkbasedSubtourTimeCoefficients_sacog-v1.5.F12"
+WorkBasedSubtourTimeModelCoefficients="coefficients/WorkbasedSubtourTimeModel_psrcper1.F12"
 ShouldRunWorkBasedSubtourTimeModel="true"
 
-IntermediateStopGenerationModelCoefficients="coefficients/IntermediateStopGenerationCoefficients_sacog-v1.5.F12"
+IntermediateStopGenerationModelCoefficients="coefficients/IntermediateStopGenerationModel_psrcper1.F12"
 ShouldRunIntermediateStopGenerationModel="true"
 
 IntermediateStopLocationModelSampleSize="25"
-IntermediateStopLocationModelCoefficients="coefficients/IntermediateStopLocationCoefficients_sacog-v1.5.F12"
+IntermediateStopLocationModelCoefficients="coefficients/IntermediateStopLocationModel_psrcper1.F12"
 ShouldRunIntermediateStopLocationModel="true"
 
-TripModeModelCoefficients="coefficients/TripModeCoefficients_sacog-v1.5.f12"
+TripModeModelCoefficients="coefficients/TripModeModel_psrcper1.f12"
 ShouldRunTripModeModel="true"
 
-TripTimeModelCoefficients="coefficients/TripTimeCoefficients_sacog-v1.5.f12"
+TripTimeModelCoefficients="coefficients/TripTimeModel_psrcper1.f12"
 ShouldRunTripTimeModel="true"
 
 ShouldUseShadowPricing="false"
