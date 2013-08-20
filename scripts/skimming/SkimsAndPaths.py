@@ -945,9 +945,11 @@ def skims_to_hdf5(my_project):
                 matrix_id = my_bank.matrix(matrix_name).id
                 if my_skim_matrix_designation[x] == 'c':
                     matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
+                    #make sure max value is set to uint16 max
+                    matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 else:
                     matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-
+                    matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 print matrix_name
 
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
@@ -958,6 +960,8 @@ def skims_to_hdf5(my_project):
                 matrix_name= 'ivtwa' + item
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                #make sure max value is set to uint16 max
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
 
@@ -968,6 +972,8 @@ def skims_to_hdf5(my_project):
                 matrix_name= key
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                #make sure max value is set to uint16 max
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
         #bike/walk
@@ -976,6 +982,8 @@ def skims_to_hdf5(my_project):
                 matrix_name= bike_walk_matrix_dict[key]['time']
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                #make sure max value is set to uint16 max
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
         #transit/fare
@@ -985,9 +993,12 @@ def skims_to_hdf5(my_project):
                 print matrix_name
                 print my_bank.matrix(matrix_name).id
                 matrix_id = my_bank.matrix(matrix_name).id
+                #make sure max value is set to uint16 max
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
+                
 
 
         my_store.close()
@@ -1072,7 +1083,7 @@ def skims_to_hdf5_concurrent(my_project):
                 matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
                 matrix_id = my_bank.matrix(matrix_name).id
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
         #transit
     if tod in transit_skim_tod:
@@ -1081,7 +1092,7 @@ def skims_to_hdf5_concurrent(my_project):
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
             print matrix_name
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
                 #Transit, All Modes:
@@ -1091,7 +1102,7 @@ def skims_to_hdf5_concurrent(my_project):
             matrix_name= key
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
     if tod in bike_walk_skim_tod:
@@ -1099,7 +1110,7 @@ def skims_to_hdf5_concurrent(my_project):
             matrix_name= bike_walk_matrix_dict[key]['time']
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('int16'),compression='gzip')
+            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
 
@@ -1419,6 +1430,7 @@ def bike_walk_assignment(my_project, tod, assign_for_all_tods):
 
     if tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
+            #modify spec
             mod_assign['demand'] = 'mf' + bike_walk_matrix_dict[key]['demand']
             mod_assign['od_results']['transit_times'] = bike_walk_matrix_dict[key]['time']
             mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
@@ -1588,8 +1600,8 @@ def main():
         #want pooled processes finished before executing more code in main:
        
 
-        start_pool(project_list)
-        start_transit_pool(project_list)
+        #start_pool(project_list)
+        #start_transit_pool(project_list)
 
 
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
