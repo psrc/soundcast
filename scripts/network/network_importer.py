@@ -41,13 +41,14 @@ class EmmeProject:
         return count
     def change_active_database(self, database_name):
         for database in self.data_explorer.databases():
-            print database.title()
+            #print database.title()
             if database.title() == database_name:
                 
                 database.open()
                 print 'changed'
                 self.bank = self.m.emmebank
                 self.tod = self.bank.title
+                print self.tod
                 self.current_scenario = list(self.bank.scenarios())[0]
                 
 
@@ -107,6 +108,7 @@ def run_importer(project_name):
     my_project = EmmeProject(project_name)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
+        print key
         my_project.delete_links()
         my_project.delete_nodes()
         print value
