@@ -1,19 +1,19 @@
 c Early AM Time Period (5am to 6am)
 t  functions  init
 a fd1  =put((length * 60 / ul2) * (1 + .72 * (1.0 * (volau + el2) / (ul1
-         * lanes)) ^ 7.2)) + length * (0 .max. (-.5639 + put(get(1) /   
-         length) * (.6398 + get(2) * (-.0712 + get(2) * (.0004 + .00009 
+         * lanes)) ^ 7.2)) + length * (0 .max. (-.5639 + put(get(1) /
+         length) * (.6398 + get(2) * (-.0712 + get(2) * (.0004 - .00009
         * get(2))))))
 a fd3  =put((length * 60 / ul2) * (1 + .56 * (1.0 * (volau + el2) / (ul1
-         * lanes)) ^ 6)) + length * (0 .max. (-.5639 + put(get(1) /     
-         length) * (.6398 + get(2) * (-.0712 + get(2) * (.0004 + .00009 
+         * lanes)) ^ 6)) + length * (0 .max. (-.5639 + put(get(1) /
+         length) * (.6398 + get(2) * (-.0712 + get(2) * (.0004 - .00009
         * get(2))))))
 a fd5  =(length * 60 / ul2) * (1 + .6 * put(1.0 * (volau + el2) / (ul1 *
          lanes)) ^ 5.8) + el1 / ((1 - get(1)) .max. .25)
 a fd7  =(length * 60 / ul2) * (1 + .6 * put(1.0 * (volau + el2) / (ul1 *
          lanes)) ^ 5.6) + el1 / ((1 - get(1)) .max. .25)
 a fd9  =(length * 60 / ul2)
-a fd31 =ul2 + 10 + 60 / lanes * (sqrt(1 + (1.0 * ((volau + el2) / ul1) 
+a fd31 =ul2 + 10 + 60 / lanes * (sqrt(1 + (1.0 * ((volau + el2) / ul1)
         / lanes) ^ 2) - 1)
 a fd40 =ul2
 a ft4  =ul2
