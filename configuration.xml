@@ -77,16 +77,16 @@ NodeIndexDelimiter="32"
 NodeDistancesPath="psrc_node_node_distances_binary.dat"
 
 IxxiPath="psrc_worker_ixxifractions.dat"
-IxxiDelimiter="32"
+IxxiDelimiter="9"
 IxxiFirstLineIsHeader="false"
 
 ImportParkAndRideNodes="true"
-RawParkAndRideNodePath="p_rNodes_w_gaps.txt"
+RawParkAndRideNodePath="p_rNodes_wo_gaps.txt"
 RawParkAndRideNodeDelimiter="9"
 ShouldReadParkAndRideNodeSkim="false"
 
 ImportZones="true"
-RawZonePath="TAZIndex_w_gaps.txt"
+RawZonePath="TAZIndex_wo_gaps.txt"
 RawZoneDelimiter="9"
 
 ImportParcels="true"
