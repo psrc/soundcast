@@ -2,24 +2,24 @@
 \usepackage[sc]{mathpazo}
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
+\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=0.5cm,rmargin=0.5cm}
 \setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{2}
 \usepackage{url}
 \usepackage[unicode=true,pdfusetitle,
-            bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
-            breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
 {hyperref}
 \hypersetup{
-  pdfstartview={XYZ null null 1}}
+pdfstartview={XYZ null null 1}}
 \usepackage{breakurl}
 \usepackage{lscape}            % for landscape mode tables
-
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 \SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
-
-\def\Sweavesize{\smallsize}
+\setlength{\textwidth}{6in} 
+\def\Sweavesize{\smallsize} 
 
 \title{Daysim Summary}
 
@@ -29,30 +29,13 @@
 \small
 
 \begin{abstract}
-This document is comparing the results from two model runs. One is a run with the shortened roster list on the survey population. The other is a run with the full roster
-list on the survey population
-\end{abstract}
+This document compares the household survey to the a model run on the household survey.  The model run is just a test run. In the test run, we were using the survey population, HDF5 skims, SACOG coefficients, and no gaps in the zone system.
+
 <<echo=false>>=
-options(width=100)
-@
-
-
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
 # Author: suzanne.childress
 ###############################################################################
 
 ###This script generates basic summaries for a Daysim model run outputs in HDF5
-
-# install.packages("car")
-# install.packages("plyr")
-# install.packages("rhdf5")
-# install.packages("ggplot2")
-# install.packages("car")
-# install.packages("knitr")
-# install.packages("daysim_util")
-# install.packages("reshape2")
-
-#library(knitr)
 library(plyr)
 library(data.table)
 library(rhdf5)
@@ -62,22 +45,26 @@ library(daysimutil)
 library(xtable)
 library(sqldf)
 library(reshape2)
+library(knitr)
 
-options("scipen" = 100, digits=2)
 options(width=100)
+options("scipen" = 100, digits=2)
 
-# how can I make this work with only one dataset if I want?
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
 paths<- vector(mode = "list", length=2)
-paths <-c("C:/DaysimOutputsForTesting/daysim_outputs4.h5",
-          "C:/DaysimOutputsForTesting/daysim_outputs8.h5")
+paths <-c("C:/DaysimOutputsForTesting/survey_new.h5",
+          "C:/DaysimOutputsForTesting/daysim_outputs24.h5")
 
 # Give a descriptive name of the two datasets that are being compared
-names(paths)<- c("ShortenedRoster", "FullRoster")
+names(paths)<- c("Survey", "Test")
 type <- names(paths)
 
 district_file <- "C:/DaysimOutputsForTesting/Districts.csv"
 
-
+###Some convenience functions to make summaries more readable
 # We  want to put this into the HDF5 file, but it's not there yet
 recode <- function(dataset){
   dataset$mode[dataset$mode==1] <- "walk"
@@ -89,7 +76,7 @@ recode <- function(dataset){
   dataset$mode[dataset$mode==7] <- "other"
   dataset$mode[dataset$mode==8] <- "school_bus"
   dataset$mode[dataset$mode==9] <- "other"
-
+  
   dataset$dpurp[dataset$dpurp==0] <- "home"
   dataset$dpurp[dataset$dpurp==1] <- "work"
   dataset$dpurp[dataset$dpurp==2] <- "school"
@@ -104,7 +91,33 @@ recode <- function(dataset){
   dataset
 }
 
+recode_tours <- function(dataset){
+  dataset$tmodetp[dataset$tmodetp==1] <- "walk"
+  dataset$tmodetp[dataset$tmodetp==2] <- "bike"
+  dataset$tmodetp[dataset$tmodetp==3] <- "sov"
+  dataset$tmodetp[dataset$tmodetp==4] <- "hov2"
+  dataset$tmodetp[dataset$tmodetp==5] <- "hov3+"
+  dataset$tmodetp[dataset$tmodetp==6] <- "transit"
+  dataset$tmodetp[dataset$tmodetp==7] <- "other"
+  dataset$tmodetp[dataset$tmodetp==8] <- "school_bus"
+  dataset$tmodetp[dataset$tmodetp==9] <- "other"
+  
+  dataset$pdpurp[dataset$pdpurp==0] <- "home"
+  dataset$pdpurp[dataset$pdpurp==1] <- "work"
+  dataset$pdpurp[dataset$pdpurp==2] <- "school"
+  dataset$pdpurp[dataset$pdpurp==3] <- "escort"
+  dataset$pdpurp[dataset$pdpurp==4] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==5] <- "shop"
+  dataset$pdpurp[dataset$pdpurp==6] <- "meal"
+  dataset$pdpurp[dataset$pdpurp==7] <- "social"
+  dataset$pdpurp[dataset$pdpurp==8] <- "recreational"
+  dataset$pdpurp[dataset$pdpurp==9] <- "medical"
+  dataset$pdpurp[dataset$pdpurp==10] <- "other"
+  dataset
+}
+
 recode_districts<-function(dataset){
+  # change the input file
   dataset$District[dataset$District==1] <- "Lakewood"
   dataset$District[dataset$District==2] <- "SE Pierce"
   dataset$District[dataset$District==3] <- "Tacoma"
@@ -122,7 +135,7 @@ recode_districts<-function(dataset){
   dataset$District[dataset$District==15] <- "Lynnwood"
   dataset$District[dataset$District==16] <- "Mill Creek"
   dataset$District[dataset$District==17] <- "Everett"
-  dataset$District[dataset$District== 18] <- "Marysville"
+  dataset$District[dataset$District==18] <- "Marysville"
   dataset$District[dataset$District==19] <- "Kitsap"
   dataset$District[dataset$District==20] <- "External/PNR"
   dataset
@@ -139,10 +152,10 @@ get_total <- function(exp_fac)
   {
     total <- nrow(exp_fac)
   }
-  total
+  total 
 }
 
-
+######################################################################################
 # READ IN DATA
 
 zone_district<- read.csv(district_file)
@@ -150,7 +163,7 @@ zone_district<-recode_districts(zone_district)
 
 for(i in 1:length(paths))
 {
-
+  
   for(group in get_group_names(paths[i]))
   {
     table<- h5group_to_table(paths[i], group)
@@ -159,14 +172,14 @@ for(i in 1:length(paths))
     assign(table_name, table)
   }
 }
-
-
-
 #####################################################################
 ### RECODE DATA FOR READABILITY
 
 Trip_1<-recode(Trip_1)
 Trip_2 <-recode(Trip_2)
+
+Tour_1<-recode_tours(Tour_1)
+Tour_2<-recode_tours(Tour_2)
 
 #####################################################################
 @
@@ -174,37 +187,35 @@ Trip_2 <-recode(Trip_2)
 
 \section{Demographic Summaries}
 \subsection{Households by District}
+This table compares the total households by district between the two datasets.
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-## Aggregate and Summarize Data
+## Begin to Aggregate and Summarize Data
 
+options("scipen" = 100, digits=2)
 
-if(sum(Household_1$hhexpfac) >1){
-  hhs_district_1 <- sqldf("SELECT District, sum(hhexpfac) from Household_1
-                        INNER JOIN zone_district
-                        ON Household_1.zone_id= zone_district.TAZ
-                        GROUP by District")}else
-{hhs_district_1 <- sqldf("SELECT District,
-                        count(*) from Household_1
-                        INNER JOIN zone_district
-                        ON Household_1.zone_id= zone_district.TAZ
-                           Group by District")}
-if(sum(Household_2$hhexpfac) >1){
-  hhs_district_2 <- sqldf("SELECT District, sum(hhexpfac) from Household_2
-                        INNER JOIN zone_district
-                        ON Household_2.zone_id= zone_district.TAZ
-                        Group by District")}else
- {hhs_district_2 <- sqldf("SELECT District,
-                        count(*) from Household_2
-                        INNER JOIN zone_district
-                        ON Household_2.zone_id= zone_district.TAZ
-                        Group by District")}
+hhs_district_1 <- sqldf("SELECT District, sum(hhexpfac) as H from Household_1
+                        INNER JOIN zone_district 
+                        ON Household_1.hhtaz= zone_district.TAZ
+                        GROUP by District")
 
+hhs_district_2 <- sqldf("SELECT District, sum(hhexpfac) as H from Household_2
+                        INNER JOIN zone_district 
+                        ON Household_2.hhtaz= zone_district.TAZ
+                        Group by District")
 
-hhs_district<- merge(hhs_district_1, hhs_district_2, by= "District")
-colnames(hhs_district) <- c("Households", names(paths[1]), names(paths[2]))
+diff_hhs <- sqldf("SELECT hhs_district_1.District, hhs_district_1.H, 
+                  hhs_district_2.H,
+                  ROUND(hhs_district_1.H-hhs_district_2.H,0) As Difference,
+                  ROUND((hhs_district_1.H-hhs_district_2.H)/hhs_district_2.H,2) 
+                  As PerDiff from hhs_district_1 INNER JOIN hhs_district_2 ON 
+                  hhs_district_1.District=hhs_district_2.District")
 
-print(hhs_district)
+colnames(diff_hhs) <- c("Household District", names(paths[1]), names(paths[2]),
+                        "Difference", "Percent Difference")    
+
+print(diff_hhs, digits=2,row.names = F)
 @
+
 
 \subsection{Other Demographic Summaries}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
@@ -222,22 +233,14 @@ Household_2_total <- get_total(Household_2$hhexpfac)
 
 DifferenceHouseholds <- Household_1_total - Household_2_total
 
-
 Average_HHSize_1 <- Person_1_total/Household_1_total
 Average_HHSize_2 <- Person_2_total/Household_2_total
 
 PerDiffHHSize <- (Average_HHSize_1 - Average_HHSize_2)/Average_HHSize_1
 
-Trip_1_6_9 <- sqldf("SELECT * from Trip_1 where deptm>=360 and deptm<540")
-Trip_2_6_9<- sqldf("SELECT * from Trip_2 where deptm>=360 and deptm<540")
-
 Trip_1_total <- get_total(Trip_1$trexpfac)
-Trip_1_total_6to9 <- get_total(Trip_1_6_9$trexpfac)
 Trip_2_total <- get_total(Trip_2$trexpfac)
-Trip_2_total_6to9 <- get_total(Trip_2_6_9$trexpfac)
-
 Diff_Trips <- Trip_1_total- Trip_2_total
-Diff_Trips_6to9 <- Trip_1_total_6to9 - Trip_2_total_6to9
 
 Trip_1$type <- names(paths[1])
 Trip_2$type <- names(paths[2])
@@ -248,328 +251,229 @@ TripsperPerson_2 <- Trip_2_total/Person_2_total
 DiffTripsperPers <- TripsperPerson_1 -TripsperPerson_2
 
 Totals_HHTrips <- data.frame(rbind
-(cbind(Person_1_total,Person_2_total, DifferencePersons),
-cbind(Household_1_total, Household_2_total, DifferenceHouseholds),
-cbind(Average_HHSize_1, Average_HHSize_2, PerDiffHHSize),
-cbind(Trip_1_total, Trip_2_total,Diff_Trips),
-cbind(TripsperPerson_1, TripsperPerson_2, DiffTripsperPers),
-cbind(Trip_1_total_6to9, Trip_2_total_6to9, Diff_Trips_6to9)))
+                             (cbind(Person_1_total,Person_2_total,DifferencePersons),
+                              cbind(Household_1_total, Household_2_total, DifferenceHouseholds),
+                              cbind(Average_HHSize_1, Average_HHSize_2, PerDiffHHSize),
+                              cbind(Trip_1_total, Trip_2_total,Diff_Trips),
+                              cbind(TripsperPerson_1, TripsperPerson_2, DiffTripsperPers)))
 
-row.names(Totals_HHTrips)<- (c("Total Persons", "Total Households",
-                               "Average Household Size",
-                               "Total Trips", "Average Trips per Person",
-                               "Trips 6 to 9"))
+row.names(Totals_HHTrips)<-  c("Total Persons", "Total Households","Average Household Size","Total Trips","Average Trips per Person")
 colnames(Totals_HHTrips) <- c(names(paths[1]), names(paths[2]), "Difference")
-format(Totals_HHTrips, scientific= FALSE)
 
-print(Totals_HHTrips)
+print(Totals_HHTrips, scientific=false)
 @
 
+\section{Tour Summaries}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+toursbypurpose1 <- sqldf("SELECT PDPURP, sum(toexpfac) as Tour 
+                         from Tour_1 group by PDPURP order by PDPURP")
+toursbypurpose2 <- sqldf("SELECT PDPURP, sum(toexpfac)as Tour
+                         from Tour_2 group by PDPURP order by PDPURP")
 
+tours_by_purpose<-sqldf("SELECT toursbypurpose1.PDPURP, 
+                        toursbypurpose1.Tour, toursbypurpose2.Tour, 
+                        toursbypurpose1.Tour-toursbypurpose2.Tour, 
+                        ((toursbypurpose1.Tour-toursbypurpose2.Tour)/
+                        toursbypurpose1.Tour) 
+                        from toursbypurpose1 
+                        INNER JOIN toursbypurpose2 
+                        ON toursbypurpose1.PDPURP =toursbypurpose2.PDPURP")
+
+toursbymode1 <- sqldf("SELECT tmodetp, 
+                      sum(toexpfac) as Tour from Tour_1 
+                      group by tmodetp order by tmodetp")
+
+toursbymode2 <- sqldf("SELECT tmodetp, 
+                      sum(toexpfac) as Tour from Tour_2 
+                      group by tmodetp order by tmodetp")
+
+tours_by_mode<-sqldf("SELECT toursbymode1.tmodetp, toursbymode1.Tour,                 
+                     toursbymode2.Tour, toursbymode1.Tour-toursbymode2.Tour, 
+                     (toursbymode1.Tour-toursbymode2.Tour)/toursbymode1.Tour 
+                     from toursbymode1 INNER JOIN toursbymode2 
+                     ON toursbymode1.tmodetp =toursbymode2.tmodetp")
+
+colnames(tours_by_purpose) <- c("Tour Purpose", names(paths[1]),names(paths[2]), "Difference", "Percent Difference")
+
+print(tours_by_purpose,row.names = F)
+
+colnames(tours_by_mode) <- c("Tour Mode", names(paths[1]),names(paths[2]), "Difference", "Percent Difference")
+
+print(tours_by_mode,row.names = F)
+@
 
 
 \section{Trip Cross-Tabulations}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results =verbatim>>=
 # this is way too long and should be in a separate function
 # but I'm having trouble figuring out how to get ddply to work in a function
+########### Cross Tabs for Trips#############
 
+##Trip_1 summaries
+Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_1_total,
+                           mean_time = mean(travtime),
+                           max_time = max(travtime),
+                           min_time = min(travtime),
+                           mean_dist = mean(travdist),
+                           max_dist = max(travdist),
+                           min_dist = min(travdist), 
+                           type = type[1])
 
-
-  ########### Cross Tabs for Trips
-  if(sum(Trip_1$trexpfac)<1){
-    Trip_1_dest_d <- sqldf("SELECT count(*), District FROM Trip_1
-                           INNER JOIN zone_district
-                           on Trip_1.dtaz= zone_district.TAZ
-                           Group by District")
-
-
-    Trip_1_o_69 <-  sqldf("SELECT dtaz, count(*) as NumTrips,
-                          District as OriginDistrict FROM Trip_1_6_9
-                          INNER JOIN zone_district
-                          on Trip_1_6_9.otaz= zone_district.TAZ
-                          Group by dtaz,District")
-    Trip_1_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips,
-                           OriginDistrict,
-                           zone_district.District as DestinationDistrict
-                          FROM Trip_1_o_69
-                          INNER JOIN zone_district
-                          on Trip_1_o_69.dtaz= zone_district.TAZ
-                          Group by OriginDistrict,zone_district.District")
-
-    Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
-                               total_trips    = nrow(travtime),
-                               modeshare = nrow(travtime)/Trip_1_total,
-                               mean_time = mean(travtime),
-                               max_time = max(travtime),
-                               min_time = min(travtime),
-                               mean_dist = mean(travdist),
-                               max_dist = max(travdist),
-                               min_dist = min(travdist),
-                               type = type[1])
-
-    Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
-                                 total_trips = nrow(id),
-                                 mean_time = mean(travtime),
-                                 mean_dist = mean(travdist),
-                                 type = type[1])
-    Trip_1_6_9_mode_time <- ddply(Trip_1_6_9, .(mode), summarise,
-                                  total_trips    = nrow(travtime),
-                                  modeshare = nrow(travtime)/Trip_1_total,
-                                  mean_time = mean(travtime),
-                                  max_time = max(travtime),
-                                  min_time = min(travtime),
-                                  mean_dist = mean(travdist),
-                                  max_dist = max(travdist),
-                                  min_dist = min(travdist),
-                                  type = paste(type[1], "6 to 9"))
-
-    Trip_1_mode_purpose_6_9 <- ddply(Trip_1_6_9 , .(mode,dpurp), summarise,
-                                     total_trips = nrow(id),
-                                     mean_time = mean(travtime),
-                                     mean_dist = mean(travdist),
-                                     type = paste(type[1], "6 to 9"))
-
-
-  }else{
-
-
-
-    Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
-                               total_trips  =  sum(trexpfac),
-                               modeshare = sum(trexpfac)/Trip_1_total,
-                               mean_time = mean(travtime),
-                               max_time = max(travtime),
-                               min_time = min(travtime),
-                               mean_dist = mean(travdist),
-                               max_dist = max(travdist),
-                               min_dist = min(travdist),
-                               type = type[1])
-
-    Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
-                                 total_trips  =  sum(trexpfac),
-                                 mean_time = mean(travtime),
-                                 mean_dist = mean(travdist),
-                                 type = type[1])
-
-    Trip_1_dest_d <- sqldf("SELECT sum(trexpfac), District FROM Trip_1
-                           INNER JOIN zone_district
-                           on Trip_1.dtaz= zone_district.TAZ
-                           Group by District")
-
-    Trip_1_6_9_mode_time <- ddply(Trip_1_6_9, .(mode), summarise,
-                                  total_trips  =  sum(trexpfac),
-                                  modeshare = sum(trexpfac)/Trip_1_total,
-                                  mean_time = mean(travtime),
-                                  max_time = max(travtime),
-                                  min_time = min(travtime),
-                                  mean_dist = mean(travdist),
-                                  max_dist = max(travdist),
-                                  min_dist = min(travdist),
-                                  type = paste(type[1], "6 to 9"))
-
-    Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
-                                 total_trips  =  sum(trexpfac),
-                                 mean_time = mean(travtime),
-                                 mean_dist = mean(travdist),
-                                 type = paste(type[1], "6 to 9"))
-    Trip_1_6_9_mode_purpose <- ddply(Trip_1_6_9, .(mode,dpurp), summarise,
-                                     total_trips  =  sum(trexpfac),
-                                     mean_time = mean(travtime),
-                                     mean_dist = mean(travdist),
-                                     type = paste(type[1], "6 to 9"))
-
-
-  Trip_1_o_69 <-  sqldf("SELECT dtaz, sum(trexpfac) as NumTrips,
-                        District as OriginDistrict FROM Trip_1_6_9
-                               INNER JOIN zone_district
-                               on Trip_1_6_9.otaz= zone_district.TAZ
-                               Group by District,  dtaz")
-
-  Trip_1_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
-                            District as DestinationDistrict FROM Trip_1_o_69
-                            INNER JOIN zone_district
-                            on Trip_1_o_69.dtaz= zone_district.TAZ
-                            Group by OriginDistrict,zone_district.District")
-
-  }
-
-
-if(sum(Trip_2$trexpfac)<1){
-  Trip_2_dest_d <- sqldf("SELECT count(*), District FROM Trip_2
-                         INNER JOIN zone_district
-                         on Trip_2.dtaz= zone_district.TAZ
-                         Group by District")
-
-  Trip_2_o_69 <-  sqldf("SELECT dtaz, count(*) as NumTrips,
-                        District as OriginDistrict FROM Trip_2_6_9
-                        INNER JOIN zone_district
-                        on Trip_2_6_9.otaz= zone_district.TAZ
-                        Group by District, dtaz")
-
-  Trip_2_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
-                         District as DestinationDistrict FROM Trip_2_o_69
-                        INNER JOIN zone_district
-                        on Trip_2_o_69.dtaz= zone_district.TAZ
-                          Group by OriginDistrict,zone_district.District")
-
-  Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
-                             total_trips    = nrow(travtime),
-                             modeshare = nrow(travtime)/Trip_2_total,
-                             mean_time = mean(travtime),
-                             max_time = max(travtime),
-                             min_time = min(travtime),
-                             mean_dist = mean(travdist),
-                             max_dist = max(travdist),
-                             min_dist = min(travdist),
-                             type = type[2])
-
-  Trip_2_6_9_mode_time  <- ddply(Trip_2_6_9, .(mode), summarise,
-                                 total_trips    = nrow(travtime),
-                                 modeshare = nrow(travtime)/Trip_2_total,
-                                 mean_time = mean(travtime),
-                                 max_time = max(travtime),
-                                 min_time = min(travtime),
-                                 mean_dist = mean(travdist),
-                                 max_dist = max(travdist),
-                                 min_dist = min(travdist),
-                                 type = paste(type[2], "6 to 9"))
-
-  Trip_2_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
-                               total_trips = nrow(id),
-                               mean_time = mean(travtime),
-                               mean_dist = mean(travdist),
-                               type = type[2])
-
-
-}else{
-
-  Trip_2_dest_d <- sqldf("SELECT sum(trexpfac), District FROM Trip_2
-                         INNER JOIN zone_district
-                         on Trip_2.dtaz= zone_district.TAZ
-                         Group by District")
-
-  Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
+Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
                              total_trips  =  sum(trexpfac),
-                             modeshare = sum(trexpfac)/Trip_2_total,
                              mean_time = mean(travtime),
-                             max_time = max(travtime),
-                             min_time = min(travtime),
                              mean_dist = mean(travdist),
-                             max_dist = max(travdist),
-                             min_dist = min(travdist),
+                             type = type[1])
+
+Trip_1_dest_d <- sqldf("SELECT sum(trexpfac) as Trip1, District FROM Trip_1
+                       INNER JOIN zone_district 
+                       on Trip_1.dtaz= zone_district.TAZ
+                       Group by District")
+
+
+Trip_1_o<-  sqldf("SELECT dtaz,sum(trexpfac) as NumTrips, 
+                  District as OriginDistrict FROM Trip_1
+                  INNER JOIN zone_district 
+                  on Trip_1.otaz= zone_district.TAZ
+                  Group by District,dtaz")
+
+Trip_1_od<-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
+                   District as DestinationDistrict FROM Trip_1_o
+                   INNER JOIN zone_district 
+                   on Trip_1_o.dtaz= zone_district.TAZ
+                   Group by OriginDistrict,zone_district.District")
+
+###Trip_2 summaries
+
+Trip_2_dest_d <- sqldf("SELECT sum(trexpfac) As Trip2, District FROM Trip_2
+                       INNER JOIN zone_district 
+                       on Trip_2.dtaz= zone_district.TAZ
+                       Group by District")
+
+Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_2_total,
+                           mean_time = mean(travtime),
+                           max_time = max(travtime),
+                           min_time = min(travtime),
+                           mean_dist = mean(travdist),
+                           max_dist = max(travdist),
+                           min_dist = min(travdist),
+                           type = type[2])
+
+Trip_2_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
+                             total_trips =  sum(trexpfac),
+                             mean_time = mean(travtime),
+                             mean_dist = mean(travdist),
                              type = type[2])
 
-  Trip_2_6_9_mode_time  <- ddply(Trip_2_6_9, .(mode), summarise,
-                                 total_trips  =  sum(trexpfac),
-                                 modeshare = sum(trexpfac)/Trip_2_total,
-                                 mean_time = mean(travtime),
-                                 max_time = max(travtime),
-                                 min_time = min(travtime),
-                                 mean_dist = mean(travdist),
-                                 max_dist = max(travdist),
-                                 min_dist = min(travdist),
-                                 type = paste(type[2], "6 to 9"))
-  Trip_2_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
-                               total_trips =  sum(trexpfac),
-                               mean_time = mean(travtime),
-                               mean_dist = mean(travdist),
-                               type = paste(type[2]))
-  Trip_2_6_9_mode_purpose <- ddply(Trip_2_6_9 , .(mode,dpurp), summarise,
-                                   total_trips =  sum(trexpfac),
-                                   mean_time = mean(travtime),
-                                   mean_dist = mean(travdist),
-                                   type = paste(type[2], "6 to 9"))
 
-  Trip_2_o_69 <-  sqldf("SELECT dtaz, sum(trexpfac) as NumTrips,
-                        District as OriginDistrict FROM Trip_2_6_9
-                               INNER JOIN zone_district
-                               on Trip_2_6_9.otaz= zone_district.TAZ
-                               Group by District,  dtaz")
+Trip_2_o <-  sqldf("SELECT dtaz, sum(trexpfac) as NumTrips, 
+                   District as OriginDistrict FROM Trip_2
+                   INNER JOIN zone_district 
+                   on Trip_2.otaz= zone_district.TAZ
+                   Group by District,  dtaz")
 
-  Trip_2_od_69 <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
-                            District as DestinationDistrict FROM Trip_2_o_69
-                            INNER JOIN zone_district
-                            on Trip_2_o_69.dtaz= zone_district.TAZ
-                            Group by OriginDistrict,zone_district.District")
-}
+Trip_2_od <-  sqldf("SELECT sum(NumTrips) as Trips, OriginDistrict,
+                    District as DestinationDistrict FROM Trip_2_o
+                    INNER JOIN zone_district 
+                    on Trip_2_o.dtaz= zone_district.TAZ
+                    Group by OriginDistrict,zone_district.District")
 
 
 
-Trip_1_od_69 <-  acast(Trip_1_od_69, formula=OriginDistrict ~ DestinationDistrict,
-                       value.var='Trips')
 
-Trip_2_od_69 <-  acast(Trip_2_od_69, formula=OriginDistrict ~ DestinationDistrict,
-                       value.var='Trips')
+Trip_1_od <-  acast(Trip_1_od, formula=OriginDistrict ~ DestinationDistrict, 
+                    value.var='Trips')
 
+Trip_2_od<-  acast(Trip_2_od, formula=OriginDistrict ~ DestinationDistrict, 
+                   value.var='Trips')
 
-
+###Compare dataset 1 and 2, print out#########
 
 print("Trip Destinations By District")
-Trip_1_2_dests <- merge(Trip_1_dest_d,Trip_2_dest_d, "District" )
-colnames(Trip_1_2_dests) <- c("District", names(paths[1]), names(paths[2]))
-print(Trip_1_2_dests)
-
-
+Trip_1_2_dests <- sqldf("SELECT Trip_1_dest_d.District, Trip1, Trip2,
+                        ROUND(Trip1-Trip2,0) As Difference,
+                        ROUND((Trip1-Trip2)/Trip1,2) As PerDiff
+                        from Trip_1_dest_d
+                        INNER JOIN Trip_2_dest_d ON 
+                        Trip_1_dest_d.District=Trip_2_dest_d.District")
+colnames(Trip_1_2_dests) <- c("District", names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
+print(Trip_1_2_dests, row.names=F)
 
 print(c("Trips by Mode and Travel Time", names(paths[1])))
-print(Trip_1_mode_time)
+print(Trip_1_mode_time, row.names=F)
 print(c("Trips by Mode and Travel Time", names(paths[2])))
-print(Trip_2_mode_time)
-
-print(c("Trips by Mode and Travel Time 6 to 9 am", names(paths[1])))
-print(Trip_1_6_9_mode_time)
-
-print(c("Trips by Mode and Travel Time 6 to 9 am", names(paths[2])))
-print(Trip_2_6_9_mode_time)
+print(Trip_2_mode_time, row.names=F)
 @
 
-\subsection{Trips by Origin-Destination District 6 to 9 am}
+\subsection{Trips by Origin-Destination District}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, width=100>>=
-print("Trips From 6 to 9 AM, Origin-Destination District")
+## You might not always want this level of detail.
+print("Trips, Origin-Destination District")
 print(names(paths[1]))
-print(Trip_1_od_69)
+print(Trip_1_od)
 print(names(paths[2]))
-print(Trip_2_od_69)
+print(Trip_2_od)
 @
 
 
-
+\subsection{See RPlot.pdf for plots}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
-
-##################### Plots ##################################################################################
+##################### Plots ######################################################
 append_1_2 <- rbind(Trip_1_mode_time,Trip_2_mode_time)
 append_1_2_purpose <- rbind(Trip_1_mode_purpose,Trip_2_mode_purpose)
 
-append_1_2_purpose<-append_1_2_purpose[append_1_2_purpose$dpurp != 'home' &append_1_2_purpose$dpurp != 'other',]
+append_1_2_purpose_omit<-append_1_2_purpose[append_1_2_purpose$dpurp != 'home' &append_1_2_purpose$dpurp != 'other'&!is.na(append_1_2_purpose$type),]
 
-trips_compare_mode <- ggplot(data=append_1_2,aes(x=mode, y= modeshare, fill=mode))
-trips_compare_mode+ geom_bar(stat = "identity") +facet_wrap(~ type)
-
-trips_compare_purpose <- ggplot(data=append_1_2_purpose,aes(x=dpurp, y= total_trips, fill=dpurp))
-trips_compare_purpose+ geom_bar(stat = "identity") +facet_wrap(~ type) + scale_colour_brewer(type="seq", palette=3)
+trips_compare_mode <- ggplot(data=append_1_2,aes(x=type, y= mode_share, fill=mode))
+trips_compare_mode+geom_bar(stat = "identity")+theme(text = element_text(size=16),axis.text.x = element_text(angle=0, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Mode Share")
 
 trips_compare_distance <- ggplot(data=append_1_2,aes(x=mode, y= mean_dist, fill=mode))
-trips_compare_distance+ geom_bar(stat = "identity") +facet_wrap(~ type)
+trips_compare_distance+ geom_bar(stat = "identity") +facet_wrap(~ type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Average Distance")
 
 trips_compare_time <- ggplot(data=append_1_2,aes(x=mode, y= mean_time, fill=mode))
-trips_compare_time+ geom_bar(stat = "identity") +facet_wrap(~ type)+scale_fill_brewer(palette=3)
 
-Trip_1_deptms <- data.frame(Trip_1$deptm/(60))
+trips_compare_time+geom_bar(stat = "identity")+facet_wrap(~ type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+xlab("Mode")+ ylab("Average Time")
+
+trips_compare_purpose <- ggplot(append_1_2_purpose_omit,
+                                aes(x=dpurp, y= total_trips, fill=dpurp))
+
+trips_compare_purpose+ geom_bar(stat = "identity") +facet_wrap(~ type) +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))                                                                                                      +scale_fill_brewer(palette="Paired")+ xlab("Total Trips")+ylab("Purpose")
+
+#convert the departure times in minutes after midnight to hours
+Trip_1_deptms <- data.frame(cbind(Trip_1$deptm,Trip_1$trexpfac))
 Trip_1_deptms$type <- names(paths[1])
-Trip_2_deptms <- data.frame(Trip_2$deptm/(60))
+
+Trip_2_deptms <- data.frame(cbind(Trip_2$deptm,Trip_2$trexpfac))
 Trip_2_deptms$type <- names(paths[2])
 
-names(Trip_1_deptms) <- c("deptm","type")
-names(Trip_2_deptms) <- c("deptm","type")
 
-trips_by_time <- rbind(Trip_1_deptms, Trip_2_deptms)
+names(Trip_1_deptms) <- c("deptm","trexpfac","type")
+names(Trip_2_deptms) <- c("deptm","trexpfac","type")
+trips_by_time <- rbind(Trip_1_deptms,Trip_2_deptms)
 
-Trip_1_deptm_graph <- ggplot(data=Trip_1_deptms,aes(x=deptm))
-Trip_1_deptm_graph + geom_histogram(binwidth = 2)
+Trip_deptm_graph <- ggplot(data=trips_by_time,
+                           aes(x=deptm, fill=type,weight=trexpfac))
+Trip_deptm_graph + geom_histogram(binwidth = 60)+xlab("Trip Departure Time") + ylab("Total Trips")+facet_wrap("type")
 
-Trip_2_deptm_graph <- ggplot(data=Trip_2_deptms,aes(x=deptm))
-Trip_2_deptm_graph + geom_histogram(binwidth = 2)
+toursbymode1$type <- names(paths[1])
+toursbymode2$type <- names(paths[2])
+toursbypurpose1$type <- names(paths[1])
+toursbypurpose2$type <- names(paths[2])
+append_1_2_toursmode <- rbind(toursbymode1, toursbymode2)
+append_1_2_tourspurpose <- rbind(toursbypurpose1, toursbypurpose2)
 
+append_1_2_toursmode <- na.omit(append_1_2_toursmode)
+tours_compare_mode <- ggplot(data=append_1_2_toursmode,aes(x=type, y=Tour, fill                                                     =tmodetp))
+tours_compare_mode+geom_bar(stat = "identity")+scale_fill_brewer(palette="Spectral")+ xlab("Tour Mode")+ylab("Tour Mode Share")
+
+append_1_2_tourspurpose <- na.omit(append_1_2_tourspurpose)
+tours_compare_purpose <- ggplot(append_1_2_tourspurpose,aes(x=pdpurp, y=Tour, fill=pdpurp))
+
+tours_compare_purpose+geom_bar(stat = "identity")+facet_wrap(~ type)+scale_fill_brewer(palette="Paired")+ xlab("Total Tours")+ylab("Tour Purpose") +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))      
 @
 
 

@@ -59,6 +59,16 @@ copy_large_inputs()
 time_copy = datetime.datetime.now()
 print '###### Finished copying files:', time_copy - time_start
 
+### IMPORT NETWORKS ###############################################################\
+time_copy = datetime.datetime.now()
+returncode = subprocess.call([sys.executable,
+    'scripts/network/network_importer.py'])
+
+if returncode != 0:
+    sys.exit(1)
+
+time_network = datetime.datetime.now()
+print '###### Finished Importing Networks:', time_network - time_copy
 
 ### BUILD SKIMS ###############################################################
 returncode = subprocess.call([sys.executable,
