@@ -5,6 +5,7 @@
 
 # Large input files are not in Git; copy them from:
 base_inputs = 'r:/soundcast/inputs'
+master_project = 'LoadTripTables'
 
 import os,sys,datetime,re
 import subprocess
@@ -14,40 +15,59 @@ time_start = datetime.datetime.now()
 
 print "\nSoundCast run: start time:", time_start
 
+
+def multipleReplace(text, wordDict):
+    for key in wordDict:
+        text = text.replace(key, wordDict[key])
+    return text
+
 def setup_emme_project_folders():
     'Copy, unzip, and prepare the Projects/ and Banks/ emme folders'
 
     # Unzip Projects/ templates using 7-zip (must be in path)
-    unzip_cmd = '7z.exe x -y '+base_inputs+'/etc/emme_projects.7z'
+    unzip_cmd = '7z.exe x -y '+base_inputs+'/etc/projects.7z'
     subprocess.call(unzip_cmd)
 
     # get timeperiod subfolders from os
     time_periods = os.listdir('projects')
 
-    # Subst current workdir into project files
+    # Subst current workdir into project files:
     for period in time_periods:
         print "munging",period
         template = os.path.join('projects',period,period+'.tmpl')
         project  = os.path.join('projects',period,period+'.emp')
-        emmebank = os.path.join(os.getcwd(),'Banks',period)
-        emmebank = emmebank.replace('\\','/')
-
-        with open(template,'r') as source:
-            lines = source.readlines()
-        with open(project,'w') as source:
-            for line in lines:
-                source.write(re.sub(r'\{\$BANKPATH\}',
+        tod_bank_path_dict = {}
+        #associate master project with all tod banks
+        if period == master_project:
+            only_time_periods = os.listdir('projects')
+            #remove master_project from the list
+            only_time_periods.remove(period)
+            for tod in only_time_periods:
+                emmebank = os.path.join(os.getcwd(),'Banks',tod)
+                emmebank = emmebank.replace('\\','/')
+                print emmebank
+                tod_bank_path_dict.update({tod : emmebank})
+            with open(template,'r') as source:
+                lines = source.readlines()
+            with open(project,'w') as source:
+                for line in lines:
+                    line = str(line)
+                    line = multipleReplace(line, tod_bank_path_dict)
+                    source.write(line)
+                source.close()
+        #associate each time of day project with the right tod bank:     
+        else:
+            emmebank = os.path.join(os.getcwd(),'Banks',period)
+            emmebank = emmebank.replace('\\','/')
+            
+            with open(template,'r') as source:
+                lines = source.readlines()
+            with open(project,'w') as source:
+                for line in lines:
+                #is this the master project?
+                    source.write(re.sub(r'\{\$BANKPATH\}',
                              emmebank,
                              line))
-
-def copy_large_inputs():
-    print 'Copying large inputs...'
-
-    shcopy(base_inputs+'/etc/seed_trips.h5','Inputs')
-    shcopy(base_inputs+'/etc/psrc_node_node_distances_binary.dat','Inputs')
-    shcopy(base_inputs+'/etc/psrc_parcel_decay_2006.dat','Inputs')
-    shcopy(base_inputs+'/landuse/hhs_and_persons.h5','Inputs')
-
 
 
 ##########################

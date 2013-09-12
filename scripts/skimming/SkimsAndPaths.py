@@ -93,6 +93,9 @@ fare_dict = {'5to6':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_f
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
 taz_area_file = 'inputs/intrazonals/taz_acres.in'
 
+#Zone Index
+tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
+
 
 def create_hdf5_container(hdf_name):
 
@@ -234,12 +237,14 @@ def open_emme_project(my_project):
 def vdf_initial(my_project):
 
     start_vdf_initial = time.time()
-
+    tod = my_project.emmebank.title
     #Define the Emme Tools used in this function
     manage_vdfs = my_project.tool("inro.emme.data.function.function_transaction")
 
     #Point to input file for the VDF's and Read them in
-    function_file = os.path.join(os.path.dirname(my_project.emmebank.path),"inputs/vdfs.txt").replace("\\","/")
+    #function_file = os.path.join(os.path.dirname(my_project.emmebank.path),"inputs/vdfs.txt").replace("\\","/")
+    function_file = 'inputs/vdfs/vdfs' + tod + '.txt'
+
     manage_vdfs(transaction_file = function_file,throw_on_error = True)
 
     end_vdf_initial = time.time()
@@ -451,7 +456,7 @@ def populate_intrazonals(my_project):
             mod_calc["expression"] = distance_matrix + " *(60/3)"
             matrix_calc(mod_calc)
 
-
+    print 'finished populating intrazonals'
 
 
 def intitial_extra_attributes(my_project):
@@ -1168,6 +1173,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     start_time = time.time()
 
 
+
     #Determine the Path and Scenario File and Zone indicies that go with it
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     my_bank = current_scenario.emmebank
@@ -1175,6 +1181,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     zones=current_scenario.zone_numbers
     bank_name = my_project.emmebank.title
     print bank_name
+
+    #load zones into a NumpyArray to index trips otaz and dtaz
+    tazIndex = np.asarray(zones)
 
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
     tod_index = create_trip_tod_indices(bank_name)
@@ -1260,10 +1269,14 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 mat_name = matrix_dict[mode[x], vot, toll_path[x]]
 
                 if dorp[x] <= 1:
-                    #account for zero based numpy matrices
-                    myOtaz = otaz[x] - 1
-                    myDtaz = dtaz[x] - 1
-                    demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + trexpfac[x]
+                    #get the index of the Otaz
+                    myOtaz = np.where(tazIndex == otaz[x])
+                    #get the index of the Dtaz
+                    myDtaz = np.where(tazIndex == dtaz[x])             
+                    if len(myOtaz) == 1 and len(myDtaz)== 1:
+                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trexpfac[x]
+                    else:
+                        print otaz[x], dtaz[x]
             
         else:
             if vot[x] < 2.50: vot[x]=1
@@ -1275,12 +1288,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 #Only want drivers, transit trips.
                 if dorp[x] <= 1:
                     mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
-                    #account for zero based numpy matrices
-                    myOtaz = otaz[x] - 1
-                    myDtaz = dtaz[x] - 1
-                    
+                    #get the index of the Otaz
+                    myOtaz = np.where(tazIndex == otaz[x])
+                    #get the index of the Dtaz
+                    myDtaz = np.where(tazIndex == dtaz[x])
                     #add the trip
-                    demand_matrices[mat_name][int(myOtaz), int(myDtaz)] = demand_matrices[mat_name][int(myOtaz), int(myDtaz)] + 1
+                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + 1
 
            #all in-memory numpy matrices populated, now write out to emme
     if seed_trips:
@@ -1533,8 +1546,11 @@ def run_assignments_parallel(project_name):
 
     #Import demand/trip tables to emme. This is actually quite fast con-currently.
     hdf5_trips_to_Emme(m, hdf5_file_path)
+    
+
     tod = m.emmebank.title
     populate_intrazonals(m)
+    
     #create transit fare matrices:
     if tod in fare_matrices_tod:
         fare_file = fare_dict[tod]['Files']['fare_box_file']
@@ -1549,7 +1565,7 @@ def run_assignments_parallel(project_name):
     import_extra_attributes(m)
     arterial_delay_calc(m)
     vdf_initial(m)
-
+    
 
     #run auto assignment/skims
     traffic_assignment(m)
@@ -1595,13 +1611,10 @@ def main():
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
 
-
-
         #want pooled processes finished before executing more code in main:
-       
 
-        #start_pool(project_list)
-        #start_transit_pool(project_list)
+        start_pool(project_list)
+        start_transit_pool(project_list)
 
 
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
