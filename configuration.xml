@@ -74,7 +74,7 @@ RawParcelNodePath="psrc_parcel_nodes.dat"
 RawParcelNodeDelimiter="32"
 NodeIndexPath="psrc_node_node_index.dat"
 NodeIndexDelimiter="32"
-NodeDistancesPath="psrc_node_node_distances_binary.dat"
+NodeDistancesPath="psrc_node_node_distances_binary_2010.dat"
 
 IxxiPath="psrc_worker_ixxifractions.dat"
 IxxiDelimiter="9"

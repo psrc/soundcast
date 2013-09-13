@@ -13,7 +13,7 @@ from shutil import copy2 as shcopy
 
 time_start = datetime.datetime.now()
 
-print "\nSoundCast run: start time:", time_start
+print "\nSoundCast Release M2: start time:", time_start
 
 
 def multipleReplace(text, wordDict):
