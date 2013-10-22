@@ -90,11 +90,6 @@ def setup_emme_project_folders():
 
 def copy_large_inputs():
     print 'Copying large inputs...'
-
-    shcopy(base_inputs+'/etc/seed_trips.h5','Inputs')
-    shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
-    shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/seed_trips.h5','Inputs')
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
@@ -126,7 +121,7 @@ print '###### Finished Importing Networks:', time_network - time_copy
 ### BUILD SKIMS ###############################################################
 returncode = subprocess.call([sys.executable,
     'scripts/skimming/SkimsAndPaths.py',
-    '-use seed trips'])
+    '-use seed_trips'])
 
 if returncode != 0:
     sys.exit(1)
