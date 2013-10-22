@@ -16,7 +16,8 @@ sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am
 load_transit_tod = ['6to7', '7to8', '8to9', '9to10']
 
 mode_crosswalk_dict = {'b': 'bp', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 'ahijstuvbw' : 'asehdimjvutbpw'}
-
+mode_file = 'modes.txt'
+transit_vehicle_file = 'vehicles.txt'
 base_net_name = '_roadway.in'
 turns_name = '_turns.in'
 transit_name = '_transit.in'
@@ -50,7 +51,19 @@ class EmmeProject:
                 self.tod = self.bank.title
                 print self.tod
                 self.current_scenario = list(self.bank.scenarios())[0]
+    def process_modes(self, mode_file):
+        NAMESPACE = "inro.emme.data.network.mode.mode_transaction"
+        process_modes = self.m.tool(NAMESPACE)
+        process_modes(transaction_file = mode_file,
+              revert_on_error = True,
+              scenario = self.current_scenario)
                 
+    def create_scenario(self, scenario_number, scenario_title = 'test'):
+        NAMESPACE = "inro.emme.data.scenario.create_scenario"
+        create_scenario = self.m.tool(NAMESPACE)
+        create_scenario(scenario_id=scenario_number,
+                        scenario_title= scenario_title)
+
 
    
     def delete_links(self):
@@ -65,7 +78,12 @@ class EmmeProject:
             NAMESPACE = "inro.emme.data.network.base.delete_nodes"
             delete_nodes = self.m.tool(NAMESPACE)
             delete_nodes(condition="cascade")
-        
+    def process_vehicles(self,vehicle_file):
+          NAMESPACE = "inro.emme.data.network.transit.vehicle_transaction"
+          process = self.m.tool(NAMESPACE)
+          process(transaction_file = vehicle_file,
+            revert_on_error = True,
+            scenario = self.current_scenario)
 
     def process_base_network(self, basenet_file):
         NAMESPACE = "inro.emme.data.network.base.base_network_transaction"
@@ -92,6 +110,8 @@ class EmmeProject:
         process(transaction_file = linkshape_file,
             revert_on_error = True,
             scenario = self.current_scenario)
+    def change_scenario(self):
+        self.current_scenario = list(self.bank.scenarios())[0]
 
 
 def multiwordReplace(text, replace_dict):
@@ -108,16 +128,24 @@ def run_importer(project_name):
     my_project = EmmeProject(project_name)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
-        print key
+        for scenario in list(my_project.bank.scenarios()):
+            my_project.bank.delete_scenario(scenario)
+        #create scenario
+        my_project.bank.create_scenario(1002)
+        my_project.change_scenario()
+        #print key
         my_project.delete_links()
         my_project.delete_nodes()
-        print value
+      
+        my_project.process_modes('D:/soundcast/inputs/networks/' + mode_file)
+        
         my_project.process_base_network('inputs/networks/' + value + base_net_name)
         my_project.process_turn('inputs/networks/' + value + turns_name)
     #my_project.process_shape('/inputs/network' + tod_network + shape_name)
 
         if my_project.tod in load_transit_tod:
-            my_project.process_transit('inputs/networks/' + value + transit_name)
+           my_project.process_vehicles('D:/soundcast/inputs/networks/' + transit_vehicle_file)
+           my_project.process_transit('inputs/networks/' + value + transit_name)
     
     
 

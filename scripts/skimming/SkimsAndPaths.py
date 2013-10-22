@@ -15,11 +15,18 @@ import subprocess
 from multiprocessing import Pool
 
 #Hard-coded paths/data will be moved to a Config file
-# Number of Global Interations
+# Number of Global Iterations
 global_iterations = 1
 # Assignment Convergence Criteria
 max_iter = 50
 b_rel_gap = 0.0001
+
+#zone of externals- 1 because numpy is zero-based
+MIN_EXTERNAL = 3733-1
+MAX_EXTERNAL = 3749-1
+
+#zone of special generators - 1 because numpy is zero-based
+SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
 
 if '-use_seed_trips' in sys.argv:
 	seed_trips = True
@@ -70,24 +77,14 @@ transit_submodes=['b', 'c', 'f', 'p', 'r']
 
 #fare
 zone_file = 'inputs/Fares/transit_fare_zones.grt'
-peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
-peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
-offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
-offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+#peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
+#peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
+#offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
+#offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
 
 fare_matrices_tod = ['6to7', '9to10']
-fare_dict = {'5to6':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-             '6to7':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass},'Names':{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '7to8':{'Files' : {'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names':{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '8to9':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' :{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '9to10':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
-            '10to14':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
-            '14to15':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names':{'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
-            '15to16':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' :{'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '16to17':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '17to18':{'Files' :{'fare_box_file' : peak_fare_box, 'monthly_pass_file' : peak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'afarbx',  'monthly_fare_matrix' : 'afarps'}},
-            '18to20':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}},
-            '20to5':{'Files' :{'fare_box_file' : offpeak_fare_box, 'monthly_pass_file' : offpeak_monthly_pass}, 'Names' : {'fare_box_matrix' : 'mfarbx',  'monthly_fare_matrix' : 'mfarps'}}}
+
+
 
 #intrazonals
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
@@ -95,7 +92,12 @@ taz_area_file = 'inputs/intrazonals/taz_acres.in'
 
 #Zone Index
 tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
+#Trip-Based Matrices for External, Trucks, and Special Generator Inputs
+hdf_auto_filename = 'inputs/4k/trips_auto_4k.h5'
+hdf_transit_filename = 'inputs/4k/trips_transit_4k.h5'
 
+
+   
 
 def create_hdf5_container(hdf_name):
 
@@ -363,6 +365,7 @@ def define_matrices(my_project):
                           scenario=current_scenario)
 
     #transit fares, farebox & monthly matrices :
+    fare_dict = json_to_dictionary('transit_fare_dictionary')
     if tod in fare_matrices_tod:
         for value in fare_dict[tod]['Names'].itervalues():
             create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
@@ -417,7 +420,7 @@ def populate_intrazonals(my_project):
     #populate origin matrix with zone areas:
 
     my_bank = my_project.emmebank
-    print my_bank.title
+    
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
     matrix_transaction(transaction_file = taz_area_file,
@@ -496,13 +499,13 @@ def intitial_extra_attributes(my_project):
 def import_extra_attributes(my_project):
 
     start_extra_attr_import = time.time()
+    tod = my_project.emmebank.title
 
     #Define the Emme Tools used in this function
     import_attributes = my_project.tool("inro.emme.data.network.import_attribute_values")
 
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    attr_file = os.path.join(os.path.dirname(my_project.emmebank.path),"Inputs/tolls.txt").replace("\\","/")
-
+    attr_file = function_file = 'inputs/tolls/tolls' + tod + '.txt'
 
     import_attributes(attr_file, scenario = current_scenario,
               column_labels={0: "inode",
@@ -762,7 +765,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
 
     skim_traffic(mod_skim)
 
-    #add in intazonal values:
+    #add in intrazonal values:
     matrix_calculator = json_to_dictionary("matrix_calculation")
     matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
     inzone_auto_time = my_bank.matrix(intrazonal_dict['time auto']).id
@@ -891,15 +894,9 @@ def skims_to_hdf5(my_project):
         emmebank = database.core_emmebank
         all_emmebanks.update({emmebank.title: emmebank})
 
-
-
     #See if there is a group called Skims.IF so, it probably has old data in it. Delete the group and create a new one.
-
-
-
-
     for tod in uniqueTOD:
-        print tod
+        
         hdf5_filename = create_hdf5_skim_container2(tod)
         my_store=h5py.File(hdf5_filename, "r+")
         e = "Skims" in my_store
@@ -955,7 +952,7 @@ def skims_to_hdf5(my_project):
                 else:
                     matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
                     matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                print matrix_name
+                
 
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
@@ -992,6 +989,7 @@ def skims_to_hdf5(my_project):
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
         #transit/fare
+        fare_dict = json_to_dictionary('transit_fare_dictionary')
         if tod in fare_matrices_tod:
             for value in fare_dict[tod]['Names'].values():
                 matrix_name= 'mf' + value
@@ -1004,8 +1002,6 @@ def skims_to_hdf5(my_project):
                 my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print matrix_name+' was transferred to the HDF5 container.'
                 
-
-
         my_store.close()
     end_export_hdf5 = time.time()
     print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to import matrices to Emme.'
@@ -1047,9 +1043,6 @@ def skims_to_hdf5_concurrent(my_project):
         print "Group Skims Created"
         #Now create the TOD group inside the skims group:
 
-
-
-
     skims_group.create_group(tod)
 
         #need a scenario, get the first one
@@ -1057,7 +1050,6 @@ def skims_to_hdf5_concurrent(my_project):
         #Determine the Path and Scenario File
 
     zones=current_scenario.zone_numbers
-
 
         #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
@@ -1096,7 +1088,7 @@ def skims_to_hdf5_concurrent(my_project):
             matrix_name= 'ivtwa' + item
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            print matrix_name
+            
             my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
@@ -1172,15 +1164,13 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     start_time = time.time()
 
-
-
     #Determine the Path and Scenario File and Zone indicies that go with it
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     my_bank = current_scenario.emmebank
     zonesDim=len(current_scenario.zone_numbers)
     zones=current_scenario.zone_numbers
     bank_name = my_project.emmebank.title
-    print bank_name
+ 
 
     #load zones into a NumpyArray to index trips otaz and dtaz
     tazIndex = np.asarray(zones)
@@ -1198,14 +1188,6 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     matrix_dict = text_to_dictionary('demand_matrix_dictionary')
     uniqueMatrices = set(matrix_dict.values())
 
-    #Read the Time of Day File from the Dictionary File and Set Unique TOD List
-    #tod_dict = text_to_dictionary('time_of_day')
-    #uniqueTOD = set(tod_dict.values())
-    #uniqueTOD = list(uniqueTOD)
-
-    #Read the Mode File from the Dictionary File
-    mode_dict = text_to_dictionary('modes')
-
     #Stores in the HDF5 Container to read or write to
     daysim_set = my_store['Trip']
 
@@ -1214,13 +1196,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     otaz = np.asarray(daysim_set["otaz"])
     otaz = otaz.astype('int')
     otaz = otaz[tod_index]
-
-
-
+    
     dtaz = np.asarray(daysim_set["dtaz"])
     dtaz = dtaz.astype('int')
     dtaz = dtaz[tod_index]
-
 
     mode = np.asarray(daysim_set["mode"])
     mode = mode.astype("int")
@@ -1233,7 +1212,6 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     if not seed_trips:
         vot = np.asarray(daysim_set["vot"])
         vot = vot[tod_index]
-
 
     deptm = np.asarray(daysim_set["deptm"])
     deptm =deptm[tod_index]
@@ -1249,15 +1227,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     my_store.close
 
     #create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
+    #also load up the external and truck trips
     demand_matrices={}
-    if seed_trips:
-        for matrices in uniqueMatrices:
-             #demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.float16 )})
-             demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.uint16 )})
-    else: 
-        for matrices in uniqueMatrices:
-             demand_matrices.update({matrices:np.zeros( (zonesDim,zonesDim), np.uint16 )})
-
+   
+    for matrix_name in uniqueMatrices:
+        demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
+        demand_matrices.update({matrix_name : demand_matrix})
     #Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
     #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
 
@@ -1272,11 +1247,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     #get the index of the Otaz
                     myOtaz = np.where(tazIndex == otaz[x])
                     #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])             
-                    if len(myOtaz) == 1 and len(myDtaz)== 1:
-                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trexpfac[x]
-                    else:
-                        print otaz[x], dtaz[x]
+                    myDtaz = np.where(tazIndex == dtaz[x])            
+                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trexpfac[x]
+                   
             
         else:
             if vot[x] < 2.50: vot[x]=1
@@ -1292,31 +1265,128 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     myOtaz = np.where(tazIndex == otaz[x])
                     #get the index of the Dtaz
                     myDtaz = np.where(tazIndex == dtaz[x])
-                    #add the trip
-                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + 1
-
-           #all in-memory numpy matrices populated, now write out to emme
+                     #add the trip, if it's not in a special generator location
+                    OtazInt = int(myOtaz[0])
+                    DtazInt = int(myDtaz[0])
+                    
+                    
+                    if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + 1
+  
+  #all in-memory numpy matrices populated, now write out to emme
     if seed_trips:
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
-        print mat_name
         matrix_id = my_bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
         my_bank.matrix(matrix_id).set_data(emme_matrix,current_scenario)
 
+    
+        
     end_time = time.time()
 
-    print 'It took', round((end_time-start_time)/60,2), 'minutes to export all skims to the HDF5 File.'
+    print 'It took', round((end_time-start_time)/60,2), 'minutes to import trip tables to emme.'
+
+def load_trucks_external(my_project, matrix_name, zonesDim):
+
+    demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
+
+    tod = my_project.emmebank.title
+
+    time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary')
+    class_dictionary = json_to_dictionary('demand_crosswalk_ab_4k_dictionary')
+
+    # don't do anything for the classes not in the dictionary
+    if matrix_name not in class_dictionary:
+        return demand_matrix
+
+    this_time_dictionary = time_dictionary[tod]
+    this_class_dictionary = class_dictionary[matrix_name]
+    trip_time= this_time_dictionary['TripBasedTime']
+
+    if(this_class_dictionary['TripBasedMode']=='transit' and (trip_time=='ev' or trip_time =='ni')) :
+        return demand_matrix
+
+    if(this_class_dictionary['TripBasedMode']=='transit'):
+        hdf_file = h5py.File(hdf_transit_filename, "r")
+    else:
+        hdf_file = h5py.File(hdf_auto_filename, "r")
+
+    #now we are constructing the name of the trip-based matrices needed for this matrix_name
+
+    #replace the third letter for the time period in the trip based model
+    time_class_name_1 = list(this_class_dictionary['FirstTripBasedClass'])
+
+    #pm transit gets an am name
+    if this_class_dictionary['TripBasedMode']=='transit' and this_time_dictionary['TripBasedTime'] == 'pm':
+         time_class_name_1[0]=this_time_dictionary['TransitTripLetter']
+         trip_time= this_time_dictionary['TransitTripTime']
+    else:
+        time_class_name_1[0]=this_time_dictionary['TripTimeLetter']
+
+   
+    trip_name_1=''.join(time_class_name_1)
+
+    matrix_4k_1 = hdf_file[trip_time][trip_name_1]
+    np_matrix_1 = np.matrix(matrix_4k_1)
+    np_matrix_1 = np_matrix_1.astype(float)
+
+    # for the pm transit transpose the am
+    if this_class_dictionary['TripBasedMode']=='transit' and tod == 'pm':
+         np_matrix_1  = np.transpose(np_matrix_1)
+
+    # some of the auto matrices need two trip-based auto matrices
+    if 'SecondTripBasedClass' in this_class_dictionary:
+        time_class_name_2 = list(this_class_dictionary['SecondTripBasedClass'])
+        time_class_name_2[0]=this_time_dictionary['TripTimeLetter']
+        trip_name_2=''.join(time_class_name_2)
+        matrix_4k_2 = hdf_file[trip_time][trip_name_2]
+        np_matrix_2 = np.matrix(matrix_4k_2)
+        np_matrix_2 = np_matrix_2.astype(float)
+
+    # the trucks just get copied with a time of day factor
+    if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
+       sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
+       #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
+       np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
+       demand_matrix = np.squeeze(np.asarray(np_matrix))
+       
+    # replace the ab matrix with the factored trip matrix in the external and spec gen rows and columns
+    for external in range(MIN_EXTERNAL, MAX_EXTERNAL):
+        for zone in range(0,zonesDim):
+            demand_matrix[external, zone]=np_matrix_1[external,zone]*\
+            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+            demand_matrix[zone, external]=np_matrix_1[zone,external]*\
+            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+            if 'SecondTripBasedClass' in this_class_dictionary:
+                demand_matrix[external, zone]+=np_matrix_2[external,zone]*\
+                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+                demand_matrix[zone, external]+=np_matrix_2[zone,external]*\
+                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+    
+    for spec_gen in SPECIAL_GENERATORS.itervalues():
+        for zone in range(0,zonesDim):
+            demand_matrix[spec_gen, zone]=np_matrix_1[spec_gen,zone]*\
+            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+            demand_matrix[zone, spec_gen]=np_matrix_1[zone,spec_gen]*\
+            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+            if 'SecondTripBasedClass' in this_class_dictionary:
+                demand_matrix[spec_gen, zone]+=np_matrix_2[spec_gen,zone]*\
+                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+                demand_matrix[zone, spec_gen]+=np_matrix_2[zone,spec_gen]*\
+                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+    
+    return np.round(demand_matrix,2)
 
 def create_trip_tod_indices(tod):
      #creates an index for those trips that belong to tod (time of day)
-
      tod_dict = text_to_dictionary('time_of_day')
      uniqueTOD = set(tod_dict.values())
      todIDListdict = {}
+     
      #this creates a dictionary where the TOD string, e.g. 18to20, is the key, and the value is a list of the hours for that period, e.g [18, 19, 20]
      for k, v in tod_dict.iteritems():
         todIDListdict.setdefault(v, []).append(k)
@@ -1326,17 +1396,12 @@ def create_trip_tod_indices(tod):
      daysim_set = my_store["Trip"]
      #open departure time array
      deptm = np.asarray(daysim_set["deptm"])
-     if seed_trips:
-        deptm = deptm.astype('float')
-        deptm = deptm / 60
-        deptm = deptm.astype('int')
-     else:
-        #convert to hours
-        deptm = deptm.astype('float')
-        deptm = deptm/60
-        deptm = deptm.astype('int')
+     #convert to hours
+     deptm = deptm.astype('float')
+     deptm = deptm/60
+     deptm = deptm.astype('int')
+     
      #Get the list of hours for this tod
-
      todValues = todIDListdict[tod]
      # ix is an array of true/false
      ix = np.in1d(deptm.ravel(), todValues)
@@ -1379,8 +1444,8 @@ def start_transit_pool(project_list):
 def run_transit(project_name):
     start_of_run = time.time()
 
-    my_desktop = app.start_dedicated(True, "cth", project_name)
-    print project_name
+    my_desktop = app.start_dedicated(True, "sc", project_name)
+    
     m = _m.Modeller(my_desktop)
     my_bank = m.emmebank
     transit_assignment(m)
@@ -1409,11 +1474,10 @@ def export_to_hdf5_pool(project_list):
 
 def start_export_to_hdf5(test):
 
-    my_desktop = app.start_dedicated(True, "cth", test)
+    my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    #app.App.refresh_data
     skims_to_hdf5(m)
-    print 'done'
+    
 
 
 def bike_walk_assignment(my_project, tod, assign_for_all_tods):
@@ -1489,7 +1553,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
 
     for tod in uniqueTOD:
 
-        print tod
+        
         my_bank = all_emmebanks[tod]
         #need a scenario, get the first one
         current_scenario = list(my_bank.scenarios())[0]
@@ -1512,7 +1576,6 @@ def bike_walk_assignment_NonConcurrent(project_name):
         if tod in bike_walk_skim_tod:
             for key in bike_walk_matrix_dict.keys():
                 mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
-                print bike_walk_matrix_dict[key]['time']
                 mod_assign['od_results']['transit_times'] = bike_walk_matrix_dict[key]['time']
                 mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
                 assign_transit(mod_assign)
@@ -1532,7 +1595,7 @@ def run_assignments_parallel(project_name):
     start_of_run = time.time()
 
 
-    my_desktop = app.start_dedicated(True, "cth", project_name)
+    my_desktop = app.start_dedicated(True, "sc", project_name)
     m = _m.Modeller(my_desktop)
 
 
@@ -1540,6 +1603,7 @@ def run_assignments_parallel(project_name):
     #delete and create new demand and skim matrices:
     delete_matrices(m, "FULL")
     delete_matrices(m, "ORIGIN")
+    
 
 
     define_matrices(m)
@@ -1553,12 +1617,13 @@ def run_assignments_parallel(project_name):
     
     #create transit fare matrices:
     if tod in fare_matrices_tod:
-        fare_file = fare_dict[tod]['Files']['fare_box_file']
+     fare_dict = json_to_dictionary('transit_fare_dictionary')
+     fare_file = fare_dict[tod]['Files']['fare_box_file']
         #fare box:
-        create_fare_zones(m, zone_file, fare_file)
+     create_fare_zones(m, zone_file, fare_file)
         #monthly:
-        fare_file = fare_dict[tod]['Files']['monthly_pass_file']
-        create_fare_zones(m, zone_file, fare_file)
+     fare_file = fare_dict[tod]['Files']['monthly_pass_file']
+     create_fare_zones(m, zone_file, fare_file)
 
     #set up for assignments
     intitial_extra_attributes(m)
@@ -1566,9 +1631,9 @@ def run_assignments_parallel(project_name):
     arterial_delay_calc(m)
     vdf_initial(m)
     
-
     #run auto assignment/skims
     traffic_assignment(m)
+    
     attribute_based_skims(m, "Time")
 
     #get tod from bank name.
@@ -1577,7 +1642,7 @@ def run_assignments_parallel(project_name):
     bike_walk_assignment(m, tod, 'false')
     #Only skim for distance if in global distance_skim_tod list
     if tod in distance_skim_tod:
-        attribute_based_skims(m,"Distance")
+       attribute_based_skims(m,"Distance")
 
     #Toll skims
     attribute_based_toll_cost_skims( m, "@toll1")
@@ -1598,6 +1663,10 @@ def main():
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     for x in range(0, global_iterations):
         start_of_run = time.time()
+        
+
+        #want pooled processes finished before executing more code in main:
+
         project_list=['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
                       'Projects/7to8/7to8.emp',
@@ -1615,7 +1684,7 @@ def main():
 
         start_pool(project_list)
         start_transit_pool(project_list)
-
+        #run_assignments_parallel('Projects/6to7/6to7.emp')
 
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
         #time period, and then merging them all to one HDF5 file at the end, but

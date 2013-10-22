@@ -4,9 +4,11 @@
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
+ShouldRunInputTester="true"
+
 SamplingWeightsSettingsType="SamplingWeightsSettingsSimple"
-TraceSimulatedChoiceOutcomes="true"
-TraceModelResultValidity="true"
+TraceSimulatedChoiceOutcomes="false"
+TraceModelResultValidity="false"
 InvalidAttemptsBeforeTrace="0" 
 InvalidAttemptsBeforeContinue="50" 
 ReportInvalidPersonDays="true"

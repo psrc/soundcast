@@ -67,3 +67,6 @@
 (8,1,1):trnst
 (8,2,1):trnst
 (8,3,1):trnst
+(9,1,1):lttrk
+(10,1,1):metrk
+(11,1,1):hvtrk
