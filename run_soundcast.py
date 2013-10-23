@@ -25,7 +25,7 @@ def multipleReplace(text, wordDict):
 
 def setup_emme_bank_folders():
     emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.txt')))
-    modes_dict = json.load(open(os.path.join('inputs', 'skim_params', 'modes.txt')))
+    
     if not os.path.exists('Banks'):
         os.makedirs('Banks')
     #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
@@ -90,7 +90,7 @@ def setup_emme_project_folders():
 
 def copy_large_inputs():
     print 'Copying large inputs...'
-    shcopy(base_inputs+'/etc/seed_trips.h5','Inputs')
+    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs') 
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
@@ -103,7 +103,7 @@ def copy_large_inputs():
 setup_emme_project_folders()
 setup_emme_bank_folders()
 
-#copy_large_inputs()
+copy_large_inputs()
 time_copy = datetime.datetime.now()
 print '###### Finished copying files:', time_copy - time_start
 
@@ -121,7 +121,7 @@ print '###### Finished Importing Networks:', time_network - time_copy
 ### BUILD SKIMS ###############################################################
 returncode = subprocess.call([sys.executable,
     'scripts/skimming/SkimsAndPaths.py',
-    '-use seed_trips'])
+    '-use_daysim_output_seed_trips'])
 
 if returncode != 0:
     sys.exit(1)

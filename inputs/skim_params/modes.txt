@@ -1,1 +1,30 @@
-{"1": "Walk", "2": "Bike", "3": "Highway", "4": "Highway", "5": "Highway", "6": "Transit", "7": "Transit", "8": "Transit"}
+c Emme Modeller - Mode Transaction
+c Date: 2013-10-09 09:14:21
+c Project:        9to10                                                       
+c Scenario 1003:  
+t modes
+c id description mode_type colour cost_time_coeff cost_distance_coeff energy_time_coeff energy_distance_coeff speed_factor
+a a 'Auto      ' 1   1   1.00   1.00   1.00   1.00
+a s 'NoTollSOV ' 4   1
+a e 'TollSOV   ' 4   1
+a h 'NoTollHOV2' 4   1
+a d 'TollHOV2  ' 4   1
+a i 'NoTollHOV3' 4   1
+a m 'TollHOV3  ' 4   1
+a j 'NoTollVans' 4   1
+a g 'TollVans  ' 4   1
+a v 'LgtTruck  ' 4   1
+a u 'MedTruck  ' 4   1
+a t 'HvyTruck  ' 4   1
+a b 'LocalBus  ' 2   1
+a p 'ExpBus    ' 2   1
+a n 'BRT       ' 2   1
+a r 'LRT       ' 2   1
+a c 'CRT       ' 2   1
+a o 'StrCar    ' 2   1
+a f 'Ferry     ' 2   1
+a w 'Walk      ' 3   1   1.00   1.00   1.00   1.00          3.0
+a x 'WalkAcc   ' 3   1   1.00   1.00   1.00   1.00          3.0
+a k 'BikeTr    ' 3   1   1.00   1.00   1.00   1.00         15.0
+a l 'BikeLn    ' 3   1   1.00   1.00   1.00   1.00         10.0
+a q 'BikeShldr ' 3   1   1.00   1.00   1.00   1.00         10.0

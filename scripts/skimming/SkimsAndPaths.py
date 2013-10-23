@@ -28,14 +28,22 @@ MAX_EXTERNAL = 3749-1
 #zone of special generators - 1 because numpy is zero-based
 SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
 
-if '-use_seed_trips' in sys.argv:
+if '-use_survey_seed_trips' in sys.argv:
 	seed_trips = True
+elif '-use_daysim_output_seed_trips' in sys.argv:
+	daysim_seed_trips = True
+	seed_trips = False
 else:
+	daysim_seed_trips = False
 	seed_trips = False
 
+
 if seed_trips:
-	print 'Using SEED TRIPS.'
+	print 'Using SURVEY SEED TRIPS.'
 	hdf5_file_path = 'inputs/seed_trips.h5'
+elif daysim_seed_trips:
+	print 'Using DAYSIM OUTPUT SEED TRIPS'
+	hdf5_file_path = 'inputs/daysim_outputs_seed_trips.h5'
 else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
@@ -1206,7 +1214,6 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     mode = mode[tod_index]
 
     trexpfac = np.asarray(daysim_set["trexpfac"])
-    trexpfac = trexpfac.astype('float')
     trexpfac = trexpfac[tod_index]
 
     if not seed_trips:
@@ -1246,9 +1253,20 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 if dorp[x] <= 1:
                     #get the index of the Otaz
                     myOtaz = np.where(tazIndex == otaz[x])
+                    
                     #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])            
-                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trexpfac[x]
+                    myDtaz = np.where(tazIndex == dtaz[x])
+                    #some missing Os&Ds in seed trips!
+                    if len(myOtaz) == 1 and len(myDtaz) == 1:
+                        
+                        OtazInt = int(myOtaz[0])
+                        DtazInt = int(myDtaz[0])
+                        if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                            trips = np.asscalar(np.float32(trexpfac[x]))
+                            trips = round(trips, 2)
+                            print trips
+                        #print trips
+                            demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
                    
             
         else:
@@ -1265,11 +1283,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     myOtaz = np.where(tazIndex == otaz[x])
                     #get the index of the Dtaz
                     myDtaz = np.where(tazIndex == dtaz[x])
-                     #add the trip, if it's not in a special generator location
+                    
                     OtazInt = int(myOtaz[0])
                     DtazInt = int(myDtaz[0])
-                    
-                    
+                     #add the trip, if it's not in a special generator location
                     if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + 1
   
