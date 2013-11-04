@@ -1,0 +1,1 @@
+This directory contains the 4k trip tables for external, special generator, and truck trips.
