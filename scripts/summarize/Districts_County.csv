@@ -1,0 +1,3719 @@
+TAZ,District,County,SeattleOrNot
+1,13,King,Seattle
+2,13,King,Seattle
+3,13,King,Seattle
+4,13,King,Seattle
+5,13,King,Seattle
+6,13,King,Seattle
+7,13,King,Seattle
+8,13,King,Seattle
+9,13,King,Seattle
+10,13,King,Seattle
+11,13,King,Seattle
+12,13,King,Seattle
+13,13,King,Seattle
+14,13,King,Seattle
+15,13,King,Seattle
+16,13,King,Seattle
+17,13,King,Seattle
+18,13,King,Seattle
+19,13,King,Seattle
+20,13,King,Seattle
+21,13,King,Seattle
+22,13,King,Seattle
+23,13,King,Seattle
+24,13,King,Seattle
+25,13,King,Seattle
+26,13,King,Seattle
+27,13,King,Seattle
+28,13,King,Seattle
+29,13,King,Seattle
+30,13,King,Seattle
+31,13,King,Seattle
+32,13,King,Seattle
+33,13,King,Seattle
+34,13,King,Seattle
+35,13,King,Seattle
+36,13,King,Seattle
+37,13,King,Seattle
+38,13,King,Seattle
+39,13,King,Seattle
+40,13,King,Seattle
+41,13,King,Seattle
+42,13,King,Seattle
+43,13,King,Seattle
+44,13,King,Seattle
+45,13,King,Seattle
+46,13,King,Seattle
+47,13,King,Seattle
+48,13,King,Seattle
+49,13,King,Seattle
+50,13,King,Seattle
+51,13,King,Seattle
+52,13,King,Seattle
+53,13,King,Seattle
+54,13,King,Seattle
+55,13,King,Seattle
+56,13,King,Seattle
+57,13,King,Seattle
+58,13,King,Seattle
+59,13,King,Seattle
+60,13,King,Seattle
+61,13,King,Seattle
+62,13,King,Seattle
+63,13,King,Seattle
+64,13,King,Seattle
+65,13,King,Seattle
+66,13,King,Seattle
+67,13,King,Seattle
+68,13,King,Seattle
+69,13,King,Seattle
+70,13,King,Seattle
+71,13,King,Seattle
+72,13,King,Seattle
+73,13,King,Seattle
+74,13,King,Seattle
+75,13,King,Seattle
+76,13,King,Seattle
+77,13,King,Seattle
+78,13,King,Seattle
+79,13,King,Seattle
+80,13,King,Seattle
+81,13,King,Seattle
+82,13,King,Seattle
+83,13,King,Seattle
+84,13,King,Seattle
+85,13,King,Seattle
+86,13,King,Seattle
+87,13,King,Seattle
+88,13,King,Seattle
+89,13,King,Seattle
+90,13,King,Seattle
+91,13,King,Seattle
+92,13,King,Seattle
+93,13,King,Seattle
+94,13,King,Seattle
+95,13,King,Seattle
+96,13,King,Seattle
+97,13,King,Seattle
+98,13,King,Seattle
+99,13,King,Seattle
+100,13,King,Seattle
+101,13,King,Seattle
+102,13,King,Seattle
+103,13,King,Seattle
+104,13,King,Seattle
+105,13,King,Seattle
+106,13,King,Seattle
+107,13,King,Seattle
+108,13,King,Seattle
+109,13,King,Seattle
+110,13,King,Seattle
+111,13,King,Seattle
+112,13,King,Seattle
+113,13,King,Seattle
+114,13,King,Seattle
+115,13,King,Seattle
+116,13,King,Seattle
+117,13,King,Seattle
+118,13,King,Seattle
+119,13,King,Seattle
+120,13,King,Seattle
+121,13,King,Seattle
+122,13,King,Seattle
+123,13,King,Seattle
+124,13,King,Seattle
+125,13,King,Seattle
+126,13,King,Seattle
+127,13,King,Seattle
+128,13,King,Seattle
+129,13,King,Seattle
+130,13,King,Seattle
+131,13,King,Seattle
+132,13,King,Seattle
+133,13,King,Seattle
+134,13,King,Seattle
+135,13,King,Seattle
+136,13,King,Seattle
+137,13,King,Seattle
+138,13,King,Seattle
+139,13,King,Seattle
+140,13,King,Seattle
+141,13,King,Seattle
+142,13,King,Seattle
+143,13,King,Seattle
+144,13,King,Seattle
+145,13,King,Seattle
+146,13,King,Seattle
+147,13,King,Seattle
+148,13,King,Seattle
+149,13,King,Seattle
+150,13,King,Seattle
+151,13,King,Seattle
+152,13,King,Seattle
+153,13,King,Seattle
+154,13,King,Seattle
+155,13,King,Seattle
+156,13,King,Seattle
+157,13,King,Seattle
+158,13,King,Seattle
+159,13,King,Seattle
+160,13,King,Seattle
+161,13,King,Seattle
+162,13,King,Seattle
+163,13,King,Seattle
+164,13,King,Seattle
+165,13,King,Seattle
+166,13,King,Seattle
+167,13,King,Seattle
+168,13,King,Seattle
+169,13,King,Seattle
+170,13,King,Seattle
+171,13,King,Seattle
+172,13,King,Seattle
+173,13,King,Seattle
+174,13,King,Seattle
+175,13,King,Seattle
+176,13,King,Seattle
+177,13,King,Seattle
+178,13,King,Seattle
+179,13,King,Seattle
+180,13,King,Seattle
+181,13,King,Seattle
+182,13,King,Seattle
+183,13,King,Seattle
+184,13,King,Seattle
+185,13,King,Seattle
+186,13,King,Seattle
+187,13,King,Seattle
+188,13,King,Seattle
+189,13,King,Seattle
+190,13,King,Seattle
+191,13,King,Seattle
+192,13,King,Seattle
+193,13,King,Seattle
+194,13,King,Seattle
+195,13,King,Seattle
+196,13,King,Seattle
+197,13,King,Seattle
+198,13,King,Seattle
+199,13,King,Seattle
+200,13,King,Seattle
+201,13,King,Seattle
+202,13,King,Seattle
+203,13,King,Seattle
+204,13,King,Seattle
+205,13,King,Seattle
+206,13,King,Seattle
+207,13,King,Seattle
+208,13,King,Seattle
+209,13,King,Seattle
+210,13,King,Seattle
+211,13,King,Seattle
+212,13,King,Seattle
+213,13,King,Seattle
+214,13,King,Seattle
+215,13,King,Seattle
+216,13,King,Seattle
+217,13,King,Seattle
+218,13,King,Seattle
+219,13,King,Seattle
+220,13,King,Seattle
+221,13,King,Seattle
+222,13,King,Seattle
+223,13,King,Seattle
+224,13,King,Seattle
+225,13,King,Seattle
+226,13,King,Seattle
+227,13,King,Seattle
+228,13,King,Seattle
+229,13,King,Seattle
+230,13,King,Seattle
+231,13,King,Seattle
+232,13,King,Seattle
+233,13,King,Seattle
+234,13,King,Seattle
+235,13,King,Seattle
+236,13,King,Seattle
+237,13,King,Seattle
+238,13,King,Seattle
+239,13,King,Seattle
+240,13,King,Seattle
+241,13,King,Seattle
+242,13,King,Seattle
+243,13,King,Seattle
+244,13,King,Seattle
+245,13,King,Seattle
+246,13,King,Seattle
+247,13,King,Seattle
+248,13,King,Seattle
+249,13,King,Seattle
+250,13,King,Seattle
+251,13,King,Seattle
+252,13,King,Seattle
+253,13,King,Seattle
+254,13,King,Seattle
+255,13,King,Seattle
+256,13,King,Seattle
+257,13,King,Seattle
+258,13,King,Seattle
+259,13,King,Seattle
+260,13,King,Seattle
+261,13,King,Seattle
+262,13,King,Seattle
+263,13,King,Seattle
+264,13,King,Seattle
+265,13,King,Seattle
+266,13,King,Seattle
+267,13,King,Seattle
+268,13,King,Seattle
+269,13,King,Seattle
+270,13,King,Seattle
+271,13,King,Seattle
+272,13,King,Seattle
+273,13,King,Seattle
+274,13,King,Seattle
+275,13,King,Seattle
+276,13,King,Seattle
+277,13,King,Seattle
+278,13,King,Seattle
+279,13,King,Seattle
+280,13,King,Seattle
+281,13,King,Seattle
+282,13,King,Seattle
+283,13,King,Seattle
+284,13,King,Seattle
+285,13,King,Seattle
+286,13,King,Seattle
+287,13,King,Seattle
+288,13,King,Seattle
+289,13,King,Seattle
+290,13,King,Seattle
+291,13,King,Seattle
+292,13,King,Seattle
+293,13,King,Seattle
+294,13,King,Seattle
+295,13,King,Seattle
+296,13,King,Seattle
+297,13,King,Seattle
+298,13,King,Seattle
+299,13,King,Seattle
+300,13,King,Seattle
+301,13,King,Seattle
+302,13,King,Seattle
+303,13,King,Seattle
+304,13,King,Seattle
+305,13,King,Seattle
+306,13,King,Seattle
+307,13,King,Seattle
+308,13,King,Seattle
+309,13,King,Seattle
+310,13,King,Seattle
+311,13,King,Seattle
+312,13,King,Seattle
+313,13,King,Seattle
+314,13,King,Seattle
+315,13,King,Seattle
+316,13,King,Seattle
+317,13,King,Seattle
+318,13,King,Seattle
+319,13,King,Seattle
+320,13,King,Seattle
+321,13,King,Seattle
+322,13,King,Seattle
+323,13,King,Seattle
+324,13,King,Seattle
+325,13,King,Seattle
+326,13,King,Seattle
+327,13,King,Seattle
+328,13,King,Seattle
+329,13,King,Seattle
+330,13,King,Seattle
+331,12,King,Seattle
+332,12,King,Seattle
+333,12,King,Seattle
+334,12,King,Seattle
+335,12,King,Seattle
+336,12,King,Seattle
+337,12,King,Seattle
+338,12,King,Seattle
+339,12,King,Seattle
+340,12,King,Seattle
+341,12,King,Seattle
+342,12,King,Seattle
+343,12,King,Seattle
+344,12,King,Seattle
+345,12,King,Seattle
+346,12,King,Seattle
+347,12,King,Seattle
+348,12,King,Seattle
+349,12,King,Seattle
+350,12,King,Seattle
+351,12,King,Seattle
+352,12,King,Seattle
+353,12,King,Seattle
+354,12,King,Seattle
+355,12,King,Seattle
+356,12,King,Seattle
+357,12,King,Seattle
+358,12,King,Seattle
+359,12,King,Seattle
+360,12,King,Seattle
+361,12,King,Seattle
+362,12,King,Seattle
+363,12,King,Seattle
+364,12,King,Seattle
+365,12,King,Seattle
+366,12,King,Seattle
+367,12,King,Seattle
+368,12,King,Seattle
+369,12,King,Seattle
+370,12,King,Seattle
+371,12,King,Seattle
+372,12,King,Seattle
+373,12,King,Seattle
+374,12,King,Seattle
+375,12,King,Seattle
+376,12,King,Seattle
+377,12,King,Seattle
+378,12,King,Seattle
+379,12,King,Seattle
+380,12,King,Seattle
+381,12,King,Seattle
+382,12,King,Seattle
+383,12,King,Seattle
+384,12,King,Seattle
+385,12,King,Seattle
+386,12,King,Seattle
+387,12,King,Seattle
+388,12,King,Seattle
+389,12,King,Seattle
+390,12,King,Seattle
+391,12,King,Seattle
+392,12,King,Seattle
+393,12,King,Seattle
+394,12,King,Seattle
+395,12,King,Seattle
+396,12,King,Seattle
+397,12,King,Seattle
+398,12,King,Seattle
+399,12,King,Seattle
+400,12,King,Seattle
+401,12,King,Seattle
+402,12,King,Seattle
+403,12,King,Seattle
+404,12,King,Seattle
+405,12,King,Seattle
+406,12,King,Seattle
+407,12,King,Seattle
+408,12,King,Seattle
+409,12,King,Seattle
+410,12,King,Seattle
+411,12,King,Seattle
+412,12,King,Seattle
+413,12,King,Seattle
+414,12,King,Seattle
+415,12,King,Seattle
+416,12,King,Seattle
+417,12,King,Seattle
+418,12,King,Seattle
+419,12,King,Seattle
+420,12,King,Seattle
+421,12,King,Seattle
+422,12,King,Seattle
+423,12,King,Seattle
+424,12,King,Seattle
+425,12,King,Seattle
+426,12,King,Seattle
+427,12,King,Seattle
+428,12,King,Seattle
+429,12,King,Seattle
+430,12,King,Seattle
+431,12,King,Seattle
+432,12,King,Seattle
+433,12,King,Seattle
+434,12,King,Seattle
+435,12,King,Seattle
+436,12,King,Seattle
+437,12,King,Seattle
+438,12,King,Seattle
+439,12,King,Seattle
+440,12,King,Seattle
+441,12,King,Seattle
+442,12,King,Seattle
+443,12,King,Seattle
+444,12,King,Seattle
+445,11,King,Seattle
+446,11,King,Seattle
+447,11,King,Seattle
+448,11,King,Seattle
+449,11,King,Seattle
+450,11,King,Seattle
+451,11,King,Seattle
+452,11,King,Seattle
+453,11,King,Seattle
+454,11,King,Seattle
+455,11,King,Seattle
+456,11,King,Seattle
+457,11,King,Seattle
+458,11,King,Seattle
+459,11,King,Seattle
+460,11,King,Seattle
+461,11,King,Seattle
+462,11,King,Seattle
+463,11,King,Seattle
+464,11,King,Seattle
+465,11,King,Seattle
+466,11,King,Seattle
+467,11,King,Seattle
+468,11,King,Seattle
+469,11,King,Seattle
+470,11,King,Seattle
+471,11,King,Seattle
+472,11,King,Seattle
+473,11,King,Seattle
+474,11,King,Seattle
+475,11,King,Seattle
+476,11,King,Seattle
+477,11,King,Seattle
+478,11,King,Seattle
+479,11,King,Seattle
+480,11,King,Seattle
+481,11,King,Seattle
+482,11,King,Seattle
+483,11,King,Seattle
+484,11,King,Seattle
+485,11,King,Seattle
+486,11,King,Seattle
+487,11,King,Seattle
+488,11,King,Seattle
+489,11,King,Seattle
+490,11,King,Seattle
+491,11,King,Seattle
+492,11,King,Seattle
+493,11,King,Seattle
+494,11,King,Seattle
+495,11,King,Seattle
+496,11,King,Seattle
+497,11,King,Seattle
+498,11,King,Seattle
+499,11,King,Seattle
+500,11,King,Seattle
+501,11,King,Seattle
+502,11,King,Seattle
+503,11,King,Seattle
+504,11,King,Seattle
+505,11,King,Seattle
+506,11,King,Seattle
+507,11,King,Seattle
+508,11,King,Seattle
+509,11,King,Seattle
+510,11,King,Seattle
+511,11,King,Seattle
+512,11,King,Seattle
+513,11,King,Seattle
+514,11,King,Seattle
+515,11,King,Seattle
+516,11,King,Seattle
+517,11,King,Seattle
+518,11,King,Seattle
+519,11,King,Seattle
+520,11,King,Seattle
+521,11,King,Seattle
+522,11,King,Seattle
+523,11,King,Seattle
+524,11,King,Seattle
+525,11,King,Seattle
+526,11,King,Seattle
+527,11,King,Seattle
+528,11,King,Seattle
+529,11,King,Seattle
+530,11,King,Seattle
+531,11,King,Seattle
+532,11,King,Seattle
+533,11,King,Seattle
+534,11,King,Seattle
+535,11,King,Seattle
+536,11,King,Seattle
+537,11,King,Seattle
+538,11,King,Seattle
+539,11,King,Seattle
+540,11,King,Seattle
+541,11,King,Seattle
+542,11,King,Seattle
+543,11,King,Seattle
+544,11,King,Seattle
+545,11,King,Seattle
+546,11,King,Seattle
+547,12,King,Seattle
+548,12,King,Seattle
+549,12,King,Seattle
+550,12,King,Seattle
+551,12,King,Seattle
+552,12,King,Seattle
+553,12,King,Seattle
+554,12,King,Seattle
+555,12,King,Seattle
+556,12,King,Seattle
+557,12,King,Seattle
+558,12,King,Seattle
+559,12,King,Seattle
+560,12,King,Seattle
+561,12,King,Seattle
+562,12,King,Seattle
+563,12,King,Seattle
+564,12,King,Seattle
+565,12,King,Seattle
+566,12,King,Seattle
+567,12,King,Seattle
+568,12,King,Seattle
+569,12,King,Seattle
+570,12,King,Seattle
+571,12,King,Seattle
+572,12,King,Seattle
+573,12,King,Seattle
+574,12,King,Seattle
+575,12,King,Seattle
+576,12,King,Seattle
+577,12,King,Seattle
+578,12,King,Seattle
+579,12,King,Seattle
+580,12,King,Seattle
+581,12,King,Seattle
+582,12,King,Seattle
+583,12,King,Seattle
+584,12,King,Seattle
+585,12,King,Seattle
+586,12,King,Seattle
+587,12,King,Seattle
+588,12,King,Seattle
+589,12,King,Seattle
+590,12,King,Seattle
+591,12,King,Seattle
+592,12,King,Seattle
+593,12,King,Seattle
+594,12,King,Seattle
+595,12,King,Seattle
+596,12,King,Seattle
+597,12,King,Seattle
+598,12,King,Seattle
+599,12,King,Seattle
+600,12,King,Seattle
+601,12,King,Seattle
+602,12,King,Seattle
+603,12,King,Seattle
+604,12,King,Seattle
+605,12,King,Seattle
+606,12,King,Seattle
+607,12,King,Seattle
+608,12,King,Seattle
+609,12,King,Seattle
+610,11,King,Seattle
+611,11,King,Seattle
+612,11,King,Seattle
+613,11,King,Seattle
+614,11,King,Seattle
+615,11,King,Seattle
+616,10,King,Seattle
+617,10,King,Seattle
+618,10,King,Seattle
+619,10,King,Seattle
+620,10,King,Seattle
+621,10,King,Seattle
+622,10,King,Seattle
+623,10,King,Seattle
+624,10,King,Seattle
+625,10,King,Seattle
+626,10,King,Seattle
+627,11,King,Seattle
+628,11,King,Seattle
+629,11,King,Seattle
+630,10,King,Seattle
+631,11,King,Seattle
+632,11,King,Seattle
+633,10,King,Seattle
+634,10,King,Seattle
+635,10,King,Seattle
+636,10,King,Seattle
+637,10,King,Seattle
+638,10,King,Seattle
+639,10,King,Seattle
+640,10,King,Seattle
+641,10,King,Seattle
+642,10,King,Seattle
+643,10,King,Seattle
+644,10,King,Seattle
+645,10,King,Seattle
+646,10,King,Seattle
+647,10,King,Seattle
+648,10,King,Seattle
+649,10,King,Seattle
+650,10,King,Seattle
+651,10,King,Seattle
+652,10,King,Seattle
+653,10,King,Seattle
+654,10,King,Seattle
+655,10,King,Seattle
+656,10,King,Seattle
+657,10,King,Seattle
+658,10,King,Seattle
+659,10,King,Seattle
+660,10,King,Seattle
+661,10,King,Seattle
+662,10,King,Seattle
+663,10,King,Seattle
+664,10,King,Seattle
+665,10,King,Seattle
+666,10,King,Seattle
+667,10,King,Seattle
+668,10,King,Seattle
+669,10,King,Seattle
+670,10,King,Seattle
+671,10,King,Seattle
+672,10,King,Seattle
+673,10,King,Seattle
+674,10,King,Seattle
+675,10,King,Seattle
+676,10,King,Seattle
+677,10,King,Seattle
+678,10,King,Seattle
+679,10,King,Seattle
+680,10,King,Seattle
+681,10,King,Seattle
+682,10,King,Seattle
+683,10,King,Seattle
+684,10,King,Seattle
+685,10,King,Seattle
+686,10,King,Seattle
+687,10,King,Seattle
+688,10,King,Seattle
+689,10,King,Seattle
+690,10,King,Seattle
+691,10,King,Seattle
+692,10,King,Seattle
+693,10,King,Seattle
+694,10,King,Seattle
+695,10,King,Seattle
+696,10,King,Seattle
+697,10,King,Seattle
+698,10,King,Seattle
+699,10,King,Seattle
+700,10,King,Seattle
+701,10,King,Seattle
+702,10,King,Seattle
+703,10,King,Seattle
+704,10,King,Seattle
+705,10,King,Seattle
+706,10,King,Seattle
+707,10,King,Seattle
+708,10,King,Seattle
+709,10,King,Seattle
+710,10,King,Seattle
+711,10,King,Seattle
+712,10,King,Seattle
+713,10,King,Seattle
+714,10,King,Seattle
+715,10,King,Seattle
+716,10,King,Seattle
+717,10,King,Seattle
+718,10,King,Seattle
+719,10,King,Seattle
+720,10,King,Seattle
+721,10,King,Seattle
+722,10,King,Seattle
+723,10,King,Seattle
+724,10,King,Seattle
+725,10,King,Seattle
+726,10,King,Seattle
+727,10,King,Seattle
+728,10,King,Seattle
+729,10,King,Seattle
+730,10,King,Seattle
+731,10,King,Seattle
+732,10,King,Seattle
+733,10,King,Seattle
+734,10,King,Seattle
+735,10,King,Seattle
+736,10,King,Seattle
+737,10,King,Seattle
+738,10,King,Seattle
+739,10,King,Seattle
+740,10,King,Seattle
+741,10,King,Seattle
+742,10,King,Seattle
+743,10,King,Seattle
+744,10,King,Seattle
+745,10,King,Seattle
+746,10,King,Seattle
+747,10,King,Seattle
+748,10,King,Seattle
+749,10,King,Seattle
+750,10,King,Seattle
+751,10,King,Seattle
+752,10,King,Seattle
+753,10,King,Seattle
+754,10,King,Seattle
+755,10,King,Seattle
+756,10,King,Seattle
+757,10,King,Seattle
+758,10,King,Seattle
+759,10,King,Seattle
+760,10,King,Seattle
+761,10,King,Seattle
+762,10,King,Seattle
+763,10,King,Seattle
+764,10,King,Seattle
+765,10,King,Seattle
+766,10,King,Seattle
+767,10,King,Seattle
+768,10,King,Seattle
+769,10,King,Seattle
+770,10,King,Seattle
+771,10,King,Seattle
+772,10,King,Seattle
+773,10,King,Seattle
+774,10,King,Seattle
+775,10,King,Seattle
+776,10,King,Seattle
+777,10,King,Seattle
+778,10,King,Seattle
+779,10,King,Seattle
+780,10,King,Seattle
+781,10,King,Seattle
+782,10,King,Seattle
+783,10,King,Seattle
+784,10,King,Seattle
+785,10,King,Seattle
+786,10,King,Seattle
+787,10,King,Seattle
+788,10,King,Seattle
+789,10,King,Seattle
+790,10,King,Seattle
+791,10,King,Seattle
+792,10,King,Seattle
+793,10,King,Seattle
+794,10,King,Seattle
+795,10,King,Seattle
+796,10,King,Seattle
+797,10,King,Seattle
+798,10,King,Seattle
+799,10,King,Seattle
+800,10,King,Seattle
+801,10,King,Seattle
+802,10,King,Seattle
+803,10,King,Seattle
+804,10,King,Seattle
+805,10,King,Seattle
+806,10,King,Seattle
+807,10,King,Seattle
+808,10,King,Seattle
+809,10,King,Seattle
+810,10,King,Seattle
+811,10,King,Seattle
+812,10,King,Seattle
+813,10,King,Seattle
+814,10,King,Seattle
+815,10,King,Seattle
+816,10,King,Seattle
+817,10,King,Seattle
+818,10,King,Seattle
+819,10,King,Seattle
+820,10,King,Seattle
+821,10,King,Seattle
+822,10,King,Seattle
+823,10,King,Seattle
+824,10,King,Seattle
+825,10,King,Seattle
+826,10,King,Seattle
+827,10,King,Seattle
+828,10,King,Seattle
+829,10,King,Seattle
+830,10,King,Seattle
+831,10,King,Seattle
+832,10,King,Seattle
+833,10,King,Seattle
+834,10,King,Seattle
+835,10,King,Seattle
+836,10,King,Seattle
+837,10,King,Seattle
+838,10,King,Seattle
+839,10,King,Seattle
+840,10,King,Seattle
+841,10,King,Seattle
+842,10,King,Seattle
+843,10,King,Seattle
+844,10,King,Seattle
+845,10,King,Seattle
+846,10,King,Seattle
+847,10,King,Seattle
+848,10,King,Seattle
+849,10,King,Seattle
+850,10,King,Seattle
+851,10,King,Seattle
+852,10,King,Seattle
+853,10,King,Seattle
+854,10,King,Seattle
+855,10,King,Seattle
+856,10,King,Seattle
+857,10,King,Seattle
+858,10,King,Seattle
+859,6,King,Not Seattle
+860,6,King,Not Seattle
+861,6,King,Not Seattle
+862,6,King,Not Seattle
+863,6,King,Not Seattle
+864,6,King,Not Seattle
+865,6,King,Not Seattle
+866,6,King,Not Seattle
+867,6,King,Not Seattle
+868,6,King,Not Seattle
+869,6,King,Not Seattle
+870,6,King,Not Seattle
+871,6,King,Not Seattle
+872,6,King,Not Seattle
+873,6,King,Not Seattle
+874,6,King,Not Seattle
+875,6,King,Not Seattle
+876,6,King,Not Seattle
+877,6,King,Not Seattle
+878,6,King,Not Seattle
+879,6,King,Not Seattle
+880,6,King,Not Seattle
+881,6,King,Not Seattle
+882,6,King,Not Seattle
+883,6,King,Not Seattle
+884,6,King,Not Seattle
+885,6,King,Not Seattle
+886,6,King,Not Seattle
+887,6,King,Not Seattle
+888,6,King,Not Seattle
+889,6,King,Not Seattle
+890,6,King,Not Seattle
+891,6,King,Not Seattle
+892,6,King,Not Seattle
+893,6,King,Not Seattle
+894,6,King,Not Seattle
+895,6,King,Not Seattle
+896,6,King,Not Seattle
+897,6,King,Not Seattle
+898,6,King,Not Seattle
+899,6,King,Not Seattle
+900,6,King,Not Seattle
+901,6,King,Not Seattle
+902,6,King,Not Seattle
+903,6,King,Not Seattle
+904,6,King,Not Seattle
+905,6,King,Not Seattle
+906,6,King,Not Seattle
+907,6,King,Not Seattle
+908,6,King,Not Seattle
+909,6,King,Not Seattle
+910,6,King,Not Seattle
+911,6,King,Not Seattle
+912,6,King,Not Seattle
+913,6,King,Not Seattle
+914,6,King,Not Seattle
+915,6,King,Not Seattle
+916,6,King,Not Seattle
+917,6,King,Not Seattle
+918,6,King,Not Seattle
+919,6,King,Not Seattle
+920,6,King,Not Seattle
+921,6,King,Not Seattle
+922,6,King,Not Seattle
+923,6,King,Not Seattle
+924,6,King,Not Seattle
+925,6,King,Not Seattle
+926,6,King,Not Seattle
+927,6,King,Not Seattle
+928,6,King,Not Seattle
+929,6,King,Not Seattle
+930,6,King,Not Seattle
+931,6,King,Not Seattle
+932,6,King,Not Seattle
+933,6,King,Not Seattle
+934,6,King,Not Seattle
+935,6,King,Not Seattle
+936,6,King,Not Seattle
+937,6,King,Not Seattle
+938,6,King,Not Seattle
+939,6,King,Not Seattle
+940,6,King,Not Seattle
+941,6,King,Not Seattle
+942,6,King,Not Seattle
+943,6,King,Not Seattle
+944,6,King,Not Seattle
+945,6,King,Not Seattle
+946,6,King,Not Seattle
+947,6,King,Not Seattle
+948,6,King,Not Seattle
+949,6,King,Not Seattle
+950,6,King,Not Seattle
+951,6,King,Not Seattle
+952,6,King,Not Seattle
+953,6,King,Not Seattle
+954,6,King,Not Seattle
+955,6,King,Not Seattle
+956,6,King,Not Seattle
+957,6,King,Not Seattle
+958,6,King,Not Seattle
+959,6,King,Not Seattle
+960,6,King,Not Seattle
+961,6,King,Not Seattle
+962,6,King,Not Seattle
+963,6,King,Not Seattle
+964,6,King,Not Seattle
+965,6,King,Not Seattle
+966,6,King,Not Seattle
+967,6,King,Not Seattle
+968,6,King,Not Seattle
+969,6,King,Not Seattle
+970,6,King,Not Seattle
+971,6,King,Not Seattle
+972,6,King,Not Seattle
+973,6,King,Not Seattle
+974,6,King,Not Seattle
+975,6,King,Not Seattle
+976,5,King,Not Seattle
+977,5,King,Not Seattle
+978,6,King,Not Seattle
+979,6,King,Not Seattle
+980,6,King,Not Seattle
+981,6,King,Not Seattle
+982,6,King,Not Seattle
+983,6,King,Not Seattle
+984,6,King,Not Seattle
+985,6,King,Not Seattle
+986,6,King,Not Seattle
+987,6,King,Not Seattle
+988,6,King,Not Seattle
+989,6,King,Not Seattle
+990,6,King,Not Seattle
+991,6,King,Not Seattle
+992,6,King,Not Seattle
+993,6,King,Not Seattle
+994,6,King,Not Seattle
+995,6,King,Not Seattle
+996,6,King,Not Seattle
+997,6,King,Not Seattle
+998,6,King,Not Seattle
+999,6,King,Not Seattle
+1000,6,King,Not Seattle
+1001,6,King,Not Seattle
+1002,6,King,Not Seattle
+1003,6,King,Not Seattle
+1004,6,King,Not Seattle
+1005,6,King,Not Seattle
+1006,6,King,Not Seattle
+1007,6,King,Not Seattle
+1008,6,King,Not Seattle
+1009,6,King,Not Seattle
+1010,6,King,Not Seattle
+1011,6,King,Not Seattle
+1012,6,King,Not Seattle
+1013,6,King,Not Seattle
+1014,6,King,Not Seattle
+1015,5,King,Not Seattle
+1016,5,King,Not Seattle
+1017,5,King,Not Seattle
+1018,5,King,Not Seattle
+1019,5,King,Not Seattle
+1020,5,King,Not Seattle
+1021,5,King,Not Seattle
+1022,5,King,Not Seattle
+1023,5,King,Not Seattle
+1024,5,King,Not Seattle
+1025,5,King,Not Seattle
+1026,5,King,Not Seattle
+1027,5,King,Not Seattle
+1028,5,King,Not Seattle
+1029,6,King,Not Seattle
+1030,6,King,Not Seattle
+1031,6,King,Not Seattle
+1032,6,King,Not Seattle
+1033,6,King,Not Seattle
+1034,6,King,Not Seattle
+1035,6,King,Not Seattle
+1036,6,King,Not Seattle
+1037,6,King,Not Seattle
+1038,6,King,Not Seattle
+1039,6,King,Not Seattle
+1040,6,King,Not Seattle
+1041,6,King,Not Seattle
+1042,6,King,Not Seattle
+1043,5,King,Not Seattle
+1044,5,King,Not Seattle
+1045,5,King,Not Seattle
+1046,5,King,Not Seattle
+1047,5,King,Not Seattle
+1048,5,King,Not Seattle
+1049,5,King,Not Seattle
+1050,5,King,Not Seattle
+1051,5,King,Not Seattle
+1052,5,King,Not Seattle
+1053,5,King,Not Seattle
+1054,5,King,Not Seattle
+1055,5,King,Not Seattle
+1056,5,King,Not Seattle
+1057,5,King,Not Seattle
+1058,5,King,Not Seattle
+1059,5,King,Not Seattle
+1060,4,King,Not Seattle
+1061,4,King,Not Seattle
+1062,4,King,Not Seattle
+1063,4,King,Not Seattle
+1064,4,King,Not Seattle
+1065,4,King,Not Seattle
+1066,4,King,Not Seattle
+1067,4,King,Not Seattle
+1068,4,King,Not Seattle
+1069,4,King,Not Seattle
+1070,4,King,Not Seattle
+1071,4,King,Not Seattle
+1072,5,King,Not Seattle
+1073,5,King,Not Seattle
+1074,5,King,Not Seattle
+1075,4,King,Not Seattle
+1076,4,King,Not Seattle
+1077,4,King,Not Seattle
+1078,4,King,Not Seattle
+1079,4,King,Not Seattle
+1080,4,King,Not Seattle
+1081,4,King,Not Seattle
+1082,4,King,Not Seattle
+1083,4,King,Not Seattle
+1084,4,King,Not Seattle
+1085,4,King,Not Seattle
+1086,4,King,Not Seattle
+1087,4,King,Not Seattle
+1088,4,King,Not Seattle
+1089,4,King,Not Seattle
+1090,4,King,Not Seattle
+1091,4,King,Not Seattle
+1092,4,King,Not Seattle
+1093,4,King,Not Seattle
+1094,4,King,Not Seattle
+1095,4,King,Not Seattle
+1096,4,King,Not Seattle
+1097,4,King,Not Seattle
+1098,4,King,Not Seattle
+1099,4,King,Not Seattle
+1100,4,King,Not Seattle
+1101,4,King,Not Seattle
+1102,4,King,Not Seattle
+1103,4,King,Not Seattle
+1104,4,King,Not Seattle
+1105,4,King,Not Seattle
+1106,4,King,Not Seattle
+1107,4,King,Not Seattle
+1108,4,King,Not Seattle
+1109,4,King,Not Seattle
+1110,4,King,Not Seattle
+1111,4,King,Not Seattle
+1112,4,King,Not Seattle
+1113,4,King,Not Seattle
+1114,4,King,Not Seattle
+1115,4,King,Not Seattle
+1116,4,King,Not Seattle
+1117,4,King,Not Seattle
+1118,4,King,Not Seattle
+1119,4,King,Not Seattle
+1120,4,King,Not Seattle
+1121,4,King,Not Seattle
+1122,4,King,Not Seattle
+1123,4,King,Not Seattle
+1124,4,King,Not Seattle
+1125,4,King,Not Seattle
+1126,4,King,Not Seattle
+1127,4,King,Not Seattle
+1128,4,King,Not Seattle
+1129,4,King,Not Seattle
+1130,4,King,Not Seattle
+1131,4,King,Not Seattle
+1132,4,King,Not Seattle
+1133,4,King,Not Seattle
+1134,4,King,Not Seattle
+1135,4,King,Not Seattle
+1136,4,King,Not Seattle
+1137,4,King,Not Seattle
+1138,4,King,Not Seattle
+1139,4,King,Not Seattle
+1140,4,King,Not Seattle
+1141,4,King,Not Seattle
+1142,4,King,Not Seattle
+1143,4,King,Not Seattle
+1144,4,King,Not Seattle
+1145,4,King,Not Seattle
+1146,4,King,Not Seattle
+1147,4,King,Not Seattle
+1148,4,King,Not Seattle
+1149,4,King,Not Seattle
+1150,4,King,Not Seattle
+1151,4,King,Not Seattle
+1152,4,King,Not Seattle
+1153,4,King,Not Seattle
+1154,4,King,Not Seattle
+1155,4,King,Not Seattle
+1156,4,King,Not Seattle
+1157,4,King,Not Seattle
+1158,4,King,Not Seattle
+1159,4,King,Not Seattle
+1160,4,King,Not Seattle
+1161,4,King,Not Seattle
+1162,4,King,Not Seattle
+1163,4,King,Not Seattle
+1164,4,King,Not Seattle
+1165,4,King,Not Seattle
+1166,4,King,Not Seattle
+1167,4,King,Not Seattle
+1168,4,King,Not Seattle
+1169,4,King,Not Seattle
+1170,4,King,Not Seattle
+1171,5,King,Not Seattle
+1172,4,King,Not Seattle
+1173,4,King,Not Seattle
+1174,4,King,Not Seattle
+1175,4,King,Not Seattle
+1176,4,King,Not Seattle
+1177,4,King,Not Seattle
+1178,4,King,Not Seattle
+1179,4,King,Not Seattle
+1180,4,King,Not Seattle
+1181,4,King,Not Seattle
+1182,4,King,Not Seattle
+1183,4,King,Not Seattle
+1184,4,King,Not Seattle
+1185,4,King,Not Seattle
+1186,4,King,Not Seattle
+1187,5,King,Not Seattle
+1188,5,King,Not Seattle
+1189,5,King,Not Seattle
+1190,5,King,Not Seattle
+1191,5,King,Not Seattle
+1192,4,King,Not Seattle
+1193,4,King,Not Seattle
+1194,4,King,Not Seattle
+1195,4,King,Not Seattle
+1196,4,King,Not Seattle
+1197,4,King,Not Seattle
+1198,4,King,Not Seattle
+1199,4,King,Not Seattle
+1200,5,King,Not Seattle
+1201,5,King,Not Seattle
+1202,5,King,Not Seattle
+1203,5,King,Not Seattle
+1204,5,King,Not Seattle
+1205,5,King,Not Seattle
+1206,5,King,Not Seattle
+1207,5,King,Not Seattle
+1208,5,King,Not Seattle
+1209,5,King,Not Seattle
+1210,5,King,Not Seattle
+1211,5,King,Not Seattle
+1212,5,King,Not Seattle
+1213,5,King,Not Seattle
+1214,5,King,Not Seattle
+1215,5,King,Not Seattle
+1216,4,King,Not Seattle
+1217,4,King,Not Seattle
+1218,4,King,Not Seattle
+1219,4,King,Not Seattle
+1220,4,King,Not Seattle
+1221,5,King,Not Seattle
+1222,5,King,Not Seattle
+1223,5,King,Not Seattle
+1224,5,King,Not Seattle
+1225,5,King,Not Seattle
+1226,5,King,Not Seattle
+1227,5,King,Not Seattle
+1228,5,King,Not Seattle
+1229,5,King,Not Seattle
+1230,5,King,Not Seattle
+1231,5,King,Not Seattle
+1232,5,King,Not Seattle
+1233,5,King,Not Seattle
+1234,5,King,Not Seattle
+1235,5,King,Not Seattle
+1236,5,King,Not Seattle
+1237,5,King,Not Seattle
+1238,5,King,Not Seattle
+1239,5,King,Not Seattle
+1240,5,King,Not Seattle
+1241,5,King,Not Seattle
+1242,5,King,Not Seattle
+1243,5,King,Not Seattle
+1244,5,King,Not Seattle
+1245,5,King,Not Seattle
+1246,5,King,Not Seattle
+1247,5,King,Not Seattle
+1248,5,King,Not Seattle
+1249,5,King,Not Seattle
+1250,5,King,Not Seattle
+1251,5,King,Not Seattle
+1252,5,King,Not Seattle
+1253,5,King,Not Seattle
+1254,5,King,Not Seattle
+1255,5,King,Not Seattle
+1256,5,King,Not Seattle
+1257,5,King,Not Seattle
+1258,5,King,Not Seattle
+1259,5,King,Not Seattle
+1260,5,King,Not Seattle
+1261,5,King,Not Seattle
+1262,5,King,Not Seattle
+1263,5,King,Not Seattle
+1264,5,King,Not Seattle
+1265,5,King,Not Seattle
+1266,5,King,Not Seattle
+1267,5,King,Not Seattle
+1268,5,King,Not Seattle
+1269,5,King,Not Seattle
+1270,5,King,Not Seattle
+1271,5,King,Not Seattle
+1272,5,King,Not Seattle
+1273,5,King,Not Seattle
+1274,5,King,Not Seattle
+1275,5,King,Not Seattle
+1276,5,King,Not Seattle
+1277,5,King,Not Seattle
+1278,5,King,Not Seattle
+1279,5,King,Not Seattle
+1280,5,King,Not Seattle
+1281,5,King,Not Seattle
+1282,5,King,Not Seattle
+1283,5,King,Not Seattle
+1284,5,King,Not Seattle
+1285,5,King,Not Seattle
+1286,5,King,Not Seattle
+1287,5,King,Not Seattle
+1288,5,King,Not Seattle
+1289,5,King,Not Seattle
+1290,5,King,Not Seattle
+1291,5,King,Not Seattle
+1292,5,King,Not Seattle
+1293,5,King,Not Seattle
+1294,5,King,Not Seattle
+1295,5,King,Not Seattle
+1296,5,King,Not Seattle
+1297,5,King,Not Seattle
+1298,5,King,Not Seattle
+1299,5,King,Not Seattle
+1300,5,King,Not Seattle
+1301,5,King,Not Seattle
+1302,5,King,Not Seattle
+1303,5,King,Not Seattle
+1304,5,King,Not Seattle
+1305,5,King,Not Seattle
+1306,5,King,Not Seattle
+1307,5,King,Not Seattle
+1308,5,King,Not Seattle
+1309,5,King,Not Seattle
+1310,5,King,Not Seattle
+1311,5,King,Not Seattle
+1312,5,King,Not Seattle
+1313,5,King,Not Seattle
+1314,5,King,Not Seattle
+1315,5,King,Not Seattle
+1316,5,King,Not Seattle
+1317,5,King,Not Seattle
+1318,7,King,Not Seattle
+1319,7,King,Not Seattle
+1320,7,King,Not Seattle
+1321,7,King,Not Seattle
+1322,7,King,Not Seattle
+1323,7,King,Not Seattle
+1324,7,King,Not Seattle
+1325,7,King,Not Seattle
+1326,5,King,Not Seattle
+1327,5,King,Not Seattle
+1328,5,King,Not Seattle
+1329,5,King,Not Seattle
+1330,5,King,Not Seattle
+1331,5,King,Not Seattle
+1332,5,King,Not Seattle
+1333,6,King,Not Seattle
+1334,6,King,Not Seattle
+1335,6,King,Not Seattle
+1336,5,King,Not Seattle
+1337,5,King,Not Seattle
+1338,5,King,Not Seattle
+1339,6,King,Not Seattle
+1340,6,King,Not Seattle
+1341,6,King,Not Seattle
+1342,6,King,Not Seattle
+1343,6,King,Not Seattle
+1344,6,King,Not Seattle
+1345,6,King,Not Seattle
+1346,6,King,Not Seattle
+1347,6,King,Not Seattle
+1348,6,King,Not Seattle
+1349,6,King,Not Seattle
+1350,6,King,Not Seattle
+1351,6,King,Not Seattle
+1352,6,King,Not Seattle
+1353,6,King,Not Seattle
+1354,6,King,Not Seattle
+1355,6,King,Not Seattle
+1356,6,King,Not Seattle
+1357,6,King,Not Seattle
+1358,6,King,Not Seattle
+1359,7,King,Not Seattle
+1360,7,King,Not Seattle
+1361,7,King,Not Seattle
+1362,7,King,Not Seattle
+1363,7,King,Not Seattle
+1364,7,King,Not Seattle
+1365,7,King,Not Seattle
+1366,7,King,Not Seattle
+1367,7,King,Not Seattle
+1368,7,King,Not Seattle
+1369,7,King,Not Seattle
+1370,7,King,Not Seattle
+1371,7,King,Not Seattle
+1372,7,King,Not Seattle
+1373,7,King,Not Seattle
+1374,7,King,Not Seattle
+1375,7,King,Not Seattle
+1376,7,King,Not Seattle
+1377,7,King,Not Seattle
+1378,7,King,Not Seattle
+1379,7,King,Not Seattle
+1380,7,King,Not Seattle
+1381,7,King,Not Seattle
+1382,7,King,Not Seattle
+1383,7,King,Not Seattle
+1384,7,King,Not Seattle
+1385,7,King,Not Seattle
+1386,7,King,Not Seattle
+1387,7,King,Not Seattle
+1388,7,King,Not Seattle
+1389,7,King,Not Seattle
+1390,7,King,Not Seattle
+1391,7,King,Not Seattle
+1392,7,King,Not Seattle
+1393,7,King,Not Seattle
+1394,7,King,Not Seattle
+1395,7,King,Not Seattle
+1396,7,King,Not Seattle
+1397,6,King,Not Seattle
+1398,6,King,Not Seattle
+1399,6,King,Not Seattle
+1400,6,King,Not Seattle
+1401,6,King,Not Seattle
+1402,6,King,Not Seattle
+1403,6,King,Not Seattle
+1404,6,King,Not Seattle
+1405,6,King,Not Seattle
+1406,6,King,Not Seattle
+1407,6,King,Not Seattle
+1408,6,King,Not Seattle
+1409,6,King,Not Seattle
+1410,6,King,Not Seattle
+1411,6,King,Not Seattle
+1412,6,King,Not Seattle
+1413,6,King,Not Seattle
+1414,6,King,Not Seattle
+1415,6,King,Not Seattle
+1416,6,King,Not Seattle
+1417,7,King,Not Seattle
+1418,7,King,Not Seattle
+1419,7,King,Not Seattle
+1420,7,King,Not Seattle
+1421,7,King,Not Seattle
+1422,7,King,Not Seattle
+1423,7,King,Not Seattle
+1424,7,King,Not Seattle
+1425,7,King,Not Seattle
+1426,7,King,Not Seattle
+1427,7,King,Not Seattle
+1428,7,King,Not Seattle
+1429,7,King,Not Seattle
+1430,8,King,Not Seattle
+1431,7,King,Not Seattle
+1432,7,King,Not Seattle
+1433,7,King,Not Seattle
+1434,7,King,Not Seattle
+1435,7,King,Not Seattle
+1436,7,King,Not Seattle
+1437,7,King,Not Seattle
+1438,7,King,Not Seattle
+1439,7,King,Not Seattle
+1440,7,King,Not Seattle
+1441,7,King,Not Seattle
+1442,7,King,Not Seattle
+1443,7,King,Not Seattle
+1444,7,King,Not Seattle
+1445,7,King,Not Seattle
+1446,7,King,Not Seattle
+1447,7,King,Not Seattle
+1448,7,King,Not Seattle
+1449,7,King,Not Seattle
+1450,8,King,Not Seattle
+1451,7,King,Not Seattle
+1452,7,King,Not Seattle
+1453,7,King,Not Seattle
+1454,8,King,Not Seattle
+1455,8,King,Not Seattle
+1456,8,King,Not Seattle
+1457,8,King,Not Seattle
+1458,8,King,Not Seattle
+1459,7,King,Not Seattle
+1460,7,King,Not Seattle
+1461,7,King,Not Seattle
+1462,8,King,Not Seattle
+1463,7,King,Not Seattle
+1464,7,King,Not Seattle
+1465,8,King,Not Seattle
+1466,8,King,Not Seattle
+1467,8,King,Not Seattle
+1468,8,King,Not Seattle
+1469,8,King,Not Seattle
+1470,8,King,Not Seattle
+1471,8,King,Not Seattle
+1472,8,King,Not Seattle
+1473,8,King,Not Seattle
+1474,8,King,Not Seattle
+1475,8,King,Not Seattle
+1476,8,King,Not Seattle
+1477,8,King,Not Seattle
+1478,8,King,Not Seattle
+1479,7,King,Not Seattle
+1480,8,King,Not Seattle
+1481,8,King,Not Seattle
+1482,8,King,Not Seattle
+1483,8,King,Not Seattle
+1484,8,King,Not Seattle
+1485,8,King,Not Seattle
+1486,8,King,Not Seattle
+1487,8,King,Not Seattle
+1488,8,King,Not Seattle
+1489,8,King,Not Seattle
+1490,8,King,Not Seattle
+1491,8,King,Not Seattle
+1492,8,King,Not Seattle
+1493,8,King,Not Seattle
+1494,8,King,Not Seattle
+1495,8,King,Not Seattle
+1496,8,King,Not Seattle
+1497,8,King,Not Seattle
+1498,8,King,Not Seattle
+1499,8,King,Not Seattle
+1500,8,King,Not Seattle
+1501,8,King,Not Seattle
+1502,8,King,Not Seattle
+1503,8,King,Not Seattle
+1504,8,King,Not Seattle
+1505,8,King,Not Seattle
+1506,8,King,Not Seattle
+1507,8,King,Not Seattle
+1508,8,King,Not Seattle
+1509,8,King,Not Seattle
+1510,8,King,Not Seattle
+1511,8,King,Not Seattle
+1512,8,King,Not Seattle
+1513,8,King,Not Seattle
+1514,8,King,Not Seattle
+1515,8,King,Not Seattle
+1516,8,King,Not Seattle
+1517,8,King,Not Seattle
+1518,8,King,Not Seattle
+1519,8,King,Not Seattle
+1520,8,King,Not Seattle
+1521,8,King,Not Seattle
+1522,8,King,Not Seattle
+1523,8,King,Not Seattle
+1524,8,King,Not Seattle
+1525,8,King,Not Seattle
+1526,8,King,Not Seattle
+1527,8,King,Not Seattle
+1528,8,King,Not Seattle
+1529,8,King,Not Seattle
+1530,8,King,Not Seattle
+1531,8,King,Not Seattle
+1532,8,King,Not Seattle
+1533,8,King,Not Seattle
+1534,8,King,Not Seattle
+1535,8,King,Not Seattle
+1536,8,King,Not Seattle
+1537,8,King,Not Seattle
+1538,8,King,Not Seattle
+1539,8,King,Not Seattle
+1540,8,King,Not Seattle
+1541,8,King,Not Seattle
+1542,8,King,Not Seattle
+1543,8,King,Not Seattle
+1544,8,King,Not Seattle
+1545,8,King,Not Seattle
+1546,8,King,Not Seattle
+1547,8,King,Not Seattle
+1548,8,King,Not Seattle
+1549,8,King,Not Seattle
+1550,8,King,Not Seattle
+1551,8,King,Not Seattle
+1552,8,King,Not Seattle
+1553,8,King,Not Seattle
+1554,8,King,Not Seattle
+1555,8,King,Not Seattle
+1556,8,King,Not Seattle
+1557,8,King,Not Seattle
+1558,8,King,Not Seattle
+1559,8,King,Not Seattle
+1560,8,King,Not Seattle
+1561,8,King,Not Seattle
+1562,8,King,Not Seattle
+1563,8,King,Not Seattle
+1564,8,King,Not Seattle
+1565,8,King,Not Seattle
+1566,8,King,Not Seattle
+1567,8,King,Not Seattle
+1568,8,King,Not Seattle
+1569,8,King,Not Seattle
+1570,8,King,Not Seattle
+1571,8,King,Not Seattle
+1572,8,King,Not Seattle
+1573,8,King,Not Seattle
+1574,8,King,Not Seattle
+1575,8,King,Not Seattle
+1576,8,King,Not Seattle
+1577,8,King,Not Seattle
+1578,8,King,Not Seattle
+1579,9,King,Not Seattle
+1580,8,King,Not Seattle
+1581,8,King,Not Seattle
+1582,8,King,Not Seattle
+1583,8,King,Not Seattle
+1584,8,King,Not Seattle
+1585,8,King,Not Seattle
+1586,8,King,Not Seattle
+1587,8,King,Not Seattle
+1588,8,King,Not Seattle
+1589,8,King,Not Seattle
+1590,8,King,Not Seattle
+1591,8,King,Not Seattle
+1592,8,King,Not Seattle
+1593,8,King,Not Seattle
+1594,8,King,Not Seattle
+1595,8,King,Not Seattle
+1596,8,King,Not Seattle
+1597,8,King,Not Seattle
+1598,8,King,Not Seattle
+1599,8,King,Not Seattle
+1600,8,King,Not Seattle
+1601,8,King,Not Seattle
+1602,8,King,Not Seattle
+1603,9,King,Not Seattle
+1604,8,King,Not Seattle
+1605,8,King,Not Seattle
+1606,8,King,Not Seattle
+1607,8,King,Not Seattle
+1608,8,King,Not Seattle
+1609,8,King,Not Seattle
+1610,9,King,Not Seattle
+1611,9,King,Not Seattle
+1612,9,King,Not Seattle
+1613,9,King,Not Seattle
+1614,9,King,Not Seattle
+1615,9,King,Not Seattle
+1616,9,King,Not Seattle
+1617,9,King,Not Seattle
+1618,9,King,Not Seattle
+1619,9,King,Not Seattle
+1620,9,King,Not Seattle
+1621,9,King,Not Seattle
+1622,9,King,Not Seattle
+1623,9,King,Not Seattle
+1624,9,King,Not Seattle
+1625,9,King,Not Seattle
+1626,9,King,Not Seattle
+1627,9,King,Not Seattle
+1628,9,King,Not Seattle
+1629,9,King,Not Seattle
+1630,9,King,Not Seattle
+1631,9,King,Not Seattle
+1632,9,King,Not Seattle
+1633,9,King,Not Seattle
+1634,9,King,Not Seattle
+1635,9,King,Not Seattle
+1636,9,King,Not Seattle
+1637,9,King,Not Seattle
+1638,9,King,Not Seattle
+1639,9,King,Not Seattle
+1640,9,King,Not Seattle
+1641,9,King,Not Seattle
+1642,9,King,Not Seattle
+1643,9,King,Not Seattle
+1644,9,King,Not Seattle
+1645,9,King,Not Seattle
+1646,9,King,Not Seattle
+1647,9,King,Not Seattle
+1648,9,King,Not Seattle
+1649,9,King,Not Seattle
+1650,9,King,Not Seattle
+1651,9,King,Not Seattle
+1652,9,King,Not Seattle
+1653,9,King,Not Seattle
+1654,9,King,Not Seattle
+1655,9,King,Not Seattle
+1656,9,King,Not Seattle
+1657,9,King,Not Seattle
+1658,9,King,Not Seattle
+1659,9,King,Not Seattle
+1660,9,King,Not Seattle
+1661,9,King,Not Seattle
+1662,9,King,Not Seattle
+1663,9,King,Not Seattle
+1664,9,King,Not Seattle
+1665,9,King,Not Seattle
+1666,9,King,Not Seattle
+1667,9,King,Not Seattle
+1668,9,King,Not Seattle
+1669,9,King,Not Seattle
+1670,9,King,Not Seattle
+1671,9,King,Not Seattle
+1672,9,King,Not Seattle
+1673,9,King,Not Seattle
+1674,9,King,Not Seattle
+1675,9,King,Not Seattle
+1676,9,King,Not Seattle
+1677,9,King,Not Seattle
+1678,9,King,Not Seattle
+1679,9,King,Not Seattle
+1680,9,King,Not Seattle
+1681,9,King,Not Seattle
+1682,9,King,Not Seattle
+1683,9,King,Not Seattle
+1684,9,King,Not Seattle
+1685,9,King,Not Seattle
+1686,9,King,Not Seattle
+1687,9,King,Not Seattle
+1688,9,King,Not Seattle
+1689,9,King,Not Seattle
+1690,9,King,Not Seattle
+1691,9,King,Not Seattle
+1692,9,King,Not Seattle
+1693,9,King,Not Seattle
+1694,9,King,Not Seattle
+1695,9,King,Not Seattle
+1696,9,King,Not Seattle
+1697,9,King,Not Seattle
+1698,9,King,Not Seattle
+1699,9,King,Not Seattle
+1700,9,King,Not Seattle
+1701,9,King,Not Seattle
+1702,9,King,Not Seattle
+1703,9,King,Not Seattle
+1704,9,King,Not Seattle
+1705,9,King,Not Seattle
+1706,9,King,Not Seattle
+1707,9,King,Not Seattle
+1708,9,King,Not Seattle
+1709,9,King,Not Seattle
+1710,9,King,Not Seattle
+1711,9,King,Not Seattle
+1712,9,King,Not Seattle
+1713,9,King,Not Seattle
+1714,9,King,Not Seattle
+1715,9,King,Not Seattle
+1716,9,King,Not Seattle
+1717,9,King,Not Seattle
+1718,9,King,Not Seattle
+1719,9,King,Not Seattle
+1720,9,King,Not Seattle
+1721,9,King,Not Seattle
+1722,9,King,Not Seattle
+1723,9,King,Not Seattle
+1724,9,King,Not Seattle
+1725,9,King,Not Seattle
+1726,9,King,Not Seattle
+1727,9,King,Not Seattle
+1728,9,King,Not Seattle
+1729,9,King,Not Seattle
+1730,9,King,Not Seattle
+1731,9,King,Not Seattle
+1732,9,King,Not Seattle
+1733,9,King,Not Seattle
+1734,9,King,Not Seattle
+1735,9,King,Not Seattle
+1736,9,King,Not Seattle
+1737,9,King,Not Seattle
+1738,9,King,Not Seattle
+1739,9,King,Not Seattle
+1740,9,King,Not Seattle
+1741,9,King,Not Seattle
+1742,9,King,Not Seattle
+1743,9,King,Not Seattle
+1744,9,King,Not Seattle
+1745,9,King,Not Seattle
+1746,9,King,Not Seattle
+1747,9,King,Not Seattle
+1748,9,King,Not Seattle
+1749,9,King,Not Seattle
+1750,9,King,Not Seattle
+1751,9,King,Not Seattle
+1752,9,King,Not Seattle
+1753,9,King,Not Seattle
+1754,9,King,Not Seattle
+1755,9,King,Not Seattle
+1756,9,King,Not Seattle
+1757,9,King,Not Seattle
+1758,9,King,Not Seattle
+1759,9,King,Not Seattle
+1760,9,King,Not Seattle
+1761,9,King,Not Seattle
+1762,9,King,Not Seattle
+1763,9,King,Not Seattle
+1764,9,King,Not Seattle
+1765,9,King,Not Seattle
+1766,9,King,Not Seattle
+1767,9,King,Not Seattle
+1768,9,King,Not Seattle
+1769,9,King,Not Seattle
+1770,9,King,Not Seattle
+1771,9,King,Not Seattle
+1772,9,King,Not Seattle
+1773,9,King,Not Seattle
+1774,9,King,Not Seattle
+1775,9,King,Not Seattle
+1776,9,King,Not Seattle
+1777,9,King,Not Seattle
+1778,9,King,Not Seattle
+1779,9,King,Not Seattle
+1780,9,King,Not Seattle
+1781,9,King,Not Seattle
+1782,9,King,Not Seattle
+1783,9,King,Not Seattle
+1784,9,King,Not Seattle
+1785,9,King,Not Seattle
+1786,9,King,Not Seattle
+1787,9,King,Not Seattle
+1788,9,King,Not Seattle
+1789,9,King,Not Seattle
+1790,9,King,Not Seattle
+1791,9,King,Not Seattle
+1792,9,King,Not Seattle
+1793,9,King,Not Seattle
+1794,9,King,Not Seattle
+1795,9,King,Not Seattle
+1796,9,King,Not Seattle
+1797,9,King,Not Seattle
+1798,9,King,Not Seattle
+1799,9,King,Not Seattle
+1800,9,King,Not Seattle
+1801,9,King,Not Seattle
+1802,9,King,Not Seattle
+1803,9,King,Not Seattle
+1804,9,King,Not Seattle
+1805,9,King,Not Seattle
+1806,9,King,Not Seattle
+1807,9,King,Not Seattle
+1808,9,King,Not Seattle
+1809,9,King,Not Seattle
+1810,9,King,Not Seattle
+1811,9,King,Not Seattle
+1812,9,King,Not Seattle
+1813,9,King,Not Seattle
+1814,9,King,Not Seattle
+1815,9,King,Not Seattle
+1816,14,King,Not Seattle
+1817,14,King,Not Seattle
+1818,14,King,Not Seattle
+1819,14,King,Not Seattle
+1820,14,King,Not Seattle
+1821,14,King,Not Seattle
+1822,14,King,Not Seattle
+1823,14,King,Not Seattle
+1824,14,King,Not Seattle
+1825,14,King,Not Seattle
+1826,14,King,Not Seattle
+1827,14,King,Not Seattle
+1828,14,King,Not Seattle
+1829,14,King,Not Seattle
+1830,14,King,Not Seattle
+1831,14,King,Not Seattle
+1832,14,King,Not Seattle
+1833,14,King,Not Seattle
+1834,14,King,Not Seattle
+1835,14,King,Not Seattle
+1836,14,King,Not Seattle
+1837,14,King,Not Seattle
+1838,14,King,Not Seattle
+1839,14,King,Not Seattle
+1840,14,King,Not Seattle
+1841,14,King,Not Seattle
+1842,14,King,Not Seattle
+1843,14,King,Not Seattle
+1844,14,King,Not Seattle
+1845,14,King,Not Seattle
+1846,14,King,Not Seattle
+1847,14,King,Not Seattle
+1848,14,King,Not Seattle
+1849,14,King,Not Seattle
+1850,14,King,Not Seattle
+1851,14,King,Not Seattle
+1852,14,King,Not Seattle
+1853,14,King,Not Seattle
+1854,14,King,Not Seattle
+1855,14,King,Not Seattle
+1856,14,King,Not Seattle
+1857,14,King,Not Seattle
+1858,14,King,Not Seattle
+1859,14,King,Not Seattle
+1860,14,King,Not Seattle
+1861,14,King,Not Seattle
+1862,14,King,Not Seattle
+1863,14,King,Not Seattle
+1864,14,King,Not Seattle
+1865,14,King,Not Seattle
+1866,14,King,Not Seattle
+1867,14,King,Not Seattle
+1868,14,King,Not Seattle
+1869,14,King,Not Seattle
+1870,14,King,Not Seattle
+1871,14,King,Not Seattle
+1872,14,King,Not Seattle
+1873,14,King,Not Seattle
+1874,14,King,Not Seattle
+1875,14,King,Not Seattle
+1876,14,King,Not Seattle
+1877,14,King,Not Seattle
+1878,14,King,Not Seattle
+1879,14,King,Not Seattle
+1880,14,King,Not Seattle
+1881,14,King,Not Seattle
+1882,14,King,Not Seattle
+1883,9,King,Not Seattle
+1884,9,King,Not Seattle
+1885,9,King,Not Seattle
+1886,9,King,Not Seattle
+1887,9,King,Not Seattle
+1888,9,King,Not Seattle
+1889,9,King,Not Seattle
+1890,9,King,Not Seattle
+1891,9,King,Not Seattle
+1892,9,King,Not Seattle
+1893,9,King,Not Seattle
+1894,9,King,Not Seattle
+1895,9,King,Not Seattle
+1896,9,King,Not Seattle
+1897,9,King,Not Seattle
+1898,9,King,Not Seattle
+1899,9,King,Not Seattle
+1900,9,King,Not Seattle
+1901,9,King,Not Seattle
+1902,9,King,Not Seattle
+1903,9,King,Not Seattle
+1904,9,King,Not Seattle
+1905,9,King,Not Seattle
+1906,9,King,Not Seattle
+1907,9,King,Not Seattle
+1908,9,King,Not Seattle
+1909,9,King,Not Seattle
+1910,9,King,Not Seattle
+1911,9,King,Not Seattle
+1912,9,King,Not Seattle
+1913,9,King,Not Seattle
+1914,9,King,Not Seattle
+1915,9,King,Not Seattle
+1916,9,King,Not Seattle
+1917,9,King,Not Seattle
+1918,9,King,Not Seattle
+1919,9,King,Not Seattle
+1920,9,King,Not Seattle
+1921,9,King,Not Seattle
+1922,9,King,Not Seattle
+1923,9,King,Not Seattle
+1924,9,King,Not Seattle
+1925,9,King,Not Seattle
+1926,9,King,Not Seattle
+1927,9,King,Not Seattle
+1928,9,King,Not Seattle
+1929,9,King,Not Seattle
+1930,9,King,Not Seattle
+1931,9,King,Not Seattle
+1932,9,King,Not Seattle
+1933,7,King,Not Seattle
+1934,7,King,Not Seattle
+1935,7,King,Not Seattle
+1936,7,King,Not Seattle
+1937,7,King,Not Seattle
+1938,7,King,Not Seattle
+1939,7,King,Not Seattle
+1940,7,King,Not Seattle
+1941,7,King,Not Seattle
+1942,7,King,Not Seattle
+1943,7,King,Not Seattle
+1944,7,King,Not Seattle
+1945,7,King,Not Seattle
+1946,9,King,Not Seattle
+1947,7,King,Not Seattle
+1948,7,King,Not Seattle
+1949,7,King,Not Seattle
+1950,7,King,Not Seattle
+1951,7,King,Not Seattle
+1952,7,King,Not Seattle
+1953,7,King,Not Seattle
+1954,7,King,Not Seattle
+1955,7,King,Not Seattle
+1956,7,King,Not Seattle
+1957,7,King,Not Seattle
+1958,7,King,Not Seattle
+1959,7,King,Not Seattle
+1960,7,King,Not Seattle
+1961,7,King,Not Seattle
+1962,7,King,Not Seattle
+1963,7,King,Not Seattle
+1964,7,King,Not Seattle
+1965,7,King,Not Seattle
+1966,7,King,Not Seattle
+1967,7,King,Not Seattle
+1968,7,King,Not Seattle
+1969,7,King,Not Seattle
+1970,7,King,Not Seattle
+1971,7,King,Not Seattle
+1972,7,King,Not Seattle
+1973,7,King,Not Seattle
+1974,7,King,Not Seattle
+1975,7,King,Not Seattle
+1976,7,King,Not Seattle
+1977,7,King,Not Seattle
+1978,7,King,Not Seattle
+1979,7,King,Not Seattle
+1980,7,King,Not Seattle
+1981,7,King,Not Seattle
+1982,7,King,Not Seattle
+1983,7,King,Not Seattle
+1984,7,King,Not Seattle
+1985,7,King,Not Seattle
+1986,9,King,Not Seattle
+1987,7,King,Not Seattle
+1988,7,King,Not Seattle
+1989,7,King,Not Seattle
+1990,9,King,Not Seattle
+1991,7,King,Not Seattle
+1992,9,King,Not Seattle
+1993,9,King,Not Seattle
+1994,9,King,Not Seattle
+1995,9,King,Not Seattle
+1996,7,King,Not Seattle
+1997,7,King,Not Seattle
+1998,7,King,Not Seattle
+1999,7,King,Not Seattle
+2000,7,King,Not Seattle
+2001,7,King,Not Seattle
+2002,7,King,Not Seattle
+2003,7,King,Not Seattle
+2004,5,King,Not Seattle
+2005,5,King,Not Seattle
+2006,5,King,Not Seattle
+2007,5,King,Not Seattle
+2008,5,King,Not Seattle
+2009,5,King,Not Seattle
+2010,5,King,Not Seattle
+2011,5,King,Not Seattle
+2012,5,King,Not Seattle
+2013,5,King,Not Seattle
+2014,5,King,Not Seattle
+2015,5,King,Not Seattle
+2016,5,King,Not Seattle
+2017,5,King,Not Seattle
+2018,5,King,Not Seattle
+2019,5,King,Not Seattle
+2020,5,King,Not Seattle
+2021,5,King,Not Seattle
+2022,5,King,Not Seattle
+2023,5,King,Not Seattle
+2024,5,King,Not Seattle
+2025,5,King,Not Seattle
+2026,5,King,Not Seattle
+2027,5,King,Not Seattle
+2028,5,King,Not Seattle
+2029,5,King,Not Seattle
+2030,5,King,Not Seattle
+2031,5,King,Not Seattle
+2032,5,King,Not Seattle
+2033,5,King,Not Seattle
+2034,5,King,Not Seattle
+2035,5,King,Not Seattle
+2036,5,King,Not Seattle
+2037,5,King,Not Seattle
+2038,5,King,Not Seattle
+2039,5,King,Not Seattle
+2040,5,King,Not Seattle
+2041,5,King,Not Seattle
+2042,5,King,Not Seattle
+2043,5,King,Not Seattle
+2044,5,King,Not Seattle
+2045,5,King,Not Seattle
+2046,5,King,Not Seattle
+2047,5,King,Not Seattle
+2048,5,King,Not Seattle
+2049,5,King,Not Seattle
+2050,5,King,Not Seattle
+2051,5,King,Not Seattle
+2052,5,King,Not Seattle
+2053,5,King,Not Seattle
+2054,5,King,Not Seattle
+2055,5,King,Not Seattle
+2056,5,King,Not Seattle
+2057,5,King,Not Seattle
+2058,5,King,Not Seattle
+2059,5,King,Not Seattle
+2060,4,King,Not Seattle
+2061,5,King,Not Seattle
+2062,5,King,Not Seattle
+2063,5,King,Not Seattle
+2064,5,King,Not Seattle
+2065,5,King,Not Seattle
+2066,5,King,Not Seattle
+2067,5,King,Not Seattle
+2068,5,King,Not Seattle
+2069,5,King,Not Seattle
+2070,5,King,Not Seattle
+2071,5,King,Not Seattle
+2072,5,King,Not Seattle
+2073,5,King,Not Seattle
+2074,5,King,Not Seattle
+2075,5,King,Not Seattle
+2076,5,King,Not Seattle
+2077,5,King,Not Seattle
+2078,5,King,Not Seattle
+2079,5,King,Not Seattle
+2080,5,King,Not Seattle
+2081,5,King,Not Seattle
+2082,10,King,Not Seattle
+2083,10,King,Not Seattle
+2084,10,King,Not Seattle
+2085,10,King,Not Seattle
+2086,10,King,Not Seattle
+2087,10,King,Not Seattle
+2088,10,King,Not Seattle
+2089,18,Snohomish,Not Seattle
+2090,18,Snohomish,Not Seattle
+2091,18,Snohomish,Not Seattle
+2092,18,Snohomish,Not Seattle
+2093,18,Snohomish,Not Seattle
+2094,18,Snohomish,Not Seattle
+2095,18,Snohomish,Not Seattle
+2096,18,Snohomish,Not Seattle
+2097,18,Snohomish,Not Seattle
+2098,18,Snohomish,Not Seattle
+2099,18,Snohomish,Not Seattle
+2100,18,Snohomish,Not Seattle
+2101,18,Snohomish,Not Seattle
+2102,18,Snohomish,Not Seattle
+2103,18,Snohomish,Not Seattle
+2104,18,Snohomish,Not Seattle
+2105,18,Snohomish,Not Seattle
+2106,18,Snohomish,Not Seattle
+2107,18,Snohomish,Not Seattle
+2108,18,Snohomish,Not Seattle
+2109,18,Snohomish,Not Seattle
+2110,18,Snohomish,Not Seattle
+2111,18,Snohomish,Not Seattle
+2112,18,Snohomish,Not Seattle
+2113,18,Snohomish,Not Seattle
+2114,18,Snohomish,Not Seattle
+2115,18,Snohomish,Not Seattle
+2116,18,Snohomish,Not Seattle
+2117,18,Snohomish,Not Seattle
+2118,18,Snohomish,Not Seattle
+2119,18,Snohomish,Not Seattle
+2120,18,Snohomish,Not Seattle
+2121,18,Snohomish,Not Seattle
+2122,18,Snohomish,Not Seattle
+2123,18,Snohomish,Not Seattle
+2124,18,Snohomish,Not Seattle
+2125,18,Snohomish,Not Seattle
+2126,18,Snohomish,Not Seattle
+2127,18,Snohomish,Not Seattle
+2128,18,Snohomish,Not Seattle
+2129,18,Snohomish,Not Seattle
+2130,18,Snohomish,Not Seattle
+2131,18,Snohomish,Not Seattle
+2132,18,Snohomish,Not Seattle
+2133,18,Snohomish,Not Seattle
+2134,18,Snohomish,Not Seattle
+2135,18,Snohomish,Not Seattle
+2136,18,Snohomish,Not Seattle
+2137,18,Snohomish,Not Seattle
+2138,18,Snohomish,Not Seattle
+2139,18,Snohomish,Not Seattle
+2140,18,Snohomish,Not Seattle
+2141,18,Snohomish,Not Seattle
+2142,18,Snohomish,Not Seattle
+2143,18,Snohomish,Not Seattle
+2144,18,Snohomish,Not Seattle
+2145,18,Snohomish,Not Seattle
+2146,18,Snohomish,Not Seattle
+2147,18,Snohomish,Not Seattle
+2148,18,Snohomish,Not Seattle
+2149,18,Snohomish,Not Seattle
+2150,18,Snohomish,Not Seattle
+2151,18,Snohomish,Not Seattle
+2152,18,Snohomish,Not Seattle
+2153,18,Snohomish,Not Seattle
+2154,18,Snohomish,Not Seattle
+2155,18,Snohomish,Not Seattle
+2156,18,Snohomish,Not Seattle
+2157,18,Snohomish,Not Seattle
+2158,18,Snohomish,Not Seattle
+2159,18,Snohomish,Not Seattle
+2160,18,Snohomish,Not Seattle
+2161,18,Snohomish,Not Seattle
+2162,18,Snohomish,Not Seattle
+2163,18,Snohomish,Not Seattle
+2164,18,Snohomish,Not Seattle
+2165,18,Snohomish,Not Seattle
+2166,18,Snohomish,Not Seattle
+2167,18,Snohomish,Not Seattle
+2168,18,Snohomish,Not Seattle
+2169,18,Snohomish,Not Seattle
+2170,18,Snohomish,Not Seattle
+2171,18,Snohomish,Not Seattle
+2172,18,Snohomish,Not Seattle
+2173,18,Snohomish,Not Seattle
+2174,18,Snohomish,Not Seattle
+2175,18,Snohomish,Not Seattle
+2176,18,Snohomish,Not Seattle
+2177,18,Snohomish,Not Seattle
+2178,18,Snohomish,Not Seattle
+2179,18,Snohomish,Not Seattle
+2180,18,Snohomish,Not Seattle
+2181,18,Snohomish,Not Seattle
+2182,18,Snohomish,Not Seattle
+2183,18,Snohomish,Not Seattle
+2184,18,Snohomish,Not Seattle
+2185,18,Snohomish,Not Seattle
+2186,18,Snohomish,Not Seattle
+2187,18,Snohomish,Not Seattle
+2188,18,Snohomish,Not Seattle
+2189,18,Snohomish,Not Seattle
+2190,18,Snohomish,Not Seattle
+2191,18,Snohomish,Not Seattle
+2192,18,Snohomish,Not Seattle
+2193,18,Snohomish,Not Seattle
+2194,18,Snohomish,Not Seattle
+2195,18,Snohomish,Not Seattle
+2196,18,Snohomish,Not Seattle
+2197,18,Snohomish,Not Seattle
+2198,18,Snohomish,Not Seattle
+2199,18,Snohomish,Not Seattle
+2200,18,Snohomish,Not Seattle
+2201,18,Snohomish,Not Seattle
+2202,18,Snohomish,Not Seattle
+2203,18,Snohomish,Not Seattle
+2204,18,Snohomish,Not Seattle
+2205,18,Snohomish,Not Seattle
+2206,18,Snohomish,Not Seattle
+2207,18,Snohomish,Not Seattle
+2208,18,Snohomish,Not Seattle
+2209,18,Snohomish,Not Seattle
+2210,18,Snohomish,Not Seattle
+2211,18,Snohomish,Not Seattle
+2212,18,Snohomish,Not Seattle
+2213,18,Snohomish,Not Seattle
+2214,18,Snohomish,Not Seattle
+2215,18,Snohomish,Not Seattle
+2216,18,Snohomish,Not Seattle
+2217,18,Snohomish,Not Seattle
+2218,18,Snohomish,Not Seattle
+2219,18,Snohomish,Not Seattle
+2220,18,Snohomish,Not Seattle
+2221,18,Snohomish,Not Seattle
+2222,18,Snohomish,Not Seattle
+2223,18,Snohomish,Not Seattle
+2224,18,Snohomish,Not Seattle
+2225,18,Snohomish,Not Seattle
+2226,18,Snohomish,Not Seattle
+2227,18,Snohomish,Not Seattle
+2228,18,Snohomish,Not Seattle
+2229,18,Snohomish,Not Seattle
+2230,18,Snohomish,Not Seattle
+2231,18,Snohomish,Not Seattle
+2232,18,Snohomish,Not Seattle
+2233,18,Snohomish,Not Seattle
+2234,18,Snohomish,Not Seattle
+2235,18,Snohomish,Not Seattle
+2236,18,Snohomish,Not Seattle
+2237,18,Snohomish,Not Seattle
+2238,18,Snohomish,Not Seattle
+2239,18,Snohomish,Not Seattle
+2240,18,Snohomish,Not Seattle
+2241,18,Snohomish,Not Seattle
+2242,18,Snohomish,Not Seattle
+2243,18,Snohomish,Not Seattle
+2244,18,Snohomish,Not Seattle
+2245,18,Snohomish,Not Seattle
+2246,18,Snohomish,Not Seattle
+2247,18,Snohomish,Not Seattle
+2248,18,Snohomish,Not Seattle
+2249,18,Snohomish,Not Seattle
+2250,17,Snohomish,Not Seattle
+2251,17,Snohomish,Not Seattle
+2252,17,Snohomish,Not Seattle
+2253,17,Snohomish,Not Seattle
+2254,17,Snohomish,Not Seattle
+2255,17,Snohomish,Not Seattle
+2256,17,Snohomish,Not Seattle
+2257,17,Snohomish,Not Seattle
+2258,17,Snohomish,Not Seattle
+2259,17,Snohomish,Not Seattle
+2260,17,Snohomish,Not Seattle
+2261,17,Snohomish,Not Seattle
+2262,17,Snohomish,Not Seattle
+2263,17,Snohomish,Not Seattle
+2264,17,Snohomish,Not Seattle
+2265,17,Snohomish,Not Seattle
+2266,17,Snohomish,Not Seattle
+2267,17,Snohomish,Not Seattle
+2268,17,Snohomish,Not Seattle
+2269,17,Snohomish,Not Seattle
+2270,17,Snohomish,Not Seattle
+2271,17,Snohomish,Not Seattle
+2272,17,Snohomish,Not Seattle
+2273,17,Snohomish,Not Seattle
+2274,17,Snohomish,Not Seattle
+2275,17,Snohomish,Not Seattle
+2276,17,Snohomish,Not Seattle
+2277,17,Snohomish,Not Seattle
+2278,17,Snohomish,Not Seattle
+2279,17,Snohomish,Not Seattle
+2280,17,Snohomish,Not Seattle
+2281,17,Snohomish,Not Seattle
+2282,17,Snohomish,Not Seattle
+2283,17,Snohomish,Not Seattle
+2284,17,Snohomish,Not Seattle
+2285,17,Snohomish,Not Seattle
+2286,17,Snohomish,Not Seattle
+2287,17,Snohomish,Not Seattle
+2288,17,Snohomish,Not Seattle
+2289,17,Snohomish,Not Seattle
+2290,17,Snohomish,Not Seattle
+2291,17,Snohomish,Not Seattle
+2292,17,Snohomish,Not Seattle
+2293,17,Snohomish,Not Seattle
+2294,17,Snohomish,Not Seattle
+2295,17,Snohomish,Not Seattle
+2296,17,Snohomish,Not Seattle
+2297,17,Snohomish,Not Seattle
+2298,17,Snohomish,Not Seattle
+2299,17,Snohomish,Not Seattle
+2300,17,Snohomish,Not Seattle
+2301,17,Snohomish,Not Seattle
+2302,17,Snohomish,Not Seattle
+2303,17,Snohomish,Not Seattle
+2304,17,Snohomish,Not Seattle
+2305,17,Snohomish,Not Seattle
+2306,17,Snohomish,Not Seattle
+2307,17,Snohomish,Not Seattle
+2308,17,Snohomish,Not Seattle
+2309,17,Snohomish,Not Seattle
+2310,17,Snohomish,Not Seattle
+2311,17,Snohomish,Not Seattle
+2312,17,Snohomish,Not Seattle
+2313,17,Snohomish,Not Seattle
+2314,17,Snohomish,Not Seattle
+2315,17,Snohomish,Not Seattle
+2316,17,Snohomish,Not Seattle
+2317,17,Snohomish,Not Seattle
+2318,17,Snohomish,Not Seattle
+2319,17,Snohomish,Not Seattle
+2320,17,Snohomish,Not Seattle
+2321,17,Snohomish,Not Seattle
+2322,17,Snohomish,Not Seattle
+2323,17,Snohomish,Not Seattle
+2324,17,Snohomish,Not Seattle
+2325,17,Snohomish,Not Seattle
+2326,17,Snohomish,Not Seattle
+2327,17,Snohomish,Not Seattle
+2328,17,Snohomish,Not Seattle
+2329,17,Snohomish,Not Seattle
+2330,17,Snohomish,Not Seattle
+2331,17,Snohomish,Not Seattle
+2332,18,Snohomish,Not Seattle
+2333,18,Snohomish,Not Seattle
+2334,18,Snohomish,Not Seattle
+2335,18,Snohomish,Not Seattle
+2336,18,Snohomish,Not Seattle
+2337,18,Snohomish,Not Seattle
+2338,18,Snohomish,Not Seattle
+2339,18,Snohomish,Not Seattle
+2340,18,Snohomish,Not Seattle
+2341,18,Snohomish,Not Seattle
+2342,18,Snohomish,Not Seattle
+2343,18,Snohomish,Not Seattle
+2344,18,Snohomish,Not Seattle
+2345,18,Snohomish,Not Seattle
+2346,18,Snohomish,Not Seattle
+2347,18,Snohomish,Not Seattle
+2348,18,Snohomish,Not Seattle
+2349,18,Snohomish,Not Seattle
+2350,18,Snohomish,Not Seattle
+2351,18,Snohomish,Not Seattle
+2352,18,Snohomish,Not Seattle
+2353,18,Snohomish,Not Seattle
+2354,18,Snohomish,Not Seattle
+2355,18,Snohomish,Not Seattle
+2356,18,Snohomish,Not Seattle
+2357,18,Snohomish,Not Seattle
+2358,18,Snohomish,Not Seattle
+2359,18,Snohomish,Not Seattle
+2360,18,Snohomish,Not Seattle
+2361,18,Snohomish,Not Seattle
+2362,18,Snohomish,Not Seattle
+2363,16,Snohomish,Not Seattle
+2364,16,Snohomish,Not Seattle
+2365,16,Snohomish,Not Seattle
+2366,16,Snohomish,Not Seattle
+2367,18,Snohomish,Not Seattle
+2368,18,Snohomish,Not Seattle
+2369,18,Snohomish,Not Seattle
+2370,18,Snohomish,Not Seattle
+2371,18,Snohomish,Not Seattle
+2372,18,Snohomish,Not Seattle
+2373,18,Snohomish,Not Seattle
+2374,18,Snohomish,Not Seattle
+2375,18,Snohomish,Not Seattle
+2376,18,Snohomish,Not Seattle
+2377,18,Snohomish,Not Seattle
+2378,18,Snohomish,Not Seattle
+2379,18,Snohomish,Not Seattle
+2380,18,Snohomish,Not Seattle
+2381,18,Snohomish,Not Seattle
+2382,18,Snohomish,Not Seattle
+2383,16,Snohomish,Not Seattle
+2384,16,Snohomish,Not Seattle
+2385,16,Snohomish,Not Seattle
+2386,16,Snohomish,Not Seattle
+2387,16,Snohomish,Not Seattle
+2388,16,Snohomish,Not Seattle
+2389,16,Snohomish,Not Seattle
+2390,16,Snohomish,Not Seattle
+2391,17,Snohomish,Not Seattle
+2392,17,Snohomish,Not Seattle
+2393,17,Snohomish,Not Seattle
+2394,17,Snohomish,Not Seattle
+2395,17,Snohomish,Not Seattle
+2396,17,Snohomish,Not Seattle
+2397,15,Snohomish,Not Seattle
+2398,15,Snohomish,Not Seattle
+2399,15,Snohomish,Not Seattle
+2400,15,Snohomish,Not Seattle
+2401,15,Snohomish,Not Seattle
+2402,15,Snohomish,Not Seattle
+2403,15,Snohomish,Not Seattle
+2404,15,Snohomish,Not Seattle
+2405,15,Snohomish,Not Seattle
+2406,15,Snohomish,Not Seattle
+2407,15,Snohomish,Not Seattle
+2408,15,Snohomish,Not Seattle
+2409,15,Snohomish,Not Seattle
+2410,15,Snohomish,Not Seattle
+2411,15,Snohomish,Not Seattle
+2412,15,Snohomish,Not Seattle
+2413,15,Snohomish,Not Seattle
+2414,15,Snohomish,Not Seattle
+2415,15,Snohomish,Not Seattle
+2416,15,Snohomish,Not Seattle
+2417,15,Snohomish,Not Seattle
+2418,15,Snohomish,Not Seattle
+2419,15,Snohomish,Not Seattle
+2420,15,Snohomish,Not Seattle
+2421,15,Snohomish,Not Seattle
+2422,15,Snohomish,Not Seattle
+2423,16,Snohomish,Not Seattle
+2424,16,Snohomish,Not Seattle
+2425,16,Snohomish,Not Seattle
+2426,16,Snohomish,Not Seattle
+2427,16,Snohomish,Not Seattle
+2428,16,Snohomish,Not Seattle
+2429,16,Snohomish,Not Seattle
+2430,16,Snohomish,Not Seattle
+2431,16,Snohomish,Not Seattle
+2432,16,Snohomish,Not Seattle
+2433,16,Snohomish,Not Seattle
+2434,16,Snohomish,Not Seattle
+2435,16,Snohomish,Not Seattle
+2436,16,Snohomish,Not Seattle
+2437,16,Snohomish,Not Seattle
+2438,18,Snohomish,Not Seattle
+2439,18,Snohomish,Not Seattle
+2440,18,Snohomish,Not Seattle
+2441,18,Snohomish,Not Seattle
+2442,18,Snohomish,Not Seattle
+2443,16,Snohomish,Not Seattle
+2444,18,Snohomish,Not Seattle
+2445,18,Snohomish,Not Seattle
+2446,18,Snohomish,Not Seattle
+2447,16,Snohomish,Not Seattle
+2448,16,Snohomish,Not Seattle
+2449,16,Snohomish,Not Seattle
+2450,16,Snohomish,Not Seattle
+2451,16,Snohomish,Not Seattle
+2452,16,Snohomish,Not Seattle
+2453,16,Snohomish,Not Seattle
+2454,16,Snohomish,Not Seattle
+2455,16,Snohomish,Not Seattle
+2456,16,Snohomish,Not Seattle
+2457,16,Snohomish,Not Seattle
+2458,16,Snohomish,Not Seattle
+2459,16,Snohomish,Not Seattle
+2460,16,Snohomish,Not Seattle
+2461,16,Snohomish,Not Seattle
+2462,16,Snohomish,Not Seattle
+2463,16,Snohomish,Not Seattle
+2464,16,Snohomish,Not Seattle
+2465,16,Snohomish,Not Seattle
+2466,16,Snohomish,Not Seattle
+2467,16,Snohomish,Not Seattle
+2468,16,Snohomish,Not Seattle
+2469,16,Snohomish,Not Seattle
+2470,16,Snohomish,Not Seattle
+2471,16,Snohomish,Not Seattle
+2472,16,Snohomish,Not Seattle
+2473,16,Snohomish,Not Seattle
+2474,16,Snohomish,Not Seattle
+2475,16,Snohomish,Not Seattle
+2476,16,Snohomish,Not Seattle
+2477,16,Snohomish,Not Seattle
+2478,16,Snohomish,Not Seattle
+2479,16,Snohomish,Not Seattle
+2480,16,Snohomish,Not Seattle
+2481,15,Snohomish,Not Seattle
+2482,15,Snohomish,Not Seattle
+2483,15,Snohomish,Not Seattle
+2484,15,Snohomish,Not Seattle
+2485,15,Snohomish,Not Seattle
+2486,15,Snohomish,Not Seattle
+2487,15,Snohomish,Not Seattle
+2488,15,Snohomish,Not Seattle
+2489,15,Snohomish,Not Seattle
+2490,15,Snohomish,Not Seattle
+2491,15,Snohomish,Not Seattle
+2492,15,Snohomish,Not Seattle
+2493,15,Snohomish,Not Seattle
+2494,15,Snohomish,Not Seattle
+2495,15,Snohomish,Not Seattle
+2496,15,Snohomish,Not Seattle
+2497,15,Snohomish,Not Seattle
+2498,15,Snohomish,Not Seattle
+2499,15,Snohomish,Not Seattle
+2500,15,Snohomish,Not Seattle
+2501,15,Snohomish,Not Seattle
+2502,15,Snohomish,Not Seattle
+2503,15,Snohomish,Not Seattle
+2504,15,Snohomish,Not Seattle
+2505,15,Snohomish,Not Seattle
+2506,15,Snohomish,Not Seattle
+2507,15,Snohomish,Not Seattle
+2508,15,Snohomish,Not Seattle
+2509,15,Snohomish,Not Seattle
+2510,15,Snohomish,Not Seattle
+2511,15,Snohomish,Not Seattle
+2512,15,Snohomish,Not Seattle
+2513,15,Snohomish,Not Seattle
+2514,15,Snohomish,Not Seattle
+2515,15,Snohomish,Not Seattle
+2516,15,Snohomish,Not Seattle
+2517,15,Snohomish,Not Seattle
+2518,15,Snohomish,Not Seattle
+2519,15,Snohomish,Not Seattle
+2520,15,Snohomish,Not Seattle
+2521,15,Snohomish,Not Seattle
+2522,15,Snohomish,Not Seattle
+2523,15,Snohomish,Not Seattle
+2524,16,Snohomish,Not Seattle
+2525,16,Snohomish,Not Seattle
+2526,16,Snohomish,Not Seattle
+2527,16,Snohomish,Not Seattle
+2528,16,Snohomish,Not Seattle
+2529,16,Snohomish,Not Seattle
+2530,16,Snohomish,Not Seattle
+2531,16,Snohomish,Not Seattle
+2532,16,Snohomish,Not Seattle
+2533,16,Snohomish,Not Seattle
+2534,16,Snohomish,Not Seattle
+2535,16,Snohomish,Not Seattle
+2536,16,Snohomish,Not Seattle
+2537,16,Snohomish,Not Seattle
+2538,16,Snohomish,Not Seattle
+2539,16,Snohomish,Not Seattle
+2540,16,Snohomish,Not Seattle
+2541,16,Snohomish,Not Seattle
+2542,16,Snohomish,Not Seattle
+2543,16,Snohomish,Not Seattle
+2544,16,Snohomish,Not Seattle
+2545,16,Snohomish,Not Seattle
+2546,16,Snohomish,Not Seattle
+2547,18,Snohomish,Not Seattle
+2548,16,Snohomish,Not Seattle
+2549,16,Snohomish,Not Seattle
+2550,16,Snohomish,Not Seattle
+2551,16,Snohomish,Not Seattle
+2552,16,Snohomish,Not Seattle
+2553,16,Snohomish,Not Seattle
+2554,16,Snohomish,Not Seattle
+2555,16,Snohomish,Not Seattle
+2556,16,Snohomish,Not Seattle
+2557,16,Snohomish,Not Seattle
+2558,16,Snohomish,Not Seattle
+2559,16,Snohomish,Not Seattle
+2560,16,Snohomish,Not Seattle
+2561,16,Snohomish,Not Seattle
+2562,16,Snohomish,Not Seattle
+2563,16,Snohomish,Not Seattle
+2564,16,Snohomish,Not Seattle
+2565,16,Snohomish,Not Seattle
+2566,16,Snohomish,Not Seattle
+2567,16,Snohomish,Not Seattle
+2568,16,Snohomish,Not Seattle
+2569,16,Snohomish,Not Seattle
+2570,15,Snohomish,Not Seattle
+2571,15,Snohomish,Not Seattle
+2572,15,Snohomish,Not Seattle
+2573,15,Snohomish,Not Seattle
+2574,15,Snohomish,Not Seattle
+2575,15,Snohomish,Not Seattle
+2576,15,Snohomish,Not Seattle
+2577,15,Snohomish,Not Seattle
+2578,15,Snohomish,Not Seattle
+2579,15,Snohomish,Not Seattle
+2580,15,Snohomish,Not Seattle
+2581,15,Snohomish,Not Seattle
+2582,15,Snohomish,Not Seattle
+2583,15,Snohomish,Not Seattle
+2584,15,Snohomish,Not Seattle
+2585,15,Snohomish,Not Seattle
+2586,15,Snohomish,Not Seattle
+2587,15,Snohomish,Not Seattle
+2588,15,Snohomish,Not Seattle
+2589,15,Snohomish,Not Seattle
+2590,15,Snohomish,Not Seattle
+2591,15,Snohomish,Not Seattle
+2592,15,Snohomish,Not Seattle
+2593,15,Snohomish,Not Seattle
+2594,15,Snohomish,Not Seattle
+2595,15,Snohomish,Not Seattle
+2596,15,Snohomish,Not Seattle
+2597,15,Snohomish,Not Seattle
+2598,15,Snohomish,Not Seattle
+2599,16,Snohomish,Not Seattle
+2600,16,Snohomish,Not Seattle
+2601,16,Snohomish,Not Seattle
+2602,16,Snohomish,Not Seattle
+2603,16,Snohomish,Not Seattle
+2604,16,Snohomish,Not Seattle
+2605,16,Snohomish,Not Seattle
+2606,16,Snohomish,Not Seattle
+2607,16,Snohomish,Not Seattle
+2608,16,Snohomish,Not Seattle
+2609,16,Snohomish,Not Seattle
+2610,16,Snohomish,Not Seattle
+2611,16,Snohomish,Not Seattle
+2612,16,Snohomish,Not Seattle
+2613,16,Snohomish,Not Seattle
+2614,16,Snohomish,Not Seattle
+2615,16,Snohomish,Not Seattle
+2616,16,Snohomish,Not Seattle
+2617,15,Snohomish,Not Seattle
+2618,15,Snohomish,Not Seattle
+2619,15,Snohomish,Not Seattle
+2620,15,Snohomish,Not Seattle
+2621,15,Snohomish,Not Seattle
+2622,15,Snohomish,Not Seattle
+2623,15,Snohomish,Not Seattle
+2624,15,Snohomish,Not Seattle
+2625,15,Snohomish,Not Seattle
+2626,15,Snohomish,Not Seattle
+2627,15,Snohomish,Not Seattle
+2628,15,Snohomish,Not Seattle
+2629,15,Snohomish,Not Seattle
+2630,15,Snohomish,Not Seattle
+2631,15,Snohomish,Not Seattle
+2632,15,Snohomish,Not Seattle
+2633,15,Snohomish,Not Seattle
+2634,15,Snohomish,Not Seattle
+2635,15,Snohomish,Not Seattle
+2636,15,Snohomish,Not Seattle
+2637,15,Snohomish,Not Seattle
+2638,15,Snohomish,Not Seattle
+2639,15,Snohomish,Not Seattle
+2640,15,Snohomish,Not Seattle
+2641,15,Snohomish,Not Seattle
+2642,15,Snohomish,Not Seattle
+2643,15,Snohomish,Not Seattle
+2644,15,Snohomish,Not Seattle
+2645,15,Snohomish,Not Seattle
+2646,15,Snohomish,Not Seattle
+2647,15,Snohomish,Not Seattle
+2648,15,Snohomish,Not Seattle
+2649,15,Snohomish,Not Seattle
+2650,15,Snohomish,Not Seattle
+2651,15,Snohomish,Not Seattle
+2652,15,Snohomish,Not Seattle
+2653,15,Snohomish,Not Seattle
+2654,15,Snohomish,Not Seattle
+2655,15,Snohomish,Not Seattle
+2656,15,Snohomish,Not Seattle
+2657,15,Snohomish,Not Seattle
+2658,16,Snohomish,Not Seattle
+2659,16,Snohomish,Not Seattle
+2660,16,Snohomish,Not Seattle
+2661,16,Snohomish,Not Seattle
+2662,16,Snohomish,Not Seattle
+2663,16,Snohomish,Not Seattle
+2664,16,Snohomish,Not Seattle
+2665,16,Snohomish,Not Seattle
+2666,16,Snohomish,Not Seattle
+2667,16,Snohomish,Not Seattle
+2668,16,Snohomish,Not Seattle
+2669,1,Pierce,Not Seattle
+2670,1,Pierce,Not Seattle
+2671,1,Pierce,Not Seattle
+2672,1,Pierce,Not Seattle
+2673,1,Pierce,Not Seattle
+2674,1,Pierce,Not Seattle
+2675,1,Pierce,Not Seattle
+2676,1,Pierce,Not Seattle
+2677,1,Pierce,Not Seattle
+2678,1,Pierce,Not Seattle
+2679,1,Pierce,Not Seattle
+2680,1,Pierce,Not Seattle
+2681,1,Pierce,Not Seattle
+2682,1,Pierce,Not Seattle
+2683,1,Pierce,Not Seattle
+2684,1,Pierce,Not Seattle
+2685,1,Pierce,Not Seattle
+2686,1,Pierce,Not Seattle
+2687,1,Pierce,Not Seattle
+2688,1,Pierce,Not Seattle
+2689,1,Pierce,Not Seattle
+2690,1,Pierce,Not Seattle
+2691,1,Pierce,Not Seattle
+2692,1,Pierce,Not Seattle
+2693,1,Pierce,Not Seattle
+2694,1,Pierce,Not Seattle
+2695,1,Pierce,Not Seattle
+2696,1,Pierce,Not Seattle
+2697,1,Pierce,Not Seattle
+2698,1,Pierce,Not Seattle
+2699,1,Pierce,Not Seattle
+2700,1,Pierce,Not Seattle
+2701,1,Pierce,Not Seattle
+2702,1,Pierce,Not Seattle
+2703,1,Pierce,Not Seattle
+2704,1,Pierce,Not Seattle
+2705,1,Pierce,Not Seattle
+2706,1,Pierce,Not Seattle
+2707,1,Pierce,Not Seattle
+2708,1,Pierce,Not Seattle
+2709,1,Pierce,Not Seattle
+2710,1,Pierce,Not Seattle
+2711,1,Pierce,Not Seattle
+2712,1,Pierce,Not Seattle
+2713,1,Pierce,Not Seattle
+2714,1,Pierce,Not Seattle
+2715,1,Pierce,Not Seattle
+2716,1,Pierce,Not Seattle
+2717,1,Pierce,Not Seattle
+2718,1,Pierce,Not Seattle
+2719,1,Pierce,Not Seattle
+2720,1,Pierce,Not Seattle
+2721,1,Pierce,Not Seattle
+2722,1,Pierce,Not Seattle
+2723,1,Pierce,Not Seattle
+2724,1,Pierce,Not Seattle
+2725,1,Pierce,Not Seattle
+2726,1,Pierce,Not Seattle
+2727,1,Pierce,Not Seattle
+2728,1,Pierce,Not Seattle
+2729,1,Pierce,Not Seattle
+2730,1,Pierce,Not Seattle
+2731,1,Pierce,Not Seattle
+2732,1,Pierce,Not Seattle
+2733,1,Pierce,Not Seattle
+2734,1,Pierce,Not Seattle
+2735,1,Pierce,Not Seattle
+2736,1,Pierce,Not Seattle
+2737,1,Pierce,Not Seattle
+2738,1,Pierce,Not Seattle
+2739,1,Pierce,Not Seattle
+2740,1,Pierce,Not Seattle
+2741,1,Pierce,Not Seattle
+2742,1,Pierce,Not Seattle
+2743,1,Pierce,Not Seattle
+2744,1,Pierce,Not Seattle
+2745,1,Pierce,Not Seattle
+2746,1,Pierce,Not Seattle
+2747,1,Pierce,Not Seattle
+2748,1,Pierce,Not Seattle
+2749,1,Pierce,Not Seattle
+2750,1,Pierce,Not Seattle
+2751,1,Pierce,Not Seattle
+2752,1,Pierce,Not Seattle
+2753,1,Pierce,Not Seattle
+2754,3,Pierce,Not Seattle
+2755,3,Pierce,Not Seattle
+2756,3,Pierce,Not Seattle
+2757,3,Pierce,Not Seattle
+2758,3,Pierce,Not Seattle
+2759,3,Pierce,Not Seattle
+2760,3,Pierce,Not Seattle
+2761,3,Pierce,Not Seattle
+2762,3,Pierce,Not Seattle
+2763,3,Pierce,Not Seattle
+2764,3,Pierce,Not Seattle
+2765,3,Pierce,Not Seattle
+2766,3,Pierce,Not Seattle
+2767,3,Pierce,Not Seattle
+2768,3,Pierce,Not Seattle
+2769,3,Pierce,Not Seattle
+2770,3,Pierce,Not Seattle
+2771,3,Pierce,Not Seattle
+2772,3,Pierce,Not Seattle
+2773,3,Pierce,Not Seattle
+2774,3,Pierce,Not Seattle
+2775,3,Pierce,Not Seattle
+2776,3,Pierce,Not Seattle
+2777,3,Pierce,Not Seattle
+2778,3,Pierce,Not Seattle
+2779,3,Pierce,Not Seattle
+2780,3,Pierce,Not Seattle
+2781,3,Pierce,Not Seattle
+2782,3,Pierce,Not Seattle
+2783,3,Pierce,Not Seattle
+2784,3,Pierce,Not Seattle
+2785,3,Pierce,Not Seattle
+2786,3,Pierce,Not Seattle
+2787,3,Pierce,Not Seattle
+2788,3,Pierce,Not Seattle
+2789,3,Pierce,Not Seattle
+2790,3,Pierce,Not Seattle
+2791,3,Pierce,Not Seattle
+2792,3,Pierce,Not Seattle
+2793,3,Pierce,Not Seattle
+2794,3,Pierce,Not Seattle
+2795,3,Pierce,Not Seattle
+2796,3,Pierce,Not Seattle
+2797,3,Pierce,Not Seattle
+2798,3,Pierce,Not Seattle
+2799,3,Pierce,Not Seattle
+2800,3,Pierce,Not Seattle
+2801,3,Pierce,Not Seattle
+2802,3,Pierce,Not Seattle
+2803,3,Pierce,Not Seattle
+2804,3,Pierce,Not Seattle
+2805,3,Pierce,Not Seattle
+2806,3,Pierce,Not Seattle
+2807,3,Pierce,Not Seattle
+2808,3,Pierce,Not Seattle
+2809,3,Pierce,Not Seattle
+2810,3,Pierce,Not Seattle
+2811,3,Pierce,Not Seattle
+2812,3,Pierce,Not Seattle
+2813,3,Pierce,Not Seattle
+2814,3,Pierce,Not Seattle
+2815,3,Pierce,Not Seattle
+2816,3,Pierce,Not Seattle
+2817,3,Pierce,Not Seattle
+2818,3,Pierce,Not Seattle
+2819,3,Pierce,Not Seattle
+2820,3,Pierce,Not Seattle
+2821,3,Pierce,Not Seattle
+2822,3,Pierce,Not Seattle
+2823,3,Pierce,Not Seattle
+2824,3,Pierce,Not Seattle
+2825,3,Pierce,Not Seattle
+2826,3,Pierce,Not Seattle
+2827,3,Pierce,Not Seattle
+2828,3,Pierce,Not Seattle
+2829,3,Pierce,Not Seattle
+2830,3,Pierce,Not Seattle
+2831,3,Pierce,Not Seattle
+2832,3,Pierce,Not Seattle
+2833,3,Pierce,Not Seattle
+2834,3,Pierce,Not Seattle
+2835,3,Pierce,Not Seattle
+2836,3,Pierce,Not Seattle
+2837,3,Pierce,Not Seattle
+2838,3,Pierce,Not Seattle
+2839,3,Pierce,Not Seattle
+2840,3,Pierce,Not Seattle
+2841,3,Pierce,Not Seattle
+2842,3,Pierce,Not Seattle
+2843,3,Pierce,Not Seattle
+2844,3,Pierce,Not Seattle
+2845,3,Pierce,Not Seattle
+2846,3,Pierce,Not Seattle
+2847,3,Pierce,Not Seattle
+2848,3,Pierce,Not Seattle
+2849,3,Pierce,Not Seattle
+2850,3,Pierce,Not Seattle
+2851,3,Pierce,Not Seattle
+2852,3,Pierce,Not Seattle
+2853,3,Pierce,Not Seattle
+2854,3,Pierce,Not Seattle
+2855,3,Pierce,Not Seattle
+2856,3,Pierce,Not Seattle
+2857,3,Pierce,Not Seattle
+2858,3,Pierce,Not Seattle
+2859,3,Pierce,Not Seattle
+2860,3,Pierce,Not Seattle
+2861,3,Pierce,Not Seattle
+2862,3,Pierce,Not Seattle
+2863,3,Pierce,Not Seattle
+2864,3,Pierce,Not Seattle
+2865,3,Pierce,Not Seattle
+2866,3,Pierce,Not Seattle
+2867,3,Pierce,Not Seattle
+2868,3,Pierce,Not Seattle
+2869,3,Pierce,Not Seattle
+2870,3,Pierce,Not Seattle
+2871,3,Pierce,Not Seattle
+2872,3,Pierce,Not Seattle
+2873,3,Pierce,Not Seattle
+2874,3,Pierce,Not Seattle
+2875,3,Pierce,Not Seattle
+2876,3,Pierce,Not Seattle
+2877,3,Pierce,Not Seattle
+2878,3,Pierce,Not Seattle
+2879,3,Pierce,Not Seattle
+2880,3,Pierce,Not Seattle
+2881,3,Pierce,Not Seattle
+2882,3,Pierce,Not Seattle
+2883,3,Pierce,Not Seattle
+2884,3,Pierce,Not Seattle
+2885,3,Pierce,Not Seattle
+2886,3,Pierce,Not Seattle
+2887,3,Pierce,Not Seattle
+2888,3,Pierce,Not Seattle
+2889,3,Pierce,Not Seattle
+2890,3,Pierce,Not Seattle
+2891,3,Pierce,Not Seattle
+2892,3,Pierce,Not Seattle
+2893,3,Pierce,Not Seattle
+2894,3,Pierce,Not Seattle
+2895,3,Pierce,Not Seattle
+2896,3,Pierce,Not Seattle
+2897,3,Pierce,Not Seattle
+2898,3,Pierce,Not Seattle
+2899,3,Pierce,Not Seattle
+2900,3,Pierce,Not Seattle
+2901,3,Pierce,Not Seattle
+2902,3,Pierce,Not Seattle
+2903,3,Pierce,Not Seattle
+2904,3,Pierce,Not Seattle
+2905,3,Pierce,Not Seattle
+2906,3,Pierce,Not Seattle
+2907,3,Pierce,Not Seattle
+2908,3,Pierce,Not Seattle
+2909,3,Pierce,Not Seattle
+2910,3,Pierce,Not Seattle
+2911,3,Pierce,Not Seattle
+2912,3,Pierce,Not Seattle
+2913,3,Pierce,Not Seattle
+2914,3,Pierce,Not Seattle
+2915,3,Pierce,Not Seattle
+2916,3,Pierce,Not Seattle
+2917,3,Pierce,Not Seattle
+2918,3,Pierce,Not Seattle
+2919,3,Pierce,Not Seattle
+2920,3,Pierce,Not Seattle
+2921,3,Pierce,Not Seattle
+2922,3,Pierce,Not Seattle
+2923,3,Pierce,Not Seattle
+2924,3,Pierce,Not Seattle
+2925,3,Pierce,Not Seattle
+2926,3,Pierce,Not Seattle
+2927,3,Pierce,Not Seattle
+2928,3,Pierce,Not Seattle
+2929,3,Pierce,Not Seattle
+2930,3,Pierce,Not Seattle
+2931,3,Pierce,Not Seattle
+2932,3,Pierce,Not Seattle
+2933,3,Pierce,Not Seattle
+2934,3,Pierce,Not Seattle
+2935,3,Pierce,Not Seattle
+2936,3,Pierce,Not Seattle
+2937,1,Pierce,Not Seattle
+2938,1,Pierce,Not Seattle
+2939,1,Pierce,Not Seattle
+2940,1,Pierce,Not Seattle
+2941,1,Pierce,Not Seattle
+2942,1,Pierce,Not Seattle
+2943,1,Pierce,Not Seattle
+2944,1,Pierce,Not Seattle
+2945,1,Pierce,Not Seattle
+2946,1,Pierce,Not Seattle
+2947,1,Pierce,Not Seattle
+2948,1,Pierce,Not Seattle
+2949,1,Pierce,Not Seattle
+2950,3,Pierce,Not Seattle
+2951,3,Pierce,Not Seattle
+2952,3,Pierce,Not Seattle
+2953,3,Pierce,Not Seattle
+2954,3,Pierce,Not Seattle
+2955,3,Pierce,Not Seattle
+2956,3,Pierce,Not Seattle
+2957,3,Pierce,Not Seattle
+2958,3,Pierce,Not Seattle
+2959,3,Pierce,Not Seattle
+2960,3,Pierce,Not Seattle
+2961,3,Pierce,Not Seattle
+2962,3,Pierce,Not Seattle
+2963,3,Pierce,Not Seattle
+2964,3,Pierce,Not Seattle
+2965,3,Pierce,Not Seattle
+2966,3,Pierce,Not Seattle
+2967,1,Pierce,Not Seattle
+2968,1,Pierce,Not Seattle
+2969,1,Pierce,Not Seattle
+2970,1,Pierce,Not Seattle
+2971,1,Pierce,Not Seattle
+2972,1,Pierce,Not Seattle
+2973,1,Pierce,Not Seattle
+2974,1,Pierce,Not Seattle
+2975,1,Pierce,Not Seattle
+2976,1,Pierce,Not Seattle
+2977,1,Pierce,Not Seattle
+2978,1,Pierce,Not Seattle
+2979,1,Pierce,Not Seattle
+2980,1,Pierce,Not Seattle
+2981,1,Pierce,Not Seattle
+2982,1,Pierce,Not Seattle
+2983,1,Pierce,Not Seattle
+2984,1,Pierce,Not Seattle
+2985,1,Pierce,Not Seattle
+2986,1,Pierce,Not Seattle
+2987,1,Pierce,Not Seattle
+2988,1,Pierce,Not Seattle
+2989,1,Pierce,Not Seattle
+2990,3,Pierce,Not Seattle
+2991,3,Pierce,Not Seattle
+2992,3,Pierce,Not Seattle
+2993,3,Pierce,Not Seattle
+2994,3,Pierce,Not Seattle
+2995,3,Pierce,Not Seattle
+2996,3,Pierce,Not Seattle
+2997,3,Pierce,Not Seattle
+2998,1,Pierce,Not Seattle
+2999,1,Pierce,Not Seattle
+3000,1,Pierce,Not Seattle
+3001,1,Pierce,Not Seattle
+3002,1,Pierce,Not Seattle
+3003,1,Pierce,Not Seattle
+3004,1,Pierce,Not Seattle
+3005,1,Pierce,Not Seattle
+3006,1,Pierce,Not Seattle
+3007,1,Pierce,Not Seattle
+3008,1,Pierce,Not Seattle
+3009,1,Pierce,Not Seattle
+3010,1,Pierce,Not Seattle
+3011,1,Pierce,Not Seattle
+3012,1,Pierce,Not Seattle
+3013,1,Pierce,Not Seattle
+3014,3,Pierce,Not Seattle
+3015,3,Pierce,Not Seattle
+3016,1,Pierce,Not Seattle
+3017,1,Pierce,Not Seattle
+3018,1,Pierce,Not Seattle
+3019,1,Pierce,Not Seattle
+3020,1,Pierce,Not Seattle
+3021,1,Pierce,Not Seattle
+3022,1,Pierce,Not Seattle
+3023,1,Pierce,Not Seattle
+3024,1,Pierce,Not Seattle
+3025,1,Pierce,Not Seattle
+3026,1,Pierce,Not Seattle
+3027,1,Pierce,Not Seattle
+3028,1,Pierce,Not Seattle
+3029,1,Pierce,Not Seattle
+3030,1,Pierce,Not Seattle
+3031,1,Pierce,Not Seattle
+3032,1,Pierce,Not Seattle
+3033,1,Pierce,Not Seattle
+3034,1,Pierce,Not Seattle
+3035,1,Pierce,Not Seattle
+3036,1,Pierce,Not Seattle
+3037,1,Pierce,Not Seattle
+3038,1,Pierce,Not Seattle
+3039,1,Pierce,Not Seattle
+3040,1,Pierce,Not Seattle
+3041,1,Pierce,Not Seattle
+3042,1,Pierce,Not Seattle
+3043,1,Pierce,Not Seattle
+3044,1,Pierce,Not Seattle
+3045,1,Pierce,Not Seattle
+3046,1,Pierce,Not Seattle
+3047,1,Pierce,Not Seattle
+3048,1,Pierce,Not Seattle
+3049,1,Pierce,Not Seattle
+3050,1,Pierce,Not Seattle
+3051,1,Pierce,Not Seattle
+3052,1,Pierce,Not Seattle
+3053,1,Pierce,Not Seattle
+3054,1,Pierce,Not Seattle
+3055,1,Pierce,Not Seattle
+3056,1,Pierce,Not Seattle
+3057,1,Pierce,Not Seattle
+3058,1,Pierce,Not Seattle
+3059,1,Pierce,Not Seattle
+3060,1,Pierce,Not Seattle
+3061,1,Pierce,Not Seattle
+3062,1,Pierce,Not Seattle
+3063,1,Pierce,Not Seattle
+3064,1,Pierce,Not Seattle
+3065,1,Pierce,Not Seattle
+3066,1,Pierce,Not Seattle
+3067,1,Pierce,Not Seattle
+3068,1,Pierce,Not Seattle
+3069,1,Pierce,Not Seattle
+3070,1,Pierce,Not Seattle
+3071,1,Pierce,Not Seattle
+3072,1,Pierce,Not Seattle
+3073,1,Pierce,Not Seattle
+3074,1,Pierce,Not Seattle
+3075,1,Pierce,Not Seattle
+3076,1,Pierce,Not Seattle
+3077,1,Pierce,Not Seattle
+3078,3,Pierce,Not Seattle
+3079,3,Pierce,Not Seattle
+3080,3,Pierce,Not Seattle
+3081,3,Pierce,Not Seattle
+3082,3,Pierce,Not Seattle
+3083,3,Pierce,Not Seattle
+3084,3,Pierce,Not Seattle
+3085,3,Pierce,Not Seattle
+3086,3,Pierce,Not Seattle
+3087,3,Pierce,Not Seattle
+3088,3,Pierce,Not Seattle
+3089,3,Pierce,Not Seattle
+3090,3,Pierce,Not Seattle
+3091,3,Pierce,Not Seattle
+3092,3,Pierce,Not Seattle
+3093,3,Pierce,Not Seattle
+3094,2,Pierce,Not Seattle
+3095,3,Pierce,Not Seattle
+3096,3,Pierce,Not Seattle
+3097,3,Pierce,Not Seattle
+3098,3,Pierce,Not Seattle
+3099,3,Pierce,Not Seattle
+3100,3,Pierce,Not Seattle
+3101,3,Pierce,Not Seattle
+3102,3,Pierce,Not Seattle
+3103,3,Pierce,Not Seattle
+3104,3,Pierce,Not Seattle
+3105,3,Pierce,Not Seattle
+3106,3,Pierce,Not Seattle
+3107,3,Pierce,Not Seattle
+3108,3,Pierce,Not Seattle
+3109,3,Pierce,Not Seattle
+3110,3,Pierce,Not Seattle
+3111,3,Pierce,Not Seattle
+3112,3,Pierce,Not Seattle
+3113,3,Pierce,Not Seattle
+3114,3,Pierce,Not Seattle
+3115,3,Pierce,Not Seattle
+3116,3,Pierce,Not Seattle
+3117,3,Pierce,Not Seattle
+3118,3,Pierce,Not Seattle
+3119,3,Pierce,Not Seattle
+3120,2,Pierce,Not Seattle
+3121,2,Pierce,Not Seattle
+3122,2,Pierce,Not Seattle
+3123,2,Pierce,Not Seattle
+3124,2,Pierce,Not Seattle
+3125,2,Pierce,Not Seattle
+3126,3,Pierce,Not Seattle
+3127,2,Pierce,Not Seattle
+3128,2,Pierce,Not Seattle
+3129,2,Pierce,Not Seattle
+3130,2,Pierce,Not Seattle
+3131,2,Pierce,Not Seattle
+3132,2,Pierce,Not Seattle
+3133,2,Pierce,Not Seattle
+3134,2,Pierce,Not Seattle
+3135,2,Pierce,Not Seattle
+3136,2,Pierce,Not Seattle
+3137,2,Pierce,Not Seattle
+3138,2,Pierce,Not Seattle
+3139,2,Pierce,Not Seattle
+3140,2,Pierce,Not Seattle
+3141,2,Pierce,Not Seattle
+3142,2,Pierce,Not Seattle
+3143,2,Pierce,Not Seattle
+3144,2,Pierce,Not Seattle
+3145,2,Pierce,Not Seattle
+3146,2,Pierce,Not Seattle
+3147,2,Pierce,Not Seattle
+3148,2,Pierce,Not Seattle
+3149,2,Pierce,Not Seattle
+3150,2,Pierce,Not Seattle
+3151,2,Pierce,Not Seattle
+3152,2,Pierce,Not Seattle
+3153,2,Pierce,Not Seattle
+3154,2,Pierce,Not Seattle
+3155,2,Pierce,Not Seattle
+3156,2,Pierce,Not Seattle
+3157,2,Pierce,Not Seattle
+3158,2,Pierce,Not Seattle
+3159,2,Pierce,Not Seattle
+3160,2,Pierce,Not Seattle
+3161,2,Pierce,Not Seattle
+3162,2,Pierce,Not Seattle
+3163,2,Pierce,Not Seattle
+3164,2,Pierce,Not Seattle
+3165,2,Pierce,Not Seattle
+3166,2,Pierce,Not Seattle
+3167,2,Pierce,Not Seattle
+3168,2,Pierce,Not Seattle
+3169,2,Pierce,Not Seattle
+3170,2,Pierce,Not Seattle
+3171,2,Pierce,Not Seattle
+3172,2,Pierce,Not Seattle
+3173,2,Pierce,Not Seattle
+3174,2,Pierce,Not Seattle
+3175,2,Pierce,Not Seattle
+3176,2,Pierce,Not Seattle
+3177,2,Pierce,Not Seattle
+3178,2,Pierce,Not Seattle
+3179,2,Pierce,Not Seattle
+3180,2,Pierce,Not Seattle
+3181,2,Pierce,Not Seattle
+3182,2,Pierce,Not Seattle
+3183,2,Pierce,Not Seattle
+3184,3,Pierce,Not Seattle
+3185,3,Pierce,Not Seattle
+3186,3,Pierce,Not Seattle
+3187,3,Pierce,Not Seattle
+3188,3,Pierce,Not Seattle
+3189,3,Pierce,Not Seattle
+3190,3,Pierce,Not Seattle
+3191,3,Pierce,Not Seattle
+3192,3,Pierce,Not Seattle
+3193,3,Pierce,Not Seattle
+3194,3,Pierce,Not Seattle
+3195,3,Pierce,Not Seattle
+3196,3,Pierce,Not Seattle
+3197,3,Pierce,Not Seattle
+3198,3,Pierce,Not Seattle
+3199,3,Pierce,Not Seattle
+3200,3,Pierce,Not Seattle
+3201,3,Pierce,Not Seattle
+3202,3,Pierce,Not Seattle
+3203,3,Pierce,Not Seattle
+3204,3,Pierce,Not Seattle
+3205,3,Pierce,Not Seattle
+3206,3,Pierce,Not Seattle
+3207,3,Pierce,Not Seattle
+3208,3,Pierce,Not Seattle
+3209,3,Pierce,Not Seattle
+3210,2,Pierce,Not Seattle
+3211,2,Pierce,Not Seattle
+3212,2,Pierce,Not Seattle
+3213,2,Pierce,Not Seattle
+3214,2,Pierce,Not Seattle
+3215,2,Pierce,Not Seattle
+3216,2,Pierce,Not Seattle
+3217,2,Pierce,Not Seattle
+3218,2,Pierce,Not Seattle
+3219,2,Pierce,Not Seattle
+3220,2,Pierce,Not Seattle
+3221,2,Pierce,Not Seattle
+3222,2,Pierce,Not Seattle
+3223,2,Pierce,Not Seattle
+3224,2,Pierce,Not Seattle
+3225,2,Pierce,Not Seattle
+3226,2,Pierce,Not Seattle
+3227,2,Pierce,Not Seattle
+3228,2,Pierce,Not Seattle
+3229,2,Pierce,Not Seattle
+3230,2,Pierce,Not Seattle
+3231,2,Pierce,Not Seattle
+3232,2,Pierce,Not Seattle
+3233,2,Pierce,Not Seattle
+3234,2,Pierce,Not Seattle
+3235,2,Pierce,Not Seattle
+3236,2,Pierce,Not Seattle
+3237,2,Pierce,Not Seattle
+3238,2,Pierce,Not Seattle
+3239,2,Pierce,Not Seattle
+3240,2,Pierce,Not Seattle
+3241,2,Pierce,Not Seattle
+3242,2,Pierce,Not Seattle
+3243,2,Pierce,Not Seattle
+3244,2,Pierce,Not Seattle
+3245,2,Pierce,Not Seattle
+3246,2,Pierce,Not Seattle
+3247,2,Pierce,Not Seattle
+3248,2,Pierce,Not Seattle
+3249,2,Pierce,Not Seattle
+3250,3,Pierce,Not Seattle
+3251,3,Pierce,Not Seattle
+3252,3,Pierce,Not Seattle
+3253,3,Pierce,Not Seattle
+3254,3,Pierce,Not Seattle
+3255,3,Pierce,Not Seattle
+3256,3,Pierce,Not Seattle
+3257,3,Pierce,Not Seattle
+3258,3,Pierce,Not Seattle
+3259,3,Pierce,Not Seattle
+3260,3,Pierce,Not Seattle
+3261,3,Pierce,Not Seattle
+3262,2,Pierce,Not Seattle
+3263,3,Pierce,Not Seattle
+3264,3,Pierce,Not Seattle
+3265,3,Pierce,Not Seattle
+3266,3,Pierce,Not Seattle
+3267,3,Pierce,Not Seattle
+3268,3,Pierce,Not Seattle
+3269,3,Pierce,Not Seattle
+3270,2,Pierce,Not Seattle
+3271,2,Pierce,Not Seattle
+3272,2,Pierce,Not Seattle
+3273,2,Pierce,Not Seattle
+3274,2,Pierce,Not Seattle
+3275,2,Pierce,Not Seattle
+3276,2,Pierce,Not Seattle
+3277,2,Pierce,Not Seattle
+3278,2,Pierce,Not Seattle
+3279,2,Pierce,Not Seattle
+3280,2,Pierce,Not Seattle
+3281,2,Pierce,Not Seattle
+3282,2,Pierce,Not Seattle
+3283,2,Pierce,Not Seattle
+3284,2,Pierce,Not Seattle
+3285,2,Pierce,Not Seattle
+3286,2,Pierce,Not Seattle
+3287,2,Pierce,Not Seattle
+3288,2,Pierce,Not Seattle
+3289,2,Pierce,Not Seattle
+3290,2,Pierce,Not Seattle
+3291,2,Pierce,Not Seattle
+3292,2,Pierce,Not Seattle
+3293,2,Pierce,Not Seattle
+3294,2,Pierce,Not Seattle
+3295,2,Pierce,Not Seattle
+3296,2,Pierce,Not Seattle
+3297,2,Pierce,Not Seattle
+3298,2,Pierce,Not Seattle
+3299,2,Pierce,Not Seattle
+3300,2,Pierce,Not Seattle
+3301,2,Pierce,Not Seattle
+3302,2,Pierce,Not Seattle
+3303,2,Pierce,Not Seattle
+3304,2,Pierce,Not Seattle
+3305,2,Pierce,Not Seattle
+3306,2,Pierce,Not Seattle
+3307,2,Pierce,Not Seattle
+3308,2,Pierce,Not Seattle
+3309,2,Pierce,Not Seattle
+3310,2,Pierce,Not Seattle
+3311,2,Pierce,Not Seattle
+3312,2,Pierce,Not Seattle
+3313,2,Pierce,Not Seattle
+3314,2,Pierce,Not Seattle
+3315,2,Pierce,Not Seattle
+3316,2,Pierce,Not Seattle
+3317,2,Pierce,Not Seattle
+3318,2,Pierce,Not Seattle
+3319,2,Pierce,Not Seattle
+3320,2,Pierce,Not Seattle
+3321,2,Pierce,Not Seattle
+3322,2,Pierce,Not Seattle
+3323,2,Pierce,Not Seattle
+3324,2,Pierce,Not Seattle
+3325,2,Pierce,Not Seattle
+3326,2,Pierce,Not Seattle
+3327,2,Pierce,Not Seattle
+3328,2,Pierce,Not Seattle
+3329,2,Pierce,Not Seattle
+3330,2,Pierce,Not Seattle
+3331,2,Pierce,Not Seattle
+3332,2,Pierce,Not Seattle
+3333,2,Pierce,Not Seattle
+3334,2,Pierce,Not Seattle
+3335,2,Pierce,Not Seattle
+3336,2,Pierce,Not Seattle
+3337,2,Pierce,Not Seattle
+3338,2,Pierce,Not Seattle
+3339,2,Pierce,Not Seattle
+3340,2,Pierce,Not Seattle
+3341,2,Pierce,Not Seattle
+3342,2,Pierce,Not Seattle
+3343,2,Pierce,Not Seattle
+3344,1,Pierce,Not Seattle
+3345,1,Pierce,Not Seattle
+3346,1,Pierce,Not Seattle
+3347,1,Pierce,Not Seattle
+3348,1,Pierce,Not Seattle
+3349,1,Pierce,Not Seattle
+3350,1,Pierce,Not Seattle
+3351,1,Pierce,Not Seattle
+3352,1,Pierce,Not Seattle
+3353,1,Pierce,Not Seattle
+3354,1,Pierce,Not Seattle
+3355,1,Pierce,Not Seattle
+3356,1,Pierce,Not Seattle
+3357,1,Pierce,Not Seattle
+3358,2,Pierce,Not Seattle
+3359,2,Pierce,Not Seattle
+3360,2,Pierce,Not Seattle
+3361,2,Pierce,Not Seattle
+3362,2,Pierce,Not Seattle
+3363,2,Pierce,Not Seattle
+3364,2,Pierce,Not Seattle
+3365,2,Pierce,Not Seattle
+3366,2,Pierce,Not Seattle
+3367,2,Pierce,Not Seattle
+3368,2,Pierce,Not Seattle
+3369,2,Pierce,Not Seattle
+3370,2,Pierce,Not Seattle
+3371,2,Pierce,Not Seattle
+3372,2,Pierce,Not Seattle
+3373,2,Pierce,Not Seattle
+3374,2,Pierce,Not Seattle
+3375,2,Pierce,Not Seattle
+3376,2,Pierce,Not Seattle
+3377,2,Pierce,Not Seattle
+3378,2,Pierce,Not Seattle
+3379,2,Pierce,Not Seattle
+3380,2,Pierce,Not Seattle
+3381,2,Pierce,Not Seattle
+3382,2,Pierce,Not Seattle
+3383,2,Pierce,Not Seattle
+3384,2,Pierce,Not Seattle
+3385,2,Pierce,Not Seattle
+3386,2,Pierce,Not Seattle
+3387,2,Pierce,Not Seattle
+3388,2,Pierce,Not Seattle
+3389,2,Pierce,Not Seattle
+3390,2,Pierce,Not Seattle
+3391,2,Pierce,Not Seattle
+3392,2,Pierce,Not Seattle
+3393,2,Pierce,Not Seattle
+3394,2,Pierce,Not Seattle
+3395,2,Pierce,Not Seattle
+3396,2,Pierce,Not Seattle
+3397,2,Pierce,Not Seattle
+3398,2,Pierce,Not Seattle
+3399,2,Pierce,Not Seattle
+3400,2,Pierce,Not Seattle
+3401,2,Pierce,Not Seattle
+3402,2,Pierce,Not Seattle
+3403,2,Pierce,Not Seattle
+3404,2,Pierce,Not Seattle
+3405,2,Pierce,Not Seattle
+3406,2,Pierce,Not Seattle
+3407,2,Pierce,Not Seattle
+3408,2,Pierce,Not Seattle
+3409,2,Pierce,Not Seattle
+3410,2,Pierce,Not Seattle
+3411,2,Pierce,Not Seattle
+3412,2,Pierce,Not Seattle
+3413,2,Pierce,Not Seattle
+3414,2,Pierce,Not Seattle
+3415,2,Pierce,Not Seattle
+3416,2,Pierce,Not Seattle
+3417,2,Pierce,Not Seattle
+3418,2,Pierce,Not Seattle
+3419,2,Pierce,Not Seattle
+3420,2,Pierce,Not Seattle
+3421,2,Pierce,Not Seattle
+3422,2,Pierce,Not Seattle
+3423,2,Pierce,Not Seattle
+3424,2,Pierce,Not Seattle
+3425,2,Pierce,Not Seattle
+3426,2,Pierce,Not Seattle
+3427,2,Pierce,Not Seattle
+3428,2,Pierce,Not Seattle
+3429,2,Pierce,Not Seattle
+3430,2,Pierce,Not Seattle
+3431,2,Pierce,Not Seattle
+3432,2,Pierce,Not Seattle
+3433,2,Pierce,Not Seattle
+3434,2,Pierce,Not Seattle
+3435,2,Pierce,Not Seattle
+3436,2,Pierce,Not Seattle
+3437,2,Pierce,Not Seattle
+3438,2,Pierce,Not Seattle
+3439,2,Pierce,Not Seattle
+3440,2,Pierce,Not Seattle
+3441,2,Pierce,Not Seattle
+3442,2,Pierce,Not Seattle
+3443,2,Pierce,Not Seattle
+3444,2,Pierce,Not Seattle
+3445,2,Pierce,Not Seattle
+3446,2,Pierce,Not Seattle
+3447,2,Pierce,Not Seattle
+3448,2,Pierce,Not Seattle
+3449,2,Pierce,Not Seattle
+3450,2,Pierce,Not Seattle
+3451,2,Pierce,Not Seattle
+3452,2,Pierce,Not Seattle
+3453,2,Pierce,Not Seattle
+3454,2,Pierce,Not Seattle
+3455,2,Pierce,Not Seattle
+3456,2,Pierce,Not Seattle
+3457,2,Pierce,Not Seattle
+3458,2,Pierce,Not Seattle
+3459,2,Pierce,Not Seattle
+3460,2,Pierce,Not Seattle
+3461,2,Pierce,Not Seattle
+3462,2,Pierce,Not Seattle
+3463,2,Pierce,Not Seattle
+3464,2,Pierce,Not Seattle
+3465,2,Pierce,Not Seattle
+3466,2,Pierce,Not Seattle
+3467,19,Kitsap,Not Seattle
+3468,19,Kitsap,Not Seattle
+3469,19,Kitsap,Not Seattle
+3470,19,Kitsap,Not Seattle
+3471,19,Kitsap,Not Seattle
+3472,19,Kitsap,Not Seattle
+3473,19,Kitsap,Not Seattle
+3474,19,Kitsap,Not Seattle
+3475,19,Kitsap,Not Seattle
+3476,19,Kitsap,Not Seattle
+3477,19,Kitsap,Not Seattle
+3478,19,Kitsap,Not Seattle
+3479,19,Kitsap,Not Seattle
+3480,19,Kitsap,Not Seattle
+3481,19,Kitsap,Not Seattle
+3482,19,Kitsap,Not Seattle
+3483,19,Kitsap,Not Seattle
+3484,19,Kitsap,Not Seattle
+3485,19,Kitsap,Not Seattle
+3486,19,Kitsap,Not Seattle
+3487,19,Kitsap,Not Seattle
+3488,19,Kitsap,Not Seattle
+3489,19,Kitsap,Not Seattle
+3490,19,Kitsap,Not Seattle
+3491,19,Kitsap,Not Seattle
+3492,19,Kitsap,Not Seattle
+3493,19,Kitsap,Not Seattle
+3494,19,Kitsap,Not Seattle
+3495,19,Kitsap,Not Seattle
+3496,19,Kitsap,Not Seattle
+3497,19,Kitsap,Not Seattle
+3498,19,Kitsap,Not Seattle
+3499,19,Kitsap,Not Seattle
+3500,19,Kitsap,Not Seattle
+3501,19,Kitsap,Not Seattle
+3502,19,Kitsap,Not Seattle
+3503,19,Kitsap,Not Seattle
+3504,19,Kitsap,Not Seattle
+3505,19,Kitsap,Not Seattle
+3506,19,Kitsap,Not Seattle
+3507,19,Kitsap,Not Seattle
+3508,19,Kitsap,Not Seattle
+3509,19,Kitsap,Not Seattle
+3510,19,Kitsap,Not Seattle
+3511,19,Kitsap,Not Seattle
+3512,19,Kitsap,Not Seattle
+3513,19,Kitsap,Not Seattle
+3514,19,Kitsap,Not Seattle
+3515,19,Kitsap,Not Seattle
+3516,19,Kitsap,Not Seattle
+3517,19,Kitsap,Not Seattle
+3518,19,Kitsap,Not Seattle
+3519,19,Kitsap,Not Seattle
+3520,19,Kitsap,Not Seattle
+3521,19,Kitsap,Not Seattle
+3522,19,Kitsap,Not Seattle
+3523,19,Kitsap,Not Seattle
+3524,19,Kitsap,Not Seattle
+3525,19,Kitsap,Not Seattle
+3526,19,Kitsap,Not Seattle
+3527,19,Kitsap,Not Seattle
+3528,19,Kitsap,Not Seattle
+3529,19,Kitsap,Not Seattle
+3530,19,Kitsap,Not Seattle
+3531,19,Kitsap,Not Seattle
+3532,19,Kitsap,Not Seattle
+3533,19,Kitsap,Not Seattle
+3534,19,Kitsap,Not Seattle
+3535,19,Kitsap,Not Seattle
+3536,19,Kitsap,Not Seattle
+3537,19,Kitsap,Not Seattle
+3538,19,Kitsap,Not Seattle
+3539,19,Kitsap,Not Seattle
+3540,19,Kitsap,Not Seattle
+3541,19,Kitsap,Not Seattle
+3542,19,Kitsap,Not Seattle
+3543,19,Kitsap,Not Seattle
+3544,19,Kitsap,Not Seattle
+3545,19,Kitsap,Not Seattle
+3546,19,Kitsap,Not Seattle
+3547,19,Kitsap,Not Seattle
+3548,19,Kitsap,Not Seattle
+3549,19,Kitsap,Not Seattle
+3550,19,Kitsap,Not Seattle
+3551,19,Kitsap,Not Seattle
+3552,19,Kitsap,Not Seattle
+3553,19,Kitsap,Not Seattle
+3554,19,Kitsap,Not Seattle
+3555,19,Kitsap,Not Seattle
+3556,19,Kitsap,Not Seattle
+3557,19,Kitsap,Not Seattle
+3558,19,Kitsap,Not Seattle
+3559,19,Kitsap,Not Seattle
+3560,19,Kitsap,Not Seattle
+3561,19,Kitsap,Not Seattle
+3562,19,Kitsap,Not Seattle
+3563,19,Kitsap,Not Seattle
+3564,19,Kitsap,Not Seattle
+3565,19,Kitsap,Not Seattle
+3566,19,Kitsap,Not Seattle
+3567,19,Kitsap,Not Seattle
+3568,19,Kitsap,Not Seattle
+3569,19,Kitsap,Not Seattle
+3570,19,Kitsap,Not Seattle
+3571,19,Kitsap,Not Seattle
+3572,19,Kitsap,Not Seattle
+3573,19,Kitsap,Not Seattle
+3574,19,Kitsap,Not Seattle
+3575,19,Kitsap,Not Seattle
+3576,19,Kitsap,Not Seattle
+3577,19,Kitsap,Not Seattle
+3578,19,Kitsap,Not Seattle
+3579,19,Kitsap,Not Seattle
+3580,19,Kitsap,Not Seattle
+3581,19,Kitsap,Not Seattle
+3582,19,Kitsap,Not Seattle
+3583,19,Kitsap,Not Seattle
+3584,19,Kitsap,Not Seattle
+3585,19,Kitsap,Not Seattle
+3586,19,Kitsap,Not Seattle
+3587,19,Kitsap,Not Seattle
+3588,19,Kitsap,Not Seattle
+3589,19,Kitsap,Not Seattle
+3590,19,Kitsap,Not Seattle
+3591,19,Kitsap,Not Seattle
+3592,19,Kitsap,Not Seattle
+3593,19,Kitsap,Not Seattle
+3594,19,Kitsap,Not Seattle
+3595,19,Kitsap,Not Seattle
+3596,19,Kitsap,Not Seattle
+3597,19,Kitsap,Not Seattle
+3598,19,Kitsap,Not Seattle
+3599,19,Kitsap,Not Seattle
+3600,19,Kitsap,Not Seattle
+3601,19,Kitsap,Not Seattle
+3602,19,Kitsap,Not Seattle
+3603,19,Kitsap,Not Seattle
+3604,19,Kitsap,Not Seattle
+3605,19,Kitsap,Not Seattle
+3606,19,Kitsap,Not Seattle
+3607,19,Kitsap,Not Seattle
+3608,19,Kitsap,Not Seattle
+3609,19,Kitsap,Not Seattle
+3610,19,Kitsap,Not Seattle
+3611,19,Kitsap,Not Seattle
+3612,19,Kitsap,Not Seattle
+3613,19,Kitsap,Not Seattle
+3614,19,Kitsap,Not Seattle
+3615,19,Kitsap,Not Seattle
+3616,19,Kitsap,Not Seattle
+3617,19,Kitsap,Not Seattle
+3618,19,Kitsap,Not Seattle
+3619,19,Kitsap,Not Seattle
+3620,19,Kitsap,Not Seattle
+3621,19,Kitsap,Not Seattle
+3622,19,Kitsap,Not Seattle
+3623,19,Kitsap,Not Seattle
+3624,19,Kitsap,Not Seattle
+3625,19,Kitsap,Not Seattle
+3626,19,Kitsap,Not Seattle
+3627,19,Kitsap,Not Seattle
+3628,19,Kitsap,Not Seattle
+3629,19,Kitsap,Not Seattle
+3630,19,Kitsap,Not Seattle
+3631,19,Kitsap,Not Seattle
+3632,19,Kitsap,Not Seattle
+3633,19,Kitsap,Not Seattle
+3634,19,Kitsap,Not Seattle
+3635,19,Kitsap,Not Seattle
+3636,19,Kitsap,Not Seattle
+3637,19,Kitsap,Not Seattle
+3638,19,Kitsap,Not Seattle
+3639,19,Kitsap,Not Seattle
+3640,19,Kitsap,Not Seattle
+3641,19,Kitsap,Not Seattle
+3642,19,Kitsap,Not Seattle
+3643,19,Kitsap,Not Seattle
+3644,19,Kitsap,Not Seattle
+3645,19,Kitsap,Not Seattle
+3646,19,Kitsap,Not Seattle
+3647,19,Kitsap,Not Seattle
+3648,19,Kitsap,Not Seattle
+3649,19,Kitsap,Not Seattle
+3650,19,Kitsap,Not Seattle
+3651,19,Kitsap,Not Seattle
+3652,19,Kitsap,Not Seattle
+3653,19,Kitsap,Not Seattle
+3654,19,Kitsap,Not Seattle
+3655,19,Kitsap,Not Seattle
+3656,19,Kitsap,Not Seattle
+3657,19,Kitsap,Not Seattle
+3658,19,Kitsap,Not Seattle
+3659,19,Kitsap,Not Seattle
+3660,19,Kitsap,Not Seattle
+3661,19,Kitsap,Not Seattle
+3662,19,Kitsap,Not Seattle
+3663,19,Kitsap,Not Seattle
+3664,19,Kitsap,Not Seattle
+3665,19,Kitsap,Not Seattle
+3666,19,Kitsap,Not Seattle
+3667,19,Kitsap,Not Seattle
+3668,19,Kitsap,Not Seattle
+3669,19,Kitsap,Not Seattle
+3670,19,Kitsap,Not Seattle
+3671,19,Kitsap,Not Seattle
+3672,19,Kitsap,Not Seattle
+3673,19,Kitsap,Not Seattle
+3674,19,Kitsap,Not Seattle
+3675,19,Kitsap,Not Seattle
+3676,19,Kitsap,Not Seattle
+3677,19,Kitsap,Not Seattle
+3678,19,Kitsap,Not Seattle
+3679,19,Kitsap,Not Seattle
+3680,19,Kitsap,Not Seattle
+3681,19,Kitsap,Not Seattle
+3682,19,Kitsap,Not Seattle
+3683,19,Kitsap,Not Seattle
+3684,19,Kitsap,Not Seattle
+3685,19,Kitsap,Not Seattle
+3686,19,Kitsap,Not Seattle
+3687,19,Kitsap,Not Seattle
+3688,19,Kitsap,Not Seattle
+3689,19,Kitsap,Not Seattle
+3690,19,Kitsap,Not Seattle
+3691,19,Kitsap,Not Seattle
+3692,19,Kitsap,Not Seattle
+3693,19,Kitsap,Not Seattle
+3694,19,Kitsap,Not Seattle
+3695,19,Kitsap,Not Seattle
+3696,19,Kitsap,Not Seattle
+3697,19,Kitsap,Not Seattle
+3698,19,Kitsap,Not Seattle
+3699,19,Kitsap,Not Seattle
+3700,19,Kitsap,Not Seattle
+3733,20,External,Not Seattle
+3734,20,External,Not Seattle
+3735,20,External,Not Seattle
+3736,20,External,Not Seattle
+3737,20,External,Not Seattle
+3738,20,External,Not Seattle
+3739,20,External,Not Seattle
+3740,20,External,Not Seattle
+3741,20,External,Not Seattle
+3742,20,External,Not Seattle
+3743,20,External,Not Seattle
+3744,20,External,Not Seattle
+3745,20,External,Not Seattle
+3746,20,External,Not Seattle
+3747,20,External,Not Seattle
+3748,20,External,Not Seattle
+3749,20,External,Not Seattle
+3750,20,External,Not Seattle
