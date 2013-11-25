@@ -90,8 +90,10 @@ def setup_emme_project_folders():
 
 def copy_large_inputs():
     print 'Copying large inputs...'
-    shcopy(base_inputs+'/networks','Inputs/networks') 
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs') 
+    
+    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
+    # Need to fix permissions on R
+    #shcopy(base_inputs+'/networks','Inputs/networks')
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
@@ -137,6 +139,15 @@ if returncode != 0:
 
 time_daysim = datetime.datetime.now()
 print '###### Finished running Daysim:',time_daysim - time_skims
+
+##DAYSIM SUMMARIZE########################################################################
+R_path=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReportLongTerm.Rnw')
+run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
+R_path2=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReport2.Rnw')
+run_R2 ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path2
+returncode = subprocess.call(run_R)
+returncode2 = subprocess.call(run_R2)
+
 
 ### ASSIGNMENTS ###############################################################
 subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
