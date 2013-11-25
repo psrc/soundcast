@@ -1,0 +1,573 @@
+\documentclass{article}
+\usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=1.0cm,bmargin=1.0cm,lmargin=1.0cm,rmargin=1.0cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\usepackage{lscape}            % for landscape mode tables
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
+\setlength{\textwidth}{4in} 
+\def\Sweavesize{\normalsize} 
+
+\title{Daysim Summary}
+
+\author{Suzanne and Yingqian}
+
+\maketitle
+
+
+\begin{abstract}
+This document compares a SoundCast run to the household survey data for the choices of work location, school location, auto ownership, and transit pass ownership.
+\end{abstract}
+
+<<echo=false>>=
+# Author: suzanne.childress
+###############################################################################
+
+###This script generates basic summaries for a Daysim model run outputs in HDF5
+#install.packages("plyr")
+#install.packages("data.table")
+#install.packages("rhdf5")
+# can be found on: http://www.bioconductor.org/packages/2.13/bioc/html
+# /rhdf5.html
+#install.packages("ggplot2")
+#install.packages("car")
+#install.packages("xtable")
+#install.packages("sqldf")
+#install.packages("reshape2")
+#install.packages("knitr")
+
+# need to re-run Daysim processing to tag times and distances to work and school locations
+
+library(plyr)
+library(data.table)
+library(rhdf5)
+library(ggplot2)
+library(car)
+library(daysimutil)
+library(xtable)
+library(sqldf)
+library(reshape2)
+library(knitr)
+
+
+options(width=80)
+options("scipen" = 100, digits=2)
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+paths<- vector(mode = "list", length=2)
+# construct the names of where the files are located
+run_path<-getwd()
+#run_path <-"C:/output_test2"
+run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
+paths <-c(paste(run_path, "/outputs/daysim_outputs_work_school_loc.h5",sep = ""),
+          paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
+dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
+hh_per_path <- paste(run_path,"/outputs/hh_and_persons.h5",sep = "")
+
+# Give a descriptive name of the two datasets that are being compared
+# For now we will assume the first dataset is ALWAYS the model, and the second is ALWAYS
+# the survey
+names(paths)<- c("Model Run", "2006 Survey")
+type <- names(paths)
+
+district_file <- paste(run_path, "/scripts/summarize/Districts_County.csv",sep = "")
+ctpp_file <-paste(run_path, "/scripts/summarize/CTPP.csv",sep = "")
+
+recode_districts<-function(dataset){
+  # change the input file
+  dataset$District[dataset$District==1] <- "Lakewood"
+  dataset$District[dataset$District==2] <- "SE Pierce"
+  dataset$District[dataset$District==3] <- "Tacoma"
+  dataset$District[dataset$District==4] <- "Federal Way"
+  dataset$District[dataset$District==5] <- "Kent"
+  dataset$District[dataset$District==6] <- "Burien"
+  dataset$District[dataset$District==7] <- "Issaquah"
+  dataset$District[dataset$District==8] <- "Bellevue"
+  dataset$District[dataset$District==9] <- "Redmond"
+  dataset$District[dataset$District==10] <- "South Seattle"
+  dataset$District[dataset$District==11] <- "Seattle CBD"
+  dataset$District[dataset$District==12] <- "Capitol Hill"
+  dataset$District[dataset$District==13] <- "North Seattle"
+  dataset$District[dataset$District==14] <- "Shoreline"
+  dataset$District[dataset$District==15] <- "Lynnwood"
+  dataset$District[dataset$District==16] <- "Mill Creek"
+  dataset$District[dataset$District==17] <- "Everett"
+  dataset$District[dataset$District==18] <- "Marysville"
+  dataset$District[dataset$District==19] <- "Kitsap"
+  dataset$District[dataset$District==20] <- "External/PNR"
+  dataset
+}
+
+
+get_total <- function(exp_fac)
+{
+  total <- sum(exp_fac)
+  if(total<1)
+  {
+    total <- nrow(exp_fac)
+  }
+  total 
+}
+
+h5group_to_table<-function (daysim_path, h5_data_root, datasets = NULL) 
+{
+    if (is.null(datasets)) {
+        dir <- h5ls(daysim_path)
+        datasets_select <- dir[dir$group %in% h5_data_root, "name"]
+    }
+    else {
+        datasets_select <- datasets
+    }
+    i = 0
+    for (x in datasets_select) {
+        if (i == 0) {
+            outtable <- data.table(h5read(daysim_path, paste(h5_data_root, 
+                x, sep = "/")))
+        }
+        else {
+            outtable <- cbind(outtable, data.table(h5read(daysim_path, 
+                paste(h5_data_root, x, sep = "/"))))
+        }
+        i = i + 1
+    }
+    setnames(outtable, datasets_select)
+    return(outtable)
+}
+
+get_group_names<-function (data1_path) 
+{
+    dataset_names <- h5ls(data1_path)
+    group_names <- unique(dataset_names$group)
+    group_names <- group_names[group_names != "/"]
+    group_names
+}
+
+######################################################################################
+# READ IN DATA
+
+zone_district<- read.csv(district_file)
+zone_district<-recode_districts(zone_district)
+
+for(i in 1:length(paths))
+{
+  
+  for(group in get_group_names(paths[i]))
+  {
+    table<- h5group_to_table(paths[i], group)
+    table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+    table_name <- paste(table_name[2],toString(i), sep="_")
+    assign(table_name, table)
+  }
+}
+
+for(group in get_group_names(hh_per_path))
+{
+  table<- h5group_to_table(hh_per_path, group)
+  table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+  table_name <- paste(table_name[2],"hh_per",sep="_")
+  assign(table_name, table)
+}
+
+#####################################################################
+@
+
+
+\section{Basic Summaries}
+\subsection{Total Households and Persons}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+merge_per_hh_1 <- merge(Person_1, Household_1, by = "hhno")
+merge_per_hh_2 <- merge(Person_2, Household_2, by = "hhno")
+
+Person_1_total <- get_total(merge_per_hh_1$psexpfac)
+Person_2_total <- get_total(merge_per_hh_2$psexpfac)
+Census_Persons <- 3616747
+ACS_Persons <- 3445799
+# Census and ACS from the PSRC website:http://www.psrc.org/data/pophousing/pophousin#-estimates/
+
+DifferencePersons <- Person_1_total - Person_2_total
+
+Household_1_total <- get_total(Household_1$hhexpfac)
+Household_2_total <- get_total(Household_2$hhexpfac)
+Census_Households <- 1454695
+ACS_Households<- 1380559
+
+DifferenceHouseholds <- Household_1_total - Household_2_total
+
+Average_HHSize_1 <- Person_1_total/Household_1_total
+Average_HHSize_2 <- Person_2_total/Household_2_total
+Census_HHSize <- 2.49
+ACS_HHSize <- 2.50
+
+
+Totals_HH<- data.frame(rbind
+                       (cbind(Person_1_total,Census_Persons),
+                        cbind(Household_1_total,Census_Households),
+                        cbind(Average_HHSize_1, Census_HHSize)))
+row.names(Totals_HH)<-  c("Total Persons", "Total Households","Average Household Size")
+colnames(Totals_HH) <- c(names(paths[1]), "2010 Census")       
+                          
+print(Totals_HH)
+
+
+@
+
+
+
+\section{Work and School Location}
+\subsection{Work At Home}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+wrkrs <-subset(merge_per_hh_1, pwtyp>0)
+total_workers_1 <- nrow(wrkrs)
+works_home_1 <- nrow(subset(merge_per_hh_1,merge_per_hh_1$pwpcl==merge_per_hh_1$hhparcel))
+
+CTPP_wrkrs<- 1805125
+CTPP_athome <- 91615
+
+WorksAtHome <- rbind(cbind(works_home_1, total_workers_1, 100*works_home_1/total_workers_1),
+                     cbind(CTPP_athome,CTPP_wrkrs, 100*CTPP_athome/CTPP_wrkrs))
+
+colnames(WorksAtHome)<- c("Total Workers At Home", "Total Workers", "Share At Home")
+rownames(WorksAtHome)<-c("2010 Model", "2006-2010 CTPP")
+print(WorksAtHome, include.rownames = FALSE, digits=2)
+@
+\subsection{Average Distance to Work in Miles}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+workers_1 <- subset(Person_1, pwaudist>0.05 & pwaudist<200, select=c("pwaudist", "psexpfac"))
+workers_2 <- subset(Person_2, pwaudist>0.05 & pwaudist<200,select=c("pwaudist", "psexpfac"))
+
+workers_1$share <- 1/nrow(workers_1)
+workers_2$share <- workers_2$psexpfac/sum(workers_2$psexpfac)
+
+workers_1$type <- names(paths[1])
+workers_2$type <- names(paths[2])
+
+workers_1_avg_dist <- mean(workers_1$pwaudist)
+workers_2_avg_dist <- weighted.mean(workers_2$pwaudist, workers_2$psexpfac)
+
+worker_dist <-cbind(workers_1_avg_dist, workers_2_avg_dist)
+colnames(worker_dist)<-c(names(paths[1]),names(paths[2]))
+
+print("Average Distance in Work in Miles (where distance >0.05, and <200 miles)", include.rownames = FALSE)
+print(worker_dist, digits=3, include.rownames = FALSE)
+
+workers_1_less_one_mi <- 100*nrow(subset(workers_1, pwaudist<=1))/nrow(workers_1)
+wrkrslessonemi_2 <- subset(workers_2, workers_2$pwaudist<=1)
+workers_2_less_one_mi <- 100*sum(wrkrslessonemi_2$psexpfac)/sum(workers_2$psexpfac)
+
+WrkrsLessOneMi <- cbind(workers_1_less_one_mi, workers_2_less_one_mi)
+colnames(WrkrsLessOneMi)<-c("Modeled Workers", "Survey Workers")
+print("Share of Workers Less than One Mile to Work", include.rownames = FALSE)
+print(WrkrsLessOneMi)
+
+workers_1_gr_twenty_mi <- 100*nrow(subset(workers_1, pwaudist>20))/nrow(workers_1)
+wrkrsgrtwentymi_2 <- subset(workers_2, workers_2$pwaudist>20)
+workers_2_gr_twenty_mi <- 100*sum(wrkrsgrtwentymi_2$psexpfac)/sum(workers_2$psexpfac)
+
+WrkrsGr20Mi <- cbind(workers_1_gr_twenty_mi, workers_2_gr_twenty_mi)
+colnames(WrkrsGr20Mi)<-c("Modeled Workers", "Survey Workers")
+print("Share of Workers More than Twenty Miles to Work", include.rownames = FALSE)
+print(WrkrsGr20Mi, digits=3)
+@
+
+\subsection{Worker Flows}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+wkr_1_hzone <- merge(zone_district, wrkrs, by.y = "hhtaz", by.x = "TAZ")
+wkr_1_hzone_sum <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County, wkr_1_hzone$pwtaz), length)
+colnames(wkr_1_hzone_sum)<- c("HomeCounty", "WorkTAZ", "Workers")
+wkr_1_wzone <- merge(zone_district, wkr_1_hzone_sum, by.y = "WorkTAZ", by.x = "TAZ")
+wkr_1_h_w <- aggregate(wkr_1_wzone$Workers, by = list(wkr_1_wzone$HomeCounty, wkr_1_wzone$County), sum)
+colnames(wkr_1_h_w)<-c("HomeCounty", "WorkCounty","Workers")
+
+CTPPHW<- read.csv(ctpp_file)
+compare_model_CTPP <- merge(CTPPHW, wkr_1_h_w, by=c("HomeCounty", "WorkCounty"))
+compare_model_CTPP$Difference <-compare_model_CTPP$Workers.y-compare_model_CTPP$Workers.x
+compare_model_CTPP$PercentDiff <-100*compare_model_CTPP$Difference/compare_model_CTPP$Workers.x
+colnames(compare_model_CTPP) <- c("Home County", "Work County", "CTPP Workers", "Model Workers", "Diff","PerDiff")
+
+print(compare_model_CTPP, include.rownames = FALSE)
+
+#wkr_1_hzone <- merge(zone_district, wrkrs, by.y = "hhtaz", by.x = "TAZ")
+#wkr_1_hzone_sum <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$District, wkr_1_hzone$pwt#az), length)
+#colnames(wkr_1_hzone_sum)<- c("HomeDistrict", "WorkTAZ", "Workers")
+#wkr_1_wzone <- merge(zone_district, wkr_1_hzone_sum, by.y = "WorkTAZ", by.x = "TAZ")
+#wkr_1_h_w <- aggregate(wkr_1_wzone$Workers, by = list(wkr_1_wzone$HomeDistrict, wkr_1_wzone$Distri#ct, sum)
+#colnames(wkr_1_h_w)<-c("HomeDistrict", "WorkDistrict","Workers")
+
+
+CTPPHW<- read.csv(ctpp_file)
+compare_model_CTPP <- merge(CTPPHW, wkr_1_h_w, by=c("HomeCounty", "WorkCounty"))
+compare_model_CTPP$Difference <-compare_model_CTPP$Workers.y-compare_model_CTPP$Workers.x
+compare_model_CTPP$PercentDiff <-100*compare_model_CTPP$Difference/compare_model_CTPP$Workers.x
+colnames(compare_model_CTPP) <- c("Home County", "Work County", "CTPP Workers", "Model Workers", "Diff","PerDiff")
+
+print(compare_model_CTPP, include.rownames = FALSE)
+
+@
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+
+
+
+ Work_1_o<-  sqldf("SELECT pwtaz,count(*) as NumWorkers, 
+                  District as OriginDistrict FROM merge_per_hh_1
+                  INNER JOIN zone_district 
+                  on merge_per_hh_1.hhtaz= zone_district.TAZ
+                  Group by District,pwtaz")
+
+  Work_1_od<-  sqldf("SELECT sum(NumWorkers) as Workers, OriginDistrict,
+                   District as DestinationDistrict FROM Work_1_o
+                   INNER JOIN zone_district 
+                   on  Work_1_o.pwtaz= zone_district.TAZ
+                   Group by OriginDistrict,zone_district.District")
+###Person_2 summaries
+
+
+
+ Work_2_o<-  sqldf("SELECT pwtaz,sum(psexpfac) as NumWorkers, 
+                  District as OriginDistrict  FROM merge_per_hh_2
+                  INNER JOIN zone_district 
+                  on merge_per_hh_2.hhtaz= zone_district.TAZ
+                  Group by District,pwtaz")
+
+  Work_2_od<-  sqldf("SELECT sum(NumWorkers) as Workers, OriginDistrict,
+                   District as DestinationDistrict FROM Work_2_o
+                   INNER JOIN zone_district 
+                   on  Work_2_o.pwtaz= zone_district.TAZ
+                   Group by OriginDistrict,zone_district.District")
+  
+
+
+Work_1<-  acast(Work_1_od, formula=OriginDistrict ~ DestinationDistrict, 
+                    value.var='Workers')
+
+Work_2<-  acast(Work_2_od, formula=OriginDistrict ~ DestinationDistrict, 
+                   value.var='Workers')
+
+write.csv(Work_1, "C:/output_test2/scripts/summarize/ModelWorkFlow.csv")
+write.csv(Work_2, "C:/output_test2/scripts/summarize/SurveyWorkFlow.csv")
+@
+
+
+\subsection{Average Distance to School}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+students_1 <- subset(Person_1, psaudist>0.05 & psaudist<200 )
+students_2 <- subset(Person_2, psaudist>0.05 & psaudist<200)
+
+#students_1 <- subset(Person_1, pspcl>0 )
+#students_2 <- subset(Person_2, pspcl>0 )
+
+students_1$share <- 1/nrow(students_1)
+students_2$share <- students_2$psexpfac/sum(students_2$psexpfac)
+
+students_1$type <- names(paths[1])
+students_2$type <- names(paths[2])
+
+students_1_und5 <- subset(students_1, students_1$pagey<=4)
+students_2_und5 <- subset(students_2, students_2$pagey<=4)
+
+students_1_512 <- subset(students_1, students_1$pagey>=5 & students_1$pagey<12)
+students_2_512 <- subset(students_2, students_2$pagey>=5 & students_2$pagey<12)
+
+students_1_1318 <- subset(students_1, students_1$pagey>=13 & students_1$pagey<=18)
+students_2_1318 <- subset(students_2, students_2$pagey>=13 & students_2$pagey<=18)
+
+students_1_19P<- subset(students_1, students_1$pagey>=19)
+students_2_19P <- subset(students_2, students_2$pagey>=19)
+
+students_1_avg_dist <- mean(students_1$psaudist)
+students_2_avg_dist <- weighted.mean(students_2$psaudist, students_2$psexpfac)
+
+students_1_dist_und5 <- mean(students_1_und5$psaudist)
+students_2_dist_und5<- weighted.mean(students_2_512$psaudist, students_2_512$psexpfac)
+
+students_1_dist_512 <- mean(students_1_512$psaudist)
+students_2_dist_512<- weighted.mean(students_2_512$psaudist, students_2_512$psexpfac)
+
+students_1_dist_1318 <- mean(students_1_1318$psaudist)
+students_2_dist_1318<- weighted.mean(students_2_1318$psaudist, students_2_1318$psexpfac)
+
+students_2_dist_19P <- weighted.mean(students_2_19P$psaudist, students_2_19P$psexpfac)
+students_1_dist_19P <- mean(students_1_19P$psaudist)
+
+student_dist_age_1 <-rbind(students_1_avg_dist, students_1_dist_und5, students_1_dist_512, students_1_dist_1318, students_1_dist_19P)
+student_dist_age_2 <-rbind(students_2_avg_dist, students_2_dist_und5, students_2_dist_512, students_2_dist_1318, students_2_dist_19P)
+
+student_dist_age <- cbind(student_dist_age_1, student_dist_age_2)
+colnames(student_dist_age )<-c(names(paths[1]),names(paths[2]))
+rownames(student_dist_age)<- c("All", "Under 5", "6 to 12", "12 to 18", "19 Plus")
+
+print("Average Distance in school in Miles (where distance >0.05, and <200 miles)")
+print(student_dist_age , digits=2, row.names=FALSE)
+
+
+@
+\section{Transit Pass and Auto Ownership}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass)
+Transit_Pass_Per1 <- Total_Transit_Passes1/Person_1_total
+Total_Transit_Passes2<- sum(merge_per_hh_2$ptpass*merge_per_hh_2$hhexpfac)
+Transit_Pass_Per2 <- Total_Transit_Passes2/Person_2_total
+
+Transit_Passes <- data.frame(rbind(cbind(Total_Transit_Passes1, Total_Transit_Passes2),
+                                         cbind(Transit_Pass_Per1, Transit_Pass_Per2)))
+row.names(Transit_Passes)<- c("Total Transit Passes", "Passes per Person")
+colnames(Transit_Passes)<- c(names(paths[1]), names(paths[2]))
+
+print(Transit_Passes)
+
+# recode the household vehicles above 4 in the survey to 4
+Household_2$hhvehs[Household_2$hhvehs>=4] <- 4
+
+hhs_zone_1 <- merge(zone_district, Household_1, by.y = "hhtaz", by.x = "TAZ")
+
+
+auto_own1 <- aggregate(Household_1$hhvehs, by = list(Household_1$hhvehs), length)
+auto_own1$percent <- 100*auto_own1$x/Household_1_total
+auto_own2 <- aggregate(Household_2$hhexpfac, by = list(Household_2$hhvehs), sum)
+auto_own2$percent <- 100*auto_own2$x/Household_2_total
+
+Auto_Own <- data.frame(rbind(cbind(auto_own1$Group.1,auto_own1$percent,auto_own2$percent)))
+colnames(Auto_Own) <- c("Household Vehicles", paste("percent of",names(paths[1])),paste("percent of",names(paths[2])))
+print(Auto_Own)
+
+hhs_zone_1 <- merge(zone_district, Household_1, by.y = "hhtaz", by.x = "TAZ")
+auto_own2 <- data.frame(aggregate(hhs_zone_1$hhvehs, by = list(hhs_zone_1$hhvehs,hhs_zone_1$County), length))
+
+hh_less_15k <- subset(Household_1, Household_1$hhincome<15000)
+hh_15_25 <- subset(Household_1, Household_1$hhincome>=15000 & Household_1$hhincome<25000)
+hh_25_35 <- subset(Household_1, Household_1$hhincome>25000 & Household_1$hhincome<35000)
+hh_35_50 <- subset(Household_1, Household_1$hhincome>=35000 & Household_1$hhincome<50000)
+hh_50_75 <- subset(Household_1, Household_1$hhincome>=50000 & Household_1$hhincome<75000)
+hh_75_100 <- subset(Household_1, Household_1$hhincome>=75000 & Household_1$hhincome<100000)
+hh_100_150 <- subset(Household_1, Household_1$hhincome>=100000 & Household_1$hhincome<150000)
+hh_150_P <- subset(Household_1, Household_1$hhincome>=150000)
+
+Vehicles_15k <- aggregate(hh_less_15k$hhno, by= list(hh_less_15k$hhvehs), length)
+Vehicles_1525k <- aggregate(hh_15_25$hhno, by= list(hh_15_25$hhvehs), length)
+Vehicles_2535k <- aggregate(hh_25_35$hhno, by= list(hh_25_35$hhvehs), length)
+Vehicles_3550k <- aggregate(hh_35_50$hhno, by= list(hh_35_50$hhvehs), length)
+Vehicles_5075k <- aggregate(hh_50_75$hhno, by= list(hh_50_75$hhvehs), length)
+Vehicles_75100k <- aggregate(hh_75_100$hhno, by= list(hh_75_100$hhvehs), length)
+Vehicles_100150k <- aggregate(hh_100_150$hhno, by= list(hh_100_150$hhvehs), length)
+Vehicles_150k <- aggregate(hh_150_P$hhno, by= list(hh_150_P$hhvehs), length)
+
+make_col_names <-function(x)(colnames(x)<- c("Group",deparse(substitute(x))) )
+
+make_col_names(Vehicles_15k)
+make_col_names(Vehicles_1525k)
+make_col_names(Vehicles_2535k)
+make_col_names(Vehicles_3550k)
+make_col_names(Vehicles_5075k)
+make_col_names(Vehicles_75100k)
+make_col_names(Vehicles_100150k)
+make_col_names(Vehicles_150k)
+
+
+veh_income <- Reduce(function(x, y) merge(x,y,all=TRUE), 
+                        list(Vehicles_15k,Vehicles_1525k, Vehicles_2535k, Vehicles_3550k,
+                             Vehicles_5075k, Vehicles_75100k,Vehicles_100150k,Vehicles_150k))
+
+# Auto Ownership by Income Group
+# by Household Size
+# by Home District
+# versus CTPP
+@
+
+
+\subsection{Households by District}
+This table compares the total households by district between the two datasets.
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+## Begin to Aggregate and Summarize Data
+options("scipen" = 100, digits=2)
+
+ hhs_zone_1 <- merge(zone_district, Household_1, by.y = "hhtaz", by.x = "TAZ")
+ hhs_district_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$District), length)
+
+ colnames(hhs_district_1) <- c("District", "Households")
+
+ hhs_zone_2 <- merge(zone_district, Household_2, by.y = "hhtaz", by.x = "TAZ")
+ hhs_district_2 <- aggregate(hhs_zone_2$hhexpfac, by = list(hhs_zone_2$District), sum)
+
+ colnames(hhs_district_2) <- c("District", "Households")
+
+ diff_hhs <- merge(hhs_district_1, hhs_district_2, by = "District")
+ diff_hhs["Difference"] <- round(diff_hhs$Households.x - diff_hhs$Households.y, 0)
+ diff_hhs["Percent Difference"] <-round(100 * (diff_hhs$Households.x - diff_hhs$Households.y)/diff_hhs$Households.y,2)
+ colnames(diff_hhs) <- c("District", names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
+
+print(diff_hhs, digits=2,row.names = F)
+
+
+@
+
+
+
+\subsection{See RPlot.pdf for plots}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
+##################### Plots ######################################################
+
+workers_1_dist_graph <- ggplot(data= workers_1,
+                           aes(x=pwaudist, weight=share))
+workers_1_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance to Work (miles)") + ylab("Total MODEL Workers")+scale_x_continuous(limits = c(0, 50))+labs(title="Modeled Distance to Work Lengths")
+
+workers_2_dist_graph <- ggplot(data= workers_2,
+                           aes(x=pwaudist, weight=share))
+workers_2_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance to Work (miles)") + ylab("Total SURVEY Workers")+scale_x_continuous(limits = c(0, 50))+labs(title=" Survey Distance to Work Lengths")
+
+
+#To get all workers in the model
+threshold = 200
+index <- (Person_1$ pwautime < threshold)
+threshold2 = 0.05
+index2 <- (Person_1$ pwautime[index] > threshold2)
+CommuteTime_count_1 <- hist(Person_1$ pwautime[index][index2], breaks = c(0,5,15,20,30,45,60,75,90,threshold), plot = FALSE)$ counts
+
+#copied from CTPP data
+CommuteTime_count_2 <- c(40575, 333545,242680,378325,404300,154335,98155,16620,44960)
+CommuteTime_bins <- c("1: 0 to 5", "2: 5 to 14", "3: 15 to 19", "4: 20 to 29", "5: 30 to 44", "6: 45 to 59", "7: 60 to 74", "8: 75 to 89", "9: 90 or more")
+
+
+#############ggplot, bar
+CommuteTime_1 <- data.frame(CommuteTime_bins, CommuteTime_count_1)
+CommuteTime_1$type <- names(paths[1])
+names(CommuteTime_1) <- c("bin", "Workers", "type")
+
+CommuteTime_2 <- data.frame(CommuteTime_bins, CommuteTime_count_2)
+CommuteTime_2$type <- "Survey (CTPP)"
+names(CommuteTime_2) <- c("bin", "Workers", "type")
+
+
+CommuteTime <- rbind(CommuteTime_1, CommuteTime_2)
+CommuteTime_graph <- ggplot(data = CommuteTime, 
+                                aes(x = bin, y = Workers, fill = bin))
+
+CommuteTime_graph + geom_bar(stat = "identity") + facet_wrap(~ type) +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))                                                                                                      +scale_fill_brewer(palette="Spectral")+ xlab("Travel time to work (minutes)")+ylab("Workers")
+
+
+#############two lines
+x <- seq(1, 9, 1)
+plot(x, CommuteTime_count_1, xaxt = "n", type = "b", col = "red", xlab = "Travel time to work (minutes)", ylab = "Workers", ylim = c(0, 5e+05), pch = 1, cex.axis = 0.7)
+axis(1, at = 1:9, labels = CommuteTime_bins, cex.axis = 0.6)
+par(new = TRUE)
+plot(x, CommuteTime_count_2, xaxt = "n", yaxt = "n", type = "b", col = "blue", xlab = "", ylab = "", ylim = c(0, 5e+05), pch = 2, cex.axis = 0.7)
+grid()
+box()
+legend("topright", c("Model", "CTPP"), col = c("red", "blue"), pch = c(1, 2))
+
+   
+@
+\end{document}
