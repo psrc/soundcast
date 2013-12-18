@@ -141,12 +141,9 @@ time_daysim = datetime.datetime.now()
 print '###### Finished running Daysim:',time_daysim - time_skims
 
 ##DAYSIM SUMMARIZE########################################################################
-R_path=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReportLongTerm.Rnw')
-run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-R_path2=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReport2.Rnw')
-run_R2 ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path2
+R_path=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReport.Rnw')
+run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path2
 returncode = subprocess.call(run_R)
-returncode2 = subprocess.call(run_R2)
 
 
 ### ASSIGNMENTS ###############################################################
@@ -155,9 +152,15 @@ subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
 time_assign = datetime.datetime.now()
 print '###### Finished running assignments:',time_assign - time_daysim
 
+### ASSIGNMENT SUMMARY###############################################################
+subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+
+time_assign_summ = datetime.datetime.now()
+print '###### Finished running assignment summary:',time_assign_summ - time_assign
+
 ### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a cookie.)'
-print '    Total run time:',time_assign - time_start
+print '    Total run time:',time_assign_sum - time_start
 
 
 
