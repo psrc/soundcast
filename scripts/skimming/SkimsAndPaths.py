@@ -97,6 +97,8 @@ fare_matrices_tod = ['6to7', '9to10']
 #intrazonals
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
 taz_area_file = 'inputs/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 
 #Zone Index
 tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
@@ -390,10 +392,33 @@ def define_matrices(my_project):
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
+    
     #origin matrix to hold TAZ Area:
     create_matrix(matrix_id= my_bank.available_matrix_identifier("ORIGIN"),
                           matrix_name= 'tazacr',
                           matrix_description= 'taz area',
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+    #origin terminal time:
+    create_matrix(matrix_id= my_bank.available_matrix_identifier("ORIGIN"),
+                          matrix_name= 'prodtt',
+                          matrix_description= 'origin terminal times',
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+
+    #Destination terminal time:
+    create_matrix(matrix_id= my_bank.available_matrix_identifier("DESTINATION"),
+                          matrix_name= 'attrtt',
+                          matrix_description= 'destination terminal times',
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
+    #Combined O/D terminal times:
+    create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+                          matrix_name= 'termti',
+                          matrix_description= 'combined terminal times',
                           default_value=0,
                           overwrite=True,
                           scenario=current_scenario)
@@ -431,7 +456,16 @@ def populate_intrazonals(my_project):
     
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
+    #taz area
     matrix_transaction(transaction_file = taz_area_file,
+                       throw_on_error = True,
+                       scenario = current_scenario)
+    #origin terminal times
+    matrix_transaction(transaction_file = origin_tt_file,
+                       throw_on_error = True,
+                       scenario = current_scenario)
+    #destination terminal times
+    matrix_transaction(transaction_file = destination_tt_file,
                        throw_on_error = True,
                        scenario = current_scenario)
 
@@ -466,7 +500,11 @@ def populate_intrazonals(my_project):
             mod_calc["result"] = value
             mod_calc["expression"] = distance_matrix + " *(60/3)"
             matrix_calc(mod_calc)
-
+    #calculate full matrix terminal times
+    mod_calc = matrix_calculator
+    mod_calc["result"] = 'termti'
+    mod_calc["expression"] = 'prodtt + attrtt' 
+    matrix_calc(mod_calc)
     print 'finished populating intrazonals'
 
 
@@ -551,20 +589,22 @@ def arterial_delay_calc(my_project):
     t6 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@red",extra_attribute_description="Red Time",overwrite=True)
 
     # Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
-    # Exclude links that intersect with centroid connectors
+    # Exclude links that intersect with centroid connectors and weave links
     mod_calc = link_calculator
     mod_calc["result"] = "@tmpl1"
     mod_calc["expression"] = "1"
-    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
+    #mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
+    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015"
     network_calc(mod_calc)
 
     # Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
     # for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
-    # Exclude links that intersect with centroid connectors
+    # Exclude links that intersect with centroid connectors and weave links
     mod_calc = link_calculator
     mod_calc["result"] = "@tmpl2"
     mod_calc["expression"] = "(lanes+2).min.5"
-    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
+    #mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
+    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015"
     network_calc(mod_calc)
 
     # Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
@@ -773,10 +813,11 @@ def attribute_based_skims(my_project,my_skim_attribute):
 
     skim_traffic(mod_skim)
 
-    #add in intrazonal values:
+    #add in intrazonal values & terminal times:
     matrix_calculator = json_to_dictionary("matrix_calculation")
     matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
     inzone_auto_time = my_bank.matrix(intrazonal_dict['time auto']).id
+    inzone_terminal_time = my_bank.matrix('termti').id
     inzone_distance = my_bank.matrix(intrazonal_dict['distance']).id
     if my_skim_attribute =="Time":
         for x in range (0, len(mod_skim["classes"])):
@@ -784,7 +825,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
             matrix_id = my_bank.matrix(matrix_name).id
             mod_calc = matrix_calculator
             mod_calc["result"] = matrix_id
-            mod_calc["expression"] = inzone_auto_time + "+" + matrix_id
+            mod_calc["expression"] = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id
             matrix_calc(mod_calc)
     if my_skim_attribute =="Distance":
         for x in range (0, len(mod_skim["classes"])):
@@ -1212,7 +1253,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     mode = np.asarray(daysim_set["mode"])
     mode = mode.astype("int")
     mode = mode[tod_index]
-
+    
     trexpfac = np.asarray(daysim_set["trexpfac"])
     trexpfac = trexpfac[tod_index]
 
@@ -1275,6 +1316,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             else: vot[x]=3
 
         #get the matrix name from matrix_dict. Throw out school bus (8) for now.
+            if mode[x] <= 0: 
+                 print x, mode[x]
             if mode[x]<8:
                 #Only want drivers, transit trips.
                 if dorp[x] <= 1:
@@ -1620,7 +1663,7 @@ def run_assignments_parallel(project_name):
     #delete and create new demand and skim matrices:
     delete_matrices(m, "FULL")
     delete_matrices(m, "ORIGIN")
-    
+    delete_matrices(m, "DESTINATION")
 
 
     define_matrices(m)
@@ -1634,13 +1677,13 @@ def run_assignments_parallel(project_name):
     
     #create transit fare matrices:
     if tod in fare_matrices_tod:
-     fare_dict = json_to_dictionary('transit_fare_dictionary')
-     fare_file = fare_dict[tod]['Files']['fare_box_file']
+        fare_dict = json_to_dictionary('transit_fare_dictionary')
+        fare_file = fare_dict[tod]['Files']['fare_box_file']
         #fare box:
-     create_fare_zones(m, zone_file, fare_file)
+        create_fare_zones(m, zone_file, fare_file)
         #monthly:
-     fare_file = fare_dict[tod]['Files']['monthly_pass_file']
-     create_fare_zones(m, zone_file, fare_file)
+        fare_file = fare_dict[tod]['Files']['monthly_pass_file']
+        create_fare_zones(m, zone_file, fare_file)
 
     #set up for assignments
     intitial_extra_attributes(m)
@@ -1669,7 +1712,7 @@ def run_assignments_parallel(project_name):
 
 
     #skims_to_hdf5_concurrent(m)
-    app.App.refresh_data
+    #app.App.refresh_data
     print tod + " finished"
     end_of_run = time.time()
     print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
