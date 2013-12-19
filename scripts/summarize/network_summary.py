@@ -169,7 +169,7 @@ def get_link_counts(EmmeProject, df_counts, tod):
      df =  pd.DataFrame(list_model_vols)
      df = df.set_index(['loop_INode', 'loop_JNode'])
      return df
-def get_unique_screenline(EmmeProject):
+def get_unique_screenlines(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
     unique_screenlines = []
     for link in network.links():
@@ -217,7 +217,7 @@ def main():
     df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     counts_dict = {}
     #get a list of screenlines from the bank/scenario
-    screenline_list = get_unique_screenline(my_project) 
+    screenline_list = get_unique_screenlines(my_project) 
     screenline_dict = {}
     
     for item in screenline_list:

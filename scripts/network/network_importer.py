@@ -15,7 +15,7 @@ tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
 sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
 load_transit_tod = ['6to7', '7to8', '8to9', '9to10']
 
-mode_crosswalk_dict = {'b': 'bp', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 'ahijstuvbw' : 'asehdimjvutbpw'}
+mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 'ahijstuvbw' : 'asehdimjvutbpw'}
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt'
 base_net_name = '_roadway.in'
@@ -137,14 +137,14 @@ def run_importer(project_name):
         my_project.delete_links()
         my_project.delete_nodes()
       
-        my_project.process_modes('D:/soundcast/inputs/networks/' + mode_file)
+        my_project.process_modes('inputs/networks/' + mode_file)
         
         my_project.process_base_network('inputs/networks/' + value + base_net_name)
         my_project.process_turn('inputs/networks/' + value + turns_name)
     #my_project.process_shape('/inputs/network' + tod_network + shape_name)
 
         if my_project.tod in load_transit_tod:
-           my_project.process_vehicles('D:/soundcast/inputs/networks/' + transit_vehicle_file)
+           my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
            my_project.process_transit('inputs/networks/' + value + transit_name)
     
     
