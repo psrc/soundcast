@@ -1,0 +1,328 @@
+\documentclass{article}
+\usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=1.0cm,rmargin=0.5cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\usepackage{lscape}            % for landscape mode tables
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
+\setlength{\textwidth}{6in} 
+\def\Sweavesize{\smallsize} 
+
+\title{Daysim Summary}
+
+\author{Suzanne and Yingqian}
+
+\maketitle
+\small
+
+\begin{abstract}
+This document compares a SoundCast run to the household survey data.
+\end{abstract}
+
+<<echo=false>>=
+# Author: suzanne.childress
+###############################################################################
+
+###This script generates basic summaries for a Daysim model run outputs in HDF5
+#install.packages("plyr")
+#install.packages("data.table")
+#install.packages("rhdf5")
+# can be found on: http://www.bioconductor.org/packages/2.13/bioc/html
+# /rhdf5.html
+#install.packages("ggplot2")
+#install.packages("car")
+#install.packages("xtable")
+#install.packages("sqldf")
+#install.packages("reshape2")
+#install.packages("knitr")
+
+library(plyr)
+library(data.table)
+library(rhdf5)
+library(ggplot2)
+library(car)
+library(daysimutil)
+library(xtable)
+library(sqldf)
+library(reshape2)
+library(knitr)
+
+options(width=100)
+options("scipen" = 100, digits=2)
+
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+paths<- vector(mode = "list", length=2)
+# construct the names of where the files are located
+run_path<-getwd()
+
+run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
+paths <-c(paste(run_path, "/outputs/daysim_outputs.h5",sep = ""),
+          paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
+dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
+
+# Give a descriptive name of the two datasets that are being compared
+# For now we will assume the first dataset is ALWAYS the model, and the second is ALWAYS
+# the survey
+names(paths)<- c("2010 Model Run", "2006 Survey")
+type <- names(paths)
+
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv",sep = "")
+
+###Some convenience functions to make summaries more readable
+# We  want to put this into the HDF5 file, but it's not there yet
+recode <- function(dataset){
+  dataset$mode[dataset$mode==1] <- "walk"
+  dataset$mode[dataset$mode==2] <- "bike"
+  dataset$mode[dataset$mode==3] <- "sov"
+  dataset$mode[dataset$mode==4] <- "hov2"
+  dataset$mode[dataset$mode==5] <- "hov3+"
+  dataset$mode[dataset$mode==6] <- "transit"
+  dataset$mode[dataset$mode==7] <- "other"
+  dataset$mode[dataset$mode==8] <- "school_bus"
+  dataset$mode[dataset$mode==9] <- "other"
+  
+  dataset$dpurp[dataset$dpurp==0] <- "home"
+  dataset$dpurp[dataset$dpurp==1] <- "work"
+  dataset$dpurp[dataset$dpurp==2] <- "school"
+  dataset$dpurp[dataset$dpurp==3] <- "escort"
+  dataset$dpurp[dataset$dpurp==4] <- "personal business"
+  dataset$dpurp[dataset$dpurp==5] <- "shop"
+  dataset$dpurp[dataset$dpurp==6] <- "meal"
+  dataset$dpurp[dataset$dpurp==7] <- "social"
+  dataset$dpurp[dataset$dpurp==8] <- "social"
+  dataset$dpurp[dataset$dpurp==9] <- "personal business"
+  dataset$dpurp[dataset$dpurp==10] <- "other"
+  dataset
+}
+
+recode_tours <- function(dataset){
+  dataset$tmodetp[dataset$tmodetp==1] <- "walk"
+  dataset$tmodetp[dataset$tmodetp==2] <- "bike"
+  dataset$tmodetp[dataset$tmodetp==3] <- "sov"
+  dataset$tmodetp[dataset$tmodetp==4] <- "hov2"
+  dataset$tmodetp[dataset$tmodetp==5] <- "hov3+"
+  dataset$tmodetp[dataset$tmodetp==6] <- "transit"
+  dataset$tmodetp[dataset$tmodetp==7] <- "other"
+  dataset$tmodetp[dataset$tmodetp==8] <- "school_bus"
+  dataset$tmodetp[dataset$tmodetp==9] <- "other"
+  
+  dataset$pdpurp[dataset$pdpurp==0] <- "home"
+  dataset$pdpurp[dataset$pdpurp==1] <- "work"
+  dataset$pdpurp[dataset$pdpurp==2] <- "school"
+  dataset$pdpurp[dataset$pdpurp==3] <- "escort"
+  dataset$pdpurp[dataset$pdpurp==4] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==5] <- "shop"
+  dataset$pdpurp[dataset$pdpurp==6] <- "meal"
+  dataset$pdpurp[dataset$pdpurp==7] <- "social"
+  dataset$pdpurp[dataset$pdpurp==8] <- "social"
+  dataset$pdpurp[dataset$pdpurp==9] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==10] <- "other"
+  dataset
+}
+
+
+get_total <- function(exp_fac)
+{
+  total <- sum(exp_fac)
+  if(total<1)
+  {
+    total <- nrow(exp_fac)
+  }
+  total 
+}
+
+h5group_to_table<-function (daysim_path, h5_data_root, datasets = NULL) 
+{
+    if (is.null(datasets)) {
+        dir <- h5ls(daysim_path)
+        datasets_select <- dir[dir$group %in% h5_data_root, "name"]
+    }
+    else {
+        datasets_select <- datasets
+    }
+    i = 0
+    for (x in datasets_select) {
+        if (i == 0) {
+            outtable <- data.table(h5read(daysim_path, paste(h5_data_root, 
+                x, sep = "/")))
+        }
+        else {
+            outtable <- cbind(outtable, data.table(h5read(daysim_path, 
+                paste(h5_data_root, x, sep = "/"))))
+        }
+        i = i + 1
+    }
+    setnames(outtable, datasets_select)
+    return(outtable)
+}
+
+get_group_names<-function (data1_path) 
+{
+    dataset_names <- h5ls(data1_path)
+    group_names <- unique(dataset_names$group)
+    group_names <- group_names[group_names != "/"]
+    group_names
+}
+
+number_ticks <- function(n) {function(limits) pretty(limits, n)}
+
+
+
+
+######################################################################################
+# READ IN DATA
+
+zone_district<- read.csv(district_file)
+#zone_district<-recode_districts(zone_district)
+
+for(i in 1:length(paths))
+{
+  
+  for(group in get_group_names(paths[i]))
+  {
+    table<- h5group_to_table(paths[i], group)
+    table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+    table_name <- paste(table_name[2],toString(i), sep="_")
+    assign(table_name, table)
+  }
+}
+#####################################################################
+### RECODE DATA FOR READABILITY
+
+Trip_1<-recode(Trip_1)
+Trip_2 <-recode(Trip_2)
+
+Tour_1<-recode_tours(Tour_1)
+Tour_2<-recode_tours(Tour_2)
+
+#####################################################################
+@
+
+
+\subsection{Tours and Trips by Hour}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+merge_per_hh_1 <- merge(Person_1, Household_1, by = "hhno")
+merge_per_hh_2 <- merge(Person_2, Household_2, by = "hhno")
+
+Person_1_total <- get_total(merge_per_hh_1$psexpfac)
+Person_2_total <- get_total(merge_per_hh_2$psexpfac)
+
+Household_1_total <- get_total(Household_1$hhexpfac)
+Household_2_total <- get_total(Household_2$hhexpfac)
+
+
+Trip_1_total <- get_total(Trip_1$trexpfac)
+Trip_2_total <- get_total(Trip_2$trexpfac)
+
+
+Trip_1$type <- names(paths[1])
+Trip_2$type <- names(paths[2])
+
+Tour_1_total <- get_total(Tour_1$toexpfac)
+Tour_2_total <- get_total(Tour_2$toexpfac)
+
+tour_ok_1 <- subset(Tour_1, tautodist>0 & tautodist<2000)
+tour_ok_2 <- subset(Tour_2, tautodist>0 & tautodist<2000)
+
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
+
+trip_ok_1$hr <- floor(trip_ok_1$deptm/60)
+trip_ok_2$hr <- floor(trip_ok_2$deptm/60)
+
+Trip_1_time<- aggregate(trip_ok_1$trexpfac, by = list(trip_ok_1$hr), length)
+Trip_2_time<- aggregate(trip_ok_2$trexpfac, by = list(trip_ok_2$hr), sum)
+
+Trip_1_time$share <- 100*Trip_1_time$x/length(trip_ok_1$trexpfac)
+Trip_2_time$share <- 100*Trip_2_time$x/sum(trip_ok_2$trexpfac)
+
+print(paste("Trip Arrival Time By Hour", names(paths[1]), sep=" "))
+print(Trip_1_time)
+
+print(paste("Tour Arrival Time By Hour", names(paths[2]), sep=" "))
+print(Trip_2_time)
+
+tour_ok_1$hr <- floor(tour_ok_1$tardest/60)
+tour_ok_2$hr <- floor(tour_ok_2$tardest/100)
+
+tour_1_time<- aggregate(tour_ok_1$toexpfac, by = list(tour_ok_1$hr), length)
+tour_2_time<- aggregate(tour_ok_2$toexpfac, by = list(tour_ok_2$hr), sum)
+
+tour_1_time$share <- 100*tour_1_time$x/length(tour_ok_1$toexpfac)
+tour_2_time$share <- 100*tour_2_time$x/sum(tour_ok_2$toexpfac)
+
+print(paste("Tour Arrival Time By Hour", names(paths[1]), sep=" "))
+print(tour_1_time)
+
+print(paste("Tour Arrival Time By Hour", names(paths[2]), sep=" "))
+print(tour_2_time)
+
+tour_1_time_purpose<- aggregate(tour_ok_1$toexpfac, by = list(tour_ok_1$hr, tour_ok_1$pdpurp), length)
+tour_2_time_purpose<- aggregate(tour_ok_2$toexpfac, by = list(tour_ok_2$hr, tour_ok_2$pdpurp), sum)
+
+tour_1_purpose<- aggregate(tour_ok_1$toexpfac, by = list(tour_ok_1$pdpurp), length)
+tour_2_purpose<- aggregate(tour_ok_2$toexpfac, by = list(tour_ok_2$pdpurp), sum)
+
+tour_1_time_p_s <-merge(tour_1_time_purpose, tour_1_purpose, by.x="Group.2", by.y="Group.1")
+tour_2_time_p_s <-merge(tour_2_time_purpose, tour_2_purpose, by.x="Group.2", by.y="Group.1")  
+
+tour_1_time_p_s$share <- 100*tour_1_time_p_s$x.x/tour_1_time_p_s$x.y
+tour_2_time_p_s$share <- 100*tour_2_time_p_s$x.x/tour_2_time_p_s$x.y
+@
+
+
+\subsection{See RPlot.pdf for plots}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
+##################### Plots ######################################################
+Trip_1_time$type <- names(paths[1])
+Trip_2_time$type <- names(paths[2])
+
+names(Trip_1_time) <- c("Time","trips","share", "type")
+names(Trip_2_time) <- c("Time","trips","share", "type")
+trips_by_time <- rbind(Trip_1_time,Trip_2_time)
+
+trips_by_time$type <- as.factor(trips_by_time$type)
+
+Trip_deptm_graph <- ggplot(data=trips_by_time,
+                           aes(x=Time, fill=type, weight=share))
+Trip_deptm_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 0.5), alpha = 1.0) +xlab("Trip Departure Time") + ylab("Percent of Trips") +scale_x_continuous(breaks=number_ticks(12))
+
+tour_1_time$type <- names(paths[1])
+tour_2_time$type <- names(paths[2])
+
+names(tour_1_time) <- c("Time","tours","share", "type")
+names(tour_2_time) <- c("Time","tours","share", "type")
+tours_by_time <- rbind(tour_1_time,tour_2_time)
+
+tour_deptm_graph <- ggplot(data=tours_by_time,
+                           aes(x=Time, fill=type,weight=share))
+tour_deptm_graph +  geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 0.5), alpha = 1.0) + ylab("Percent of tours")+scale_x_continuous(breaks=number_ticks(12))
+
+tour_1_time_p_s$type <- names(paths[1])
+tour_2_time_p_s$type <- names(paths[2])
+
+names(tour_1_time_p_s) <- c("purpose","Time",  "tours","total", "share", "type")
+names(tour_2_time_p_s) <- c("purpose","Time",  "tours","total", "share", "type")
+tours_by_time <- rbind(tour_1_time_p_s,tour_2_time_p_s)
+
+tour_deptm_graph_p <- ggplot(data=tours_by_time,
+                           aes(x=Time, fill=type,weight=share))
+tour_deptm_graph_p +  geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 0.5), alpha = 1.0)+xlab("tour destination departure Time") + ylab("Percent of tours")+scale_x_continuous(breaks=number_ticks(12))
+@
+\end{document}

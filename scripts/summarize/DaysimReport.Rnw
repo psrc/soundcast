@@ -54,7 +54,6 @@ library(data.table)
 library(rhdf5)
 library(ggplot2)
 library(car)
-library(daysimutil)
 library(xtable)
 library(sqldf)
 library(reshape2)
@@ -69,7 +68,6 @@ options("scipen" = 100, digits=2)
 paths<- vector(mode = "list", length=2)
 # construct the names of where the files are located
 run_path<-getwd()
-#run_path <-"C:/output_test2"
 run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
 paths <-c(paste(run_path, "/outputs/daysim_outputs.h5",sep = ""),
           paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
@@ -269,8 +267,6 @@ row.names(Totals_HH)<-  c("Total Persons", "Total Households","Average Household
 colnames(Totals_HH) <- c(names(paths[1]), names(paths[2]), "2010 Census", "2006 ACS")       
                           
 print(Totals_HH)
-
-
 @
 
 
@@ -282,7 +278,6 @@ Trip_2_total <- get_total(Trip_2$trexpfac)
 Diff_Trips <- Trip_1_total- Trip_2_total
 Per_Diff_Trips <- 100*Diff_Trips/Trip_2_total
 
-
 Trip_1$type <- names(paths[1])
 Trip_2$type <- names(paths[2])
 
@@ -292,15 +287,29 @@ TripsperPerson_2 <- Trip_2_total/Person_2_total
 DiffTripsperPers <- TripsperPerson_1 -TripsperPerson_2
 PercentDiffTripPer <- 100*DiffTripsperPers/TripsperPerson_2
 
-Trip_1_AveDist <- mean(Trip_1$travdist[Trip_1$travdist>0 & Trip_1$travdist<200])
-Trip_2_AveDist <- weighted.mean(Trip_2$travdist[Trip_2$travdist>0 & Trip_2$travdist<200], Trip_2$trexpfac[Trip_2$travdist>0 & Trip_2$travdist<200])
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
 
-DiffAveDist <- Trip_1_AveDist-Trip_2_AveDist
-PercentDiffAveDist <- 100*DiffAveDist/Trip_2_AveDist
+Trip_1$share <- 1/nrow(Trip_1)
+Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
+
+driver_trips1<-trip_ok_1$travdist[trip_ok_1$dorp==1]
+driver_trips2<- trip_ok_2[trip_ok_2$dorp==1]
+
+Trip_1_Ave_Dist <- mean(trip_ok_1$travdist)
+Trip_2_Ave_Dist <- weighted.mean(trip_ok_2$travdist, trip_ok_2$trexpfac)
+
+DiffAveDist <- Trip_1_Ave_Dist-Trip_2_Ave_Dist
+PercentDiffAveDist <- 100*DiffAveDist/Trip_2_Ave_Dist
+
+#Trips_Dist <- data.frame(cbind(Trip_1_Ave_Dist,Trip_2_Ave_Dist, DiffAveDist, #PercentDiffAveDist))
+#colnames(Trips_Dist)<- c(names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
+#print("Average Distance")
+#print(Trips_Dist)
 
 Totals_HHTrips <- data.frame(rbind(
                           cbind(TripsperPerson_1, TripsperPerson_2, DiffTripsperPers, PercentDiffTripPer),
-                          cbind(Trip_1_AveDist ,Trip_2_AveDist,DiffAveDist, PercentDiffAveDist)))
+                          cbind(Trip_1_Ave_Dist ,Trip_2_Ave_Dist,DiffAveDist, PercentDiffAveDist)))
 
 row.names(Totals_HHTrips)<-  c("Average Trips per Person", "Average Trip Length")
 colnames(Totals_HHTrips) <- c(names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
@@ -308,71 +317,37 @@ colnames(Totals_HHTrips) <- c(names(paths[1]), names(paths[2]), "Difference", "P
 print(Totals_HHTrips, scientific=false)
 @
 
-\subsection{Trip Rates by Purpose}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-trips_by_purpose1 <- aggregate(Trip_1$dpurp, by = list(Trip_1$dpurp), length)
-trips_by_purpose2 <- aggregate(Trip_2$trexpfac, by = list(Trip_2$dpurp), sum)
-
-
-trips_by_purpose1$AveTrips<-trips_by_purpose1$x/Person_1_total
-trips_by_purpose2$AveTrips <-trips_by_purpose2$x/Person_2_total
-
-colnames(trips_by_purpose1) <- c("DestinationPurpose", "Model Trips"," ModelperPerson")
-
-colnames(trips_by_purpose2) <- c("DestinationPurpose","Survey Trips", " SurveyperPerson")
-
-Trips_by_Purpose <- data.frame(merge(trips_by_purpose1, trips_by_purpose2, by= "DestinationPurpose"))
-
-Trips_by_Purpose$PercentDiffPerPerson <- 100*(Trips_by_Purpose[3]-Trips_by_Purpose[5])/Trips_by_Purpose[5]
-
-
-colnames(Trips_by_Purpose$PercentDiffPerPerson)<- "PercentDiff"
-print(Trips_by_Purpose[,c(1, 3, 5,6)],row.names = F, digits=1)
-@
-
-
-\subsection{Trip Lengths by Purpose}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<200)
-trip_ok_2<- subset(Trip_2, travdist>0 & travdist<200)
-
-trips_len_purpose1 <- aggregate(trip_ok_1$travdist, by = list(trip_ok_1$dpurp), mean)
-unweighted_trip_len_pur2<-aggregate(trip_ok_2$travdist, by=list(trip_ok_2$dpurp), mean)
-
-colnames(trips_len_purpose1)<- c("Destination Purpose", "Model Ave Dist")
-colnames(unweighted_trip_len_pur2)<- c("Destination Purpose","Survey Ave Dist")
-
-trip_len_purpose<-merge(trips_len_purpose1, unweighted_trip_len_pur2, by="Destination Purpose")
-trip_len_purpose$PercentDiff <- 100*(trip_len_purpose[2]-trip_len_purpose[3])/trip_len_purpose[3]
-
-colnames(trip_len_purpose$PercentDiff)<- "PercentDiff"
-print(trip_len_purpose,row.names = F, digits=1)
-
-@
-
 \subsection{Vehicle Miles per Person}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
+
 Trip_1$share <- 1/nrow(Trip_1)
 Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
 
-
 driver_trips1<-trip_ok_1$travdist[trip_ok_1$dorp==1]
-driver_trips2<-trip_ok_2[Trip_2$dorp==1]
+driver_trips2<- trip_ok_2[trip_ok_2$dorp==1]
 Ave_Vehicle_Miles1 <- sum(driver_trips1)/Person_1_total
-Ave_Vehicle_Miles2 <- sum(Trip_2$trexpfac*Trip_2$travdist)/Person_2_total
+Ave_Vehicle_Miles2 <- sum(driver_trips2$trexpfac*driver_trips2$travdist)/Person_2_total
 PercentDiffVehMiles<- 100*(Ave_Vehicle_Miles1-Ave_Vehicle_Miles2)/Ave_Vehicle_Miles2
 
                       
 VehMiles <-cbind(Ave_Vehicle_Miles1 , Ave_Vehicle_Miles2, PercentDiffVehMiles)
 colnames(VehMiles)<- c("Model Vehicle Miles per Person", "Survey Vehicle Miles per Person", "Percent Diff")
-print(VehMiles, row.names=FALSE, digit=1)
+print(VehMiles, row.names=FALSE, digit=2)
 @
 
 \section{Work and School Location}
 \subsection{Average Distance to Work in Miles}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-workers_1 <- subset(Person_1, pwaudist>0.05 & pwaudist<200, select=c("pwaudist", "psexpfac"))
-workers_2 <- subset(Person_2, pwaudist>0.05 & pwaudist<200,select=c("pwaudist", "psexpfac"))
+wrkrs <-subset(merge_per_hh_1, pwtyp>0)
+wkr_1_hzone <- merge(zone_district, wrkrs, by.y = "hhtaz", by.x = "TAZ")
+total_workers_1 <- nrow(wrkrs)
+
+wrkrs2 <-subset(merge_per_hh_2, pwtyp>0)
+wkr_2_hzone <- merge(zone_district, wrkrs2, by.y = "hhtaz", by.x = "TAZ")
+workers_1 <- subset(wkr_1_hzone, wkr_1_hzone$pwpcl!=wkr_1_hzone$hhparcel & pwaudist>0 &pwaudist<200, select=c("pwaudist", "psexpfac", "pwtyp","pgend", "pagey"))
+workers_2 <- subset(wkr_2_hzone, wkr_2_hzone$pwpcl!=wkr_2_hzone$hhparcel & pwaudist>0 &pwaudist<200,select=c("pwaudist", "psexpfac", "pwtyp","pgend", "pagey"))
 
 workers_1$share <- 1/nrow(workers_1)
 workers_2$share <- workers_2$psexpfac/sum(workers_2$psexpfac)
@@ -444,174 +419,22 @@ Auto_Own <- data.frame(rbind(cbind(auto_own1$Group.1,auto_own1$percent,auto_own2
 colnames(Auto_Own) <- c("Household Vehicles", paste("percent of",names(paths[1])),paste("percent of",names(paths[2])))
 print(Auto_Own)
 
-# Auto Ownership by Income Group
-# by Household Size
-# by Home District
-# versus CTPP
 @
 
-\section{Daily Activity Pattern and Exact Number of Tours}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-# percent at home
-
-# percent having any intermediate stops by stop purpose
-# average work tours by worker type
-# average school tours by student type
-
-toursbypurpose1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), length)
-colnames(toursbypurpose1) <- c("pdpurp", "Tour")
-
-toursbypurpose1$perperson <- toursbypurpose1$Tour/Person_1_total
-
-toursbypurpose2 <- aggregate(Tour_2$toexpfac, by = list(Tour_2$pdpurp), sum)
-colnames(toursbypurpose2) <- c("pdpurp", "Tour")
-
-toursbypurpose2$perperson <- toursbypurpose2$Tour/Person_2_total
-  
-
-tours_by_purpose <- merge(toursbypurpose1, toursbypurpose2, by = "pdpurp")
-
-
-colnames(tours_by_purpose) <- c("Tour Purpose", names(paths[1]), "per person",names(paths[2]), "per person")
-
-print(tours_by_purpose[,c(1,3,5)],row.names = F, digits=1)
-
-# if stops- Work
-ave_work_stops1 <- aggregate(PersonDay_1$wkstops,by=list(PersonDay_1$wkstops),length)
-
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
-ave_work_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$wkstops),sum)
-
-colnames(ave_work_stops1) <-c("WorkStops", "ModeledPercentPersons")
-ave_work_stops1$ModeledPercentPersons <- 100*(ave_work_stops1$ModeledPercentPersons/Person_1_total)
-colnames(ave_work_stops2) <-c("WorkStops", "ObservedPercentPersons")
-
-
-work_stops <- merge(ave_work_stops1, ave_work_stops2, by= "WorkStops", all.y=TRUE)
-no_work_stops<-round(subset(work_stops, WorkStops==0),1)
-with_work_stops<- c("1+",round(100-no_work_stops$ModeledPercentPersons,1), 100-no_work_stops$ObservedPercentPersons)
-if_work_stops<- rbind(no_work_stops,with_work_stops)
-print(if_work_stops,scientific=false, row.names=FALSE)
-
-# school stops
-
-ave_school_stops1 <- aggregate(PersonDay_1$wkstops,by=list(PersonDay_1$scstops),length)
-ave_school_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$scstops),sum)
-
-colnames(ave_school_stops1) <-c("schoolStops", "ModeledPercentPersons")
-ave_school_stops1$ModeledPercentPersons <- 100*(ave_school_stops1$ModeledPercentPersons/Person_1_total)
-colnames(ave_school_stops2) <-c("schoolStops", "ObservedPercentPersons")
-
-
-school_stops <- merge(ave_school_stops1, ave_school_stops2, by= "schoolStops", all.y=TRUE)
-no_school_stops<-round(subset(school_stops, schoolStops==0),1)
-with_school_stops<- c("1+",round(100-no_school_stops$ModeledPercentPersons,1), 
-                      round(100-no_school_stops$ObservedPercentPersons,1))
-if_school_stops<- rbind(no_school_stops,with_school_stops)
-print(if_school_stops,scientific=false, row.names=FALSE)
-
-#escort
-
-ave_escort_stops1 <- aggregate(PersonDay_1$wkstops,by=list(PersonDay_1$esstops),length)
-ave_escort_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$esstops),sum)
-
-colnames(ave_escort_stops1) <-c("escortStops", "ModeledPercentPersons")
-ave_escort_stops1$ModeledPercentPersons <- 100*(ave_escort_stops1$ModeledPercentPersons/Person_1_total)
-colnames(ave_escort_stops2) <-c("escortStops", "ObservedPercentPersons")
-
-
-escort_stops <- merge(ave_escort_stops1, ave_escort_stops2, by= "escortStops", all.y=TRUE)
-no_escort_stops<-round(subset(escort_stops, escortStops==0),1)
-with_escort_stops<- c("1+",round(100-no_escort_stops$ModeledPercentPersons,1), 100-no_escort_stops$ObservedPercentPersons)
-if_escort_stops<- rbind(no_escort_stops,with_escort_stops)
-print(if_escort_stops,scientific=false, row.names=FALSE)
-
-#shop
-ave_shop_stops1 <- aggregate(PersonDay_1$wkstops,by=list(PersonDay_1$shstops),length)
-ave_shop_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$shstops),sum)
-
-colnames(ave_shop_stops1) <-c("shopStops", "ModeledPercentPersons")
-ave_shop_stops1$ModeledPercentPersons <- 100*(ave_shop_stops1$ModeledPercentPersons/Person_1_total)
-colnames(ave_shop_stops2) <-c("shopStops", "ObservedPercentPersons")
-
-
-shop_stops <- merge(ave_shop_stops1, ave_shop_stops2, by= "shopStops", all.y=TRUE)
-no_shop_stops<-round(subset(shop_stops, shopStops==0),1)
-with_shop_stops<- c("1+",round(100-no_shop_stops$ModeledPercentPersons,1), 100-no_shop_stops$ObservedPercentPersons)
-if_shop_stops<- rbind(no_shop_stops,with_shop_stops)
-print(if_shop_stops,scientific=false, row.names=FALSE)
-
-@
-
-\section{Tour Summaries}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-
-  
-toursbymode1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp), length)
-colnames(toursbymode1) <- c("tmodetp", "Tour")
-
-toursbymode1$perperson <- toursbymode1$Tour/Person_1_total
-  
-toursbymode2 <- aggregate(Tour_2$toexpfac, by = list(Tour_2$tmodetp), sum)
-colnames(toursbymode2) <- c("tmodetp", "Tour")
-
-toursbymode2$perperson <- toursbymode1$Tour/Person_2_total
-  
-
-
-tours_by_mode <- merge(toursbymode1, toursbymode2, by = "tmodetp")
-tours_by_mode["Difference"] <- tours_by_mode$ Tour.x - tours_by_mode$ Tour.y
-tours_by_mode["Percent Difference"] <- 100 * (tours_by_mode$ Tour.x - tours_by_mode$ Tour.y)/tours_by_mode$ Tour.y
 
 
 
-
-colnames(tours_by_mode) <- c("Tour Mode", names(paths[1]), "perperson", names(paths[2]), "per person", "Difference", "Percent Difference")
-
-print(tours_by_mode,row.names = F)
-@
-
-\subsection{Households by District}
-This table compares the total households by district between the two datasets.
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-## Begin to Aggregate and Summarize Data
-options("scipen" = 100, digits=2)
-
- hhs_zone_1 <- merge(zone_district, Household_1, by.y = "hhtaz", by.x = "TAZ")
- hhs_district_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$District), length)
-
- colnames(hhs_district_1) <- c("District", "Households")
-
- hhs_zone_2 <- merge(zone_district, Household_2, by.y = "hhtaz", by.x = "TAZ")
- hhs_district_2 <- aggregate(hhs_zone_2$hhexpfac, by = list(hhs_zone_2$District), sum)
-
- colnames(hhs_district_2) <- c("District", "Households")
-
- diff_hhs <- merge(hhs_district_1, hhs_district_2, by = "District")
- diff_hhs["Difference"] <- round(diff_hhs$Households.x - diff_hhs$Households.y, 0)
- diff_hhs["Percent Difference"] <-round(100 * (diff_hhs$Households.x - diff_hhs$Households.y)/diff_hhs$Households.y,2)
- colnames(diff_hhs) <- c("District", names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
-
-print(diff_hhs, digits=2,row.names = F)
-
-
-@
-
-\section{Trip Cross-Tabulations}
+\section{Trip Summaries}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results =verbatim>>=
 # this is way too long and should be in a separate function
 # but I'm having trouble figuring out how to get ddply to work in a function
 ########### Cross Tabs for Trips#############
 ##Trip_1 summaries
-Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
+ Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
                            total_trips  =  nrow(travtime), 
                            mode_share = nrow(travtime)/Trip_1_total,
                            mean_time = mean(travtime),
-                           max_time = max(travtime),
-                           min_time = min(travtime),
                            mean_dist = mean(travdist),
-                           max_dist = max(travdist),
-                           min_dist = min(travdist), 
                            type = type[1])
 
   Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
@@ -620,35 +443,13 @@ Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
                              mean_dist = mean(travdist),
                              type = type[1])
 
-  Trip_1_dest_z <- merge(zone_district, Trip_1, by.y = "dtaz", by.x = "TAZ")
-  Trip_1_dest_d <- aggregate(Trip_1_dest_z$trexpfac, by = list(Trip_1_dest_z$District), length)
-  colnames(Trip_1_dest_d) <- c("District", "Trip1")
   
-  Trip_1_ozone <- merge(zone_district, Trip_1, by.y = "otaz", by.x = "TAZ")
-  Sub_Trip_1_ozone <- subset(Trip_1_ozone, deptm >= 360 & deptm < 540)
-  Trip_1_o <- aggregate(Sub_Trip_1_ozone$trexpfac, by = list(Sub_Trip_1_ozone$dtaz, Sub_Trip_1_ozone$ District), length)
-  colnames(Trip_1_o) <- c("dtaz", "OriginDistrict", "NumTrips")
-  
-  Trip_1_odzone <- merge(zone_district, Trip_1_o, by.y = "dtaz", by.x = "TAZ")
-  Trip_1_od <- aggregate(Trip_1_odzone$ NumTrips, by = list(Trip_1_odzone$ District, Trip_1_odzone$ OriginDistrict), sum)
-  colnames(Trip_1_od) <- c("DestinationDistrict", "OriginDistrict", "Trips")
-     
-Trip_1_time<- aggregate(Trip_1$trexpfac, by = list(Trip_1$deptm/60), length)
-
-###Trip_2 summaries
-  Trip_2_dest_z <- merge(zone_district, Trip_2, by.y = "dtaz", by.x = "TAZ")
-  Trip_2_dest_d <- aggregate(Trip_2_dest_z$trexpfac, by = list(Trip_2_dest_z$District), sum)
-  colnames(Trip_2_dest_d) <- c("District", "Trip2")
   
   Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
                            total_trips  =  sum(trexpfac), 
                            mode_share = sum(trexpfac)/Trip_2_total,
                            mean_time = mean(travtime),
-                           max_time = max(travtime),
-                           min_time = min(travtime),
                            mean_dist = mean(travdist),
-                           max_dist = max(travdist),
-                           min_dist = min(travdist),
                            type = type[2])
 
   Trip_2_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
@@ -656,79 +457,58 @@ Trip_1_time<- aggregate(Trip_1$trexpfac, by = list(Trip_1$deptm/60), length)
                              mean_time = mean(travtime),
                              mean_dist = mean(travdist),
                              type = type[2])
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
 
+trip_ok_1$hr <- floor(trip_ok_1$deptm/60)
+trip_ok_2$hr <- floor(trip_ok_2$deptm/60)
 
-  Trip_2_ozone <- merge(zone_district, Trip_2, by.y = "otaz", by.x = "TAZ")
-  Sub_Trip_2_ozone <- subset(Trip_2_ozone, deptm >= 360 & deptm < 540)
-  Trip_2_o <- aggregate(Sub_Trip_2_ozone$trexpfac, by = list(Sub_Trip_2_ozone$dtaz, Sub_Trip_2_ozone$ District), sum)
-  colnames(Trip_2_o) <- c("dtaz", "OriginDistrict", "NumTrips")
-  
-  Trip_2_odzone <- merge(zone_district, Trip_2_o, by.y = "dtaz", by.x = "TAZ")
-  Trip_2_od <- aggregate(Trip_2_odzone$ NumTrips, by = list(Trip_2_odzone$ District, Trip_2_odzone$ OriginDistrict), sum)
-  colnames(Trip_2_od) <- c("DestinationDistrict", "OriginDistrict", "Trips")
-  
-Trip_2_time<- aggregate(Trip_2$trexpfac, by = list(Trip_2$deptm/60), sum)
+Trip_1_time<- aggregate(trip_ok_1$trexpfac, by = list(trip_ok_1$hr), length)
+Trip_2_time<- aggregate(trip_ok_2$trexpfac, by = list(trip_ok_2$hr), sum)
 
-Trip_1_od <-  acast(Trip_1_od, formula=OriginDistrict ~ DestinationDistrict, 
-                    value.var='Trips')
+Trip_1_time<- aggregate(trip_ok_1$trexpfac, by = list(trip_ok_1$hr), length)
+Trip_2_time<- aggregate(trip_ok_2$trexpfac, by = list(trip_ok_2$hr), sum)
 
-Trip_2_od<-  acast(Trip_2_od, formula=OriginDistrict ~ DestinationDistrict, 
-                   value.var='Trips')
+Trip_1_time$share <- 100*Trip_1_time$x/length(trip_ok_1$trexpfac)
+Trip_2_time$share <- 100*Trip_2_time$x/sum(trip_ok_2$trexpfac)
 
-###Compare dataset 1 and 2, print out#########
+number_ticks <- function(n) {function(limits) pretty(limits, n)}
 
-print("Trip Destinations By District")
+Trip_1_2_mode <- merge(Trip_1_mode_time, Trip_2_mode_time, by = "mode")
+Trip_1_2_mode_share <- Trip_1_2_mode[,c('mode','mode_share.x','mode_share.y')]
+Trip_1_2_mode_share$mode_share.x <-Trip_1_2_mode_share$mode_share.x *100
+Trip_1_2_mode_share$mode_share.y <-Trip_1_2_mode_share$mode_share.y *100
+Trip_1_2_mode_share$Difference <- Trip_1_2_mode_share$mode_share.x - Trip_1_2_mode_share$mode_share.y
+Trip_1_2_mode_share$PercentDifference <- 100*(Trip_1_2_mode_share$mode_share.x - Trip_1_2_mode_share$mode_share.y)/Trip_1_2_mode_share$mode_share.y
+colnames(Trip_1_2_mode_share )<- c("Trip Mode", paste(names(paths[1]), "share", sep=" "), paste(names(paths[2]), "share", sep=" "),"Difference", "Percent Difference")
 
-Trip_1_2_dest <- merge(Trip_1_dest_d, Trip_2_dest_d, by = "District")
-Trip_1_2_dest_ave <- merge(diff_hhs, Trip_1_2_dest, by = "District")
+print(Trip_1_2_mode_share)
 
-
-Trip_1_2_dest_ave["Ave Model"] <- (Trip_1_2_dest_ave$ Trip1/Trip_1_2_dest_ave$Households.x)
-Trip_1_2_dest_ave["Ave Survey"] <- (Trip_1_2_dest_ave$ Trip2/Trip_1_2_dest_ave$Households.y)                          
-#Trip_1_2_dests["Difference"] <- round(Trip_1_2_dests$ Trip1 - Trip_1_2_dests$ Trip2, 0)
-#Trip_1_2_dests["Percent Difference"] <- round(100 * (Trip_1_2_dests$ Trip1 - Trip_1_2_dests$ Trip2)/Trip_1_2_dests$ Trip2, 2)
-
-colnames(Trip_1_2_dest_ave) <- c("District", names(paths[1]), names(paths[2]), "Model Per Household", "Survey Per Household")
-print(Trip_1_2_dest_ave, row.names=F, digits=1)
-
-#print(c("Trips by Mode and Travel Time", names(paths[1])))
-#print(Trip_1_mode_time, row.names=F)
-#print(c("Trips by Mode and Travel Time", names(paths[2])))
-#print(Trip_2_mode_time, row.names=F)
-
+print("Total Observed Transit Boardings(2011)")
+print("647,127")
+print("Assuming 1.3 Boardings per Trip- Implied Trips from Boardings")
+transit<-Trip_1_mode_time$total_trips[Trip_1_mode_time$mode=='transit']
+implied_boardings<-transit*1.3 
+print(implied_boardings)
 
 
 @
 
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, width=100>>=
-## You might not always want this level of detail.
 
-dist_csv_1 <- paste(paste(dist_sum, names(paths[1]), sep = "_"), ".csv", sep ="")
-write.csv(Trip_1_od,dist_csv_1)
-dist_csv_2 <- paste(paste(dist_sum, names(paths[2]), sep = "_"), ".csv", sep ="")
-write.csv(Trip_2_od,dist_csv_2)
-@
 
 
 \subsection{See RPlot.pdf for plots}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include =TRUE>>=
 ##################### Plots ######################################################
+trips_1_2_append <-rbind.fill(trip_ok_1,trip_ok_2)
 
-trips_1_dist_graph <- ggplot(data= Trip_1,
-                           aes(x=travdist, weight=share))
-trips_1_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance (miles)") + ylab("Total MODEL Trips")+scale_x_continuous(limits = c(0, 50))+ labs(title="Modeled Trip Lengths")
+trips_1_2_append$type <- as.factor(trips_1_2_append$type)
 
-trips_2_dist_graph <- ggplot(data= Trip_2,
-                           aes(x=travdist, weight=share))
-trips_2_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance (miles)") + ylab("Total Survey Trips")+scale_x_continuous(limits = c(0, 50))+labs(title="Modeled Survey Lengths")
+trips_dist_graph <- ggplot(data= trips_1_2_append,
+                           aes(x=travdist, weight=share, fill=type))
+trips_dist_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 1.0), alpha = 1.0) +xlab("Auto Distance (miles)") + ylab("Total Trips")+scale_x_continuous(limits = c(0, 50))+ labs(title="Trip Lengths")
 
-workers_1_dist_graph <- ggplot(data= workers_1,
-                           aes(x=pwaudist, weight=share))
-workers_1_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance to Work (miles)") + ylab("Total MODEL Workers")+scale_x_continuous(limits = c(0, 50))+labs(title="Modeled Distance to Work Lengths")
 
-workers_2_dist_graph <- ggplot(data= workers_2,
-                           aes(x=pwaudist, weight=share))
-workers_2_dist_graph + geom_histogram(binwidth = 1)+xlab("Auto Distance to Work (miles)") + ylab("Total SURVEY Workers")+scale_x_continuous(limits = c(0, 50))+labs(title=" Survey Distance to Work Lengths")
 append_1_2 <- rbind(Trip_1_mode_time,Trip_2_mode_time)
 append_1_2_purpose <- rbind(Trip_1_mode_purpose,Trip_2_mode_purpose)
 
@@ -742,38 +522,24 @@ trips_compare_mode+geom_bar(stat = "identity")+theme(text = element_text(size=16
 
 trips_compare_time <- ggplot(data=append_1_2,aes(x=mode, y= mean_time, fill=mode))
 
-trips_compare_time+geom_bar(stat = "identity")+facet_wrap(~ type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+xlab("Mode")+ ylab("Average Time")
+trips_compare_time+geom_bar(stat = "identity")+facet_wrap(~type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+xlab("Mode")+ ylab("Average Time")
 
 trips_compare_purpose <- ggplot(append_1_2_purpose_omit,
                                 aes(x=dpurp, y= total_trips, fill=dpurp))
 
-trips_compare_purpose+ geom_bar(stat = "identity") +facet_wrap(~ type) +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))                                                                                                      +scale_fill_brewer(palette="Paired")+ xlab("Total Trips")+ylab("Purpose")
+trips_compare_purpose+geom_bar(stat = "identity" )+facet_wrap(~type)+theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))                                                                                                 +scale_fill_brewer(palette="Paired")+ xlab("Total Trips")+ylab("Purpose")
 
 Trip_1_time$type <- names(paths[1])
 Trip_2_time$type <- names(paths[2])
 
-names(Trip_1_time) <- c("deptm","trips","type")
-names(Trip_2_time) <- c("deptm","trips","type")
+names(Trip_1_time) <- c("Time","trips","share", "type")
+names(Trip_2_time) <- c("Time","trips","share", "type")
 trips_by_time <- rbind(Trip_1_time,Trip_2_time)
 
+trips_by_time$type <- as.factor(trips_by_time$type)
+
 Trip_deptm_graph <- ggplot(data=trips_by_time,
-                           aes(x=deptm, fill=type,weight=trips))
-Trip_deptm_graph + geom_histogram(binwidth = 1)+xlab("Trip Departure Time") + ylab("Total Trips")+facet_wrap("type")
-
-toursbymode1$type <- names(paths[1])
-toursbymode2$type <- names(paths[2])
-toursbypurpose1$type <- names(paths[1])
-toursbypurpose2$type <- names(paths[2])
-append_1_2_toursmode <- rbind(toursbymode1, toursbymode2)
-append_1_2_tourspurpose <- rbind(toursbypurpose1, toursbypurpose2)
-
-append_1_2_toursmode <- na.omit(append_1_2_toursmode)
-tours_compare_mode <- ggplot(data=append_1_2_toursmode,aes(x=type, y=Tour, fill                                                     =tmodetp))
-tours_compare_mode+geom_bar(stat = "identity")+scale_fill_brewer(palette="Spectral")+ xlab("Tour Mode")+ylab("Tour Mode Share")
-
-append_1_2_tourspurpose <- na.omit(append_1_2_tourspurpose)
-tours_compare_purpose <- ggplot(append_1_2_tourspurpose,aes(x=pdpurp, y=Tour, fill=pdpurp))
-
-tours_compare_purpose+geom_bar(stat = "identity")+facet_wrap(~ type)+scale_fill_brewer(palette="Paired")+ xlab("Total Tours")+ylab("Tour Purpose") +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))      
+                           aes(x=Time, fill=type, weight=share))
+Trip_deptm_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width =1.0), alpha = 1.0) +xlab("Trip Departure Time") + ylab("Percent of Trips") +scale_x_continuous(breaks=number_ticks(12))  
 @
 \end{document}
