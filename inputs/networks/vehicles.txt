@@ -1,0 +1,25 @@
+c Emme Modeller - Vehicle Transaction
+c Date: 2013-10-09 13:01:53
+c Project:        5to6                                                        
+c Scenario 1002:  
+t vehicles
+c  id description mode fleet_size seated_capacity total_capacity cost_time_coeff cost_distance_coeff energy_time_coeff energy_distance_coeff auto_equivalent
+a   1 'CT Local  ' b    999    39    51   0.00   0.00   0.00   0.00   2.00
+a   2 'CT Art    ' b    999    65    85   0.00   0.00   0.00   0.00   2.00
+a   3 'CT Db Tall' p    999    77    95   0.00   0.00   0.00   0.00   2.00
+a   4 'CT Swift  ' p    999    65    85   0.00   0.00   0.00   0.00   2.00
+a   5 'ET Local  ' b    999    50    65   0.00   0.00   0.00   0.00   2.00
+a   6 'KCM Std   ' b    999    44    57   0.00   0.00   0.00   0.00   2.00
+a   7 'KCM Art   ' b    999    65    85   0.00   0.00   0.00   0.00   2.00
+a   8 'KCM Dart  ' b    999    18    23   0.00   0.00   0.00   0.00   1.50
+a   9 'KCM R.Ride' p    999    65    85   0.00   0.00   0.00   0.00   2.00
+a  10 'KCM PasFry' f    999   300   300   0.00   0.00   0.00   0.00   0.00
+a  11 'KT Local  ' b    999    20    30   0.00   0.00   0.00   0.00   2.00
+a  12 'KT WD     ' b    999    20    30   0.00   0.00   0.00   0.00   2.00
+a  13 'PT Local  ' b    999    50    65   0.00   0.00   0.00   0.00   2.00
+a  14 'PT Exp    ' p    999    50    65   0.00   0.00   0.00   0.00   2.00
+a  15 'ST Exp    ' p    999    65    85   0.00   0.00   0.00   0.00   2.00
+a  16 'ST Link   ' r    999   300   500   0.00   0.00   0.00   0.00   0.00
+a  17 'ST Sounder' c    999   980  1750   0.00   0.00   0.00   0.00   0.00
+a  18 'WSF Auto  ' f    999  1000  1000   0.00   0.00   0.00   0.00   0.00
+a  19 'WSF PasFry' f    999   300   300   0.00   0.00   0.00   0.00   0.00
