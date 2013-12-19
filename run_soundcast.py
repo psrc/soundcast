@@ -92,7 +92,6 @@ def copy_large_inputs():
     print 'Copying large inputs...'
     
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    # Need to fix permissions on R
     #shcopy(base_inputs+'/networks','Inputs/networks')
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
@@ -160,7 +159,7 @@ print '###### Finished running assignment summary:',time_assign_summ - time_assi
 
 ### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a cookie.)'
-print '    Total run time:',time_assign_sum - time_start
+print '    Total run time:',time_assign_summ - time_start
 
 
 
