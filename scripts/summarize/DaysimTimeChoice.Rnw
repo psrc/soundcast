@@ -252,11 +252,11 @@ Trip_2_time<- aggregate(trip_ok_2$trexpfac, by = list(trip_ok_2$hr), sum)
 Trip_1_time$share <- 100*Trip_1_time$x/length(trip_ok_1$trexpfac)
 Trip_2_time$share <- 100*Trip_2_time$x/sum(trip_ok_2$trexpfac)
 
-print(paste("Trip Arrival Time By Hour", names(paths[1]), sep=" "))
-print(Trip_1_time)
+Trip_time <- merge(Trip_1_time, Trip_2_time, by = "Group.1")
+print("Trip Arrival Time By Hour")
+print(Trip_time)
 
-print(paste("Tour Arrival Time By Hour", names(paths[2]), sep=" "))
-print(Trip_2_time)
+
 
 tour_ok_1$hr <- floor(tour_ok_1$tardest/60)
 tour_ok_2$hr <- floor(tour_ok_2$tardest/100)

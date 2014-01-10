@@ -135,18 +135,22 @@ get_group_names<-function (data1_path)
 zone_district<- read.csv(district_file)
 
 
+useful_group <- c("Household_1", "Household_2", "Person_1", "Person_2")
+
 for(i in 1:length(paths))
 {
   
   for(group in get_group_names(paths[i]))
   {
-    table<- h5group_to_table(paths[i], group)
     table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
     table_name <- paste(table_name[2],toString(i), sep="_")
-    assign(table_name, table)
+    if(table_name %in% useful_group)
+    {
+      table<- h5group_to_table(paths[i], group)
+      assign(table_name, table)
+    }
   }
 }
-
 #####################################################################
 @
 
@@ -527,6 +531,53 @@ print ("Model: Share Households by Auto Ownership")
 print (HH_Auto_County_1)
 print ("CTPP: Share Households by Auto Ownership")
 print (HH_Auto_County_2)
+
+income_sep <- c(0, 20000, 40000, 60000, 75000, max(Household_1$ hhincome) + 1)
+auto_val <- c(0, 1, 2, 3, 4)
+income_group <- c("Less than $20000", "$20000-$39999", "$40000-$59999","$60000-$74999","$75000 or more") 
+auto_ownership <- c("0 car", "1 car", "2 car", "3 car", "4+ car") 
+
+
+HH_income_auto_1 <- matrix(rep(0,25), ncol = 5)
+
+for (i in 1:5){
+  index1 <- (Household_1$ hhincome >= income_sep[i])
+  index2 <- (Household_1$ hhincome[index1] < income_sep[i + 1])
+  for (j in 1:5){
+    HH_income_auto_1[i,j] <- round(sum(Household_1$ hhveh[index1][index2] == auto_val[j])/length(Household_1$ hhveh[index1][index2]) * 100, 1)
+  }
+}
+
+hhs_2 <- c(1437220,103900,467260,543625,219750,102665,33895,8950,17035,5720,1595,600,43345,17450,19290,4850,1165,575,25840,7940,12925,3785,770,415,25275,7060,13355,3435,950,470,27520,6340,15260,4400,985,540,24440,4460,13585,4870,1115,410,32065,5225,18055,6560,1540,690,26355,3930,14135,6525,1295,470,31905,3620,17840,8180,1480,795,26540,2915,14010,7145,1885,590,35620,3730,19375,9335,2400,780,28890,2365,15070,8675,1985,800,31265,2370,15740,9400,2845,910,30360,2085,14680,10005,2715,860,34195,2070,16195,11870,3000,1060,31690,1985,14610,11045,3080,970,31020,1590,13560,10870,3640,1350,28540,1250,12280,10555,3115,1340,61380,2825,24855,23555,7415,2720,54005,2220,20400,20845,7485,3060,157265,4275,47750,69405,25355,10475,207875,4185,46270,96060,42020,19330,149820,2120,23975,71005,35455,17255,89025,1150,9830,42510,23180,12365,169140,1785,17195,83030,43300,23825)
+HH_income_auto_CTPP <- matrix(hhs_2, nrow = 6)
+HH_income_auto_CTPP <- t(HH_income_auto_CTPP)
+HH_income_auto_CTPP <- HH_income_auto_CTPP[-1, -1]
+
+HH_income_auto_2 <- matrix(rep(0,25), nrow = 5)
+
+for (j in 1:5){
+
+  HH_income_auto_2[1,j] <- round(sum(HH_income_auto_CTPP[1:6,j])/sum(HH_income_auto_CTPP[1:6,]) * 100,1)               
+  HH_income_auto_2[2,j] <- round(sum(HH_income_auto_CTPP[7:14,j]) /sum(HH_income_auto_CTPP[7:14,]) * 100,1)
+  HH_income_auto_2[3,j] <- round(sum(HH_income_auto_CTPP[15:20,j]) /sum(HH_income_auto_CTPP[15:20,]) * 100,1) 
+  HH_income_auto_2[4,j] <- round(sum(HH_income_auto_CTPP[21:21,j]) / sum(HH_income_auto_CTPP[21:21,]) * 100,1)
+  HH_income_auto_2[5,j] <- round(sum(HH_income_auto_CTPP[22:25,j])/sum(HH_income_auto_CTPP[22:25,]) * 100,1)
+}
+
+
+HH_income_auto_1 <- data.frame(HH_income_auto_1)
+rownames(HH_income_auto_1) <- income_group 
+colnames(HH_income_auto_1) <- auto_ownership 
+
+HH_income_auto_2 <- data.frame(HH_income_auto_2)
+rownames(HH_income_auto_2) <- income_group
+colnames(HH_income_auto_2) <- auto_ownership
+
+print ("Model: Households by Income Group by Auto Ownership")
+print (HH_income_auto_1)
+print ("CTPP: Households by Income Group by Auto Ownership")
+print (HH_income_auto_2)
+
 @
 
 
@@ -622,4 +673,15 @@ legend("topright", c("Model", "CTPP"), col = c("red", "blue"), pch = c(1, 2))
  
 @
 \end{figure}
+
+\section{Total used time and memory}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+
+print ("Total used time (s) is:")
+print ((proc.time()-ptm)[3])
+print ("Total used memory (MB) is:")#assume that we're using a 64-bit operation system
+node_size <- 56L
+usage <- gc()
+print(sum(usage[, 1] * c(node_size, 8)) / (1024 ^ 2))
+@
 \end{document}

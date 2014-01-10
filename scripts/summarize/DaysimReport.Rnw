@@ -23,7 +23,7 @@ pdfstartview={XYZ null null 1}}
 
 \title{Daysim Summary}
 
-\author{Suzanne and Yingqian}
+\author{PSRC}
 
 \maketitle
 \small
@@ -79,7 +79,7 @@ dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
 names(paths)<- c("2010 Model Run", "2006 Survey")
 type <- names(paths)
 
-district_file <- paste(run_path, "/scripts/summarize/Districts_County.csv",sep = "")
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv",sep = "")
 
 ###Some convenience functions to make summaries more readable
 # We  want to put this into the HDF5 file, but it's not there yet
@@ -517,12 +517,6 @@ append_1_2_purpose_omit<-append_1_2_purpose[append_1_2_purpose$dpurp != 'home' &
 trips_compare_mode <- ggplot(data=append_1_2,aes(x=type, y= mode_share, fill=mode))
 trips_compare_mode+geom_bar(stat = "identity")+theme(text = element_text(size=16),axis.text.x = element_text(angle=0, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Mode Share")
 
-#trips_compare_distance <- ggplot(data=append_1_2,aes(x=mode, y= mean_dist, fill=mode))
-#trips_compare_distance+ geom_bar(stat = "identity") +facet_wrap(~ type)+theme(text = element_text#(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+ #xlab("Mode")+ylab("Average Distance")
-
-trips_compare_time <- ggplot(data=append_1_2,aes(x=mode, y= mean_time, fill=mode))
-
-trips_compare_time+geom_bar(stat = "identity")+facet_wrap(~type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+xlab("Mode")+ ylab("Average Time")
 
 trips_compare_purpose <- ggplot(append_1_2_purpose_omit,
                                 aes(x=dpurp, y= total_trips, fill=dpurp))

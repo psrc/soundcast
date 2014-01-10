@@ -80,7 +80,7 @@ dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
 names(paths)<- c("2010 Model Run", "2006 Survey")
 type <- names(paths)
 
-district_file <- paste(run_path, "/scripts/summarize/Districts_County.csv",sep = "")
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv,sep = "")
 
 ###Some convenience functions to make summaries more readable
 # We  want to put this into the HDF5 file, but it's not there yet
