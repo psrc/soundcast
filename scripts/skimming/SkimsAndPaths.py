@@ -1,3 +1,4 @@
+
 import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
@@ -15,6 +16,8 @@ import subprocess
 from multiprocessing import Pool
 
 #Hard-coded paths/data will be moved to a Config file
+# Number of simultaneous parallel processes. Must be a factor of 12.
+parallel_instances = 12
 # Number of Global Iterations
 global_iterations = 1
 # Assignment Convergence Criteria
@@ -27,6 +30,8 @@ MAX_EXTERNAL = 3749-1
 
 #zone of special generators - 1 because numpy is zero-based
 SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
+
+
 
 if '-use_survey_seed_trips' in sys.argv:
 	seed_trips = True
@@ -1075,12 +1080,10 @@ def skims_to_hdf5_concurrent(my_project):
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
 
     #hdf_filename = create_hdf5_container(bank_name)
-    hdf5_filename = create_hdf5_skim_container(bank_name)
+    
 
+    hdf5_filename = create_hdf5_skim_container2(tod)
     my_store=h5py.File(hdf5_filename, "r+")
-
-
-    #See if there is a group called Skims.IF so, it probably has old data in it. Delete the group and create a new one.
     e = "Skims" in my_store
     if e:
         del my_store["Skims"]
@@ -1090,29 +1093,25 @@ def skims_to_hdf5_concurrent(my_project):
     else:
         skims_group = my_store.create_group("Skims")
         print "Group Skims Created"
-        #Now create the TOD group inside the skims group:
 
-    skims_group.create_group(tod)
+    
+    #Determine the Path and Scenario File
 
-        #need a scenario, get the first one
-    current_scenario = list(my_bank.scenarios())[0]
-        #Determine the Path and Scenario File
+    
 
-    zones=current_scenario.zone_numbers
-
-        #Load in the necessary Dictionaries
+    #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
 
 
-        # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
+   # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
     try:
         mat_id=my_bank.matrix("mf01")
         em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
-        my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
     except RuntimeError:
-        del my_store["indices"]
-        my_store.create_dataset("indices", data=em_val.indices, compression='gzip')
+        del my_store["Skims"]["indices"]
+        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
 
         # Loop through the Subgroups in the HDF5 Container
@@ -1126,44 +1125,69 @@ def skims_to_hdf5_concurrent(my_project):
     for x in range (0, len(my_skim_matrix_designation)):
 
         for y in range (0, len(matrix_dict["Highway"])):
-                matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-                matrix_id = my_bank.matrix(matrix_name).id
+            matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
+            matrix_id = my_bank.matrix(matrix_name).id
+            if my_skim_matrix_designation[x] == 'c':
+                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
+                #make sure max value is set to uint16 max
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            else:
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
+                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+                
+
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.'
         #transit
     if tod in transit_skim_tod:
         for item in transit_submodes:
             matrix_name= 'ivtwa' + item
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                #make sure max value is set to uint16 max
+            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
                 #Transit, All Modes:
-            dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
+        dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
 
         for key, value in dct_aggregate_transit_skim_names.iteritems():
             matrix_name= key
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+            #make sure max value is set to uint16 max
+            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
-
+        #bike/walk
     if tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
             matrix_id = my_bank.matrix(matrix_name).id
             matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            my_store["Skims"][tod].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+            #make sure max value is set to uint16 max
+            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
-
-
+        #transit/fare
+    fare_dict = json_to_dictionary('transit_fare_dictionary')
+    if tod in fare_matrices_tod:
+        for value in fare_dict[tod]['Names'].values():
+            matrix_name= 'mf' + value
+            print matrix_name
+            print my_bank.matrix(matrix_name).id
+            matrix_id = my_bank.matrix(matrix_name).id
+            #make sure max value is set to uint16 max
+            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
+            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.'
+                
     my_store.close()
     end_export_hdf5 = time.time()
-
     print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to export all skims to the HDF5 File.'
+
 def hdf5_to_emme(my_project):
 
     start_import_hdf5 = time.time()
@@ -1479,8 +1503,8 @@ def start_pool(project_list):
     #Fewer pools than projects/banks will cause script to crash.
 
     #Doing some testing on best approaches to con-currency
-    pool = Pool(processes=12)
-    pool.map(run_assignments_parallel,project_list[0:12])
+    pool = Pool(processes=parallel_instances)
+    pool.map(run_assignments_parallel,project_list[0:parallel_instances])
 
 
 
@@ -1528,15 +1552,15 @@ def run_transit(project_name):
 
 def export_to_hdf5_pool(project_list):
 
-    pool = Pool(processes=1)
-    pool.map(start_export_to_hdf5, project_list[0:1])
+    pool = Pool(processes=12)
+    pool.map(start_export_to_hdf5, project_list[0:12])
     pool.close()
 
 def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    skims_to_hdf5(m)
+    skims_to_hdf5_concurrent(m)
     
 
 
@@ -1710,9 +1734,7 @@ def run_assignments_parallel(project_name):
     attribute_based_toll_cost_skims( m, "@toll3")
     class_specific_volumes(m)
 
-
-    #skims_to_hdf5_concurrent(m)
-    #app.App.refresh_data
+    app.App.close(my_desktop)
     print tod + " finished"
     end_of_run = time.time()
     print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
@@ -1725,7 +1747,7 @@ def main():
         start_of_run = time.time()
         
 
-        #want pooled processes finished before executing more code in main:
+        
 
         project_list=['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
@@ -1735,14 +1757,18 @@ def main():
                       'Projects/10to14/10to14.emp',
                       'Projects/14to15/14to15.emp',
                       'Projects/15to16/15to16.emp',
-                      'Projects/16to17/16to17.emp',
+                      'projects/16to17/16to17.emp',
                       'Projects/17to18/17to18.emp',
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
+        #run assignments in parallel, number determined by global variable parallel_instances
+        for i in range (0, 12, parallel_instances):
+            l = project_list[i:i+parallel_instances]
+            start_pool(l)
+        
+            #want pooled processes finished before executing more code in main:
 
-        #want pooled processes finished before executing more code in main:
-
-        start_pool(project_list)
+        #start_pool(project_list)
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/6to7/6to7.emp')
 
@@ -1754,7 +1780,7 @@ def main():
 
         #This project points to all TOD Banks:
         export_project_list = ['Projects/LoadTripTables/LoadTripTables.emp']
-        export_to_hdf5_pool(export_project_list)
+        export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
 
