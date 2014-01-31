@@ -3,9 +3,11 @@
 # PSRC SoundCast Model Runner
 # ===========================
 
+# Daysim executable is also not on Git
+daysim_code = 'r:/soundcast/daysim_code'
+master_project = 'LoadTripTables'
 # Large input files are not in Git; copy them from:
 base_inputs = 'r:/soundcast/inputs'
-master_project = 'LoadTripTables'
 
 import os,sys,datetime,re
 import subprocess
@@ -16,12 +18,29 @@ from shutil import copy2 as shcopy
 time_start = datetime.datetime.now()
 
 print "\nSoundCast run: start time:", time_start
-#testesttest
 
+f = open('d:/Soundcast_log.txt', 'wb')
 def multipleReplace(text, wordDict):
     for key in wordDict:
         text = text.replace(key, wordDict[key])
     return text
+
+def copy_daysim_code():
+    print 'Copying Daysim executables...'
+    shcopy(daysim_code +'/Daysim.Attributes.dll', 'daysim')
+    shcopy(daysim_code +'/Daysim.Framework.dll', 'daysim')
+    shcopy(daysim_code +'/Daysim.Interfaces.dll', 'daysim')
+    shcopy(daysim_code +'/HDF5DotNet.dll', 'daysim')
+    shcopy(daysim_code +'/NDesk.Options.dll', 'daysim')
+    shcopy(daysim_code +'/Ninject.dll', 'daysim')
+    shcopy(daysim_code +'/Ninject.xml', 'daysim')
+    shcopy(daysim_code +'/msvcr100.dll', 'daysim')
+    shcopy(daysim_code +'/szip.dll', 'daysim')
+    shcopy(daysim_code +'/zlib.dll', 'daysim')
+    shcopy(daysim_code +'/hdf5_hldll.dll', 'daysim')
+    shcopy(daysim_code +'/hdf5dll.dll', 'daysim')
+    shcopy(daysim_code +'/Ionic.Zip.dll', 'daysim')
+    shcopy(daysim_code +'/msvcp100.dll', 'daysim')
 
 def setup_emme_bank_folders():
     emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.txt')))
@@ -86,8 +105,6 @@ def setup_emme_project_folders():
                 source.write(line)
             source.close()
 
-
-
 def copy_large_inputs():
     print 'Copying large inputs...'
     
@@ -100,8 +117,17 @@ def copy_large_inputs():
     shcopy(base_inputs+'/4k/trips_auto_4k.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/trips_transit_4k.h5','Inputs/4k')
 
+def run_R_summary(summary_name):
+     R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
+     tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
+     run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
+     returncode = subprocess.call(run_R)
+     make_pdf = 'R --max-mem-size=50000M CMD pdflatex ' + tex_path 
+     returncode = subprocess.call(make_pdf)
+
 ##########################
 # Main Script:
+copy_daysim_code()
 setup_emme_project_folders()
 setup_emme_bank_folders()
 
@@ -128,38 +154,55 @@ returncode = subprocess.call([sys.executable,
 if returncode != 0:
     sys.exit(1)
 
-time_skims = datetime.datetime.now()
-print '###### Finished skimbuilding:', time_skims - time_copy
+time_skims = datetime.datetime.now()#print '###### Finished skimbuilding:', time_skims - time_copy
 
-### RUN DAYSIM ################################################################
-returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
-if returncode != 0:
-    sys.exit(1)
+# We are arbitrarily looping 2 times
 
-time_daysim = datetime.datetime.now()
-print '###### Finished running Daysim:',time_daysim - time_skims
+for x in range(0,3):
+     print "We're on iteration %d" % (x)
+     f.write("We're on iteration %d\r\n" % (x))
+     time_start = datetime.datetime.now()
+     f.write("starting run %s" %str((time_start)))
+     ### RUN DAYSIM ################################################################
+     returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
+     if returncode != 0:
+      sys.exit(1)
 
-##DAYSIM SUMMARIZE########################################################################
-R_path=os.path.join(os.getcwd(),'scripts\\summarize\\DaySimReport.Rnw')
-run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path2
-returncode = subprocess.call(run_R)
+     time_daysim = datetime.datetime.now()
+     print time_daysim
+     f.write("ending daysim %s\r\n" %str((time_daysim)))
+
+      ### ASSIGNMENTS ###############################################################
+     time_startassign = datetime.datetime.now()
+     f.write("starting assignment %s\r\n" %str((time_startassign)))
+     
+     subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
 
 
-### ASSIGNMENTS ###############################################################
-subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+     time_assign = datetime.datetime.now()
+     print time_assign
+     f.write("ending assignment %s\r\n" %str((time_assign)))
+    
+     #print '###### Finished running assignments:',time_assign - time_daysim
 
-time_assign = datetime.datetime.now()
-print '###### Finished running assignments:',time_assign - time_daysim
 
-### ASSIGNMENT SUMMARY###############################################################
-subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+     ### ASSIGNMENT SUMMARY###############################################################
+     subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+     time_assign_summ = datetime.datetime.now()
+     print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
-time_assign_summ = datetime.datetime.now()
-print '###### Finished running assignment summary:',time_assign_summ - time_assign
+
+     ##DAYSIM SUMMARIZE########################################################################
+     #run_R_summary('DaySimReport')
+     #run_R_summary('DaysimReportLongTerm')
+     #run_R_summary('DaysimReportDayPattern')
+     #run_R_summary('ModeChoiceReport')
+     #run_R_summary('DaysimDestChoice')
+     #run_R_summary('DaysimTimeChoice')
 
 ### ALL DONE ##################################################################
-print '###### OH HAPPY DAY!  ALL DONE. (go get a cookie.)'
-print '    Total run time:',time_assign_summ - time_start
+print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
+#print '    Total run time:',time_assign_summ - time_start
 
 
 
