@@ -4,7 +4,7 @@
 # ===========================
 
 # Daysim executable is also not on Git
-daysim_code = 'r:/soundcast/daysim_code'
+daysim_code = 'r:/soundcast/daysim'
 master_project = 'LoadTripTables'
 # Large input files are not in Git; copy them from:
 base_inputs = 'r:/soundcast/inputs'
@@ -16,7 +16,7 @@ import json
 from shutil import copy2 as shcopy
 
 time_start = datetime.datetime.now()
-
+# location of the daysim exe
 print "\nSoundCast run: start time:", time_start
 
 f = open('d:/Soundcast_log.txt', 'wb')
@@ -27,6 +27,9 @@ def multipleReplace(text, wordDict):
 
 def copy_daysim_code():
     print 'Copying Daysim executables...'
+    if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
+       os.makedirs(os.path.join(os.getcwd(), 'daysim'))
+    shcopy(daysim_code +'/Daysim.exe', 'daysim')
     shcopy(daysim_code +'/Daysim.Attributes.dll', 'daysim')
     shcopy(daysim_code +'/Daysim.Framework.dll', 'daysim')
     shcopy(daysim_code +'/Daysim.Interfaces.dll', 'daysim')
@@ -122,8 +125,6 @@ def run_R_summary(summary_name):
      tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
      run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
      returncode = subprocess.call(run_R)
-     make_pdf = 'R --max-mem-size=50000M CMD pdflatex ' + tex_path 
-     returncode = subprocess.call(make_pdf)
 
 ##########################
 # Main Script:
