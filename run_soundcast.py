@@ -124,7 +124,9 @@ def run_R_summary(summary_name):
      R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
      tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
      run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-     returncode = subprocess.call(run_R)
+     returncode = subprocess.check_call(run_R)
+     os.rename(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs\\'+summary_name+'.pdf'))
+     os.rename(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs\\'+summary_name+'_Plot.pdf'))
 
 ##########################
 # Main Script:
@@ -194,11 +196,11 @@ for x in range(0,3):
 
 
      ##DAYSIM SUMMARIZE########################################################################
-     #run_R_summary('DaySimReport')
-     #run_R_summary('DaysimReportLongTerm')
+     run_R_summary('DaySimReport')
+     run_R_summary('DaysimReportLongTerm')
      #run_R_summary('DaysimReportDayPattern')
-     #run_R_summary('ModeChoiceReport')
-     #run_R_summary('DaysimDestChoice')
+     run_R_summary('ModeChoiceReport')
+     run_R_summary('DaysimDestChoice')
      #run_R_summary('DaysimTimeChoice')
 
 ### ALL DONE ##################################################################

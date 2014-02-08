@@ -349,15 +349,6 @@ print (trip_tour_mode_1)
 print("Trip Mode by Tour Mode Survey")
 print (trip_tour_mode_2)
 
-sov_bike<-merge_trip_tour_1[merge_trip_tour_1$tmodetp=='sov' & merge_trip_tour_1$mode=='bike']
-
-sov_bike_purpose <- aggregate(sov_bike, by=list(sov_bike$pdpurp), length)
-
-sov_bike_pt <- aggregate(sov_bike, by=list(sov_bike$tpathtp), length)
-
-sov_bike_o_d<-aggregate(sov_bike, by=list(sov_bike$otaz, sov_bike$dtaz), length)
-
-write.csv(sov_bike,"C:\\sov_bike_new.csv")
 
 @
 

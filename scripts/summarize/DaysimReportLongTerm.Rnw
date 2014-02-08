@@ -595,13 +595,15 @@ workers_dist_graph <- ggplot(data= workers,
                            aes(x=pwaudist, weight=share,fill=type))
 workers_dist_graph + geom_histogram(binwidth = 1, colour= "black",position= position_dodge(width = 1.0))+xlab("Auto Distance to Work (miles)") + ylab("Total Workers")+scale_x_continuous(limits = c(0, 50))+labs(title="Distance to Work Lengths")
 
-students <- rbind(students_1,students_2)
 students_1$type <- names(paths[1])
 students_2$type <- names(paths[2])
+students_2$id <- students_2$hhno
+students <- rbind(students_1,students_2, use.names=TRUE)
 
-students_dist_graph <- ggplot(data= students,
-                           aes(x=psaudist, weight=share, fill=type))
-students_dist_graph + geom_histogram(binwidth = 1,colour= "black",position= position_dodge(width = 1.0))+xlab("Auto Distance to School(miles)") + ylab("Total Students")+scale_x_continuous(limits = c(0, 30))+labs(title="Distance to School")
+
+#students_dist_graph <- ggplot(data= students,
+#                           aes(x=psaudist, weight=share, fill=type))
+#students_dist_graph + geom_histogram(binwidth = 1,colour= "black",position#= position_dodge(width = 1.0))+xlab("Auto Distance to School(miles)") + #ylab("Total Students")+scale_x_continuous(limits = c(0, 30))+labs(title#="Distance to School")
 
 students_1_P_dist_graph <- ggplot(data= students_1_und5,
                            aes(x=psaudist, weight=share))
@@ -674,14 +676,4 @@ legend("topright", c("Model", "CTPP"), col = c("red", "blue"), pch = c(1, 2))
 @
 \end{figure}
 
-\section{Total used time and memory}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-
-print ("Total used time (s) is:")
-print ((proc.time()-ptm)[3])
-print ("Total used memory (MB) is:")#assume that we're using a 64-bit operation system
-node_size <- 56L
-usage <- gc()
-print(sum(usage[, 1] * c(node_size, 8)) / (1024 ^ 2))
-@
 \end{document}
