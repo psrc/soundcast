@@ -196,12 +196,12 @@ for x in range(0,3):
 
 
      ##DAYSIM SUMMARIZE########################################################################
-     run_R_summary('DaySimReport')
-     run_R_summary('DaysimReportLongTerm')
-     #run_R_summary('DaysimReportDayPattern')
-     run_R_summary('ModeChoiceReport')
-     run_R_summary('DaysimDestChoice')
-     #run_R_summary('DaysimTimeChoice')
+     run_R_summary('DaySimReport',x)
+     run_R_summary('DaysimReportLongTerm',x)
+     run_R_summary('DaysimReportDayPattern',x)
+     run_R_summary('ModeChoiceReport',x)
+     run_R_summary('DaysimDestChoice',x)
+     run_R_summary('DaysimTimeChoice',x)
 
 ### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
