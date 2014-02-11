@@ -1,0 +1,123 @@
+$TITLE work-based subtour mode choice                                                 
+$ESTIMATE
+$GEN.STATS utilities
+$ALGOR maxit = 20
+$ALGOR Zeta  = 0.15
+
+  1   costutil F 1.4514
+  2   timeutil F 1.3039
+ 20   wt-const F -3.4981
+ 30   s3-const F -2.6353
+ 40   s2-const F -1.7745
+ 50   da-const F -2.3072
+ 54  da-incu25T 0.0000
+ 55 da-inc2550 T 0.0000
+ 58 da-dtowork F 2.7679
+ 59 da-stowork F 2.0325
+ 60   bi-const F -4.8567
+ 61    bi-male F -0.0761
+ 69 bi-btowork T 4.2535
+ 79 wk-wtowork T 5.0000
+ 88 sr-dtowork F -0.2385
+ 89 sr-stowork F 1.3188
+ 99   modenest F 0.9667
+
+$NEST 19 (99) 2 3
+$NEST 20 (99) 4
+$NEST 21 (99) 5 6
+$NEST 22 (99) 7
+
+$ARRAY DD(33)
+FILE (name=WorkBasedSubtourModeModel_psrcper1.dat) DD
+ID = DD(1)
+
+choice = DD(11)
+
+- rejected observations: 0
+
+- choice and availability summary -
+
+- alt   2 -      alt_2 / Chosen      216 Available      601
+- alt   3 -      alt_3 / Chosen        2 Available      638
+- alt   4 -      alt_4 / Chosen      295 Available      634
+- alt   5 -      alt_5 / Chosen       62 Available      641
+- alt   6 -      alt_6 / Chosen       52 Available      641
+- alt   7 -      alt_7 / Chosen       14 Available      293
+
+- utility summary -
+
+- alt   2 -      alt_2 /   2 -   timeutil % Non-0  93.76 Mean    -2.00
+- alt   2 -      alt_2 /  79 - wk-wtowork % Non-0   1.25 Mean     1.00
+
+- alt   3 -      alt_3 /   2 -   timeutil % Non-0  99.53 Mean    -0.89
+- alt   3 -      alt_3 /  60 -   bi-const % Non-0  99.53 Mean     1.00
+- alt   3 -      alt_3 /  61 -    bi-male % Non-0  52.89 Mean     1.00
+- alt   3 -      alt_3 /  69 - bi-btowork % Non-0   2.03 Mean     1.00
+
+- alt   4 -      alt_4 /   1 -   costutil % Non-0  50.23 Mean    -1.23
+- alt   4 -      alt_4 /   2 -   timeutil % Non-0  98.91 Mean    -0.42
+- alt   4 -      alt_4 /  50 -   da-const % Non-0  98.91 Mean     1.00
+- alt   4 -      alt_4 /  54 -  da-incu25 % Non-0   1.40 Mean     1.00
+- alt   4 -      alt_4 /  55 - da-inc2550 % Non-0  13.88 Mean     1.00
+- alt   4 -      alt_4 /  58 - da-dtowork % Non-0  58.66 Mean     1.00
+- alt   4 -      alt_4 /  59 - da-stowork % Non-0  14.98 Mean     1.00
+
+- alt   5 -      alt_5 /   1 -   costutil % Non-0  51.17 Mean    -0.62
+- alt   5 -      alt_5 /   2 -   timeutil % Non-0 100.00 Mean    -0.38
+- alt   5 -      alt_5 /  40 -   s2-const % Non-0 100.00 Mean     1.00
+- alt   5 -      alt_5 /  88 - sr-dtowork % Non-0  58.66 Mean     1.00
+- alt   5 -      alt_5 /  89 - sr-stowork % Non-0  14.98 Mean     1.00
+
+- alt   6 -      alt_6 /   1 -   costutil % Non-0  51.17 Mean    -0.37
+- alt   6 -      alt_6 /   2 -   timeutil % Non-0 100.00 Mean    -0.37
+- alt   6 -      alt_6 /  30 -   s3-const % Non-0 100.00 Mean     1.00
+- alt   6 -      alt_6 /  88 - sr-dtowork % Non-0  58.66 Mean     1.00
+- alt   6 -      alt_6 /  89 - sr-stowork % Non-0  14.98 Mean     1.00
+
+- alt   7 -      alt_7 /   2 -   timeutil % Non-0  45.71 Mean    -1.87
+- alt   7 -      alt_7 /  20 -   wt-const % Non-0  45.71 Mean     1.00
+
+avail(2)=DD(2)
+avail(3)=DD(5)
+avail(4)=DD(10)
+avail(5)=DD(19)
+avail(6)=DD(25)
+avail(7)=DD(31)
+
+util(2)=0
+  + p2*DD(3)
+  + p79*DD(4)
+
+util(3)=0
+  + p2*DD(6)
+  + p60*DD(7)
+  + p61*DD(8)
+  + p69*DD(9)
+
+util(4)=0
+  + p1*DD(13)
+  + p2*DD(12)
+  + p50*DD(14)
+  + p54*DD(15)
+  + p55*DD(16)
+  + p58*DD(17)
+  + p59*DD(18)
+
+util(5)=0
+  + p1*DD(21)
+  + p2*DD(20)
+  + p40*DD(22)
+  + p88*DD(23)
+  + p89*DD(24)
+
+util(6)=0
+  + p1*DD(27)
+  + p2*DD(26)
+  + p30*DD(28)
+  + p88*DD(29)
+  + p89*DD(30)
+
+util(7)=0
+  + p2*DD(32)
+  + p20*DD(33)
+

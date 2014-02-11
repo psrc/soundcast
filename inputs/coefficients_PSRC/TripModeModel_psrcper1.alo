@@ -1,0 +1,393 @@
+$TITLE Trip level mode choice                                                         
+$ESTIMATE
+$GEN.STATS utilities
+$ALGOR maxit = 20
+$ALGOR Zeta  = 0.15
+
+  1   costutil F 0.9537
+  2   timeutil F 2.4557
+ 18   sb-const T 0.0000
+ 20   wt-const F -0.7915
+ 22 wt-carsltd F -0.3506
+ 30   s3-const F 3.6581
+ 32   sr-hh515 F -0.2242
+ 34   sr-hhnwa F -0.0094
+ 36  s3-onephh F -1.3128
+ 37  s3-twophh F -0.4185
+ 38  s2-onephh F -0.9502
+ 40   s2-const F 2.6640
+ 41  sr-nocars F -2.7633
+ 50   da-const F 1.8992
+ 52 da-carsltd F -0.7406
+ 54  da-incu25 F -0.3870
+ 55 da-inc2545 F -0.1309
+ 59  da-ch1617 F -0.9855
+ 60   bi-const F -3.3498
+ 61    bi-male F 0.7212
+ 62  bi-ageu35 F 1.5870
+ 65   bi-ointd F 0.0237
+ 72  wk-ageu35 F 0.7901
+ 75   wk-ointd F 0.0252
+ 78  wk-dmixed F 0.3095
+ 99  Theta0099 F 0.6032
+100   mainmode F 4.7152
+102  mm-onlyob F 0.7227
+103  mm-onlyrt F 0.5831
+104  mm-frstob F -0.1657
+105  mm-frstrt F 0.1338
+106  mm-lastob F -0.0369
+107  mm-lastrt F -0.3201
+115  s3-wttour F -3.1281
+116  s3-sbtour F 2.3773
+118  s2-wttour F -0.9993
+119  s2-sbtour F 3.3104
+120  s2-s3tour F 4.5704
+121  da-dttour T -1.6664
+122  da-wttour F -4.4722
+124  da-s3tour F 2.0504
+125  da-s2tour F 2.5001
+127  bi-wttour F -0.5911
+128  bi-sbtour T 0.0000
+130  bi-s2tour F -0.0105
+131  bi-datour F -1.1576
+141  wk-wktour F 1.5984
+142  wk-sctour F 1.3132
+147  bi-wbtour F -0.3917
+149  sr-wktour F -3.3910
+150  sr-sctour F -2.6802
+152  sr-estour F -2.8277
+153  sr-shtour F 2.2408
+154  sr-metour F 1.1043
+155  sr-srtour F -0.0194
+161 sr-escwkam F -3.2844
+162 sr-wkescpm F -2.8141
+163 sr-hmescam F 3.2396
+164 sr-hmescmd F -2.0057
+165 sr-hmescpm F -1.8081
+166 sr-hmescev F -1.9121
+167 sr-eschmam F -3.9498
+168 sr-eschmmd F -0.7135
+169 sr-eschmpm F 0.2336
+170 sr-eschmev F -1.7384
+
+$NEST 19 (99) 2 3
+$NEST 20 (99) 4
+$NEST 21 (99) 5 6
+$NEST 22 (99) 7
+$NEST 23 (99) 9
+
+$ARRAY DD(142)
+FILE (name=TripModeModel_psrcper1.dat) DD
+ID = DD(1)
+
+choice = DD(6)
+
+- rejected observations: 0
+
+- choice and availability summary -
+
+- alt   2 -      alt_2 / Chosen     5656 Available    54823
+- alt   3 -      alt_3 / Chosen      745 Available    62837
+- alt   4 -      alt_4 / Chosen    33133 Available    53119
+- alt   5 -      alt_5 / Chosen    14327 Available    36831
+- alt   6 -      alt_6 / Chosen    12392 Available    21735
+- alt   7 -      alt_7 / Chosen     2024 Available     3515
+- alt   9 -      alt_9 / Chosen     1820 Available     2550
+
+- utility summary -
+
+- alt   2 -      alt_2 /   2 -   timeutil % Non-0  78.21 Mean    -2.24
+- alt   2 -      alt_2 /  72 -  wk-ageu35 % Non-0  24.99 Mean     1.00
+- alt   2 -      alt_2 /  75 -   wk-ointd % Non-0  78.19 Mean    46.58
+- alt   2 -      alt_2 /  78 -  wk-dmixed % Non-0  77.70 Mean     0.65
+- alt   2 -      alt_2 / 100 -   mainmode % Non-0   5.75 Mean     1.00
+- alt   2 -      alt_2 / 102 -  mm-onlyob % Non-0   2.54 Mean     1.00
+- alt   2 -      alt_2 / 103 -  mm-onlyrt % Non-0   2.43 Mean     1.00
+- alt   2 -      alt_2 / 104 -  mm-frstob % Non-0   0.12 Mean     1.00
+- alt   2 -      alt_2 / 105 -  mm-frstrt % Non-0   0.22 Mean     1.00
+- alt   2 -      alt_2 / 106 -  mm-lastob % Non-0   0.12 Mean     1.00
+- alt   2 -      alt_2 / 107 -  mm-lastrt % Non-0   0.23 Mean     1.00
+- alt   2 -      alt_2 / 141 -  wk-wktour % Non-0  21.16 Mean     1.00
+- alt   2 -      alt_2 / 142 -  wk-sctour % Non-0  10.17 Mean     1.00
+
+- alt   3 -      alt_3 /   2 -   timeutil % Non-0  89.64 Mean    -1.43
+- alt   3 -      alt_3 /  60 -   bi-const % Non-0  89.64 Mean     1.00
+- alt   3 -      alt_3 /  61 -    bi-male % Non-0  39.93 Mean     1.00
+- alt   3 -      alt_3 /  62 -  bi-ageu35 % Non-0  26.91 Mean     1.00
+- alt   3 -      alt_3 /  65 -   bi-ointd % Non-0  89.52 Mean    43.06
+- alt   3 -      alt_3 / 100 -   mainmode % Non-0   0.96 Mean     1.00
+- alt   3 -      alt_3 / 102 -  mm-onlyob % Non-0   0.37 Mean     1.00
+- alt   3 -      alt_3 / 103 -  mm-onlyrt % Non-0   0.34 Mean     1.00
+- alt   3 -      alt_3 / 104 -  mm-frstob % Non-0   0.04 Mean     1.00
+- alt   3 -      alt_3 / 105 -  mm-frstrt % Non-0   0.07 Mean     1.00
+- alt   3 -      alt_3 / 106 -  mm-lastob % Non-0   0.04 Mean     1.00
+- alt   3 -      alt_3 / 107 -  mm-lastrt % Non-0   0.07 Mean     1.00
+- alt   3 -      alt_3 / 127 -  bi-wttour % Non-0   3.87 Mean     1.00
+- alt   3 -      alt_3 / 128 -  bi-sbtour % Non-0   3.33 Mean     1.00
+- alt   3 -      alt_3 / 130 -  bi-s2tour % Non-0  21.06 Mean     1.00
+- alt   3 -      alt_3 / 131 -  bi-datour % Non-0  37.90 Mean     1.00
+- alt   3 -      alt_3 / 147 -  bi-wbtour % Non-0   1.38 Mean     1.00
+
+- alt   4 -      alt_4 /   1 -   costutil % Non-0  20.85 Mean    -0.90
+- alt   4 -      alt_4 /   2 -   timeutil % Non-0  75.78 Mean    -0.55
+- alt   4 -      alt_4 /  50 -   da-const % Non-0  75.78 Mean     1.00
+- alt   4 -      alt_4 /  52 - da-carsltd % Non-0  12.95 Mean     1.00
+- alt   4 -      alt_4 /  54 -  da-incu25 % Non-0   2.44 Mean     1.00
+- alt   4 -      alt_4 /  55 - da-inc2545 % Non-0   8.20 Mean     1.00
+- alt   4 -      alt_4 /  59 -  da-ch1617 % Non-0   2.70 Mean     1.00
+- alt   4 -      alt_4 / 100 -   mainmode % Non-0  39.02 Mean     1.00
+- alt   4 -      alt_4 / 102 -  mm-onlyob % Non-0  12.08 Mean     1.00
+- alt   4 -      alt_4 / 103 -  mm-onlyrt % Non-0  10.34 Mean     1.00
+- alt   4 -      alt_4 / 104 -  mm-frstob % Non-0   2.44 Mean     1.00
+- alt   4 -      alt_4 / 105 -  mm-frstrt % Non-0   4.16 Mean     1.00
+- alt   4 -      alt_4 / 106 -  mm-lastob % Non-0   2.47 Mean     1.00
+- alt   4 -      alt_4 / 107 -  mm-lastrt % Non-0   4.21 Mean     1.00
+- alt   4 -      alt_4 / 121 -  da-dttour % Non-0   0.54 Mean     1.00
+- alt   4 -      alt_4 / 122 -  da-wttour % Non-0   2.85 Mean     1.00
+- alt   4 -      alt_4 / 124 -  da-s3tour % Non-0  13.90 Mean     1.00
+- alt   4 -      alt_4 / 125 -  da-s2tour % Non-0  19.00 Mean     1.00
+
+- alt   5 -      alt_5 /   1 -   costutil % Non-0  14.51 Mean    -0.46
+- alt   5 -      alt_5 /   2 -   timeutil % Non-0  52.54 Mean    -0.38
+- alt   5 -      alt_5 /  32 -   sr-hh515 % Non-0  18.73 Mean     1.68
+- alt   5 -      alt_5 /  34 -   sr-hhnwa % Non-0  16.48 Mean     1.32
+- alt   5 -      alt_5 /  38 -  s2-onephh % Non-0   3.79 Mean     1.00
+- alt   5 -      alt_5 /  40 -   s2-const % Non-0  52.54 Mean     1.00
+- alt   5 -      alt_5 /  41 -  sr-nocars % Non-0   1.21 Mean     1.00
+- alt   5 -      alt_5 / 100 -   mainmode % Non-0  22.28 Mean     1.00
+- alt   5 -      alt_5 / 102 -  mm-onlyob % Non-0   5.81 Mean     1.00
+- alt   5 -      alt_5 / 103 -  mm-onlyrt % Non-0   5.05 Mean     1.00
+- alt   5 -      alt_5 / 104 -  mm-frstob % Non-0   1.79 Mean     1.00
+- alt   5 -      alt_5 / 105 -  mm-frstrt % Non-0   2.55 Mean     1.00
+- alt   5 -      alt_5 / 106 -  mm-lastob % Non-0   1.84 Mean     1.00
+- alt   5 -      alt_5 / 107 -  mm-lastrt % Non-0   2.63 Mean     1.00
+- alt   5 -      alt_5 / 118 -  s2-wttour % Non-0   3.93 Mean     1.00
+- alt   5 -      alt_5 / 119 -  s2-sbtour % Non-0   3.35 Mean     1.00
+- alt   5 -      alt_5 / 120 -  s2-s3tour % Non-0  22.85 Mean     1.00
+- alt   5 -      alt_5 / 149 -  sr-wktour % Non-0  11.49 Mean     1.00
+- alt   5 -      alt_5 / 150 -  sr-sctour % Non-0   9.40 Mean     1.00
+- alt   5 -      alt_5 / 152 -  sr-estour % Non-0  13.61 Mean     1.00
+- alt   5 -      alt_5 / 153 -  sr-shtour % Non-0   3.46 Mean     1.00
+- alt   5 -      alt_5 / 154 -  sr-metour % Non-0   2.64 Mean     1.00
+- alt   5 -      alt_5 / 155 -  sr-srtour % Non-0   6.89 Mean     1.00
+- alt   5 -      alt_5 / 161 - sr-escwkam % Non-0   0.71 Mean     1.00
+- alt   5 -      alt_5 / 162 - sr-wkescpm % Non-0   0.50 Mean     1.00
+- alt   5 -      alt_5 / 163 - sr-hmescam % Non-0   2.37 Mean     1.00
+- alt   5 -      alt_5 / 164 - sr-hmescmd % Non-0   1.23 Mean     1.00
+- alt   5 -      alt_5 / 165 - sr-hmescpm % Non-0   1.29 Mean     1.00
+- alt   5 -      alt_5 / 166 - sr-hmescev % Non-0   0.32 Mean     1.00
+- alt   5 -      alt_5 / 167 - sr-eschmam % Non-0   0.77 Mean     1.00
+- alt   5 -      alt_5 / 168 - sr-eschmmd % Non-0   1.03 Mean     1.00
+- alt   5 -      alt_5 / 169 - sr-eschmpm % Non-0   1.64 Mean     1.00
+- alt   5 -      alt_5 / 170 - sr-eschmev % Non-0   0.63 Mean     1.00
+
+- alt   6 -      alt_6 /   1 -   costutil % Non-0   8.88 Mean    -0.29
+- alt   6 -      alt_6 /   2 -   timeutil % Non-0  31.01 Mean    -0.35
+- alt   6 -      alt_6 /  30 -   s3-const % Non-0  31.01 Mean     1.00
+- alt   6 -      alt_6 /  32 -   sr-hh515 % Non-0  18.83 Mean     1.77
+- alt   6 -      alt_6 /  34 -   sr-hhnwa % Non-0  14.07 Mean     1.19
+- alt   6 -      alt_6 /  36 -  s3-onephh % Non-0   2.14 Mean     1.00
+- alt   6 -      alt_6 /  37 -  s3-twophh % Non-0   4.25 Mean     1.00
+- alt   6 -      alt_6 /  41 -  sr-nocars % Non-0   1.07 Mean     1.00
+- alt   6 -      alt_6 / 100 -   mainmode % Non-0  23.63 Mean     1.00
+- alt   6 -      alt_6 / 102 -  mm-onlyob % Non-0   5.94 Mean     1.00
+- alt   6 -      alt_6 / 103 -  mm-onlyrt % Non-0   5.15 Mean     1.00
+- alt   6 -      alt_6 / 104 -  mm-frstob % Non-0   1.87 Mean     1.00
+- alt   6 -      alt_6 / 105 -  mm-frstrt % Non-0   2.65 Mean     1.00
+- alt   6 -      alt_6 / 106 -  mm-lastob % Non-0   1.98 Mean     1.00
+- alt   6 -      alt_6 / 107 -  mm-lastrt % Non-0   2.80 Mean     1.00
+- alt   6 -      alt_6 / 115 -  s3-wttour % Non-0   3.93 Mean     1.00
+- alt   6 -      alt_6 / 116 -  s3-sbtour % Non-0   3.35 Mean     1.00
+- alt   6 -      alt_6 / 149 -  sr-wktour % Non-0   6.24 Mean     1.00
+- alt   6 -      alt_6 / 150 -  sr-sctour % Non-0   7.95 Mean     1.00
+- alt   6 -      alt_6 / 152 -  sr-estour % Non-0   8.21 Mean     1.00
+- alt   6 -      alt_6 / 153 -  sr-shtour % Non-0   1.16 Mean     1.00
+- alt   6 -      alt_6 / 154 -  sr-metour % Non-0   1.14 Mean     1.00
+- alt   6 -      alt_6 / 155 -  sr-srtour % Non-0   3.96 Mean     1.00
+- alt   6 -      alt_6 / 161 - sr-escwkam % Non-0   0.31 Mean     1.00
+- alt   6 -      alt_6 / 162 - sr-wkescpm % Non-0   0.24 Mean     1.00
+- alt   6 -      alt_6 / 163 - sr-hmescam % Non-0   1.35 Mean     1.00
+- alt   6 -      alt_6 / 164 - sr-hmescmd % Non-0   0.72 Mean     1.00
+- alt   6 -      alt_6 / 165 - sr-hmescpm % Non-0   0.78 Mean     1.00
+- alt   6 -      alt_6 / 166 - sr-hmescev % Non-0   0.17 Mean     1.00
+- alt   6 -      alt_6 / 167 - sr-eschmam % Non-0   0.39 Mean     1.00
+- alt   6 -      alt_6 / 168 - sr-eschmmd % Non-0   0.66 Mean     1.00
+- alt   6 -      alt_6 / 169 - sr-eschmpm % Non-0   1.26 Mean     1.00
+- alt   6 -      alt_6 / 170 - sr-eschmev % Non-0   0.43 Mean     1.00
+
+- alt   7 -      alt_7 /   2 -   timeutil % Non-0   5.01 Mean    -1.57
+- alt   7 -      alt_7 /  20 -   wt-const % Non-0   5.01 Mean     1.00
+- alt   7 -      alt_7 /  22 - wt-carsltd % Non-0   1.54 Mean     1.00
+- alt   7 -      alt_7 / 100 -   mainmode % Non-0   3.49 Mean     1.00
+- alt   7 -      alt_7 / 102 -  mm-onlyob % Non-0   1.26 Mean     1.00
+- alt   7 -      alt_7 / 103 -  mm-onlyrt % Non-0   1.03 Mean     1.00
+- alt   7 -      alt_7 / 104 -  mm-frstob % Non-0   0.17 Mean     1.00
+- alt   7 -      alt_7 / 105 -  mm-frstrt % Non-0   0.32 Mean     1.00
+- alt   7 -      alt_7 / 106 -  mm-lastob % Non-0   0.19 Mean     1.00
+- alt   7 -      alt_7 / 107 -  mm-lastrt % Non-0   0.35 Mean     1.00
+
+- alt   9 -      alt_9 /   2 -   timeutil % Non-0   3.64 Mean    -0.22
+- alt   9 -      alt_9 /  18 -   sb-const % Non-0   3.64 Mean     1.00
+- alt   9 -      alt_9 / 100 -   mainmode % Non-0   3.64 Mean     1.00
+- alt   9 -      alt_9 / 102 -  mm-onlyob % Non-0   1.39 Mean     1.00
+- alt   9 -      alt_9 / 103 -  mm-onlyrt % Non-0   1.30 Mean     1.00
+- alt   9 -      alt_9 / 104 -  mm-frstob % Non-0   0.15 Mean     1.00
+- alt   9 -      alt_9 / 105 -  mm-frstrt % Non-0   0.24 Mean     1.00
+- alt   9 -      alt_9 / 106 -  mm-lastob % Non-0   0.16 Mean     1.00
+- alt   9 -      alt_9 / 107 -  mm-lastrt % Non-0   0.25 Mean     1.00
+
+avail(2)=DD(3)
+avail(3)=DD(4)
+avail(4)=DD(5)
+avail(5)=DD(25)
+avail(6)=DD(26)
+avail(7)=DD(27)
+avail(9)=DD(2)
+
+util(2)=0
+  + p2*DD(28)
+  + p72*DD(29)
+  + p75*DD(30)
+  + p78*DD(31)
+  + p100*DD(32)
+  + p102*DD(33)
+  + p103*DD(34)
+  + p104*DD(35)
+  + p105*DD(36)
+  + p106*DD(37)
+  + p107*DD(38)
+  + p141*DD(39)
+  + p142*DD(40)
+
+util(3)=0
+  + p2*DD(41)
+  + p60*DD(42)
+  + p61*DD(43)
+  + p62*DD(44)
+  + p65*DD(45)
+  + p100*DD(46)
+  + p102*DD(47)
+  + p103*DD(48)
+  + p104*DD(49)
+  + p105*DD(50)
+  + p106*DD(51)
+  + p107*DD(52)
+  + p127*DD(53)
+  + p128*DD(54)
+  + p130*DD(55)
+  + p131*DD(56)
+  + p147*DD(57)
+
+util(4)=0
+  + p1*DD(9)
+  + p2*DD(7)
+  + p50*DD(8)
+  + p52*DD(10)
+  + p54*DD(11)
+  + p55*DD(12)
+  + p59*DD(13)
+  + p100*DD(14)
+  + p102*DD(15)
+  + p103*DD(16)
+  + p104*DD(17)
+  + p105*DD(18)
+  + p106*DD(19)
+  + p107*DD(20)
+  + p121*DD(21)
+  + p122*DD(22)
+  + p124*DD(23)
+  + p125*DD(24)
+
+util(5)=0
+  + p1*DD(60)
+  + p2*DD(58)
+  + p32*DD(61)
+  + p34*DD(62)
+  + p38*DD(63)
+  + p40*DD(59)
+  + p41*DD(64)
+  + p100*DD(65)
+  + p102*DD(66)
+  + p103*DD(67)
+  + p104*DD(68)
+  + p105*DD(69)
+  + p106*DD(70)
+  + p107*DD(71)
+  + p118*DD(72)
+  + p119*DD(73)
+  + p120*DD(74)
+  + p149*DD(75)
+  + p150*DD(76)
+  + p152*DD(77)
+  + p153*DD(78)
+  + p154*DD(79)
+  + p155*DD(80)
+  + p161*DD(81)
+  + p162*DD(82)
+  + p163*DD(83)
+  + p164*DD(84)
+  + p165*DD(85)
+  + p166*DD(86)
+  + p167*DD(87)
+  + p168*DD(88)
+  + p169*DD(89)
+  + p170*DD(90)
+
+util(6)=0
+  + p1*DD(93)
+  + p2*DD(91)
+  + p30*DD(92)
+  + p32*DD(94)
+  + p34*DD(95)
+  + p36*DD(96)
+  + p37*DD(97)
+  + p41*DD(98)
+  + p100*DD(99)
+  + p102*DD(100)
+  + p103*DD(101)
+  + p104*DD(102)
+  + p105*DD(103)
+  + p106*DD(104)
+  + p107*DD(105)
+  + p115*DD(106)
+  + p116*DD(107)
+  + p149*DD(108)
+  + p150*DD(109)
+  + p152*DD(110)
+  + p153*DD(111)
+  + p154*DD(112)
+  + p155*DD(113)
+  + p161*DD(114)
+  + p162*DD(115)
+  + p163*DD(116)
+  + p164*DD(117)
+  + p165*DD(118)
+  + p166*DD(119)
+  + p167*DD(120)
+  + p168*DD(121)
+  + p169*DD(122)
+  + p170*DD(123)
+
+util(7)=0
+  + p2*DD(124)
+  + p20*DD(125)
+  + p22*DD(126)
+  + p100*DD(127)
+  + p102*DD(128)
+  + p103*DD(129)
+  + p104*DD(130)
+  + p105*DD(131)
+  + p106*DD(132)
+  + p107*DD(133)
+
+util(9)=0
+  + p2*DD(134)
+  + p18*DD(135)
+  + p100*DD(136)
+  + p102*DD(137)
+  + p103*DD(138)
+  + p104*DD(139)
+  + p105*DD(140)
+  + p106*DD(141)
+  + p107*DD(142)
+

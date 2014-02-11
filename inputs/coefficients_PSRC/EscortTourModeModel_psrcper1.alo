@@ -1,0 +1,102 @@
+$TITLE Escort tour mode choice                                                        
+$ESTIMATE
+$GEN.STATS utilities
+$ALGOR maxit = 20
+$ALGOR Zeta  = 0.15
+
+  2   timeutil F 3.3416
+ 30   s3-const F -2.1801
+ 31   s3-hhcu5 F 1.1668
+ 32   s3-hh515 F 0.4823
+ 33   s3-hhdas F 0.0777
+ 40   s2-const F -1.3016
+ 41  sr-nocars T -5.9140
+ 42 sr-carsltd F -0.0326
+ 50  hov-const T -10.0000
+ 60   bi-const T -10.0000
+ 73  wk-ageo50 F -2.3805
+ 76   wk-dintd T 0.0000
+ 81   wk-hhcu5 F 0.9150
+ 82   wk-hh515 F -0.0272
+ 83   wk-hhdas F -1.4155
+
+$NEST 7 (999) 2 3
+$NEST 8 (999) 4
+$NEST 9 (999) 5 6 
+
+
+$ARRAY DD(25)
+FILE (name=EscortTourModeModel_psrcper1.dat) DD
+ID = DD(1)
+
+choice = DD(19)
+
+- rejected observations: 0
+
+- choice and availability summary -
+
+- alt   2 -      alt_2 / Chosen      264 Available     2944
+- alt   3 -      alt_3 / Chosen        6 Available     3405
+- alt   4 -      alt_4 / Chosen       44 Available     2716
+- alt   5 -      alt_5 / Chosen     1367 Available     3459
+- alt   6 -      alt_6 / Chosen     1778 Available     3459
+
+- utility summary -
+
+- alt   2 -      alt_2 /   2 -   timeutil % Non-0  85.11 Mean    -3.22
+- alt   2 -      alt_2 /  73 -  wk-ageo50 % Non-0  20.53 Mean     1.00
+- alt   2 -      alt_2 /  76 -   wk-dintd % Non-0  85.11 Mean    45.01
+- alt   2 -      alt_2 /  81 -   wk-hhcu5 % Non-0  29.00 Mean     1.32
+- alt   2 -      alt_2 /  82 -   wk-hh515 % Non-0  52.73 Mean     1.69
+- alt   2 -      alt_2 /  83 -   wk-hhdas % Non-0  11.30 Mean     1.06
+
+- alt   3 -      alt_3 /  60 -   bi-const % Non-0  98.44 Mean     1.00
+
+- alt   4 -      alt_4 /  50 -  hov-const % Non-0  78.52 Mean     1.00
+
+- alt   5 -      alt_5 /   2 -   timeutil % Non-0 100.00 Mean    -0.53
+- alt   5 -      alt_5 /  40 -   s2-const % Non-0 100.00 Mean     1.00
+- alt   5 -      alt_5 /  41 -  sr-nocars % Non-0   0.35 Mean     1.00
+- alt   5 -      alt_5 /  42 - sr-carsltd % Non-0  20.64 Mean     1.00
+
+- alt   6 -      alt_6 /   2 -   timeutil % Non-0 100.00 Mean    -0.52
+- alt   6 -      alt_6 /  30 -   s3-const % Non-0 100.00 Mean     1.00
+- alt   6 -      alt_6 /  31 -   s3-hhcu5 % Non-0  33.13 Mean     1.31
+- alt   6 -      alt_6 /  32 -   s3-hh515 % Non-0  59.35 Mean     1.70
+- alt   6 -      alt_6 /  33 -   s3-hhdas % Non-0  13.79 Mean     1.05
+- alt   6 -      alt_6 /  41 -  sr-nocars % Non-0   0.35 Mean     1.00
+
+avail(2)=DD(2)
+avail(3)=DD(9)
+avail(4)=DD(11)
+avail(5)=DD(13)
+avail(6)=DD(18)
+
+util(2)=0
+  + p2*DD(3)
+  + p73*DD(4)
+  + p76*DD(5)
+  + p81*DD(6)
+  + p82*DD(7)
+  + p83*DD(8)
+
+util(3)=0
+  + p60*DD(10)
+
+util(4)=0
+  + p50*DD(12)
+
+util(5)=0
+  + p2*DD(14)
+  + p40*DD(15)
+  + p41*DD(16)
+  + p42*DD(17)
+
+util(6)=0
+  + p2*DD(20)
+  + p30*DD(21)
+  + p31*DD(22)
+  + p32*DD(23)
+  + p33*DD(24)
+  + p41*DD(25)
+
