@@ -567,5 +567,5 @@ ivtpxferry,transit,local-bus,all,1320,299,maxzone,null,null,1,FALSE,null,null,nu
 fare,transit,local-bus,all,0,1439,maxzone,hdf5,9to10.h5/Skims/mfmfarbx,1,FALSE,null,null,null,TRUE
 time,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,null,TRUE
 distance,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,0.05,TRUE
-time,bike,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/biket,1,FALSE,distance,null,null,TRUE
-distance,bike,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/biket,1,FALSE,distance,null,0.1,TRUE
+time,bike,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,0.25,TRUE
+distance,bike,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,0.2,TRUE

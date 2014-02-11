@@ -1,0 +1,297 @@
+\documentclass{article}
+\usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=1.0cm,rmargin=0.5cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\usepackage{lscape}            % for landscape mode tables
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
+\setlength{\textwidth}{6in} 
+\def\Sweavesize{\smallsize} 
+
+\title{Daysim Summary}
+
+\author{Suzanne and Yingqian}
+
+\maketitle
+\small
+
+\begin{abstract}
+This document compares a SoundCast run to the household survey data.
+\end{abstract}
+
+<<echo=false>>=
+# Author: suzanne.childress
+###############################################################################
+
+###This script generates basic summaries for a Daysim model run outputs in HDF5
+#install.packages("plyr")
+#install.packages("data.table")
+#install.packages("rhdf5")
+# can be found on: http://www.bioconductor.org/packages/2.13/bioc/html
+# /rhdf5.html
+#install.packages("ggplot2")
+#install.packages("car")
+#install.packages("xtable")
+#install.packages("sqldf")
+#install.packages("reshape2")
+#install.packages("knitr")
+
+library(plyr)
+library(data.table)
+library(rhdf5)
+library(ggplot2)
+library(car)
+library(xtable)
+library(sqldf)
+library(reshape2)
+library(knitr)
+
+options(width=100)
+options("scipen" = 100, digits=2)
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+paths<- vector(mode = "list", length=2)
+# construct the names of where the files are located
+run_path<-getwd()
+#run_path <-"C:/output_test2"
+run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
+paths <-c(paste(run_path, "/outputs/daysim_outputs.h5",sep = ""),
+          paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
+dist_sum <- paste(run_path, "/outputs/district_summary_trips", sep = "")
+
+# Give a descriptive name of the two datasets that are being compared
+# For now we will assume the first dataset is ALWAYS the model, and the second is ALWAYS
+# the survey
+names(paths)<- c("2010 Model Run", "2006 Survey")
+type <- names(paths)
+
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv",sep = "")
+
+###Some convenience functions to make summaries more readable
+# We  want to put this into the HDF5 file, but it's not there yet
+recode <- function(dataset){
+  dataset$mode[dataset$mode==1] <- "walk"
+  dataset$mode[dataset$mode==2] <- "bike"
+  dataset$mode[dataset$mode==3] <- "sov"
+  dataset$mode[dataset$mode==4] <- "hov2"
+  dataset$mode[dataset$mode==5] <- "hov3+"
+  dataset$mode[dataset$mode==6] <- "transit"
+  dataset$mode[dataset$mode==7] <- "other"
+  dataset$mode[dataset$mode==8] <- "school_bus"
+  dataset$mode[dataset$mode==9] <- "other"
+  
+  dataset$dpurp[dataset$dpurp==0] <- "home"
+  dataset$dpurp[dataset$dpurp==1] <- "work"
+  dataset$dpurp[dataset$dpurp==2] <- "school"
+  dataset$dpurp[dataset$dpurp==3] <- "escort"
+  dataset$dpurp[dataset$dpurp==4] <- "personal business"
+  dataset$dpurp[dataset$dpurp==5] <- "shop"
+  dataset$dpurp[dataset$dpurp==6] <- "meal"
+  dataset$dpurp[dataset$dpurp==7] <- "social"
+  dataset$dpurp[dataset$dpurp==8] <- "social"
+  dataset$dpurp[dataset$dpurp==9] <- "personal business"
+  dataset$dpurp[dataset$dpurp==10] <- "other"
+  dataset
+}
+
+recode_tours <- function(dataset){
+  dataset$tmodetp[dataset$tmodetp==1] <- "walk"
+  dataset$tmodetp[dataset$tmodetp==2] <- "bike"
+  dataset$tmodetp[dataset$tmodetp==3] <- "sov"
+  dataset$tmodetp[dataset$tmodetp==4] <- "hov2"
+  dataset$tmodetp[dataset$tmodetp==5] <- "hov3+"
+  dataset$tmodetp[dataset$tmodetp==6] <- "transit"
+  dataset$tmodetp[dataset$tmodetp==7] <- "other"
+  dataset$tmodetp[dataset$tmodetp==8] <- "school_bus"
+  dataset$tmodetp[dataset$tmodetp==9] <- "other"
+  
+  dataset$pdpurp[dataset$pdpurp==0] <- "home"
+  dataset$pdpurp[dataset$pdpurp==1] <- "work"
+  dataset$pdpurp[dataset$pdpurp==2] <- "school"
+  dataset$pdpurp[dataset$pdpurp==3] <- "escort"
+  dataset$pdpurp[dataset$pdpurp==4] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==5] <- "shop"
+  dataset$pdpurp[dataset$pdpurp==6] <- "meal"
+  dataset$pdpurp[dataset$pdpurp==7] <- "social"
+  dataset$pdpurp[dataset$pdpurp==8] <- "social"
+  dataset$pdpurp[dataset$pdpurp==9] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==10] <- "other"
+  dataset
+}
+
+recode_districts<-function(dataset){
+  # change the input file
+  dataset$District[dataset$District==1] <- "Lakewood"
+  dataset$District[dataset$District==2] <- "SE Pierce"
+  dataset$District[dataset$District==3] <- "Tacoma"
+  dataset$District[dataset$District==4] <- "Federal Way"
+  dataset$District[dataset$District==5] <- "Kent"
+  dataset$District[dataset$District==6] <- "Burien"
+  dataset$District[dataset$District==7] <- "Issaquah"
+  dataset$District[dataset$District==8] <- "Bellevue"
+  dataset$District[dataset$District==9] <- "Redmond"
+  dataset$District[dataset$District==10] <- "South Seattle"
+  dataset$District[dataset$District==11] <- "Seattle CBD"
+  dataset$District[dataset$District==12] <- "Capitol Hill"
+  dataset$District[dataset$District==13] <- "North Seattle"
+  dataset$District[dataset$District==14] <- "Shoreline"
+  dataset$District[dataset$District==15] <- "Lynnwood"
+  dataset$District[dataset$District==16] <- "Mill Creek"
+  dataset$District[dataset$District==17] <- "Everett"
+  dataset$District[dataset$District==18] <- "Marysville"
+  dataset$District[dataset$District==19] <- "Kitsap"
+  dataset$District[dataset$District==20] <- "External/PNR"
+  dataset
+}
+
+
+get_total <- function(exp_fac)
+{
+  total <- sum(exp_fac)
+  if(total<1)
+  {
+    total <- nrow(exp_fac)
+  }
+  total 
+}
+
+h5group_to_table<-function (daysim_path, h5_data_root, datasets = NULL) 
+{
+    if (is.null(datasets)) {
+        dir <- h5ls(daysim_path)
+        datasets_select <- dir[dir$group %in% h5_data_root, "name"]
+    }
+    else {
+        datasets_select <- datasets
+    }
+    i = 0
+    for (x in datasets_select) {
+        if (i == 0) {
+            outtable <- data.table(h5read(daysim_path, paste(h5_data_root, 
+                x, sep = "/")))
+        }
+        else {
+            outtable <- cbind(outtable, data.table(h5read(daysim_path, 
+                paste(h5_data_root, x, sep = "/"))))
+        }
+        i = i + 1
+    }
+    setnames(outtable, datasets_select)
+    return(outtable)
+}
+
+get_group_names<-function (data1_path) 
+{
+    dataset_names <- h5ls(data1_path)
+    group_names <- unique(dataset_names$group)
+    group_names <- group_names[group_names != "/"]
+    group_names
+}
+
+######################################################################################
+# READ IN DATA
+
+zone_district<- read.csv(district_file)
+zone_district<-recode_districts(zone_district)
+
+for(i in 1:length(paths))
+{
+  
+  for(group in get_group_names(paths[i]))
+  {
+    table<- h5group_to_table(paths[i], group)
+    table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+    table_name <- paste(table_name[2],toString(i), sep="_")
+    assign(table_name, table)
+  }
+}
+#####################################################################
+### RECODE DATA FOR READABILITY
+
+Trip_1<-recode(Trip_1)
+Trip_2 <-recode(Trip_2)
+
+
+#####################################################################
+@
+
+
+
+
+
+\subsection{Total Trips}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+
+
+Trip_1$type <- names(paths[1])
+Trip_2$type <- names(paths[2])
+
+Trip_1$share <- 1/nrow(Trip_1)
+Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
+
+
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
+
+
+
+ Trip_1_o<-  sqldf("SELECT dtaz,count(*) as NumTrips,
+                  District as OriginDistrict FROM Trip_1
+                  INNER JOIN zone_district 
+                  on Trip_1.otaz= zone_district.TAZ
+                  Group by District,dtaz")
+
+  Trip_1_od<-  sqldf("SELECT sum(NumTrips) as Trips,
+                     OriginDistrict,
+                   District as DestinationDistrict FROM Trip_1_o
+                   INNER JOIN zone_district 
+                   on  Trip_1_o.dtaz= zone_district.TAZ
+                   Group by OriginDistrict,zone_district.District")
+###Person_2 summaries
+
+
+ Trip_2_o<-  sqldf("SELECT dtaz,sum(trexpfac)as NumTrips,
+                  District as OriginDistrict FROM Trip_2
+                  INNER JOIN zone_district 
+                  on Trip_2.otaz= zone_district.TAZ
+                  Group by District,dtaz")
+
+  Trip_2_od<-  sqldf("SELECT sum(NumTrips)as NumTrips,
+                     OriginDistrict,
+                   District as DestinationDistrict FROM Trip_2_o
+                   INNER JOIN zone_district 
+                   on  Trip_2_o.dtaz= zone_district.TAZ
+                   Group by OriginDistrict,zone_district.District")
+  
+
+
+Trip_1_MTX<-  acast(Trip_1_od, formula=OriginDistrict ~ DestinationDistrict, 
+                    value.var='Trips')
+
+Trip_2_MTX<-  Trip_2_od
+
+
+write.csv(Trip_1_MTX, paste(run_path,"/scripts/summarize/ModelTripsDistrict.csv", sep = ""))
+write.csv(Trip_2_MTX, paste(run_path,"/scripts/summarize/SurveyTripsDistrict.csv", sep = ""))
+
+
+@
+
+
+@
+\end{document}
