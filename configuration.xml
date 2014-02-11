@@ -19,7 +19,7 @@ WorkingDirectory="..\working"
 WorkingSubpath = "..\working"
 EstimationSubpath = "estimation"
 
-RosterPath="psrc_est_roster.csv"
+RosterPath="psrc_final_roster.csv"
 RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hh_and_persons.h5"
