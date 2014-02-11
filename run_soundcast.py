@@ -112,7 +112,7 @@ def copy_large_inputs():
     print 'Copying large inputs...'
     
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    #shcopy(base_inputs+'/networks','Inputs/networks')
+    shcopy(base_inputs+'/networks','Inputs/networks')
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
@@ -120,14 +120,48 @@ def copy_large_inputs():
     shcopy(base_inputs+'/4k/trips_auto_4k.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/trips_transit_4k.h5','Inputs/4k')
 
-def run_R_summary(summary_name):
+def run_R_summary(summary_name,iter):
      R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
      tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
      run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
      returncode = subprocess.check_call(run_R)
-     os.rename(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs\\'+summary_name+'.pdf'))
-     os.rename(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs\\'+summary_name+'_Plot.pdf'))
+     shcopy(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.pdf'))
+     shcopy(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+ str(iter)+'_Plot.pdf'))
+     os.remove(os.path.join(os.getcwd(), summary_name+'.pdf'))
+     os.remove(os.path.join(os.getcwd(), 'Rplots.pdf'))
 
+def run_Rcsv_summary(summary_name,iter):
+    R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
+    tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
+    run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
+    returncode = subprocess.check_call(run_R)
+
+def move_files_to_outputs(iter):
+    # this is hard-coded please fix later.
+    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(x)+'.csv'))
+    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(x)+'.csv'))
+    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
+    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'))
+    
+def delete_tex_files():
+    for root, dirs, files in os.walk(os.getcwd()):
+        for currentFile in files:
+            print "processing file: " + currentFile
+            if currentFile.endswith('tex'):
+                os.remove(os.path.join(root, currentFile))
+
+def run_all_R_summaries(iter):
+     run_R_summary('DaySimReport',iter)
+     run_R_summary('DaysimReportLongTerm',iter)
+     run_R_summary('DaysimReportDayPattern',iter)
+     run_R_summary('ModeChoiceReport',iter)
+     # these are commented out because you don't need them on each
+     # run but you may wish to run them sometimes
+     #run_R_summary('DaysimDestChoice',iter)
+     #run_R_summary('DaysimTimeChoice',iter)
+     #run_Rcsv_summary('DaysimReport_District', iter)
+     move_files_to_outputs(iter)
+     delete_tex_files()
 ##########################
 # Main Script:
 copy_daysim_code()
@@ -157,9 +191,10 @@ returncode = subprocess.call([sys.executable,
 if returncode != 0:
     sys.exit(1)
 
-time_skims = datetime.datetime.now()#print '###### Finished skimbuilding:', time_skims - time_copy
+time_skims = datetime.datetime.now()
+#print '###### Finished skimbuilding:', time_skims - time_copy
 
-# We are arbitrarily looping 2 times
+# We are arbitrarily looping 3 times
 
 for x in range(0,3):
      print "We're on iteration %d" % (x)
@@ -175,6 +210,9 @@ for x in range(0,3):
      print time_daysim
      f.write("ending daysim %s\r\n" %str((time_daysim)))
 
+     #### SUMMARIZE DAYSIM##########################################################
+     run_all_R_summaries(iter)
+
       ### ASSIGNMENTS ###############################################################
      time_startassign = datetime.datetime.now()
      f.write("starting assignment %s\r\n" %str((time_startassign)))
@@ -185,23 +223,13 @@ for x in range(0,3):
      time_assign = datetime.datetime.now()
      print time_assign
      f.write("ending assignment %s\r\n" %str((time_assign)))
-    
-     #print '###### Finished running assignments:',time_assign - time_daysim
 
+     #print '###### Finished running assignments:',time_assign - time_daysim
 
      ### ASSIGNMENT SUMMARY###############################################################
      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
      time_assign_summ = datetime.datetime.now()
      print '###### Finished running assignment summary:',time_assign_summ - time_assign
-
-
-     ##DAYSIM SUMMARIZE########################################################################
-     run_R_summary('DaySimReport',x)
-     run_R_summary('DaysimReportLongTerm',x)
-     run_R_summary('DaysimReportDayPattern',x)
-     run_R_summary('ModeChoiceReport',x)
-     run_R_summary('DaysimDestChoice',x)
-     run_R_summary('DaysimTimeChoice',x)
 
 ### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
