@@ -14,6 +14,7 @@ import subprocess
 import inro.emme.database.emmebank as _eb
 import json
 from shutil import copy2 as shcopy
+from distutils import dir_util
 
 time_start = datetime.datetime.now()
 # location of the daysim exe
@@ -112,7 +113,7 @@ def copy_large_inputs():
     print 'Copying large inputs...'
     
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    shcopy(base_inputs+'/networks','Inputs/networks')
+    dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     shcopy(base_inputs+'/etc/psrc_node_node_distances_binary_2010.dat','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
