@@ -1,5 +1,4 @@
 {
-    "type": "PATH_BASED_TRAFFIC_ANALYSIS",
     "classes": [
         {
             "results": {
@@ -9,9 +8,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf19"
                 }
             }
         },
@@ -23,9 +22,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf20"
                 }
             }
         },
@@ -37,9 +36,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf21"
                 }
             }
         },
@@ -51,9 +50,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf22"
                 }
             }
         },
@@ -65,9 +64,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf23"
                 }
             }
         },
@@ -79,9 +78,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf24"
                 }
             }
         },
@@ -93,9 +92,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf25"
                 }
             }
         },
@@ -107,9 +106,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf26"
                 }
             }
         },
@@ -121,9 +120,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf27"
                 }
             }
         },
@@ -135,9 +134,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf28"
                 }
             }
         },
@@ -149,9 +148,9 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf29"
                 }
             }
         },
@@ -163,68 +162,74 @@
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf30"
                 }
             }
         },
         {
             "results": {
-                "od_travel_times": null,
+                "od_travel_times": {
+                    "shortest_paths": "mf49"
+                },
                 "link_volumes": null,
                 "turn_volumes": null
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf31"
                 }
             }
         },
         {
             "results": {
-                "od_travel_times": null,
+                "od_travel_times": {
+                    "shortest_paths": "mf51"
+                },
                 "link_volumes": null,
                 "turn_volumes": null
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf32"
                 }
             }
         },
         {
             "results": {
-                "od_travel_times": null,
+                "od_travel_times": {
+                    "shortest_paths": "mf50"
+                },
                 "link_volumes": null,
                 "turn_volumes": null
             },
             "analysis": {
                 "results": {
-                    "selected_link_volumes": null,
                     "selected_turn_volumes": null,
-                    "od_values": null
+                    "selected_link_volumes": null,
+                    "od_values": "mf33"
                 }
             }
         }
-
     ],
+    "cutoff_analysis": null,
+    "type": "PATH_BASED_TRAFFIC_ANALYSIS",
     "path_analysis": {
-        "link_component": "length",
-        "turn_component": null,
         "operator": "+",
         "selection_threshold": {
-            "lower": 0,
-            "upper": 999999
+            "upper": 999999,
+            "lower": 0
         },
+        "turn_component": null,
+        "link_component": "@timau",
         "path_to_od_composition": {
-            "considered_paths": "ALL",
-            "operator": "average"
+            "operator": "average",
+            "considered_paths": "ALL"
         }
-    },
-    "cutoff_analysis": null
+    }
 }

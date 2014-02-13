@@ -17,7 +17,7 @@ from multiprocessing import Pool
 
 #Hard-coded paths/data will be moved to a Config file
 # Number of simultaneous parallel processes. Must be a factor of 12.
-parallel_instances = 12
+parallel_instances = 6
 # Number of Global Iterations
 global_iterations = 1
 # Assignment Convergence Criteria
@@ -72,9 +72,12 @@ skim_matrix_designation_limited = ['d']
 
 
 
-#skim for distance for only these time periods
-distance_skim_tod = ['5to6']
 
+
+#skim for distance for only these time periods
+distance_skim_tod = ['7to8', '17to18']
+generalized_cost_tod = ['7to8', '17to18']
+gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk'}
 #bike/walk
 bike_walk_skim_tod = ['5to6']
 bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
@@ -347,6 +350,16 @@ def define_matrices(my_project):
                           overwrite=True,
                           scenario=current_scenario)
 
+
+    #Create Generalized Cost Skims matrices for only for tod in generalized_cost_tod
+    if tod in generalized_cost_tod:
+        for key, value in gc_skims.iteritems():
+            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
+                          matrix_name= value + 'g',
+                          matrix_description= "Generalized Cost Skim: " + key,
+                          default_value=0,
+                          overwrite=True,
+                          scenario=current_scenario)
 
     #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
     # Actual In Vehicle Times by Mode
@@ -774,6 +787,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
 
     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
     my_bank = current_scenario.emmebank
+    tod = my_bank.title
 
     #Figure out what skim matrices to use based on attribute (either time or length)
     if my_skim_attribute =="Time":
@@ -815,7 +829,14 @@ def attribute_based_skims(my_project,my_skim_attribute):
         matrix_id = my_bank.matrix(matrix_name).id
         mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
         mod_skim["path_analysis"]["link_component"] = my_extra
-
+        #only need generalized cost skims for trucks
+        if tod in generalized_cost_tod:
+            print "here"
+            if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
+                print "here now"
+                mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = my_user_classes["Highway"][x]["Name"] + 'g'
+        #otherwise, make sure we do not skim for GC!
+       
     skim_traffic(mod_skim)
 
     #add in intrazonal values & terminal times:
@@ -1183,7 +1204,13 @@ def skims_to_hdf5_concurrent(my_project):
             matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
-                
+    if tod in generalized_cost_tod:
+        for value in gc_skims.values():
+            matrix_name = value + 'g'
+            matrix_id = my_bank.matrix(matrix_name).id 
+            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data) 
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
+            print matrix_name+' was transferred to the HDF5 container.'
     my_store.close()
     end_export_hdf5 = time.time()
     print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to export all skims to the HDF5 File.'
@@ -1693,7 +1720,7 @@ def run_assignments_parallel(project_name):
     define_matrices(m)
 
     #Import demand/trip tables to emme. This is actually quite fast con-currently.
-    hdf5_trips_to_Emme(m, hdf5_file_path)
+    
     
 
     tod = m.emmebank.title
@@ -1768,9 +1795,9 @@ def main():
         
             #want pooled processes finished before executing more code in main:
 
-        #start_pool(project_list)
+        start_pool(project_list)
         start_transit_pool(project_list)
-        #run_assignments_parallel('Projects/6to7/6to7.emp')
+        #run_assignments_parallel('Projects/8to9/8to9.emp')
 
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
         #time period, and then merging them all to one HDF5 file at the end, but
