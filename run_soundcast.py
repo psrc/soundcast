@@ -21,6 +21,7 @@ time_start = datetime.datetime.now()
 print "\nSoundCast run: start time:", time_start
 
 f = open('d:/Soundcast_log.txt', 'wb')
+
 def multipleReplace(text, wordDict):
     for key in wordDict:
         text = text.replace(key, wordDict[key])
@@ -224,6 +225,7 @@ for x in range(0,3):
      time_assign = datetime.datetime.now()
      print time_assign
      f.write("ending assignment %s\r\n" %str((time_assign)))
+     f.close()
 
      #print '###### Finished running assignments:',time_assign - time_daysim
 
