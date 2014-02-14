@@ -5,4 +5,6 @@ projects/
 Daysim/last-run.log
 *.pyc
 *.tsv
-
+*.tex
+*.alo
+*.Rhistory
