@@ -19,7 +19,7 @@ WorkingDirectory="..\working"
 WorkingSubpath = "..\working"
 EstimationSubpath = "estimation"
 
-RosterPath="psrc_final_roster.csv"
+RosterPath="psrc_full_roster.csv"
 RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hh_and_persons.h5"
@@ -54,6 +54,7 @@ ShowRunChoiceModelsStatus="true"
 
 UseShortDistanceNodeToNodeMeasures="false"
 
+VotVeryLowLow="3"
 VotLowMedium="7"
 VotMediumHigh="14"
 VotHighVeryHigh="28"
