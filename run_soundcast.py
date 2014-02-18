@@ -8,6 +8,9 @@ daysim_code = 'r:/soundcast/daysim'
 master_project = 'LoadTripTables'
 # Large input files are not in Git; copy them from:
 base_inputs = 'r:/soundcast/inputs'
+# make this configurable later
+network_summary_files=['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                       'counts_output', 'network_summary']
 
 import os,sys,datetime,re
 import subprocess
@@ -164,6 +167,11 @@ def run_all_R_summaries(iter):
      #run_Rcsv_summary('DaysimReport_District', iter)
      move_files_to_outputs(iter)
      delete_tex_files()
+
+def rename_network_outs(iter):
+    for summary_name in network_summary_files:
+        shcopy(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
+        os.remove(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'))
 ##########################
 # Main Script:
 copy_daysim_code()
@@ -231,6 +239,7 @@ for x in range(0,3):
 
      ### ASSIGNMENT SUMMARY###############################################################
      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+     rename_network_outs(iter)
      time_assign_summ = datetime.datetime.now()
      print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
