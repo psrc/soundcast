@@ -1720,7 +1720,7 @@ def run_assignments_parallel(project_name):
     define_matrices(m)
 
     #Import demand/trip tables to emme. This is actually quite fast con-currently.
-    
+    hdf5_trips_to_Emme(m, hdf5_file_path)
     
 
     tod = m.emmebank.title
@@ -1795,7 +1795,6 @@ def main():
         
             #want pooled processes finished before executing more code in main:
 
-        start_pool(project_list)
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/8to9/8to9.emp')
 
