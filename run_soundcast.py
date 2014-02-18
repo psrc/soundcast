@@ -225,7 +225,7 @@ for x in range(0,3):
      time_assign = datetime.datetime.now()
      print time_assign
      f.write("ending assignment %s\r\n" %str((time_assign)))
-     f.close()
+     
 
      #print '###### Finished running assignments:',time_assign - time_daysim
 
@@ -237,7 +237,7 @@ for x in range(0,3):
 ### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
 #print '    Total run time:',time_assign_summ - time_start
-
+f.close()
 
 
 
