@@ -829,8 +829,8 @@ def attribute_based_skims(my_project,my_skim_attribute):
         matrix_id = my_bank.matrix(matrix_name).id
         mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
         mod_skim["path_analysis"]["link_component"] = my_extra
-        #only need generalized cost skims for trucks
-        if tod in generalized_cost_tod:
+        #only need generalized cost skims for trucks and only doing it when skimming for time.
+        if tod in generalized_cost_tod and skim_desig == 't':
             print "here"
             if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
                 print "here now"
@@ -853,6 +853,17 @@ def attribute_based_skims(my_project,my_skim_attribute):
             mod_calc["result"] = matrix_id
             mod_calc["expression"] = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id
             matrix_calc(mod_calc)
+           
+    #only want to do this once!
+    if tod in generalized_cost_tod and skim_desig == 't': 
+        for value in gc_skims.values():
+           matrix_name = value + 'g'
+           matrix_id = my_bank.matrix(matrix_name).id
+           mod_calc = matrix_calculator
+           mod_calc["result"] = matrix_id
+           mod_calc["expression"] = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id
+           matrix_calc(mod_calc)
+
     if my_skim_attribute =="Distance":
         for x in range (0, len(mod_skim["classes"])):
             matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
@@ -861,6 +872,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
             mod_calc["result"] = matrix_id
             mod_calc["expression"] = inzone_distance + "+" + matrix_id
             matrix_calc(mod_calc)
+
 
 
 
@@ -1490,7 +1502,8 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
                 demand_matrix[zone, spec_gen]+=np_matrix_2[zone,spec_gen]*\
                 this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
     
-    return np.round(demand_matrix,2)
+    #return np.round(demand_matrix,4)
+    return demand_matrix
 
 def create_trip_tod_indices(tod):
      #creates an index for those trips that belong to tod (time of day)
@@ -1522,6 +1535,35 @@ def create_trip_tod_indices(tod):
      return indexArray
      my_store.close
 
+def matrix_controlled_rounding(my_project):
+    #
+
+
+
+    print 'start matrix conrolled rounding'
+    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+    my_bank = current_scenario.emmebank
+    matrix_dict = text_to_dictionary('demand_matrix_dictionary')
+    uniqueMatrices = set(matrix_dict.values())
+    NAMESPACE = "inro.emme.matrix_calculation.matrix_controlled_rounding"
+    for matrix_name in uniqueMatrices:
+        matrix_id = my_bank.matrix(matrix_name).id
+        matrix_calculator = json_to_dictionary("matrix_calculation")
+        matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
+        mod_calc = matrix_calculator
+        mod_calc["result"] = None
+        mod_calc["expression"] = matrix_name
+        mod_calc["aggregation"]["origins"] = "+"
+        mod_calc["aggregation"]["destinations"] = "+"
+        result = matrix_calc(mod_calc)
+        
+        if result['maximum'] > 0:
+            controlled_rounding = my_project.tool("inro.emme.matrix_calculation.matrix_controlled_rounding")
+            report = controlled_rounding(demand_to_round=matrix_id,
+                             rounded_demand=matrix_id,
+                             min_demand=0.1,
+                             values_to_round="SMALLER_THAN_MIN")
+    print 'finished matrix controlled rounding'
 
 def start_pool(project_list):
     #An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and
@@ -1721,7 +1763,7 @@ def run_assignments_parallel(project_name):
 
     #Import demand/trip tables to emme. This is actually quite fast con-currently.
     hdf5_trips_to_Emme(m, hdf5_file_path)
-    
+    matrix_controlled_rounding(m)
 
     tod = m.emmebank.title
     populate_intrazonals(m)
@@ -1795,8 +1837,9 @@ def main():
         
             #want pooled processes finished before executing more code in main:
 
+        
         start_transit_pool(project_list)
-        #run_assignments_parallel('Projects/8to9/8to9.emp')
+        #run_assignments_parallel('Projects/5to6/5to6.emp')
 
         #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
         #time period, and then merging them all to one HDF5 file at the end, but
@@ -1805,7 +1848,7 @@ def main():
         #in their own pool/process.
 
         #This project points to all TOD Banks:
-        export_project_list = ['Projects/LoadTripTables/LoadTripTables.emp']
+        #export_project_list = ['Projects/LoadTripTables/LoadTripTables.emp']
         export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
