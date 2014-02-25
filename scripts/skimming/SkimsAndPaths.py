@@ -14,6 +14,8 @@ import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
+import logging
+import datetime
 
 #Hard-coded paths/data will be moved to a Config file
 # Number of simultaneous parallel processes. Must be a factor of 12.
@@ -31,7 +33,12 @@ MAX_EXTERNAL = 3749-1
 #zone of special generators - 1 because numpy is zero-based
 SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
 
+#Create a logging file to report model progress
+logging.basicConfig(filename='skims_log.txt', level=logging.DEBUG)
 
+#Report model starting
+current_time = str(time.strftime("%H:%M:%S"))
+logging.debug('----Began SkimsAndPaths script at ' + current_time)
 
 if '-use_survey_seed_trips' in sys.argv:
 	seed_trips = True
@@ -159,7 +166,8 @@ def create_hdf5_container(hdf_name):
         print 'HDF5 File already exists - no file was created'
 
     end_time = time.time()
-    print 'It took', round((end_time-start_time),2), 'seconds to create the HDF5 file.'
+    text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
+    logging.debug(text)
 
     return hdf_filename
 
@@ -188,7 +196,8 @@ def create_hdf5_skim_container(hdf5_name):
 
 
     end_time = time.time()
-    print 'It took', round((end_time-start_time),2), 'seconds to create the HDF5 file.'
+    text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
+    logging.debug(text)
 
     return hdf5_filename
 
@@ -218,8 +227,8 @@ def create_hdf5_skim_container2(hdf5_name):
         my_store.close()
 
     end_time = time.time()
-    print 'It took', round((end_time-start_time),2), 'seconds to create the HDF5 file.'
-
+    text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
+    logging.debug(text)
     return hdf5_filename
 def text_to_dictionary(dict_name):
 
@@ -443,7 +452,8 @@ def define_matrices(my_project):
 
     end_define_matrices = time.time()
 
-    print 'It took', round((end_define_matrices-start_define_matrices)/60,2), 'minutes to define all matrices in Emme.'
+    text = 'It took ' + str(round((end_define_matrices-start_define_matrices)/60,2)) + ' minutes to define all matrices in Emme.'
+    logging.debug(text)
 
 def create_fare_zones(my_project, zone_file, fare_file):
     my_bank = my_project.emmebank
@@ -523,7 +533,7 @@ def populate_intrazonals(my_project):
     mod_calc["result"] = 'termti'
     mod_calc["expression"] = 'prodtt + attrtt' 
     matrix_calc(mod_calc)
-    print 'finished populating intrazonals'
+    logging.debug('finished populating intrazonals')
 
 
 def intitial_extra_attributes(my_project):
@@ -713,6 +723,8 @@ def traffic_assignment(my_project):
     end_traffic_assignment = time.time()
 
     print 'It took', round((end_traffic_assignment-start_traffic_assignment)/60,2), 'minutes to run the assignment.'
+    text = 'It took ' + str(round((end_traffic_assignment-start_traffic_assignment)/60,2)) + ' minutes to run the traffic assignment.'
+    logging.debug(text)
 
 def transit_assignment(my_project):
 
@@ -745,6 +757,9 @@ def transit_assignment2(my_project, tod):
 
     end_transit_assignment = time.time()
     print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
+    text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the transit assignment.'
+    logging.debug(text)
+
 def transit_skims(my_project):
 
     skim_transit = my_project.tool("inro.emme.transit_assignment.extended.matrix_results")
@@ -768,6 +783,7 @@ def transit_skims2(my_project, tod):
 
     end_time_skim = time.time()
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the transit skim'
+
 
 def attribute_based_skims(my_project,my_skim_attribute):
     #Use only for Time or Distance!
@@ -884,6 +900,8 @@ def attribute_based_skims(my_project,my_skim_attribute):
     end_time_skim = time.time()
 
     print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the ' +skim_type+'.'
+    text = 'It took ' + str(round((end_time_skim-start_time_skim)/60,2)) + ' minutes to calculate the ' + skim_type + '.'
+    logging.debug(text)
 
 def attribute_based_toll_cost_skims(my_project, toll_attribute):
     #Function to calculate true/toll cost skims. Should fold this into attribute_based_skims function.
@@ -938,6 +956,8 @@ def cost_skims(my_project):
     end_gc_skim = time.time()
 
     print 'It took', round((end_gc_skim-start_gc_skim)/60,2), 'minutes to calculate the generalized cost skims.'
+    text = 'It took ' + str(round((end_gc_skim-start_gc_skim)/60,2)) + ' minutes to calculate the generalized cost skims.'
+    logging.debug(text)
 
 def class_specific_volumes(my_project):
 
@@ -958,7 +978,8 @@ def class_specific_volumes(my_project):
     end_vol_skim = time.time()
 
     print 'It took', round((end_vol_skim-start_vol_skim),2), 'seconds to generate class specific volumes.'
-
+    text = 'It took ' + str(round((end_vol_skim-start_vol_skim),2)) + ' seconds to generate class specific volumes.'
+    logging.debug(text)
 
 
 
@@ -1091,7 +1112,9 @@ def skims_to_hdf5(my_project):
                 
         my_store.close()
     end_export_hdf5 = time.time()
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to import matrices to Emme.'
+    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to import matrices to Emme.'
+    text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
+    logging.debug(text)
 
 def skims_to_hdf5_concurrent(my_project):
 #one project, one bank
@@ -1225,7 +1248,9 @@ def skims_to_hdf5_concurrent(my_project):
             print matrix_name+' was transferred to the HDF5 container.'
     my_store.close()
     end_export_hdf5 = time.time()
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), 'minutes to export all skims to the HDF5 File.'
+    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.'
+    text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
+    logging.debug(text)
 
 def hdf5_to_emme(my_project):
 
@@ -1268,8 +1293,9 @@ def hdf5_to_emme(my_project):
     hdf_file.close()
     end_import_hdf5 = time.time()
 
-    print 'It took', round((end_import_hdf5-start_import_hdf5)/60,2), 'minutes to import matrices to Emme.'
-
+    print 'It took', round((end_import_hdf5-start_import_hdf5)/60,2), ' minutes to import matrices to Emme.'
+    text = 'It took ' + str(round((end_import_hdf5-start_import_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
+    logging.debug(text)
 
 
 def hdf5_trips_to_Emme(my_project, hdf_filename):
@@ -1411,7 +1437,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
     end_time = time.time()
 
-    print 'It took', round((end_time-start_time)/60,2), 'minutes to import trip tables to emme.'
+    print 'It took', round((end_time-start_time)/60,2), ' minutes to import trip tables to emme.'
+    text = 'It took ' + str(round((end_time-start_time)/60,2)) + ' minutes to import trip tables to emme.'
+    logging.debug(text)
 
 def load_trucks_external(my_project, matrix_name, zonesDim):
 
@@ -1563,7 +1591,9 @@ def matrix_controlled_rounding(my_project):
                              rounded_demand=matrix_id,
                              min_demand=0.1,
                              values_to_round="SMALLER_THAN_MIN")
-    print 'finished matrix controlled rounding'
+    text = 'finished matrix controlled rounding'
+    print text
+    logging.debug(text)
 
 def start_pool(project_list):
     #An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and
@@ -1682,7 +1712,9 @@ def bike_walk_assignment(my_project, tod, assign_for_all_tods):
 
 
     end_transit_assignment = time.time()
-    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the bike/walk assignment.'
+    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), ' minutes to run the bike/walk assignment.'
+    text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the bike/walk assignment.'
+    logging.debug(text)
 
 def bike_walk_assignment_NonConcurrent(project_name):
     #One bank
@@ -1741,7 +1773,9 @@ def bike_walk_assignment_NonConcurrent(project_name):
 
 
     end_transit_assignment = time.time()
-    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the bike/walk assignment.'
+    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), ' minutes to run the bike/walk assignment.'
+    text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the bike/walk assignment.'
+    logging.debug(text)
 
 def run_assignments_parallel(project_name):
 
@@ -1806,7 +1840,9 @@ def run_assignments_parallel(project_name):
     app.App.close(my_desktop)
     print tod + " finished"
     end_of_run = time.time()
-    print 'It took', round((end_of_run-start_of_run)/60,2), 'minutes to execute all processes for ' + tod
+    print 'It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + tod
+    text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + tod
+    logging.debug(text)
 
 def main():
     #Start Daysim-Emme Equilibration
@@ -1853,9 +1889,12 @@ def main():
 
         end_of_run = time.time()
 
-        print "Emme Skim Creation and Export to HDF5 completed normally"
-        print 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
-
+        text =  "Emme Skim Creation and Export to HDF5 completed normally"
+        print text
+        logging.debug(text)
+        text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
+        print text
+        logging.debug(text)
 
 if __name__ == "__main__":
     main()
