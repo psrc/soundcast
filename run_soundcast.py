@@ -118,6 +118,7 @@ def copy_large_inputs():
     
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
+    dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
     # the configuration does not currently use the node_node distance file
     #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
@@ -212,6 +213,16 @@ for x in range(0,3):
      f.write("We're on iteration %d\r\n" % (x))
      time_start = datetime.datetime.now()
      f.write("starting run %s" %str((time_start)))
+
+     ### RUN Truck Model ################################################################
+     returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+     if returncode != 0:
+      sys.exit(1)
+
+     time_trucks = datetime.datetime.now()
+     print time_trucks
+     f.write("ending daysim %s\r\n" %str((time_trucks)))
+     
      ### RUN DAYSIM ################################################################
      returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
      if returncode != 0:
