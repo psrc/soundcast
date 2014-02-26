@@ -1651,8 +1651,8 @@ def run_transit(project_name):
 
 def export_to_hdf5_pool(project_list):
 
-    pool = Pool(processes=12)
-    pool.map(start_export_to_hdf5, project_list[0:12])
+    pool = Pool(processes=parallel_instances)
+    pool.map(start_export_to_hdf5, project_list[0:parallel_instances])
     pool.close()
 
 def start_export_to_hdf5(test):
@@ -1885,7 +1885,10 @@ def main():
 
         #This project points to all TOD Banks:
         #export_project_list = ['Projects/LoadTripTables/LoadTripTables.emp']
-        export_to_hdf5_pool(project_list)
+        for i in range (0, 12, parallel_instances):
+            l = project_list[i:i+parallel_instances]
+            export_to_hdf5_pool(l)
+        #export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
 
