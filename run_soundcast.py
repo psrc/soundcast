@@ -208,9 +208,9 @@ time_skims = datetime.datetime.now()
 
 # We are arbitrarily looping 3 times
 
-for x in range(0,3):
-     print "We're on iteration %d" % (x)
-     f.write("We're on iteration %d\r\n" % (x))
+for iteration in range(0,3):
+     print "We're on iteration %d" % (iteration)
+     f.write("We're on iteration %d\r\n" % (iteration))
      time_start = datetime.datetime.now()
      f.write("starting run %s" %str((time_start)))
 
@@ -233,7 +233,7 @@ for x in range(0,3):
      f.write("ending daysim %s\r\n" %str((time_daysim)))
 
      #### SUMMARIZE DAYSIM##########################################################
-     run_all_R_summaries(iter)
+     run_all_R_summaries(iteration)
 
       ### ASSIGNMENTS ###############################################################
      time_startassign = datetime.datetime.now()
@@ -251,7 +251,7 @@ for x in range(0,3):
 
      ### ASSIGNMENT SUMMARY###############################################################
      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-     rename_network_outs(iter)
+     rename_network_outs(iteration)
      time_assign_summ = datetime.datetime.now()
      print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
