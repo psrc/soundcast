@@ -17,8 +17,10 @@ from multiprocessing import Pool
 import logging
 import datetime
 
+STOP_THRESHOLD= 0.1
 #Hard-coded paths/data will be moved to a Config file
 # Number of simultaneous parallel processes. Must be a factor of 12.
+
 parallel_instances = 6
 # Number of Global Iterations
 global_iterations = 1
@@ -1777,6 +1779,53 @@ def bike_walk_assignment_NonConcurrent(project_name):
     text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the bike/walk assignment.'
     logging.debug(text)
 
+def feedback_check(emmebank_path):
+     
+     #current_scenario = m.desktop.data_explorer().primary_scenario.core_scenario.ref
+     my_bank =  _eb.Emmebank(emmebank_path)
+     tod = my_bank.title
+     matrix_dict = json_to_dictionary("user_classes")
+     my_store=h5py.File('inputs/' + tod + '.h5', "r+")
+     #put current time skims in numpy:
+     skims_dict = {}
+     passed = True
+
+     for y in range (0, len(matrix_dict["Highway"])):
+           #trips
+            matrix_name= matrix_dict["Highway"][y]["Name"]
+            matrix_id = my_bank.matrix(matrix_name).id
+            matrix = my_bank.matrix(matrix_id)
+            matrix_value = np.matrix(matrix.raw_data) 
+            trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            print 'trips'
+            print trips[563,547]
+            #skims_dict[matrix_name] = matrix
+
+            #new skims
+            matrix_name = matrix_name + 't'
+            matrix_id = my_bank.matrix(matrix_name).id
+            matrix = my_bank.matrix(matrix_id)
+            matrix_value = np.matrix(matrix.raw_data) * 100
+            new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+            #skims_dict[matrix_name + 'n'] = matrix
+            print matrix_name
+            print 'new_skim'
+            print new_skim[563,547]
+            
+            #now old skims
+            old_skim = np.asmatrix(my_store['Skims'][matrix_name])
+            print 'old_skim'
+            print old_skim[563,547]
+          
+
+            change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
+            print 'test value'
+            print change_test
+            if change_test > STOP_THRESHOLD:
+                passed = False
+                break
+     return passed
+
 def run_assignments_parallel(project_name):
 
     start_of_run = time.time()
@@ -1876,18 +1925,19 @@ def main():
         
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/5to6/5to6.emp')
+        f = open('inputs/converge.txt', 'w') 
+        if feedback_check('Banks/7to8/emmebank') == False:
+            go = 'continue'
+            json.dump(go, f)
+            print 'keep going!'
+            for i in range (0, 12, parallel_instances):
+                l = project_list[i:i+parallel_instances]
+                export_to_hdf5_pool(l)
+        else:
+            go = 'stop'
+            json.dump(go, f)
+        f.close()
 
-        #Tried exporting skims to hdf5 concurrently, by using a HDF5 file for each
-        #time period, and then merging them all to one HDF5 file at the end, but
-        #this was signigicantly slower than writing out sequentially. Below we are able to
-        #launch another instance of modeler because the others were launched/closed
-        #in their own pool/process.
-
-        #This project points to all TOD Banks:
-        #export_project_list = ['Projects/LoadTripTables/LoadTripTables.emp']
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            export_to_hdf5_pool(l)
         #export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
