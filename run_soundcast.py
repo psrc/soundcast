@@ -51,7 +51,7 @@ def copy_daysim_code():
     shcopy(daysim_code +'/msvcp100.dll', 'daysim')
 
 def setup_emme_bank_folders():
-    emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.txt')))
+    emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
     
     if not os.path.exists('Banks'):
         os.makedirs('Banks')
