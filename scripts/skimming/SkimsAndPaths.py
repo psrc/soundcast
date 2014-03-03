@@ -1821,6 +1821,8 @@ def feedback_check(emmebank_path):
             change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
             print 'test value'
             print change_test
+            text = str(change_test) + " " + matrix_name
+            logging.debug(text)
             if change_test > STOP_THRESHOLD:
                 passed = False
                 break
