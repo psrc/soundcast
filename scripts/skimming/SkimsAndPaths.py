@@ -246,7 +246,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
