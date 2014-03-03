@@ -1824,6 +1824,8 @@ def feedback_check(emmebank_path):
             if change_test > STOP_THRESHOLD:
                 passed = False
                 break
+
+     my_bank.dispose()
      return passed
 
 def run_assignments_parallel(project_name):
