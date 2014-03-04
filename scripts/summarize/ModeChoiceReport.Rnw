@@ -265,29 +265,17 @@ Tour_2_total <- get_total(Tour_2$toexpfac)
 trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
 trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
 
-Trip_1$share <- 1/nrow(Trip_1)
+Trip_1$share <- Trip_1$trexpfac/sum(Trip_1$trexpfac)
 Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
 
 
-
-
-driver_trips1<-trip_ok_1$travdist[trip_ok_1$dorp==1]
-driver_trips2<- trip_ok_2[trip_ok_2$dorp==1]
-Ave_Vehicle_Miles1 <- sum(driver_trips1)/Person_1_total
-Ave_Vehicle_Miles2 <- sum(driver_trips2$trexpfac*driver_trips2$travdist)/Person_2_total
-PercentDiffVehMiles<- 100*(Ave_Vehicle_Miles1-Ave_Vehicle_Miles2)/Ave_Vehicle_Miles2
-
-                      
-VehMiles <-cbind(Ave_Vehicle_Miles1 , Ave_Vehicle_Miles2, PercentDiffVehMiles)
-colnames(VehMiles)<- c("Model Vehicle Miles per Person", "Survey Vehicle Miles per Person", "Percent Diff")
-print(VehMiles, row.names=FALSE, digit=2)
 @
 
 
 \section{Tour Summaries}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
   
-toursbymode1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp), length)
+toursbymode1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp), sum)
 colnames(toursbymode1) <- c("tmodetp", "Tour")
 
 toursbymode1$ModeShare <- 100*toursbymode1$Tour/Tour_1_total
@@ -306,11 +294,11 @@ colnames(tours_by_mode) <- c("Tour Mode", "total",  paste(names(paths[1]),"Share
 print(tours_by_mode[, c(1,3,5)],row.names = F)
 
 # Tours By Mode By Purpose
-Tour_1_total_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), length)
+Tour_1_total_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), sum)
 Tour_2_total_p <- aggregate(Tour_2$toexpfac, by = list(Tour_2$pdpurp), sum)
 Tour_total_p <- merge(Tour_1_total_p, Tour_2_total_p, by ="Group.1")
 
-toursbymode1_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp, Tour_1$pdpurp), length)
+toursbymode1_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp, Tour_1$pdpurp), sum)
 colnames(toursbymode1_p) <- c("tmodetp", "pdpurp", "Tour")
 toursbymode2_p <- aggregate(Tour_2$toexpfac, by = list(Tour_2$tmodetp, Tour_2$pdpurp), sum)
 colnames(toursbymode2_p) <- c("tmodetp", "pdpurp", "Tour")
@@ -334,7 +322,7 @@ Tour_1$tour_id <- Tour_1$id
 
 merge_trip_tour_1 <-  merge(Tour_1, Trip_1, by= "tour_id",allow.cartesian=TRUE)
 
-trip_tour_mode_1 <- aggregate(merge_trip_tour_1$trexpfac, by= list(merge_trip_tour_1$tmodetp, merge_trip_tour_1$mode), length)
+trip_tour_mode_1 <- aggregate(merge_trip_tour_1$trexpfac, by= list(merge_trip_tour_1$tmodetp, merge_trip_tour_1$mode), sum)
 
 merge_trip_tour_2 <-merge(Tour_2, Trip_2, by= c("hhno", "pno","tour"),allow.cartesian=TRUE)
 
@@ -363,8 +351,8 @@ Tour_1_mode_time  <- ddply(Tour_1, .(tmodetp), summarise,
                            type = type[1])
 
 Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
-                           total_trips  =  nrow(travtime), 
-                           mode_share = nrow(travtime)/Trip_1_total,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_2_total,
                            mean_time = mean(travtime),
                            mean_dist = mean(travdist),
                            type = type[1])
@@ -396,16 +384,9 @@ Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
                            type = type[2])
 
 
-Trip_1_time<- aggregate(Trip_1$trexpfac, by = list(Trip_1$deptm/60), length)
+Trip_1_time<- aggregate(Trip_1$trexpfac, by = list(Trip_1$deptm/60), sum)
 Trip_2_time<- aggregate(Trip_2$trexpfac, by = list(Trip_2$deptm/60), sum)
 
-###Compare dataset 1 and 2, print out#########
-print("Total Observed Transit Boardings(2011)")
-print("647,127")
-print("Assuming 1.3 Boardings per Trip- Implied Trips from Boardings(2011)")
-transit<-Trip_1_mode_time$total_trips[Trip_1_mode_time$mode=='transit']
-implied_boardings<-transit*1.3 
-print(implied_boardings)
 
 print(c("Tours by Mode and Travel Time", names(paths[1])))
 print(Tour_1_mode_time, row.names=F)

@@ -221,7 +221,7 @@ Trip_2 <-recode(Trip_2)
 Trip_1$type <- names(paths[1])
 Trip_2$type <- names(paths[2])
 
-Trip_1$share <- 1/nrow(Trip_1)
+Trip_1$share <-  Trip_1$trexpfac/sum(Trip_1$trexpfac)
 Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
 
 
@@ -230,7 +230,7 @@ trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
 
 
 
- Trip_1_o<-  sqldf("SELECT dtaz,count(*) as NumTrips,
+ Trip_1_o<-  sqldf("SELECT dtaz,sum(trexpfac) as NumTrips,
                   District as OriginDistrict FROM Trip_1
                   INNER JOIN zone_district 
                   on Trip_1.otaz= zone_district.TAZ

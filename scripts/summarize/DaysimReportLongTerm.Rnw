@@ -260,28 +260,28 @@ workers_2_male<- subset(workers_2, workers_2$pgend==1, select=c("pwaudist", "pse
 workers_1_ageund30<- subset(workers_1, workers_1$pagey<30, select=c("pwaudist", "psexpfac"))
 workers_2_ageund30<- subset(workers_2, workers_2$pagey<30, select=c("pwaudist", "psexpfac"))
 
-workers_1$share <- 1/nrow(workers_1)
+workers_1$share <- workers_1$psexpfac/sum(workers_1$psexpfac)
 workers_2$share <- workers_2$psexpfac/sum(workers_2$psexpfac)
 
 workers_1$type <- names(paths[1])
 workers_2$type <- names(paths[2])
 
-workers_1_avg_dist <- mean(workers_1$pwaudist)
+workers_1_avg_dist <- weighted.mean(workers_1$pwaudist, workers_1$psexpfac)
 workers_2_avg_dist <- weighted.mean(workers_2$pwaudist, workers_2$psexpfac)
 
-workers_1_avg_dist_ft <- mean(workers_1_ft$pwaudist)
+workers_1_avg_dist_ft <- weighted.mean(workers_1_ft$pwaudist, workers_1_ft$psexpfac)
 workers_2_avg_dist_ft <- weighted.mean(workers_2_ft$pwaudist, workers_2_ft$psexpfac)
 
-workers_1_avg_dist_pt <- mean(workers_1_pt$pwaudist)
+workers_1_avg_dist_pt <- weighted.mean(workers_1_pt$pwaudist, workers_1_pt$psexpfac)
 workers_2_avg_dist_pt <- weighted.mean(workers_2_pt$pwaudist, workers_2_pt$psexpfac)
 
-workers_1_avg_dist_f <- mean(workers_1_female$pwaudist)
+workers_1_avg_dist_f <- weighted.mean(workers_1_female$pwaudist, workers_1_female$psexpfac)
 workers_2_avg_dist_f <- weighted.mean(workers_2_female$pwaudist, workers_2_female$psexpfac)
 
-workers_1_avg_dist_m <- mean(workers_1_male$pwaudist)
+workers_1_avg_dist_m <- weighted.mean(workers_1_male$pwaudist, workers_1_male$psexpfac)
 workers_2_avg_dist_m <- weighted.mean(workers_2_male$pwaudist, workers_2_male$psexpfac)
 
-workers_1_avg_dist_age <-mean(workers_1_ageund30$pwaudist)
+workers_1_avg_dist_age <-weighted.mean(workers_1_ageund30$pwaudist, workers_1_ageund30$psexpfac)
 workers_2_avg_dist_age <-weighted.mean(workers_2_ageund30$pwaudist, workers_2_ageund30$psexpfac)
 
 worker_dist<-rbind(cbind(workers_1_avg_dist, workers_2_avg_dist), 
@@ -297,7 +297,8 @@ rownames(worker_dist)<-c("Total", "Full Time", "Part Time", "Female", "Male", "A
 print("Average Distance in Work in Miles (where distance >0.05, and <200 miles)", include.rownames = FALSE)
 print(worker_dist, digits=2, include.rownames = FALSE)
 
-workers_1_less_one_mi <- 100*nrow(subset(workers_1, pwaudist<=1))/nrow(workers_1)
+wrkrslessonemi_1 <- subset(workers_1, workers_1$pwaudist<=1)
+workers_1_less_one_mi <- 100*sum(wrkrslessonemi_1$psexpfac)/sum(workers_1$psexpfac)
 wrkrslessonemi_2 <- subset(workers_2, workers_2$pwaudist<=1)
 workers_2_less_one_mi <- 100*sum(wrkrslessonemi_2$psexpfac)/sum(workers_2$psexpfac)
 
@@ -306,7 +307,8 @@ colnames(WrkrsLessOneMi)<-c("Modeled Workers", "Survey Workers")
 print("Share of Workers, Not at home, Less than One Mile to Work", include.rownames = FALSE)
 print(WrkrsLessOneMi)
 
-workers_1_gr_twenty_mi <- 100*nrow(subset(workers_1, pwaudist>20))/nrow(workers_1)
+wrkrsgrtwentymi_1 <- subset(workers_1, workers_1$pwaudist>20)
+workers_1_gr_twenty_mi <- 100*sum(wrkrsgrtwentymi_1$psexpfac)/sum(workers_1$psexpfac)
 wrkrsgrtwentymi_2 <- subset(workers_2, workers_2$pwaudist>20)
 workers_2_gr_twenty_mi <- 100*sum(wrkrsgrtwentymi_2$psexpfac)/sum(workers_2$psexpfac)
 
@@ -318,12 +320,12 @@ print(WrkrsGr20Mi, digits=3)
 
 \subsection{Worker Flows}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-wkr_1_hzone_sum <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County, wkr_1_hzone$pwtaz), length)
+wkr_1_hzone_sum <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County, wkr_1_hzone$pwtaz), sum)
 colnames(wkr_1_hzone_sum)<- c("HomeCounty", "WorkTAZ", "Workers")
 wkr_1_wzone <- merge(zone_district, wkr_1_hzone_sum, by.y = "WorkTAZ", by.x = "TAZ")
 wkr_1_h_w <- aggregate(wkr_1_wzone$Workers, by = list(wkr_1_wzone$HomeCounty, wkr_1_wzone$County), sum)
 colnames(wkr_1_h_w)<-c("HomeCounty", "WorkCounty","Workers")
-wrk1_homecounty <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County), length)
+wrk1_homecounty <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County), sum)
 wrk1_workcounty <- aggregate(wkr_1_h_w$Workers, by = list(wkr_1_h_w$WorkCounty), sum)
 colnames(wrk1_homecounty)<- c("HomeCounty","Model Workers")
 colnames(wrk1_workcounty)<- c("WorkCounty","Model Workers")
@@ -362,7 +364,7 @@ print(compare_model_CTPP, include.rownames = FALSE)
 
 
 
-Work_1_o<-  sqldf("SELECT pwtaz,count(*) as NumWorkers, 
+Work_1_o<-  sqldf("SELECT pwtaz,sum(psexpfac) as NumWorkers, 
                   District as OriginDistrict FROM merge_per_hh_1
                   INNER JOIN zone_district 
                   on merge_per_hh_1.hhtaz= zone_district.TAZ
@@ -405,7 +407,7 @@ write.csv(Work_2, paste(run_path,"/scripts/summarize/SurveyWorkFlow.csv", sep = 
 students_1 <- subset(Person_1, psaudist>0.05 & psaudist<200 )
 students_2 <- subset(Person_2, psaudist>0.05 & psaudist<200)
 
-students_1$share <- 1/nrow(students_1)
+students_1$share <- students_1$psexpfac/sum(students_1$psexpfac)
 students_2$share <- students_2$psexpfac/sum(students_2$psexpfac)
 
 students_1$type <- names(paths[1])
@@ -423,20 +425,20 @@ students_2_1318 <- subset(students_2, students_2$pagey>=13 & students_2$pagey<=1
 students_1_19P<- subset(students_1, students_1$pagey>=19)
 students_2_19P <- subset(students_2, students_2$pagey>=19)
 
-students_1_avg_dist <- mean(students_1$psaudist)
+students_1_avg_dist <- weighted.mean(students_1$psaudist, students_1$psexpfac)
 students_2_avg_dist <- weighted.mean(students_2$psaudist, students_2$psexpfac)
 
-students_1_dist_und5 <- mean(students_1_und5$psaudist)
-students_2_dist_und5<- weighted.mean(students_2_512$psaudist, students_2_512$psexpfac)
+students_1_dist_und5 <- weighted.mean(students_1_und5$psaudist, students_1_und5$psexpfac)
+students_2_dist_und5<- weighted.mean(students_2_und5$psaudist, students_2_und5$psexpfac)
 
-students_1_dist_512 <- mean(students_1_512$psaudist)
+students_1_dist_512 <-weighted.mean(students_1_512$psaudist, students_1_512$psexpfac)
 students_2_dist_512<- weighted.mean(students_2_512$psaudist, students_2_512$psexpfac)
 
-students_1_dist_1318 <- mean(students_1_1318$psaudist)
+students_1_dist_1318 <-weighted.mean(students_1_1318$psaudist, students_1_1318$psexpfac)
 students_2_dist_1318<- weighted.mean(students_2_1318$psaudist, students_2_1318$psexpfac)
 
+students_1_dist_19P <- weighted.mean(students_1_19P$psaudist, students_1_19P$psexpfac)
 students_2_dist_19P <- weighted.mean(students_2_19P$psaudist, students_2_19P$psexpfac)
-students_1_dist_19P <- mean(students_1_19P$psaudist)
 
 student_dist_age_1 <-rbind(students_1_avg_dist, students_1_dist_und5, students_1_dist_512, students_1_dist_1318, students_1_dist_19P)
 student_dist_age_2 <-rbind(students_2_avg_dist, students_2_dist_und5, students_2_dist_512, students_2_dist_1318, students_2_dist_19P)
@@ -450,7 +452,7 @@ print(student_dist_age , digits=2, row.names=FALSE)
 @
 \section{Transit Pass and Auto Ownership}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass)
+Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass*merge_per_hh_1$hhexpfac)
 Transit_Pass_Per1 <- Total_Transit_Passes1/Person_1_total
 Total_Transit_Passes2<- sum(merge_per_hh_2$ptpass*merge_per_hh_2$hhexpfac)
 Transit_Pass_Per2 <- Total_Transit_Passes2/Person_2_total
@@ -467,7 +469,7 @@ Household_2$hhvehs[Household_2$hhvehs>=4] <- 4
 
 hhs_zone_1 <- merge(zone_district, Household_1, by.y = "hhtaz", by.x = "TAZ")
 
-auto_own1 <- aggregate(Household_1$hhvehs, by = list(Household_1$hhvehs), length)
+auto_own1 <- aggregate(Household_1$hhexpfac, by = list(Household_1$hhvehs), sum)
 auto_own1$percent <- 100*auto_own1$x/Household_1_total
 auto_own2 <- aggregate(Household_2$hhexpfac, by = list(Household_2$hhvehs), sum)
 auto_own2$percent <- 100*auto_own2$x/Household_2_total
@@ -500,14 +502,14 @@ Vehicles_150k <- aggregate(hh_150_P$hhno, by= list(hh_150_P$hhvehs), length)
 make_col_names <-function(x)(colnames(x)<- c("Group",deparse(substitute(x))) )
 
 #get household by county
-hhs_county_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$County), length)
+hhs_county_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$County), sum)
 colnames(hhs_county_1) <- c("County", "NumHHs")
 #get autoOwnership
-AutoOwnership_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$County, hhs_zone_1$hhveh), length)
+AutoOwnership_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$County, hhs_zone_1$hhveh), sum)
 colnames(AutoOwnership_1) <- c("County", "Auto","NumHHs")
 HH_Auto_County_1 <- matrix(AutoOwnership_1$ NumHHs, nrow = 4, ncol = 5)
 
-HH_Auto_Total_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$hhveh), length)
+HH_Auto_Total_1 <- aggregate(hhs_zone_1$hhexpfac, by = list(hhs_zone_1$hhveh), sum)
 colnames(HH_Auto_Total_1) <- c("Auto","NumHHs")
 
 HH_Auto_County_1 <- rbind(HH_Auto_County_1, HH_Auto_Total_1$ NumHHs)

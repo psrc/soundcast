@@ -269,7 +269,7 @@ colnames(ToursPerPerson)<-c(names(paths[1]), names(paths[2]), "Percent Differenc
 print("Tours per Person", row.names=FALSE)
 print(ToursPerPerson, row.names=FALSE, digits=3)
 
-toursbypurpose1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), length)
+toursbypurpose1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), sum)
 colnames(toursbypurpose1) <- c("pdpurp", "Tour")
 
 toursbypurpose1_Percent <- data.frame(
@@ -305,7 +305,7 @@ print(tours_by_purpose_pers)
 PersonsDay1 <- merge(Person_1, PersonDay_1, by="id")
 PersonsDay2 <- merge(Person_2, PersonDay_2, by=c("hhno", "pno"))
 
-toursPersWork1<-aggregate(PersonsDay1$wktours, by=list(PersonsDay1$pptyp), mean)
+toursPersWork1<-aggregate(PersonsDay1$wktours, by=list(PersonsDay1$pptyp),FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersWork2<-aggregate(PersonsDay2$wktours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersWrkr<-merge(toursPersWork1, toursPersWork2, by="Group.1")
@@ -318,7 +318,7 @@ print("Work Tours by Person Type")
 print(toursPersWrkr)
 
 
-toursPersSchool1<-aggregate(PersonsDay1$sctours, by=list(PersonsDay1$pptyp), mean)
+toursPersSchool1<-aggregate(PersonsDay1$sctours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersSchool2<-aggregate(PersonsDay2$sctours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersSchool<-merge(toursPersSchool1, toursPersSchool2, by="Group.1")
@@ -330,7 +330,7 @@ colnames(toursPersSchool)<-c("Person Type",names(paths[1]), names(paths[2]), "Pe
 print("School Tours by Person Type")
 print(toursPersSchool)
 
-toursPersEsc1<-aggregate(PersonsDay1$estours, by=list(PersonsDay1$pptyp), mean)
+toursPersEsc1<-aggregate(PersonsDay1$estours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersEsc2<-aggregate(PersonsDay2$estours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersEscort<-merge(toursPersEsc1, toursPersEsc2, by="Group.1")
@@ -342,7 +342,7 @@ colnames(toursPersEscort)<-c("Person Type",names(paths[1]), names(paths[2]), "Pe
 print("Escort Tours by Person Type")
 print(toursPersEscort)
 
-toursPersShop1<-aggregate(PersonsDay1$shtours, by=list(PersonsDay1$pptyp), mean)
+toursPersShop1<-aggregate(PersonsDay1$shtours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersShop2<-aggregate(PersonsDay2$shtours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersShop<-merge(toursPersShop1, toursPersShop2, by="Group.1")
@@ -354,7 +354,7 @@ colnames(toursPersShop)<-c("Person Type",names(paths[1]), names(paths[2]), "Perc
 print("Shop Tours by Person Type")
 print(toursPersShop)
 
-toursPersMeal1<-aggregate(PersonsDay1$mltours, by=list(PersonsDay1$pptyp), mean)
+toursPersMeal1<-aggregate(PersonsDay1$mltours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersMeal2<-aggregate(PersonsDay2$mltours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersMeal<-merge(toursPersMeal1, toursPersMeal2, by="Group.1")
@@ -378,7 +378,7 @@ colnames(toursPersPB)<-c("Person Type",names(paths[1]), names(paths[2]), "Percen
 print("Personal Business Tours by Person Type")
 print(toursPersPB)
 
-toursPersSo1<-aggregate(PersonsDay1$sotours, by=list(PersonsDay1$pptyp), mean)
+toursPersSo1<-aggregate(PersonsDay1$sotours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
 toursPersSo2<-aggregate(PersonsDay2$sotours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
 
 toursPersSo<-merge(toursPersSo1, toursPersSo2, by="Group.1")
@@ -390,14 +390,14 @@ colnames(toursPersSo)<-c("Person Type",names(paths[1]), names(paths[2]), "Percen
 print("Social Tours by Person Type")
 print(toursPersSo)
 
-# if stops- Work
-ave_work_stops1 <- aggregate(PersonDay_1$wkstops,by=list(PersonDay_1$wkstops),length)
+person_day_hh1 <- merge(PersonDay_1, Household_1, by = "hhno")
+person_day_hh2 <- merge(PersonDay_2, Household_2, by = "hhno")
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
+# if stops- Work
+ave_work_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$wkstops),sum)
 ave_work_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$wkstops),sum)
 
 colnames(ave_work_stops1) <-c("WorkStops", "ModeledPercentPersons")
-ave_work_stops1$ModeledPercentPersons <- 100*(ave_work_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_work_stops2) <-c("WorkStops", "ObservedPercentPersons")
 
 work_stops <- merge(ave_work_stops1, ave_work_stops2, by= "WorkStops", all.y=TRUE)
@@ -406,9 +406,8 @@ with_work_stops<- c("1+",round(100-no_work_stops$ModeledPercentPersons,1), 100-n
 if_work_stops<- rbind(no_work_stops,with_work_stops)
 print(if_work_stops,scientific=false, row.names=FALSE)
 # school stops
-ave_sc_stops1 <- aggregate(PersonDay_1$scstops,by=list(PersonDay_1$scstops),length)
+ave_sc_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$scstops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
 ave_sc_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$scstops),sum)
 
 colnames(ave_sc_stops1) <-c("scStops", "ModeledPercentPersons")
@@ -423,9 +422,8 @@ print(if_sc_stops,scientific=false, row.names=FALSE)
 
 #escort
 
-ave_es_stops1 <- aggregate(PersonDay_1$esstops,by=list(PersonDay_1$esstops),length)
+ave_es_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$esstops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
 ave_es_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$esstops),sum)
 
 colnames(ave_es_stops1) <-c("esStops", "ModeledPercentPersons")
@@ -440,9 +438,9 @@ if_es_stops<- rbind(no_es_stops,with_es_stops)
 print(if_es_stops,scientific=false, row.names=FALSE)
 
 #shop
-ave_sh_stops1 <- aggregate(PersonDay_1$shstops,by=list(PersonDay_1$shstops),length)
+ave_sh_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$shstops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
+
 ave_sh_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$shstops),sum)
 
 colnames(ave_sh_stops1) <-c("shStops", "ModeledPercentPersons")
@@ -456,9 +454,8 @@ if_sh_stops<- rbind(no_sh_stops,with_sh_stops)
 print(if_sh_stops,scientific=false, row.names=FALSE)
 
 #meal
-ave_ml_stops1 <- aggregate(PersonDay_1$mlstops,by=list(PersonDay_1$mlstops),length)
+ave_ml_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$mlstops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
 ave_ml_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$mlstops),sum)
 
 colnames(ave_ml_stops1) <-c("mlStops", "ModeledPercentPersons")
@@ -472,9 +469,8 @@ if_ml_stops<- rbind(no_ml_stops,with_ml_stops)
 print(if_ml_stops,scientific=false, row.names=FALSE)
 
 #Personal Business
-ave_pb_stops1 <- aggregate(PersonDay_1$pbstops,by=list(PersonDay_1$pbstops),length)
+ave_pb_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$pbstops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
 ave_pb_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$pbstops),sum)
 
 colnames(ave_pb_stops1) <-c("pbStops", "ModeledPercentPersons")
@@ -488,9 +484,8 @@ if_pb_stops<- rbind(no_pb_stops,with_pb_stops)
 print(if_pb_stops,scientific=false, row.names=FALSE)
 
 #Social
-ave_so_stops1 <- aggregate(PersonDay_1$sostops,by=list(PersonDay_1$sostops),length)
+ave_so_stops1 <- aggregate(100*person_day_hh1$hhexpfac/Person_1_total,by=list(person_day_hh1$sostops),sum)
 
-person_day_hh2 <- merge(PersonDay_2, Household_2, by="hhno")
 ave_so_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$sostops),sum)
 
 colnames(ave_so_stops1) <-c("soStops", "ModeledPercentPersons")
@@ -508,7 +503,7 @@ print(if_so_stops,scientific=false, row.names=FALSE)
 Tour_1$Trips <- Tour_1$tripsh1 +Tour_1$tripsh2
 Tour_2$Trips <- Tour_2$tripsh1 +Tour_2$tripsh2
 
-TripsPerTour_1 <- aggregate(Tour_1$Trips, by =list(Tour_1$pdpurp), mean)
+TripsPerTour_1 <- aggregate(Tour_1$Trips, by =list(Tour_1$pdpurp), FUN=mean, weights=Tour_1$toexpfac)
 TripsPerTour_2 <- aggregate(Tour_2$Trips, by =list(Tour_2$pdpurp), FUN=mean, weights=Tour_2$toexpfac)
 TripsPerTour <-merge(TripsPerTour_1, TripsPerTour_2, by = "Group.1")
 TripsPerTour$PercentDiff<- 100*(TripsPerTour$x.x- TripsPerTour$x.y)/TripsPerTour$x.y
@@ -545,7 +540,7 @@ TripsperPerson_2 <- Trip_2_total/Person_2_total
 DiffTripsperPers <- TripsperPerson_1 -TripsperPerson_2
 PercentDiffTripPer <- 100*DiffTripsperPers/TripsperPerson_2
 
-Trip_1_AveDist <- mean(Trip_1$travdist[Trip_1$travdist>0 & Trip_1$travdist<200])
+Trip_1_AveDist <- weighted.mean(Trip_1$travdist[Trip_1$travdist>0 & Trip_1$travdist<200], Trip_1$trexpfac[Trip_1$travdist>0 & Trip_1$travdist<200])
 Trip_2_AveDist <- weighted.mean(Trip_2$travdist[Trip_2$travdist>0 & Trip_2$travdist<200], Trip_2$trexpfac[Trip_2$travdist>0 & Trip_2$travdist<200])
 
 DiffAveDist <- Trip_1_AveDist-Trip_2_AveDist
@@ -563,7 +558,7 @@ print(Totals_HHTrips, scientific=false)
 
 \subsection{Trip Rates by Purpose}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-trips_by_purpose1 <- aggregate(Trip_1$dpurp, by = list(Trip_1$dpurp), length)
+trips_by_purpose1 <- aggregate(Trip_1$trexpfac, by = list(Trip_1$dpurp), sum)
 trips_by_purpose2 <- aggregate(Trip_2$trexpfac, by = list(Trip_2$dpurp), sum)
 
 trips_by_purpose1$AveTrips<-trips_by_purpose1$x/Person_1_total

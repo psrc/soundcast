@@ -296,7 +296,7 @@ Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
 driver_trips1<-trip_ok_1$travdist[trip_ok_1$dorp==1]
 driver_trips2<- trip_ok_2[trip_ok_2$dorp==1]
 
-Trip_1_Ave_Dist <- mean(trip_ok_1$travdist)
+Trip_1_Ave_Dist <- weighted.mean(trip_ok_1$travdist, trip_ok_1$trexpfac)
 Trip_2_Ave_Dist <- weighted.mean(trip_ok_2$travdist, trip_ok_2$trexpfac)
 
 DiffAveDist <- Trip_1_Ave_Dist-Trip_2_Ave_Dist
@@ -322,12 +322,12 @@ print(Totals_HHTrips, scientific=false)
 trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
 trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
 
-Trip_1$share <- 1/nrow(Trip_1)
+Trip_1$share <- Trip_1$trexpfac/sum(Trip_1$trexpfac)
 Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
 
-driver_trips1<-trip_ok_1$travdist[trip_ok_1$dorp==1]
+driver_trips1<-trip_ok_1[trip_ok_1$dorp==1]
 driver_trips2<- trip_ok_2[trip_ok_2$dorp==1]
-Ave_Vehicle_Miles1 <- sum(driver_trips1)/Person_1_total
+Ave_Vehicle_Miles1 <- sum(driver_trips1$trexpfac*driver_trips1$travdist)/Person_1_total
 Ave_Vehicle_Miles2 <- sum(driver_trips2$trexpfac*driver_trips2$travdist)/Person_2_total
 PercentDiffVehMiles<- 100*(Ave_Vehicle_Miles1-Ave_Vehicle_Miles2)/Ave_Vehicle_Miles2
 
@@ -349,13 +349,13 @@ wkr_2_hzone <- merge(zone_district, wrkrs2, by.y = "hhtaz", by.x = "TAZ")
 workers_1 <- subset(wkr_1_hzone, wkr_1_hzone$pwpcl!=wkr_1_hzone$hhparcel & pwaudist>0 &pwaudist<200, select=c("pwaudist", "psexpfac", "pwtyp","pgend", "pagey"))
 workers_2 <- subset(wkr_2_hzone, wkr_2_hzone$pwpcl!=wkr_2_hzone$hhparcel & pwaudist>0 &pwaudist<200,select=c("pwaudist", "psexpfac", "pwtyp","pgend", "pagey"))
 
-workers_1$share <- 1/nrow(workers_1)
+workers_1$share <- workers_1$psexpfac/sum(workers_1$psexpfac)
 workers_2$share <- workers_2$psexpfac/sum(workers_2$psexpfac)
 
 workers_1$type <- names(paths[1])
 workers_2$type <- names(paths[2])
 
-workers_1_avg_dist <- mean(workers_1$pwaudist)
+workers_1_avg_dist <- weighted.mean(workers_1$pwaudist, workers_1$psexpfac)
 workers_2_avg_dist <- weighted.mean(workers_2$pwaudist, workers_2$psexpfac)
 
 worker_dist <-cbind(workers_1_avg_dist, workers_2_avg_dist)
@@ -371,13 +371,13 @@ print(worker_dist, digits=2, row.names=FALSE)
 students_1 <- subset(Person_1, psaudist>0.05 & psaudist<200, select=c("psaudist", "psexpfac"))
 students_2 <- subset(Person_2, psaudist>0.05 & psaudist<200,select=c("psaudist", "psexpfac"))
 
-students_1$share <- 1/nrow(students_1)
+students_1$share <- students_1$psexpfac/sum(students_1$psexpfac)
 students_2$share <- students_2$psexpfac/sum(students_2$psexpfac)
 
 students_1$type <- names(paths[1])
 students_2$type <- names(paths[2])
 
-students_1_avg_dist <- mean(students_1$psaudist)
+students_1_avg_dist <-weighted.mean(students_1$psaudist, students_1$psexpfac)
 students_2_avg_dist <- weighted.mean(students_2$psaudist, students_2$psexpfac)
 
 students_dist <-cbind(students_1_avg_dist, students_2_avg_dist)
@@ -395,7 +395,7 @@ print(students_dist , digits=2, row.names=FALSE)
 @
 \section{Transit Pass and Auto Ownership}
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass)
+Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass*merge_per_hh_1$hhexpfac)
 Transit_Pass_Per1 <- Total_Transit_Passes1/Person_1_total
 Total_Transit_Passes2<- sum(merge_per_hh_2$ptpass*merge_per_hh_2$hhexpfac)
 Transit_Pass_Per2 <- Total_Transit_Passes2/Person_2_total
@@ -410,7 +410,7 @@ print(Transit_Passes)
 # recode the household vehicles above 4 in the survey to 4
 Household_2$hhvehs[Household_2$hhvehs>=4] <- 4
 
-auto_own1 <- aggregate(Household_1$hhvehs, by = list(Household_1$hhvehs), length)
+auto_own1 <- aggregate(Household_1$hhexpfac, by = list(Household_1$hhvehs), sum)
 auto_own1$percent <- 100*auto_own1$x/Household_1_total
 auto_own2 <- aggregate(Household_2$hhexpfac, by = list(Household_2$hhvehs), sum)
 auto_own2$percent <- 100*auto_own2$x/Household_2_total
@@ -431,14 +431,14 @@ print(Auto_Own)
 ########### Cross Tabs for Trips#############
 ##Trip_1 summaries
  Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
-                           total_trips  =  nrow(travtime), 
-                           mode_share = nrow(travtime)/Trip_1_total,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_1_total,
                            mean_time = mean(travtime),
                            mean_dist = mean(travdist),
                            type = type[1])
 
   Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
-                             total_trips  =  nrow(travtime),
+                             total_trips  =  sum(trexpfac),
                              mean_time = mean(travtime),
                              mean_dist = mean(travdist),
                              type = type[1])
