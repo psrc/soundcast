@@ -1422,7 +1422,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     DtazInt = int(myDtaz[0])
                      #add the trip, if it's not in a special generator location
                     if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
-                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + 1
+                        trips = np.asscalar(np.float32(trexpfac[x]))
+                        trips = round(trips, 2)
+                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
     if seed_trips:
