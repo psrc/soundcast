@@ -234,7 +234,7 @@ def create_hdf5_skim_container2(hdf5_name):
     return hdf5_filename
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
