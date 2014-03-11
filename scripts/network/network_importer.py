@@ -13,7 +13,7 @@ from multiprocessing import Pool, pool
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
 sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['6to7', '7to8', '8to9', '9to10']
+load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
 
 mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 'ahijstuvbw' : 'asehdimjvutbpw'}
 mode_file = 'modes.txt'

@@ -24,7 +24,7 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md',\
                      '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm',\
                       '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 #input files:
 counts_file = 'TrafficCounts_Mid.txt'
 #output_files: 

@@ -97,7 +97,7 @@ bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
                                  'intrazonal_time' : 'izbtim'}}
 
 #transit inputs:
-transit_skim_tod = ['6to7', '7to8', '8to9', '9to10']
+transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
 transit_submodes=['b', 'c', 'f', 'p', 'r']
 
 #fare
