@@ -11,6 +11,9 @@ base_inputs = 'r:/soundcast/inputs'
 # make this configurable later
 network_summary_files=['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                        'counts_output', 'network_summary']
+logfile = open('d:/Soundcast_log.txt', 'wb')
+
+pop_sample = [20, 20, 20, 20, 20, 20, 20, 20, 20]
 
 import os,sys,datetime,re
 import subprocess
@@ -18,12 +21,14 @@ import inro.emme.database.emmebank as _eb
 import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
+import re
+import mmap
 
 time_start = datetime.datetime.now()
 # location of the daysim exe
 print "\nSoundCast run: start time:", time_start
 
-f = open('d:/Soundcast_log.txt', 'wb')
+
 
 def multipleReplace(text, wordDict):
     for key in wordDict:
@@ -162,11 +167,9 @@ def run_all_R_summaries(iter):
      run_R_summary('DaysimReportLongTerm',iter)
      run_R_summary('DaysimReportDayPattern',iter)
      run_R_summary('ModeChoiceReport',iter)
-     # these are commented out because you don't need them on each
-     # run but you may wish to run them sometimes
-     #run_R_summary('DaysimDestChoice',iter)
-     #run_R_summary('DaysimTimeChoice',iter)
-     #run_Rcsv_summary('DaysimReport_District', iter)
+     run_R_summary('DaysimDestChoice',iter)
+     run_R_summary('DaysimTimeChoice',iter)
+     run_Rcsv_summary('DaysimReport_District', iter)
      move_files_to_outputs(iter)
      delete_tex_files()
 
@@ -174,6 +177,21 @@ def rename_network_outs(iter):
     for summary_name in network_summary_files:
         shcopy(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
         os.remove(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'))
+
+def daysim_sample(iter):
+    try: 
+     config= open('configuration.xml','a+b')
+     mem_config= mmap.mmap(config.fileno(),0, access=mmap.ACCESS_WRITE)
+     mem_config.seek(0)
+     loc_sample_str=re.search('HouseholdSamplingRateOneInX', mem_config)
+     mem_config[loc_sample_str.end()+2]= str(pop_sample[iter])
+     mem_config.flush()
+     mem_config.close()
+     config.close()
+    except:
+     config.close()
+     mem_config.close()
+
 ##########################
 # Main Script:
 copy_daysim_code()
@@ -204,48 +222,46 @@ if returncode != 0:
     sys.exit(1)
 
 time_skims = datetime.datetime.now()
-#print '###### Finished skimbuilding:', time_skims - time_copy
+print '###### Finished skimbuilding:', time_skims - time_copy
 
-# We are arbitrarily looping 3 times
-
-for iteration in range(0,3):
+for iteration in range(0,10):
      print "We're on iteration %d" % (iteration)
-     f.write("We're on iteration %d\r\n" % (iteration))
+     logfile.write("We're on iteration %d\r\n" % (iteration))
      time_start = datetime.datetime.now()
-     f.write("starting run %s" %str((time_start)))
+     logfile.write("starting run %s" %str((time_start)))
 
-     ### RUN Truck Model ################################################################
+      ### RUN Truck Model ################################################################
      returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
      if returncode != 0:
-      sys.exit(1)
-
-     time_trucks = datetime.datetime.now()
-     print time_trucks
-     f.write("ending daysim %s\r\n" %str((time_trucks)))
+        sys.exit(1)
      
      ### RUN DAYSIM ################################################################
+     daysim_sample(iteration)
      returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
      if returncode != 0:
       sys.exit(1)
 
      time_daysim = datetime.datetime.now()
      print time_daysim
-     f.write("ending daysim %s\r\n" %str((time_daysim)))
+     logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
+     #### ASSIGNMENTS ###############################################################
+     returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+     if returncode != 0:
+        sys.exit(1)
 
-     #### SUMMARIZE DAYSIM##########################################################
-     run_all_R_summaries(iteration)
+     con_file = open('inputs/converge.txt', 'r')
+     converge = json.load(con_file)
+     if converge == 'stop':
+         print "done"
+         con_file.close()
+         break
+     print 'keep going'
+     con_file.close()
 
-      ### ASSIGNMENTS ###############################################################
-     time_startassign = datetime.datetime.now()
-     f.write("starting assignment %s\r\n" %str((time_startassign)))
      
-     subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-
-
      time_assign = datetime.datetime.now()
      print time_assign
-     f.write("ending assignment %s\r\n" %str((time_assign)))
-     
+     logfile.write("ending assignment %s\r\n" %str((time_assign)))
 
      #print '###### Finished running assignments:',time_assign - time_daysim
 
@@ -253,12 +269,17 @@ for iteration in range(0,3):
      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
      rename_network_outs(iteration)
      time_assign_summ = datetime.datetime.now()
-     print '###### Finished running assignment summary:',time_assign_summ - time_assign
+     ##print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
-### ALL DONE ##################################################################
+
+logfile.close()
+##### SUMMARIZE DAYSIM##########################################################
+iteration = 'last'
+run_all_R_summaries(iteration)
+#### ALL DONE ##################################################################
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
-#print '    Total run time:',time_assign_summ - time_start
-f.close()
+##print '    Total run time:',time_assign_summ - time_start
+#f.close()
 
 
 
