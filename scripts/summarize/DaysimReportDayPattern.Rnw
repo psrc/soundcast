@@ -411,7 +411,6 @@ ave_sc_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(
 ave_sc_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$scstops),sum)
 
 colnames(ave_sc_stops1) <-c("scStops", "ModeledPercentPersons")
-ave_sc_stops1$ModeledPercentPersons <- 100*(ave_sc_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_sc_stops2) <-c("scStops", "ObservedPercentPersons")
 
 sc_stops <- merge(ave_sc_stops1, ave_sc_stops2, by= "scStops", all.y=TRUE)
@@ -427,7 +426,6 @@ ave_es_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(
 ave_es_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$esstops),sum)
 
 colnames(ave_es_stops1) <-c("esStops", "ModeledPercentPersons")
-ave_es_stops1$ModeledPercentPersons <- 100*(ave_es_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_es_stops2) <-c("esStops", "ObservedPercentPersons")
 
 
@@ -444,7 +442,6 @@ ave_sh_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(
 ave_sh_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$shstops),sum)
 
 colnames(ave_sh_stops1) <-c("shStops", "ModeledPercentPersons")
-ave_sh_stops1$ModeledPercentPersons <- 100*(ave_sh_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_sh_stops2) <-c("shStops", "ObservedPercentPersons")
 
 sh_stops <- merge(ave_sh_stops1, ave_sh_stops2, by= "shStops", all.y=TRUE)
@@ -459,7 +456,6 @@ ave_ml_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(
 ave_ml_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$mlstops),sum)
 
 colnames(ave_ml_stops1) <-c("mlStops", "ModeledPercentPersons")
-ave_ml_stops1$ModeledPercentPersons <- 100*(ave_ml_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_ml_stops2) <-c("mlStops", "ObservedPercentPersons")
 
 ml_stops <- merge(ave_ml_stops1, ave_ml_stops2, by= "mlStops", all.y=TRUE)
@@ -474,7 +470,6 @@ ave_pb_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(
 ave_pb_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$pbstops),sum)
 
 colnames(ave_pb_stops1) <-c("pbStops", "ModeledPercentPersons")
-ave_pb_stops1$ModeledPercentPersons <- 100*(ave_pb_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_pb_stops2) <-c("pbStops", "ObservedPercentPersons")
 
 pb_stops <- merge(ave_pb_stops1, ave_pb_stops2, by= "pbStops", all.y=TRUE)
@@ -489,7 +484,6 @@ ave_so_stops1 <- aggregate(100*person_day_hh1$hhexpfac/Person_1_total,by=list(pe
 ave_so_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$sostops),sum)
 
 colnames(ave_so_stops1) <-c("soStops", "ModeledPercentPersons")
-ave_so_stops1$ModeledPercentPersons <- 100*(ave_so_stops1$ModeledPercentPersons/Person_1_total)
 colnames(ave_so_stops2) <-c("soStops", "ObservedPercentPersons")
 
 
