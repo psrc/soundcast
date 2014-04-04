@@ -31,7 +31,7 @@ counts_file = 'TrafficCounts_Mid.txt'
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
 screenlines_file = 'screenline_volumes.csv'
-
+uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
 class EmmeProject:
     def __init__(self, filepath):
         self.desktop = app.start_dedicated(True, "cth", filepath)
@@ -154,7 +154,14 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      
      results_dict['delay'] = delay_dict
      return results_dict
-
+def vmt_by_user_class(EmmeProject):
+    #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
+    uc_vmt_list = []
+    for item in uc_list:
+        EmmeProject.link_calculator(result = None, expression = item + ' * length')
+        #total vmt by ft: 
+        uc_vmt_list.append(EmmeProject.link_calc_result['sum'])
+    return uc_vmt_list
 def get_link_counts(EmmeProject, df_counts, tod):
     #get the network for the active scenario
      network = EmmeProject.current_scenario.get_network()
@@ -233,6 +240,7 @@ def main():
     df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
  
     counts_dict = {}
+    uc_vmt_dict = {}
     #get a list of screenlines from the bank/scenario
     screenline_list = get_unique_screenlines(my_project) 
     screenline_dict = {}
@@ -259,6 +267,9 @@ def main():
         net_stats = calc_vmt_vht_delay_by_ft(my_project)
         #store tod network summaries in dictionary where key is tod:
         ft_summary_dict[key] = net_stats
+        #store vmt by user class in dict:
+        uc_vmt_dict[key] = vmt_by_user_class(my_project)
+
         #counts:
         df_tod_vol = get_link_counts(my_project, df_counts, key)
         counts_dict[key] = df_tod_vol
@@ -266,6 +277,7 @@ def main():
         get_screenline_volumes(screenline_dict, my_project) 
 
    #write out transit:
+    print uc_vmt_dict
     for tod, df in transit_summary_dict.iteritems():
        #if transit_tod[tod] == 'am':
        #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
@@ -322,6 +334,26 @@ def main():
            #print key, value
            writer.writerow([key, value])
     f.close
+
+    
+    
+
+    a = 0
+    with open('outputs/' + 'uc_vmt.csv', 'wb') as f:
+        writer = csv.writer(f)
+        #write header:
+        for tod, uv_vmt_list in uc_vmt_dict.iteritems():
+            if a == 0:
+                #header
+                writer.writerow(uc_list)
+                uv_vmt_list.append(tod)
+                writer.writerow(uv_vmt_list)
+            else: 
+                uv_vmt_list.append(tod)
+                writer.writerow(uv_vmt_list)
+            a = a + 1
+    f.close
+    
     
     #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
     #for key, value in screenline_dict.iteritems():
