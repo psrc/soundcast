@@ -1634,6 +1634,10 @@ def run_transit(project_name):
     my_desktop = app.start_dedicated(True, "sc", project_name)
     
     m = _m.Modeller(my_desktop)
+    
+    #delete locki if one exists
+    m.emmebank.dispose()
+    
     my_bank = m.emmebank
     transit_assignment(m)
     transit_skims(m)
@@ -1652,7 +1656,7 @@ def run_transit(project_name):
     mod_calc["result"] = transfer_wait_matrix
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
-
+    my_bank.dispose()
 def export_to_hdf5_pool(project_list):
 
     pool = Pool(processes=parallel_instances)
@@ -1792,6 +1796,7 @@ def feedback_check(emmebank_path):
      skims_dict = {}
      passed = True
 
+
      for y in range (0, len(matrix_dict["Highway"])):
            #trips
             matrix_name= matrix_dict["Highway"][y]["Name"]
@@ -1839,7 +1844,9 @@ def run_assignments_parallel(project_name):
 
     my_desktop = app.start_dedicated(True, "sc", project_name)
     m = _m.Modeller(my_desktop)
-
+    
+    #delete locki if one exists
+    m.emmebank.dispose()
 
 
     #delete and create new demand and skim matrices:
@@ -1892,6 +1899,8 @@ def run_assignments_parallel(project_name):
     attribute_based_toll_cost_skims( m, "@toll3")
     class_specific_volumes(m)
 
+    #dispose emmebank
+    m.emmebank.dispose()
     app.App.close(my_desktop)
     print tod + " finished"
     end_of_run = time.time()

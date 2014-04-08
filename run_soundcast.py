@@ -267,14 +267,15 @@ for iteration in range(0,num_iter):
          if returncode != 0:
              sys.exit(1)
 
-     con_file = open('inputs/converge.txt', 'r')
-     converge = json.load(con_file)
-     if converge == 'stop':
-         print "done"
-         con_file.close()
-         break
-     print 'keep going'
-     con_file.close()
+     if iteration > 0:
+        con_file = open('inputs/converge.txt', 'r')
+        converge = json.load(con_file)
+        if converge == 'stop':
+            print "done"
+            con_file.close()
+            break
+        print 'keep going'
+        con_file.close()
 
      
      time_assign = datetime.datetime.now()
