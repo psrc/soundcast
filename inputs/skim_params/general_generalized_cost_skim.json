@@ -172,7 +172,7 @@
         {
             "results": {
                 "od_travel_times": {
-                    "shortest_paths": "mf50"
+                    "shortest_paths": null
                 },
                 "link_volumes": null,
                 "turn_volumes": null
@@ -188,7 +188,7 @@
         {
             "results": {
                 "od_travel_times": {
-                    "shortest_paths": "mf50"
+                    "shortest_paths": null
                 },
                 "link_volumes": null,
                 "turn_volumes": null
