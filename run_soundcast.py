@@ -178,8 +178,10 @@ def run_all_R_summaries(iter):
 
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
-        shcopy(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
-        os.remove(os.path.join(os.getcwd(), 'outputs',summary_name+'.csv'))
+        csv_output = os.path.join(os.getcwd(), 'outputs',summary_name+'.csv')
+        if os.path.isfile(csv_output):
+            shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
+            os.remove(csv_output)
 
 def daysim_sample(iter):
     try: 
