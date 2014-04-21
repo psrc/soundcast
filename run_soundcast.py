@@ -288,9 +288,11 @@ for iteration in range(0,num_iter):
 
      ### ASSIGNMENT SUMMARY###############################################################
      if run_network_summary == True:
-         subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+         returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
          rename_network_outs(iteration)
          time_assign_summ = datetime.datetime.now()
+         if returncode != 0:
+             sys.exit(1)
          ##print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 
