@@ -12,15 +12,15 @@
     ],
     "demand": "mftrnst",
     "waiting_time": {
-        "headway_fraction": 0.4,
+        "headway_fraction": 0.5,
         "effective_headways": "hdw",
         "spread_factor": 1,
         "perception_factor": 2.0
     },
     "boarding_time": {
         "at_nodes": {
-            "penalty": 4,
-            "perception_factor": 1
+            "penalty": 6,
+            "perception_factor": 2.0
         },
         "on_lines": null
     },
@@ -36,7 +36,7 @@
     },
     "in_vehicle_cost": null,
     "aux_transit_time": {
-        "perception_factor": 2.5
+        "perception_factor": 2.0
     },
     "aux_transit_cost": null,
     "flow_distribution_at_origins": {
