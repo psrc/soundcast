@@ -289,7 +289,7 @@ for iteration in range(0,num_iter):
      ### ASSIGNMENT SUMMARY###############################################################
      if run_network_summary == True:
          returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-         rename_network_outs(iteration)
+         returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
          time_assign_summ = datetime.datetime.now()
          if returncode != 0:
              sys.exit(1)
