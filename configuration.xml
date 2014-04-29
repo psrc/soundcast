@@ -20,7 +20,7 @@ WorkingDirectory="..\working"
 WorkingSubpath = "..\working"
 EstimationSubpath = "estimation"
 
-RosterPath="psrc_full_roster.csv"
+RosterPath="psrc_full_roster_submode.csv"
 RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hh_and_persons.h5"
@@ -28,10 +28,14 @@ HDF5Path="daysim_outputs.h5"
 ReadHDF5 = "true"
 WriteTripsToHDF5="true"
 
-NProcessors="8"
-NBatches="20"
+NProcessors="24"
+NBatches="50"
+LargeDegreeOfParallelism="24"
+SmallDegreeOfParallelism="12"
 
-HouseholdSamplingRateOneInX="1"
+
+HouseholdSamplingRateOneInX="1" 
+
 HouseholdSamplingStartWithY="1"
 
 
@@ -85,18 +89,18 @@ IxxiDelimiter="9"
 IxxiFirstLineIsHeader="false"
 
 ImportParkAndRideNodes="true"
-RawParkAndRideNodePath="p_rNodes_wo_gaps.txt"
-RawParkAndRideNodeDelimiter="9"
+RawParkAndRideNodePath="p_rNodes_040814.csv"
+RawParkAndRideNodeDelimiter="44"
 
 ShouldReadParkAndRideNodeSkim="false"
 ShouldUseParkAndRideShadowPricing="true"
 ParkAndRideShadowPriceDelimiter="9"
-ParkAndRideShadowPriceMaximumPenalty="-20.0"
-ParkAndRideShadowPriceTimeSpread="5"
-ParkAndRideShadowPriceStepSize="0.3"
+ParkAndRideShadowPriceMaximumPenalty="-3.0"
+ParkAndRideShadowPriceTimeSpread="20"
+ParkAndRideShadowPriceStepSize="0.15"
 
 ImportZones="true"
-RawZonePath="TAZIndex_wo_gaps_district.txt"
+RawZonePath="TAZIndex_wo_gaps_district_422.txt"
 RawZoneDelimiter="9"
 
 ImportParcels="true"
@@ -161,13 +165,15 @@ PathImpedance_AutoTolledPathConstant="-2.0"
 PathImpedance_AvailablePathUpperTimeLimit="200.0"
 PathImpedance_TransitLocalBusPathConstant="0.00"
 PathImpedance_TransitPremiumBusPathConstant="0.0"
-PathImpedance_TransitLightRailPathConstant="1.0"
-PathImpedance_TransitCommuterRailPathConstant="1.0"
+PathImpedance_TransitLightRailPathConstant="0.0"
+PathImpedance_TransitCommuterRailPathConstant="0.0"
 PathImpedance_TransitFerryPathConstant="0.0"
+
 PathImpedance_TransitUsePathTypeSpecificTime="false"
-PathImpedance_TransitPremiumBusTimeAdditiveWeight="-0.25"
-PathImpedance_TransitLightRailTimeAdditiveWeight="-0.25"
-PathImpedance_TransitCommuterRailTimeAdditiveWeight="-0.25"
+
+PathImpedance_TransitPremiumBusTimeAdditiveWeight="-0.20"
+PathImpedance_TransitLightRailTimeAdditiveWeight="-0.30"
+PathImpedance_TransitCommuterRailTimeAdditiveWeight="-0.30"
 PathImpedance_TransitFerryTimeAdditiveWeight="-0.55"
 PathImpedance_BikeUseTypeSpecificDistanceFractions="false"
 PathImpedance_BikeType1DistanceFractionAdditiveWeight="0.0"

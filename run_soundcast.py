@@ -189,7 +189,13 @@ def daysim_sample(iter):
      mem_config= mmap.mmap(config.fileno(),0, access=mmap.ACCESS_WRITE)
      mem_config.seek(0)
      loc_sample_str=re.search('HouseholdSamplingRateOneInX', mem_config)
-     mem_config[loc_sample_str.end()+2]= str(pop_sample[iter])
+     sample_size=str(pop_sample[iter])
+     mem_config[loc_sample_str.end()+2]= sample_size[0:1]
+     mem_config[loc_sample_str.end()+3]= '\"'
+     mem_config[loc_sample_str.end()+4]= ' ' 
+     if len(sample_size)>1:
+        mem_config[loc_sample_str.end()+3] = sample_size[1:2]
+        mem_config[loc_sample_str.end()+4]= '\"'
      mem_config.flush()
      mem_config.close()
      config.close()
