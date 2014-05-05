@@ -1630,6 +1630,9 @@ def start_transit_pool(project_list):
     pool = Pool(processes=1)
     pool.map(run_transit,project_list[5:6])
 
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[6:7])
+
 def run_transit(project_name):
     start_of_run = time.time()
 
