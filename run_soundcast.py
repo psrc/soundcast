@@ -185,23 +185,17 @@ def rename_network_outs(iter):
 
 def daysim_sample(iter):
     try: 
-     config= open('configuration.xml','a+b')
-     mem_config= mmap.mmap(config.fileno(),0, access=mmap.ACCESS_WRITE)
-     mem_config.seek(0)
-     loc_sample_str=re.search('HouseholdSamplingRateOneInX', mem_config)
-     sample_size=str(pop_sample[iter])
-     mem_config[loc_sample_str.end()+2]= sample_size[0:1]
-     mem_config[loc_sample_str.end()+3]= '\"'
-     mem_config[loc_sample_str.end()+4]= ' ' 
-     if len(sample_size)>1:
-        mem_config[loc_sample_str.end()+3] = sample_size[1:2]
-        mem_config[loc_sample_str.end()+4]= '\"'
-     mem_config.flush()
-     mem_config.close()
+     config_template= open('configuration_template.xml','r')
+     config= open('configuration.xml','w')
+
+     for line in config_template:
+         config.write(line.replace("$REPLACEME", iter))
+
+     config_template.close()
      config.close()
     except:
+     config_template.close()
      config.close()
-     mem_config.close()
 
 ##########################
 # Main Script:
