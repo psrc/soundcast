@@ -4,6 +4,14 @@
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
+DataType="Default"
+TripType="Default"
+TourType="Default"
+PersonDayType="Default"
+HouseholdDayType="Default"
+Settings="DefaultSettings"
+ChoiceModelRunner = "Default"
+
 ShouldRunInputTester="true"
 PSRC = "true"
 
@@ -35,6 +43,7 @@ SmallDegreeOfParallelism="12"
 
 
 HouseholdSamplingRateOneInX="$REPLACEME" 
+
 HouseholdSamplingStartWithY="1"
 
 
@@ -56,9 +65,9 @@ ShowRunChoiceModelsStatus="true"
 UseShortDistanceNodeToNodeMeasures="false"
 
 VotVeryLowLow="3"
-VotLowMedium="7"
-VotMediumHigh="14"
-VotHighVeryHigh="28"
+VotLowMedium="6"
+VotMediumHigh="12"
+VotHighVeryHigh="20"
 
 UseJointTours="false"
 
@@ -160,7 +169,7 @@ PathImpedance_WalkMinutesPerMile="20.0"
 PathImpedance_TransitWalkAccessDistanceLimit="1.0"
 PathImpedance_TransitWalkAccessDirectLimit="1.0"
 PathImpedance_TransitSingleBoardingLimit="1.1"
-PathImpedance_AutoTolledPathConstant="-2.0"
+PathImpedance_AutoTolledPathConstant="-4.0"
 PathImpedance_AvailablePathUpperTimeLimit="200.0"
 PathImpedance_TransitLocalBusPathConstant="0.00"
 PathImpedance_TransitPremiumBusPathConstant="0.0"

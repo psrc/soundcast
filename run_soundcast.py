@@ -25,12 +25,10 @@ import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
-import mmap
 
 time_start = datetime.datetime.now()
 # location of the daysim exe
 print "\nSoundCast run: start time:", time_start
-
 
 
 def multipleReplace(text, wordDict):
@@ -189,7 +187,7 @@ def daysim_sample(iter):
      config= open('configuration.xml','w')
 
      for line in config_template:
-         config.write(line.replace("$REPLACEME", iter))
+         config.write(line.replace("$REPLACEME", str(iter)))
 
      config_template.close()
      config.close()
