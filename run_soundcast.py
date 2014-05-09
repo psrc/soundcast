@@ -55,6 +55,7 @@ def copy_daysim_code():
     shcopy(daysim_code +'/hdf5dll.dll', 'daysim')
     shcopy(daysim_code +'/Ionic.Zip.dll', 'daysim')
     shcopy(daysim_code +'/msvcp100.dll', 'daysim')
+    shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
 
 def setup_emme_bank_folders():
     emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
@@ -234,7 +235,10 @@ if run_skims_and_paths == True:
     if returncode != 0:
         sys.exit(1)
 
-
+#Log the version of Daysim.exe you are using to run the model
+svn_file =open('daysim/svn_stamp_out.txt','r')
+svn_info=svn_file.read()
+logfile.write(svn_info)
 
 time_skims = datetime.datetime.now()
 print '###### Finished skimbuilding:', time_skims - time_copy
