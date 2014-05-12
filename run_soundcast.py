@@ -255,12 +255,14 @@ for iteration in range(0,len(pop_sample)):
      #print 'keep going'
      #con_file.close()
 
-     #print '###### Finished running assignments:',time_assign - time_daysim
-
      ###### ASSIGNMENTS ###############################################################
      returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
      if returncode != 0:
        sys.exit(1)
+     time_assign = datetime.datetime.now()
+     
+     #print '###### Finished running assignments:',time_assign - time_daysim
+
 
 ### ASSIGNMENT AND R SUMMARY################################################################
 subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
