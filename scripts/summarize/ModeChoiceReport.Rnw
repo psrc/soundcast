@@ -1,0 +1,444 @@
+\documentclass{article}
+\usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=1.0cm,rmargin=0.5cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\usepackage{lscape}            % for landscape mode tables
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
+\setlength{\textwidth}{6in} 
+\def\Sweavesize{\smallsize} 
+
+\title{Daysim Summary}
+
+\author{Suzanne and Yingqian}
+
+\maketitle
+\small
+
+\begin{abstract}
+This document compares a SoundCast run to the household survey data.
+\end{abstract}
+
+<<echo=false>>=
+# Author: suzanne.childress
+###############################################################################
+
+###This script generates basic summaries for a Daysim model run outputs in HDF5
+#install.packages("plyr")
+#install.packages("data.table")
+#install.packages("rhdf5")
+# can be found on: http://www.bioconductor.org/packages/2.13/bioc/html
+# /rhdf5.html
+#install.packages("ggplot2")
+#install.packages("car")
+#install.packages("xtable")
+#install.packages("sqldf")
+#install.packages("reshape2")
+#install.packages("knitr")
+
+library(plyr)
+library(data.table)
+library(rhdf5)
+library(ggplot2)
+library(car)
+library(xtable)
+library(sqldf)
+library(reshape2)
+library(knitr)
+
+options(width=100)
+options("scipen" = 100, digits=2)
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+paths<- vector(mode = "list", length=2)
+# construct the names of where the files are located
+run_path<-getwd()
+
+run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
+paths <-c(paste(run_path, "/outputs/daysim_outputs.h5",sep = ""),
+          paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
+dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
+
+# Give a descriptive name of the two datasets that are being compared
+# For now we will assume the first dataset is ALWAYS the model, and the second is ALWAYS
+# the survey
+names(paths)<- c("2010 Model Run", "2006 Survey")
+type <- names(paths)
+
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv",sep = "")
+
+###Some convenience functions to make summaries more readable
+# We  want to put this into the HDF5 file, but it's not there yet
+recode <- function(dataset){
+  dataset$mode[dataset$mode==1] <- "walk"
+  dataset$mode[dataset$mode==2] <- "bike"
+  dataset$mode[dataset$mode==3] <- "sov"
+  dataset$mode[dataset$mode==4] <- "hov2"
+  dataset$mode[dataset$mode==5] <- "hov3+"
+  dataset$mode[dataset$mode==6] <- "transit"
+  dataset$mode[dataset$mode==7] <- "other"
+  dataset$mode[dataset$mode==8] <- "school_bus"
+  dataset$mode[dataset$mode==9] <- "other"
+  
+  dataset$dpurp[dataset$dpurp==0] <- "home"
+  dataset$dpurp[dataset$dpurp==1] <- "work"
+  dataset$dpurp[dataset$dpurp==2] <- "school"
+  dataset$dpurp[dataset$dpurp==3] <- "escort"
+  dataset$dpurp[dataset$dpurp==4] <- "personal business"
+  dataset$dpurp[dataset$dpurp==5] <- "shop"
+  dataset$dpurp[dataset$dpurp==6] <- "meal"
+  dataset$dpurp[dataset$dpurp==7] <- "social"
+  dataset$dpurp[dataset$dpurp==8] <- "social"
+  dataset$dpurp[dataset$dpurp==9] <- "personal business"
+  dataset$dpurp[dataset$dpurp==10] <- "other"
+  dataset
+}
+
+recode_tours <- function(dataset){
+  dataset$tmodetp[dataset$tmodetp==1] <- "walk"
+  dataset$tmodetp[dataset$tmodetp==2] <- "bike"
+  dataset$tmodetp[dataset$tmodetp==3] <- "sov"
+  dataset$tmodetp[dataset$tmodetp==4] <- "hov2"
+  dataset$tmodetp[dataset$tmodetp==5] <- "hov3+"
+  dataset$tmodetp[dataset$tmodetp==6] <- "transit"
+  dataset$tmodetp[dataset$tmodetp==7] <- "other"
+  dataset$tmodetp[dataset$tmodetp==8] <- "school_bus"
+  dataset$tmodetp[dataset$tmodetp==9] <- "other"
+  
+  dataset$pdpurp[dataset$pdpurp==0] <- "home"
+  dataset$pdpurp[dataset$pdpurp==1] <- "work"
+  dataset$pdpurp[dataset$pdpurp==2] <- "school"
+  dataset$pdpurp[dataset$pdpurp==3] <- "escort"
+  dataset$pdpurp[dataset$pdpurp==4] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==5] <- "shop"
+  dataset$pdpurp[dataset$pdpurp==6] <- "meal"
+  dataset$pdpurp[dataset$pdpurp==7] <- "social"
+  dataset$pdpurp[dataset$pdpurp==8] <- "social"
+  dataset$pdpurp[dataset$pdpurp==9] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==10] <- "other"
+  dataset
+}
+
+recode_districts<-function(dataset){
+  # change the input file
+  dataset$District[dataset$District==1] <- "Lakewood"
+  dataset$District[dataset$District==2] <- "SE Pierce"
+  dataset$District[dataset$District==3] <- "Tacoma"
+  dataset$District[dataset$District==4] <- "Federal Way"
+  dataset$District[dataset$District==5] <- "Kent"
+  dataset$District[dataset$District==6] <- "Burien"
+  dataset$District[dataset$District==7] <- "Issaquah"
+  dataset$District[dataset$District==8] <- "Bellevue"
+  dataset$District[dataset$District==9] <- "Redmond"
+  dataset$District[dataset$District==10] <- "South Seattle"
+  dataset$District[dataset$District==11] <- "Seattle CBD"
+  dataset$District[dataset$District==12] <- "Capitol Hill"
+  dataset$District[dataset$District==13] <- "North Seattle"
+  dataset$District[dataset$District==14] <- "Shoreline"
+  dataset$District[dataset$District==15] <- "Lynnwood"
+  dataset$District[dataset$District==16] <- "Mill Creek"
+  dataset$District[dataset$District==17] <- "Everett"
+  dataset$District[dataset$District==18] <- "Marysville"
+  dataset$District[dataset$District==19] <- "Kitsap"
+  dataset$District[dataset$District==20] <- "External/PNR"
+  dataset
+}
+
+recode_persons <- function(dataset){
+  dataset$pptyp[dataset$pptyp==1] <- "Full Time Worker"
+  dataset$pptyp[dataset$pptyp==2] <- "Part Time Worker"
+  dataset$pptyp[dataset$pptyp==3] <- "Retired"
+  dataset$pptyp[dataset$pptyp==4] <- "Non Working Adult"
+  dataset$pptyp[dataset$pptyp==5] <- "University Student"
+  dataset$pptyp[dataset$pptyp==6] <- "High School Student 16+"
+  dataset$pptyp[dataset$pptyp==7] <- "Child Age 5-15"
+  dataset$pptyp[dataset$pptyp==8] <- "Child Age 0-4"
+  dataset
+}
+get_total <- function(exp_fac)
+{
+  total <- sum(exp_fac)
+  if(total<1)
+  {
+    total <- nrow(exp_fac)
+  }
+  total 
+}
+
+h5group_to_table<-function (daysim_path, h5_data_root, datasets = NULL) 
+{
+    if (is.null(datasets)) {
+        dir <- h5ls(daysim_path)
+        datasets_select <- dir[dir$group %in% h5_data_root, "name"]
+    }
+    else {
+        datasets_select <- datasets
+    }
+    i = 0
+    for (x in datasets_select) {
+        if (i == 0) {
+            outtable <- data.table(h5read(daysim_path, paste(h5_data_root, 
+                x, sep = "/")))
+        }
+        else {
+            outtable <- cbind(outtable, data.table(h5read(daysim_path, 
+                paste(h5_data_root, x, sep = "/"))))
+        }
+        i = i + 1
+    }
+    setnames(outtable, datasets_select)
+    return(outtable)
+}
+
+get_group_names<-function (data1_path) 
+{
+    dataset_names <- h5ls(data1_path)
+    group_names <- unique(dataset_names$group)
+    group_names <- group_names[group_names != "/"]
+    group_names
+}
+
+######################################################################################
+# READ IN DATA
+
+zone_district<- read.csv(district_file)
+zone_district<-recode_districts(zone_district)
+
+for(i in 1:length(paths))
+{
+  
+  for(group in get_group_names(paths[i]))
+  {
+    table<- h5group_to_table(paths[i], group)
+    table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+    table_name <- paste(table_name[2],toString(i), sep="_")
+    assign(table_name, table)
+  }
+}
+#####################################################################
+### RECODE DATA FOR READABILITY
+
+Trip_1<-recode(Trip_1)
+Trip_2 <-recode(Trip_2)
+
+Tour_1<-recode_tours(Tour_1)
+Tour_2<-recode_tours(Tour_2)
+
+Person_1 <- recode_persons(Person_1)
+Person_1 <- recode_persons(Person_2)
+
+#####################################################################
+@
+
+
+
+\subsection{Vehicle Miles per Person}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+
+merge_per_hh_1 <- merge(Person_1, Household_1, by = "hhno")
+merge_per_hh_2 <- merge(Person_2, Household_2, by = "hhno")
+
+Person_1_total <- get_total(merge_per_hh_1$psexpfac)
+Person_2_total <- get_total(merge_per_hh_2$psexpfac)
+
+Trip_1_total <- get_total(Trip_1$trexpfac)
+Trip_2_total <- get_total(Trip_2$trexpfac)
+
+Tour_1_total <- get_total(Tour_1$toexpfac)
+Tour_2_total <- get_total(Tour_2$toexpfac)
+
+trip_ok_1 <- subset(Trip_1, travdist>0 & travdist<2000)
+trip_ok_2<- subset(Trip_2, travdist>0 & travdist<2000)
+
+Trip_1$share <- Trip_1$trexpfac/sum(Trip_1$trexpfac)
+Trip_2$share <- Trip_2$trexpfac/sum(Trip_2$trexpfac)
+
+
+@
+
+
+\section{Tour Summaries}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+  
+toursbymode1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp), sum)
+colnames(toursbymode1) <- c("tmodetp", "Tour")
+
+toursbymode1$ModeShare <- 100*toursbymode1$Tour/Tour_1_total
+  
+toursbymode2 <- aggregate(Tour_2$toexpfac, by = list(Tour_2$tmodetp), sum)
+colnames(toursbymode2) <- c("tmodetp", "Tour")
+
+toursbymode2$ModeShare <-100* toursbymode2$Tour/Tour_2_total
+  
+
+tours_by_mode <- merge(toursbymode1, toursbymode2, by = "tmodetp")
+
+
+
+colnames(tours_by_mode) <- c("Tour Mode", "total",  paste(names(paths[1]),"Share", sep=" "), "total",paste(names(paths[2]), "Share", sep=" "))
+print(tours_by_mode[, c(1,3,5)],row.names = F)
+
+# Tours By Mode By Purpose
+Tour_1_total_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), sum)
+Tour_2_total_p <- aggregate(Tour_2$toexpfac, by = list(Tour_2$pdpurp), sum)
+Tour_total_p <- merge(Tour_1_total_p, Tour_2_total_p, by ="Group.1")
+
+toursbymode1_p <- aggregate(Tour_1$toexpfac, by = list(Tour_1$tmodetp, Tour_1$pdpurp), sum)
+colnames(toursbymode1_p) <- c("tmodetp", "pdpurp", "Tour")
+toursbymode2_p <- aggregate(Tour_2$toexpfac, by = list(Tour_2$tmodetp, Tour_2$pdpurp), sum)
+colnames(toursbymode2_p) <- c("tmodetp", "pdpurp", "Tour")
+
+toursbymode_p <-merge(toursbymode1_p, toursbymode2_p, by = c("tmodetp", "pdpurp"))
+
+tourssharemp <- merge(Tour_total_p, toursbymode_p, by.x="Group.1", by.y="pdpurp" )
+
+tourssharemp$ModeShare1 <- 100*tourssharemp$Tour.x/tourssharemp$x.x
+tourssharemp$ModeShare2 <- 100*tourssharemp$Tour.y/tourssharemp$x.y
+
+colnames(tourssharemp)<- c("Purpose", "Total 1", "Total 2", "Mode", "Sum 1", "Sum 2", paste(names(paths[1]), "Share", sep=" "), paste(names(paths[2]), "Share", sep=" "))
+
+print("Tours by Mode And Purpose")
+print(tourssharemp[,c(1,4,7,8)])
+
+
+
+
+Tour_1$tour_id <- Tour_1$id
+
+merge_trip_tour_1 <-  merge(Tour_1, Trip_1, by= "tour_id",allow.cartesian=TRUE)
+
+trip_tour_mode_1 <- aggregate(merge_trip_tour_1$trexpfac, by= list(merge_trip_tour_1$tmodetp, merge_trip_tour_1$mode), sum)
+
+merge_trip_tour_2 <-merge(Tour_2, Trip_2, by= c("hhno", "pno","tour"),allow.cartesian=TRUE)
+
+trip_tour_mode_2 <- aggregate(merge_trip_tour_2$trexpfac, by= list(merge_trip_tour_2$tmodetp, merge_trip_tour_2$mode), sum)
+
+colnames(trip_tour_mode_1) <-c("Tour Mode", "Trip Mode", "Total Trips")
+colnames(trip_tour_mode_2) <-c("Tour Mode", "Trip Mode", "Total Trips")
+
+print("Trip Mode by Tour Mode MODEL")
+print (trip_tour_mode_1)
+
+print("Trip Mode by Tour Mode Survey")
+print (trip_tour_mode_2)
+
+
+@
+
+
+
+\section{Trip Cross-Tabulations}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results =verbatim>>=
+
+Tour_1_mode_time  <- ddply(Tour_1, .(tmodetp), summarise,
+                           mean_time = mean(tautotime),
+                           mean_dist = mean(tautodist),
+                           type = type[1])
+
+Trip_1_mode_time  <- ddply(Trip_1, .(mode), summarise,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_2_total,
+                           mean_time = mean(travtime),
+                           mean_dist = mean(travdist),
+                           type = type[1])
+
+  Trip_1_mode_purpose <- ddply(Trip_1 , .(mode,dpurp), summarise,
+                             total_trips  =  nrow(travtime),
+                             mean_time = mean(travtime),
+                             mean_dist = mean(travdist),
+                             type = type[1])
+
+  
+  
+  Trip_2_mode_time  <- ddply(Trip_2, .(mode), summarise,
+                           total_trips  =  sum(trexpfac), 
+                           mode_share = sum(trexpfac)/Trip_2_total,
+                           mean_time = mean(travtime),
+                          mean_dist = mean(travdist),
+                           type = type[2])
+
+  Trip_2_mode_purpose <- ddply(Trip_2 , .(mode,dpurp), summarise,
+                             total_trips =  sum(trexpfac),
+                             mean_time = mean(travtime),
+                             mean_dist = mean(travdist),
+                             type = type[2])
+
+  Tour_2_mode_time  <- ddply(Tour_2, .(tmodetp), summarise,
+                           mean_time = mean(tautotime),
+                           mean_dist = mean(tautodist),
+                           type = type[2])
+
+
+Trip_1_time<- aggregate(Trip_1$trexpfac, by = list(Trip_1$deptm/60), sum)
+Trip_2_time<- aggregate(Trip_2$trexpfac, by = list(Trip_2$deptm/60), sum)
+
+
+print(c("Tours by Mode and Travel Time", names(paths[1])))
+print(Tour_1_mode_time, row.names=F)
+print(c("Tours by Mode and Travel Time", names(paths[2])))
+print(Tour_2_mode_time, row.names=F)
+
+print(c("Trips by Mode and Travel Time", names(paths[1])))
+print(Trip_1_mode_time, row.names=F)
+print(c("Trips by Mode and Travel Time", names(paths[2])))
+print(Trip_2_mode_time, row.names=F)
+
+print(c("Trips by Purpose and Travel Time", names(paths[1])))
+print(Trip_1_mode_purpose, row.names=F)
+print(c("Trips by Purpose and Travel Time", names(paths[2])))
+print(Trip_2_mode_purpose, row.names=F)
+
+
+@
+
+
+
+
+\subsection{See RPlot.pdf for plots}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
+##################### Plots ######################################################
+
+append_1_2 <- rbind(Trip_1_mode_time,Trip_2_mode_time)
+append_1_2_purpose <- rbind(Trip_1_mode_purpose,Trip_2_mode_purpose)
+
+append_1_2_purpose_omit<-append_1_2_purpose[append_1_2_purpose$dpurp != 'home' &append_1_2_purpose$dpurp != 'other'&!is.na(append_1_2_purpose$type),]
+
+trips_compare_mode <- ggplot(data=append_1_2,aes(x=type, y= mode_share, fill=mode))
+trips_compare_mode+geom_bar(stat = "identity")+theme(text = element_text(size=16),axis.text.x = element_text(angle=0, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Mode Share")
+
+trips_compare_distance <- ggplot(data=append_1_2,aes(x=mode, y= mean_dist, fill=mode))
+trips_compare_distance+ geom_bar(stat = "identity") +facet_wrap(~ type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Average Distance")
+
+append_1_2_tour <- rbind(Tour_1_mode_time, Tour_2_mode_time)
+
+tours_compare_distance <- ggplot(data=append_1_2_tour,aes(x=tmodetp, y= mean_dist, fill=tmodetp))
+tours_compare_distance+ geom_bar(stat = "identity") +facet_wrap(~ type)+theme(text = element_text(size=10),axis.text.x = element_text(angle=90, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Average Distance")
+
+toursbymode1$type <- names(paths[1])
+toursbymode2$type <- names(paths[2])
+
+append_1_2_toursmode <-melt(data.frame(Model=tours_by_mode[,3], Survey=tours_by_mode[,5], TourMode=tours_by_mode[,1]), variable_name="dataset")
+
+
+append_1_2_toursmode <- na.omit(append_1_2_toursmode)
+tours_compare_mode <- ggplot(data=append_1_2_toursmode,aes(x=variable, y=value, fill                                                     =TourMode))
+tours_compare_mode+geom_bar(stat = "identity")+scale_fill_brewer(palette="Spectral")+ xlab("Tour Mode")+ylab("Tour Mode Share")
+
+    
+@
+\end{document}

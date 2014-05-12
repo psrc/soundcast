@@ -1,0 +1,591 @@
+\documentclass{article}
+\usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=0.5cm,bmargin=0.5cm,lmargin=1.0cm,rmargin=0.5cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\usepackage{lscape}            % for landscape mode tables
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{prefix.string=graphics/plot, eps = FALSE, pdf = TRUE}
+\setlength{\textwidth}{6in} 
+\def\Sweavesize{\smallsize} 
+
+\title{Daysim Summary}
+
+\author{Suzanne and Yingqian}
+
+\maketitle
+\small
+
+\begin{abstract}
+This document compares a SoundCast run to the household survey data.
+\end{abstract}
+
+<<echo=false>>=
+# Author: suzanne.childress
+###############################################################################
+
+###This script generates basic summaries for a Daysim model run outputs in HDF5
+#install.packages("plyr")
+#install.packages("data.table")
+#install.packages("rhdf5")
+# can be found on: http://www.bioconductor.org/packages/2.13/bioc/html
+# /rhdf5.html
+#install.packages("ggplot2")
+#install.packages("car")
+#install.packages("xtable")
+#install.packages("sqldf")
+#install.packages("reshape2")
+#install.packages("knitr")
+
+library(plyr)
+library(data.table)
+library(rhdf5)
+library(ggplot2)
+library(car)
+library(xtable)
+library(sqldf)
+library(reshape2)
+library(knitr)
+
+options(width=100)
+options("scipen" = 100, digits=2)
+@
+
+
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+paths<- vector(mode = "list", length=2)
+# construct the names of where the files are located
+run_path<-getwd()
+
+run_path = unlist(strsplit(run_path, split="scripts", fixed=TRUE))[1]
+paths <-c(paste(run_path, "/outputs/daysim_outputs.h5",sep = ""),
+          paste(run_path, "/scripts/summarize/survey.h5", sep = ""))
+dist_sum <- paste(run_path, "/outputs/district_summary", sep = "")
+
+# Give a descriptive name of the two datasets that are being compared
+# For now we will assume the first dataset is ALWAYS the model, and the second is ALWAYS
+# the survey
+names(paths)<- c("2010 Model Run", "2006 Survey")
+type <- names(paths)
+
+district_file <- paste(run_path, "/scripts/summarize/TAZ_TAD_County.csv",sep = "")
+
+###Some convenience functions to make summaries more readable
+# We  want to put this into the HDF5 file, but it's not there yet
+recode <- function(dataset){
+  dataset$mode[dataset$mode==1] <- "walk"
+  dataset$mode[dataset$mode==2] <- "bike"
+  dataset$mode[dataset$mode==3] <- "sov"
+  dataset$mode[dataset$mode==4] <- "hov2"
+  dataset$mode[dataset$mode==5] <- "hov3+"
+  dataset$mode[dataset$mode==6] <- "transit"
+  dataset$mode[dataset$mode==7] <- "other"
+  dataset$mode[dataset$mode==8] <- "school_bus"
+  dataset$mode[dataset$mode==9] <- "other"
+  
+  dataset$dpurp[dataset$dpurp==0] <- "home"
+  dataset$dpurp[dataset$dpurp==1] <- "work"
+  dataset$dpurp[dataset$dpurp==2] <- "school"
+  dataset$dpurp[dataset$dpurp==3] <- "escort"
+  dataset$dpurp[dataset$dpurp==4] <- "personal business"
+  dataset$dpurp[dataset$dpurp==5] <- "shop"
+  dataset$dpurp[dataset$dpurp==6] <- "meal"
+  dataset$dpurp[dataset$dpurp==7] <- "social"
+  dataset$dpurp[dataset$dpurp==8] <- "social"
+  dataset$dpurp[dataset$dpurp==9] <- "personal business"
+  dataset$dpurp[dataset$dpurp==10] <- "other"
+  dataset
+}
+
+recode_tours <- function(dataset){
+  dataset$tmodetp[dataset$tmodetp==1] <- "walk"
+  dataset$tmodetp[dataset$tmodetp==2] <- "bike"
+  dataset$tmodetp[dataset$tmodetp==3] <- "sov"
+  dataset$tmodetp[dataset$tmodetp==4] <- "hov2"
+  dataset$tmodetp[dataset$tmodetp==5] <- "hov3+"
+  dataset$tmodetp[dataset$tmodetp==6] <- "transit"
+  dataset$tmodetp[dataset$tmodetp==7] <- "other"
+  dataset$tmodetp[dataset$tmodetp==8] <- "school_bus"
+  dataset$tmodetp[dataset$tmodetp==9] <- "other"
+  
+  dataset$pdpurp[dataset$pdpurp==0] <- "home"
+  dataset$pdpurp[dataset$pdpurp==1] <- "work"
+  dataset$pdpurp[dataset$pdpurp==2] <- "school"
+  dataset$pdpurp[dataset$pdpurp==3] <- "escort"
+  dataset$pdpurp[dataset$pdpurp==4] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==5] <- "shop"
+  dataset$pdpurp[dataset$pdpurp==6] <- "meal"
+  dataset$pdpurp[dataset$pdpurp==7] <- "social"
+  dataset$pdpurp[dataset$pdpurp==8] <- "social"
+  dataset$pdpurp[dataset$pdpurp==9] <- "personal business"
+  dataset$pdpurp[dataset$pdpurp==10] <- "other"
+  dataset
+}
+
+recode_persons <- function(dataset){
+  dataset$pptyp[dataset$pptyp==1] <- "Full Time Worker"
+  dataset$pptyp[dataset$pptyp==2] <- "Part Time Worker"
+  dataset$pptyp[dataset$pptyp==3] <- "Retired"
+  dataset$pptyp[dataset$pptyp==4] <- "Non Working Adult"
+  dataset$pptyp[dataset$pptyp==5] <- "University Student"
+  dataset$pptyp[dataset$pptyp==6] <- "High School Student 16+"
+  dataset$pptyp[dataset$pptyp==7] <- "Child Age 5-15"
+  dataset$pptyp[dataset$pptyp==8] <- "Child Age 0-4"
+  dataset
+}
+
+recode_districts<-function(dataset){
+  # change the input file
+  dataset$District[dataset$District==1] <- "Lakewood"
+  dataset$District[dataset$District==2] <- "SE Pierce"
+  dataset$District[dataset$District==3] <- "Tacoma"
+  dataset$District[dataset$District==4] <- "Federal Way"
+  dataset$District[dataset$District==5] <- "Kent"
+  dataset$District[dataset$District==6] <- "Burien"
+  dataset$District[dataset$District==7] <- "Issaquah"
+  dataset$District[dataset$District==8] <- "Bellevue"
+  dataset$District[dataset$District==9] <- "Redmond"
+  dataset$District[dataset$District==10] <- "South Seattle"
+  dataset$District[dataset$District==11] <- "Seattle CBD"
+  dataset$District[dataset$District==12] <- "Capitol Hill"
+  dataset$District[dataset$District==13] <- "North Seattle"
+  dataset$District[dataset$District==14] <- "Shoreline"
+  dataset$District[dataset$District==15] <- "Lynnwood"
+  dataset$District[dataset$District==16] <- "Mill Creek"
+  dataset$District[dataset$District==17] <- "Everett"
+  dataset$District[dataset$District==18] <- "Marysville"
+  dataset$District[dataset$District==19] <- "Kitsap"
+  dataset$District[dataset$District==20] <- "External/PNR"
+  dataset
+}
+
+
+get_total <- function(exp_fac)
+{
+  total <- sum(exp_fac)
+  if(total<1)
+  {
+    total <- nrow(exp_fac)
+  }
+  total 
+}
+
+h5group_to_table<-function (daysim_path, h5_data_root, datasets = NULL) 
+{
+    if (is.null(datasets)) {
+        dir <- h5ls(daysim_path)
+        datasets_select <- dir[dir$group %in% h5_data_root, "name"]
+    }
+    else {
+        datasets_select <- datasets
+    }
+    i = 0
+    for (x in datasets_select) {
+        if (i == 0) {
+            outtable <- data.table(h5read(daysim_path, paste(h5_data_root, 
+                x, sep = "/")))
+        }
+        else {
+            outtable <- cbind(outtable, data.table(h5read(daysim_path, 
+                paste(h5_data_root, x, sep = "/"))))
+        }
+        i = i + 1
+    }
+    setnames(outtable, datasets_select)
+    return(outtable)
+}
+
+get_group_names<-function (data1_path) 
+{
+    dataset_names <- h5ls(data1_path)
+    group_names <- unique(dataset_names$group)
+    group_names <- group_names[group_names != "/"]
+    group_names
+}
+
+######################################################################################
+# READ IN DATA
+
+zone_district<- read.csv(district_file)
+zone_district<-recode_districts(zone_district)
+
+for(i in 1:length(paths))
+{
+  
+  for(group in get_group_names(paths[i]))
+  {
+    table<- h5group_to_table(paths[i], group)
+    table_name <- unlist(strsplit(group, split='/', fixed=TRUE))
+    table_name <- paste(table_name[2],toString(i), sep="_")
+    assign(table_name, table)
+  }
+}
+#####################################################################
+### RECODE DATA FOR READABILITY
+
+Trip_1<-recode(Trip_1)
+Trip_2 <-recode(Trip_2)
+
+Tour_1<-recode_tours(Tour_1)
+Tour_2<-recode_tours(Tour_2)
+
+Person_1<- recode_persons(Person_1)
+Person_2<- recode_persons(Person_2)
+
+#####################################################################
+@
+
+
+\section{Daily Activity Pattern and Exact Number of Tours}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+merge_per_hh_1 <- merge(Person_1, Household_1, by = "hhno")
+merge_per_hh_2 <- merge(Person_2, Household_2, by = "hhno")
+
+Person_1_total <- get_total(merge_per_hh_1$psexpfac)
+Person_2_total <- get_total(merge_per_hh_2$psexpfac)
+
+Tour_1_total <- get_total(Tour_1$toexpfac)
+Tour_2_total <- get_total(Tour_2$toexpfac)
+
+Tour_1_PerPerson <- Tour_1_total/Person_1_total
+Tour_2_PerPerson <- Tour_2_total/Person_2_total
+PercentDiffTour <- 100* (Tour_1_PerPerson-Tour_2_PerPerson)/Tour_2_PerPerson
+
+ToursPerPerson<- data.frame(cbind(Tour_1_PerPerson, Tour_2_PerPerson, PercentDiffTour))
+colnames(ToursPerPerson)<-c(names(paths[1]), names(paths[2]), "Percent Difference")
+
+print("Tours per Person", row.names=FALSE)
+print(ToursPerPerson, row.names=FALSE, digits=3)
+
+toursbypurpose1 <- aggregate(Tour_1$toexpfac, by = list(Tour_1$pdpurp), sum)
+colnames(toursbypurpose1) <- c("pdpurp", "Tour")
+
+toursbypurpose1_Percent <- data.frame(
+  cbind(toursbypurpose1$pdpurp, round(100*toursbypurpose1$Tour/Tour_1_total,1)))
+colnames(toursbypurpose1_Percent)<- c("Tour Purpose", "Percent of Tours")
+
+toursbypurpose2 <- aggregate(Tour_2$toexpfac, by = list(Tour_2$pdpurp), sum)
+colnames(toursbypurpose2) <- c("pdpurp", "Tour")
+
+toursbypurpose2_Percent <- data.frame(
+  cbind(toursbypurpose2$pdpurp, round(100*toursbypurpose2$Tour/Tour_2_total,1)))
+colnames(toursbypurpose2_Percent)<- c("Tour Purpose", "Percent of Tours")
+
+tours_by_purpose <- merge(toursbypurpose1_Percent, toursbypurpose2_Percent, by = "Tour Purpose")
+
+
+colnames(tours_by_purpose) <- c("Tour Purpose", names(paths[1]), names(paths[2]))
+
+print("Percent of Tours By Purpose")
+print(tours_by_purpose, digits=2)
+
+toursbypurpose1_Person <- data.frame(cbind(toursbypurpose1$pdpurp, round(toursbypurpose1$Tour/Person_1_total,3)))
+colnames(toursbypurpose1_Person) <- c("pdpurp", "TourPerPerson")
+
+toursbypurpose2_Person <- data.frame(cbind(toursbypurpose2$pdpurp, round(toursbypurpose2$Tour/Person_2_total,3)))
+
+colnames(toursbypurpose2_Person) <- c("pdpurp", "TourPerPerson")
+
+tours_by_purpose_pers <- merge(toursbypurpose1_Person, toursbypurpose2_Person, by = "pdpurp")
+
+print(tours_by_purpose_pers)
+
+PersonsDay1 <- merge(Person_1, PersonDay_1, by="id")
+PersonsDay2 <- merge(Person_2, PersonDay_2, by=c("hhno", "pno"))
+
+toursPersWork1<-aggregate(PersonsDay1$wktours, by=list(PersonsDay1$pptyp),FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersWork2<-aggregate(PersonsDay2$wktours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersWrkr<-merge(toursPersWork1, toursPersWork2, by="Group.1")
+toursPersWrkr$PercentDiff<- 100*(toursPersWrkr$x.x - toursPersWrkr$x.y)/toursPersWrkr$x.y
+toursPersWrkr$x.x<-round(toursPersWrkr$x.x, 2)
+toursPersWrkr$x.y<-round(toursPersWrkr$x.y, 2)
+colnames(toursPersWrkr)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Work Tours by Person Type")
+print(toursPersWrkr)
+
+
+toursPersSchool1<-aggregate(PersonsDay1$sctours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersSchool2<-aggregate(PersonsDay2$sctours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersSchool<-merge(toursPersSchool1, toursPersSchool2, by="Group.1")
+toursPersSchool$PercentDiff<- 100*(toursPersSchool$x.x - toursPersSchool$x.y)/toursPersSchool$x.y
+toursPersSchool$x.x<-round(toursPersSchool$x.x, 2)
+toursPersSchool$x.y<-round(toursPersSchool$x.y, 2)
+colnames(toursPersSchool)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("School Tours by Person Type")
+print(toursPersSchool)
+
+toursPersEsc1<-aggregate(PersonsDay1$estours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersEsc2<-aggregate(PersonsDay2$estours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersEscort<-merge(toursPersEsc1, toursPersEsc2, by="Group.1")
+toursPersEscort$PercentDiff<- 100*(toursPersEscort$x.x - toursPersEscort$x.y)/toursPersEscort$x.y
+toursPersEscort$x.x<-round(toursPersEscort$x.x, 2)
+toursPersEscort$x.y<-round(toursPersEscort$x.y, 2)
+colnames(toursPersEscort)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Escort Tours by Person Type")
+print(toursPersEscort)
+
+toursPersShop1<-aggregate(PersonsDay1$shtours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersShop2<-aggregate(PersonsDay2$shtours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersShop<-merge(toursPersShop1, toursPersShop2, by="Group.1")
+toursPersShop$PercentDiff<- 100*(toursPersShop$x.x - toursPersShop$x.y)/toursPersShop$x.y
+toursPersShop$x.x<-round(toursPersShop$x.x, 2)
+toursPersShop$x.y<-round(toursPersShop$x.y, 2)
+colnames(toursPersShop)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Shop Tours by Person Type")
+print(toursPersShop)
+
+toursPersMeal1<-aggregate(PersonsDay1$mltours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersMeal2<-aggregate(PersonsDay2$mltours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersMeal<-merge(toursPersMeal1, toursPersMeal2, by="Group.1")
+toursPersMeal$PercentDiff<- 100*(toursPersMeal$x.x - toursPersMeal$x.y)/toursPersMeal$x.y
+toursPersMeal$x.x<-round(toursPersMeal$x.x, 2)
+toursPersMeal$x.y<-round(toursPersMeal$x.y, 2)
+colnames(toursPersMeal)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Meal Tours by Person Type")
+print(toursPersMeal)
+
+toursPersPB1<-aggregate(PersonsDay1$pbtours, by=list(PersonsDay1$pptyp), mean)
+toursPersPB2<-aggregate(PersonsDay2$pbtours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersPB<-merge(toursPersPB1, toursPersPB2, by="Group.1")
+toursPersPB$PercentDiff<- 100*(toursPersPB$x.x - toursPersPB$x.y)/toursPersPB$x.y
+toursPersPB$x.x<-round(toursPersPB$x.x, 2)
+toursPersPB$x.y<-round(toursPersPB$x.y, 2)
+colnames(toursPersPB)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Personal Business Tours by Person Type")
+print(toursPersPB)
+
+toursPersSo1<-aggregate(PersonsDay1$sotours, by=list(PersonsDay1$pptyp), FUN=mean, weights =PersonsDay1$psexpfac)
+toursPersSo2<-aggregate(PersonsDay2$sotours, by=list(PersonsDay2$pptyp), FUN=mean, weights =PersonsDay2$psexpfac)
+
+toursPersSo<-merge(toursPersSo1, toursPersSo2, by="Group.1")
+toursPersSo$PercentDiff<- 100*(toursPersSo$x.x - toursPersSo$x.y)/toursPersSo$x.y
+toursPersSo$x.x<-round(toursPersSo$x.x, 2)
+toursPersSo$x.y<-round(toursPersSo$x.y, 2)
+colnames(toursPersSo)<-c("Person Type",names(paths[1]), names(paths[2]), "Percent Difference" )
+
+print("Social Tours by Person Type")
+print(toursPersSo)
+
+person_day_hh1 <- merge(PersonDay_1, Household_1, by = "hhno")
+person_day_hh2 <- merge(PersonDay_2, Household_2, by = "hhno")
+
+# if stops- Work
+ave_work_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$wkstops),sum)
+ave_work_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$wkstops),sum)
+
+colnames(ave_work_stops1) <-c("WorkStops", "ModeledPercentPersons")
+colnames(ave_work_stops2) <-c("WorkStops", "ObservedPercentPersons")
+
+work_stops <- merge(ave_work_stops1, ave_work_stops2, by= "WorkStops", all.y=TRUE)
+no_work_stops<-round(subset(work_stops, WorkStops==0),1)
+with_work_stops<- c("1+",round(100-no_work_stops$ModeledPercentPersons,1), 100-no_work_stops$ObservedPercentPersons)
+if_work_stops<- rbind(no_work_stops,with_work_stops)
+print(if_work_stops,scientific=false, row.names=FALSE)
+# school stops
+ave_sc_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$scstops),sum)
+
+ave_sc_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$scstops),sum)
+
+colnames(ave_sc_stops1) <-c("scStops", "ModeledPercentPersons")
+colnames(ave_sc_stops2) <-c("scStops", "ObservedPercentPersons")
+
+sc_stops <- merge(ave_sc_stops1, ave_sc_stops2, by= "scStops", all.y=TRUE)
+no_sc_stops<-round(subset(sc_stops, scStops==0),1)
+with_sc_stops<- c("1+",round(100-no_sc_stops$ModeledPercentPersons,1), round(100-no_sc_stops$ObservedPercentPersons,1))
+if_sc_stops<- rbind(no_sc_stops,with_sc_stops)
+print(if_sc_stops,scientific=false, row.names=FALSE)
+
+#escort
+
+ave_es_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$esstops),sum)
+
+ave_es_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$esstops),sum)
+
+colnames(ave_es_stops1) <-c("esStops", "ModeledPercentPersons")
+colnames(ave_es_stops2) <-c("esStops", "ObservedPercentPersons")
+
+
+es_stops <- merge(ave_es_stops1, ave_es_stops2, by= "esStops", all.y=TRUE)
+no_es_stops<-round(subset(es_stops, esStops==0),1)
+with_es_stops<- c("1+",round(100-no_es_stops$ModeledPercentPersons,1), round(100-no_es_stops$ObservedPercentPersons,1))
+if_es_stops<- rbind(no_es_stops,with_es_stops)
+print(if_es_stops,scientific=false, row.names=FALSE)
+
+#shop
+ave_sh_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$shstops),sum)
+
+
+ave_sh_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$shstops),sum)
+
+colnames(ave_sh_stops1) <-c("shStops", "ModeledPercentPersons")
+colnames(ave_sh_stops2) <-c("shStops", "ObservedPercentPersons")
+
+sh_stops <- merge(ave_sh_stops1, ave_sh_stops2, by= "shStops", all.y=TRUE)
+no_sh_stops<-round(subset(sh_stops, shStops==0),1)
+with_sh_stops<- c("1+",round(100-no_sh_stops$ModeledPercentPersons,1), round(100-no_sh_stops$ObservedPercentPersons,1))
+if_sh_stops<- rbind(no_sh_stops,with_sh_stops)
+print(if_sh_stops,scientific=false, row.names=FALSE)
+
+#meal
+ave_ml_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$mlstops),sum)
+
+ave_ml_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$mlstops),sum)
+
+colnames(ave_ml_stops1) <-c("mlStops", "ModeledPercentPersons")
+colnames(ave_ml_stops2) <-c("mlStops", "ObservedPercentPersons")
+
+ml_stops <- merge(ave_ml_stops1, ave_ml_stops2, by= "mlStops", all.y=TRUE)
+no_ml_stops<-round(subset(ml_stops, mlStops==0),1)
+with_ml_stops<- c("1+",round(100-no_ml_stops$ModeledPercentPersons,1), round(100-no_ml_stops$ObservedPercentPersons,1))
+if_ml_stops<- rbind(no_ml_stops,with_ml_stops)
+print(if_ml_stops,scientific=false, row.names=FALSE)
+
+#Personal Business
+ave_pb_stops1 <- aggregate(100*person_day_hh1$hhexpfac/(Person_1_total),by=list(person_day_hh1$pbstops),sum)
+
+ave_pb_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$pbstops),sum)
+
+colnames(ave_pb_stops1) <-c("pbStops", "ModeledPercentPersons")
+colnames(ave_pb_stops2) <-c("pbStops", "ObservedPercentPersons")
+
+pb_stops <- merge(ave_pb_stops1, ave_pb_stops2, by= "pbStops", all.y=TRUE)
+no_pb_stops<-round(subset(pb_stops, pbStops==0),1)
+with_pb_stops<- c("1+",round(100-no_pb_stops$ModeledPercentPersons,1), round(100-no_pb_stops$ObservedPercentPersons,1))
+if_pb_stops<- rbind(no_pb_stops,with_pb_stops)
+print(if_pb_stops,scientific=false, row.names=FALSE)
+
+#Social
+ave_so_stops1 <- aggregate(100*person_day_hh1$hhexpfac/Person_1_total,by=list(person_day_hh1$sostops),sum)
+
+ave_so_stops2 <- aggregate(100*person_day_hh2$hhexpfac/(2*Person_2_total),by=list(person_day_hh2$sostops),sum)
+
+colnames(ave_so_stops1) <-c("soStops", "ModeledPercentPersons")
+colnames(ave_so_stops2) <-c("soStops", "ObservedPercentPersons")
+
+
+so_stops <- merge(ave_so_stops1, ave_so_stops2, by= "soStops", all.y=TRUE)
+no_so_stops<-round(subset(so_stops, soStops==0),1)
+with_so_stops<- c("1+",round(100-no_so_stops$ModeledPercentPersons,1), round(100-no_so_stops$ObservedPercentPersons,1))
+if_so_stops<- rbind(no_so_stops,with_so_stops)
+print(if_so_stops,scientific=false, row.names=FALSE)
+
+# Intermediate Stops per Tour by Tour Type
+Tour_1$Trips <- Tour_1$tripsh1 +Tour_1$tripsh2
+Tour_2$Trips <- Tour_2$tripsh1 +Tour_2$tripsh2
+
+TripsPerTour_1 <- aggregate(Tour_1$Trips, by =list(Tour_1$pdpurp), FUN=mean, weights=Tour_1$toexpfac)
+TripsPerTour_2 <- aggregate(Tour_2$Trips, by =list(Tour_2$pdpurp), FUN=mean, weights=Tour_2$toexpfac)
+TripsPerTour <-merge(TripsPerTour_1, TripsPerTour_2, by = "Group.1")
+TripsPerTour$PercentDiff<- 100*(TripsPerTour$x.x- TripsPerTour$x.y)/TripsPerTour$x.y
+colnames(TripsPerTour)<- c("Tour Purpose", names(paths[1]),names(paths[2]), "Percent Difference")
+print("Trips per Tour by Tour Purpose")
+print(TripsPerTour)
+
+@
+
+\subsection{Work-Based Subtour Generation}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+#WBSubtoursCount1 <-length(subset(Tour_1$toexpfac, Tour_1$parent>0))
+#WBSubtoursCount2 <- aggregate(Tour_2$toexpfac, by=list(Tour_2$parent>0), sum)
+
+#WorkTours_1 <-length(subset(Tour_1$toexpfac, Tour_1$pdpurp==1))
+#WorkTours_2 <- aggregate(Tour_2$toexpfac, by=list(Tour_2$pdpurp==1), sum)
+
+#WBSubtours1 <- WBSubtoursCount1/WorkTours_1 
+
+@
+\subsection{Total Trips}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+Trip_1_total <- get_total(Trip_1$trexpfac)
+Trip_2_total <- get_total(Trip_2$trexpfac)
+Diff_Trips <- Trip_1_total- Trip_2_total
+Per_Diff_Trips <- 100*Diff_Trips/Trip_2_total
+
+Trip_1$type <- names(paths[1])
+Trip_2$type <- names(paths[2])
+
+TripsperPerson_1 <- Trip_1_total/Person_1_total
+TripsperPerson_2 <- Trip_2_total/Person_2_total
+
+DiffTripsperPers <- TripsperPerson_1 -TripsperPerson_2
+PercentDiffTripPer <- 100*DiffTripsperPers/TripsperPerson_2
+
+Trip_1_AveDist <- weighted.mean(Trip_1$travdist[Trip_1$travdist>0 & Trip_1$travdist<200], Trip_1$trexpfac[Trip_1$travdist>0 & Trip_1$travdist<200])
+Trip_2_AveDist <- weighted.mean(Trip_2$travdist[Trip_2$travdist>0 & Trip_2$travdist<200], Trip_2$trexpfac[Trip_2$travdist>0 & Trip_2$travdist<200])
+
+DiffAveDist <- Trip_1_AveDist-Trip_2_AveDist
+PercentDiffAveDist <- 100*DiffAveDist/Trip_2_AveDist
+
+Totals_HHTrips <- data.frame(rbind(
+                          cbind(TripsperPerson_1, TripsperPerson_2, DiffTripsperPers, PercentDiffTripPer),
+                          cbind(Trip_1_AveDist ,Trip_2_AveDist,DiffAveDist, PercentDiffAveDist)))
+
+row.names(Totals_HHTrips)<-  c("Average Trips per Person", "Average Trip Length")
+colnames(Totals_HHTrips) <- c(names(paths[1]), names(paths[2]), "Difference", "Percent Difference")
+
+print(Totals_HHTrips, scientific=false)
+@
+
+\subsection{Trip Rates by Purpose}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
+trips_by_purpose1 <- aggregate(Trip_1$trexpfac, by = list(Trip_1$dpurp), sum)
+trips_by_purpose2 <- aggregate(Trip_2$trexpfac, by = list(Trip_2$dpurp), sum)
+
+trips_by_purpose1$AveTrips<-trips_by_purpose1$x/Person_1_total
+trips_by_purpose2$AveTrips <-trips_by_purpose2$x/Person_2_total
+
+colnames(trips_by_purpose1) <- c("DestinationPurpose", "Model Trips"," ModelperPerson")
+
+colnames(trips_by_purpose2) <- c("DestinationPurpose","Survey Trips", " SurveyperPerson")
+
+Trips_by_Purpose <- data.frame(merge(trips_by_purpose1, trips_by_purpose2, by= "DestinationPurpose"))
+
+Trips_by_Purpose$PercentDiffPerPerson <- 100*(Trips_by_Purpose[3]-Trips_by_Purpose[5])/Trips_by_Purpose[5]
+
+colnames(Trips_by_Purpose$PercentDiffPerPerson)<- "PercentDiff"
+print(Trips_by_Purpose[,c(1, 3, 5,6)],row.names = F, digits=1)
+@
+
+
+
+
+
+
+\subsection{See RPlot.pdf for plots}
+<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE>>=
+##################### Plots ######################################################
+
+toursbypurpose1$type <- names(paths[1])
+toursbypurpose2$type <- names(paths[2])
+append_1_2_tourspurpose <- rbind(toursbypurpose1, toursbypurpose2)
+
+append_1_2_tourspurpose <- na.omit(append_1_2_tourspurpose)
+tours_compare_purpose <- ggplot(append_1_2_tourspurpose,aes(x=pdpurp, y=Tour, fill=pdpurp))
+
+tours_compare_purpose+geom_bar(stat = "identity")+facet_wrap(~ type)+scale_fill_brewer(palette="Paired")+ xlab("Total Tours")+ylab("Tour Purpose") +theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))      
+@
+\end{document}

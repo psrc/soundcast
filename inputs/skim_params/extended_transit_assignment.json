@@ -1,0 +1,53 @@
+{
+    "modes": [
+        "b",
+        "c",
+        "f",
+        "n",
+        "o",
+        "p",
+        "r",
+        "w",
+        "x"
+    ],
+    "demand": "mftrnst",
+    "waiting_time": {
+        "headway_fraction": 0.5,
+        "effective_headways": "hdw",
+        "spread_factor": 1,
+        "perception_factor": 2.0
+    },
+    "boarding_time": {
+        "at_nodes": {
+            "penalty": 6,
+            "perception_factor": 2.0
+        },
+        "on_lines": null
+    },
+    "boarding_cost": {
+        "at_nodes": {
+            "penalty": 0,
+            "perception_factor": 1
+        },
+        "on_lines": null
+    },
+    "in_vehicle_time": {
+        "perception_factor": 1
+    },
+    "in_vehicle_cost": null,
+    "aux_transit_time": {
+        "perception_factor": 2.0
+    },
+    "aux_transit_cost": null,
+    "flow_distribution_at_origins": {
+        "by_time_to_destination": "BEST_CONNECTOR",
+        "by_fixed_proportions": null
+    },
+    "flow_distribution_between_lines": {
+        "consider_travel_time": false
+    },
+    "connector_to_connector_path_prohibition": null,
+    "save_strategies": true,
+    "od_results": null,
+    "type": "EXTENDED_TRANSIT_ASSIGNMENT"
+}

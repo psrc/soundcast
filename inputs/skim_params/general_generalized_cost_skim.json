@@ -1,0 +1,236 @@
+{
+    "type": "PATH_BASED_TRAFFIC_ANALYSIS",
+    "classes": [
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": {
+                    "shortest_paths": null
+                },
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": {
+                    "shortest_paths": null
+                },
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        },
+        {
+            "results": {
+                "od_travel_times": {
+                    "shortest_paths": null
+                },
+                "link_volumes": null,
+                "turn_volumes": null
+            },
+            "analysis": {
+                "results": {
+                    "selected_link_volumes": null,
+                    "selected_turn_volumes": null,
+                    "od_values": null
+                }
+            }
+        }
+
+    ],
+    "path_analysis": {
+        "link_component": "length",
+        "turn_component": null,
+        "operator": "+",
+        "selection_threshold": {
+            "lower": 0,
+            "upper": 999999
+        },
+        "path_to_od_composition": {
+            "considered_paths": "ALL",
+            "operator": "average"
+        }
+    },
+    "cutoff_analysis": null
+}
