@@ -164,7 +164,7 @@ def run_all_R_summaries(iter):
      run_R_summary('DaysimDestChoice',iter)
      #run_R_summary('DaysimTimeChoice',iter)
      run_Rcsv_summary('DaysimReport_District', iter)
-     run_Rcsv_summary('DaysimPNRs', iter)
+     run_Rcsv_summary('Daysim_PNRs', iter)
      move_files_to_outputs(iter)
      delete_tex_files()
 
