@@ -21,6 +21,7 @@ import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
+import inro.emme.database.emmebank as _eb
 
 time_start = datetime.datetime.now()
 print "\nSoundCast run: start time:", time_start
