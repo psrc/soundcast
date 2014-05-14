@@ -20,14 +20,14 @@ from multiprocessing import Pool
 # This script converts the 4k emmebank skims into HDF5 skims to be used in Daysim for model estimation.
 
 # Location of 4k emmebanks
-transit4k_path = 'D:/Temp/fourk_triptables/assignments/transit/'
-auto4k_path = 'D:/Temp/fourk_triptables/assignments/auto/'
-non_motorized_4k_path = 'D:/Temp/fourk_triptables/assignments/nonmotorized/'
+transit4k_path = 'R:/SoundCast/Inputs/2040/4k/transit/'
+auto4k_path = 'R:/SoundCast/Inputs/2040/4k/auto/'
+non_motorized_4k_path = 'R:/SoundCast/Inputs/2040/4k/nonmotorized/'
 
 # Output File Location
-transit_h5_file = 'D:/Temp/fourk_triptables/transit.h5'
-auto_h5_file = 'D:/Temp/fourk_triptables/auto.h5'
-non_motorized_h5_file = 'D:/Temp/fourk_triptables/nonmotorized.h5'
+transit_h5_file = 'R:/SoundCast/Inputs/2040/4k/transit.h5'
+auto_h5_file = 'R:/SoundCast/Inputs/2040/4k/auto.h5'
+non_motorized_h5_file = 'R:/SoundCast/Inputs/2040/4k/nonmotorized.h5'
 
 def open_h5_file(h5_file_name):
     try:
@@ -247,11 +247,10 @@ def convert_nm_tripTables():
 
 
 def main():
-    #convert_transit_skims()
-    #convert_auto_tripTables()
-    #convert_transit_tripTables()
+    convert_auto_tripTables()
+    convert_transit_tripTables()
     convert_nm_tripTables()
-    #convert_non_motorized_skims()
+
 
 
 
