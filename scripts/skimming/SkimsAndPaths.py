@@ -99,7 +99,9 @@ bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
 #transit inputs:
 transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
 transit_submodes=['b', 'c', 'f', 'p', 'r']
-
+transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 'wait_time_perception' :  {'name' : '@wait', 'init_value': 2}, 'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
 #fare
 zone_file = 'inputs/Fares/transit_fare_zones.grt'
 #peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
@@ -122,6 +124,9 @@ tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
 hdf_auto_filename = 'inputs/4k/trips_auto_4k.h5'
 hdf_transit_filename = 'inputs/4k/trips_transit_4k.h5'
+
+#Change modes for toll links
+#toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
 
 
    
@@ -737,6 +742,11 @@ def transit_assignment(my_project):
 
     #Load in the necessary Dictionaries
     assignment_specification = json_to_dictionary("extended_transit_assignment")
+    
+    #modify constants for certain nodes:
+    assignment_specification["waiting_time"]["headway_fraction"] = transit_node_attributes['headway_fraction']['name'] 
+    assignment_specification["waiting_time"]["perception_factor"] = transit_node_attributes['wait_time_perception']['name'] 
+    assignment_specification["in_vehicle_time"]["perception_factor"] = transit_node_attributes['in_vehicle_time']['name']
     assign_transit(assignment_specification)
 
     end_transit_assignment = time.time()
@@ -1644,6 +1654,8 @@ def run_transit(project_name):
     m.emmebank.dispose()
     
     my_bank = m.emmebank
+
+    create_node_attributes(transit_node_attributes, m)
     transit_assignment(m)
     transit_skims(m)
 
@@ -1842,6 +1854,53 @@ def feedback_check(emmebank_path):
      my_bank.dispose()
      return passed
 
+def create_node_attributes(node_attribute_dict, my_project):
+        current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+        my_bank = current_scenario.emmebank
+        tod = my_bank.title
+        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
+        create_extra = my_project.tool(NAMESPACE)
+        for key, value in node_attribute_dict.iteritems():
+            print key, value
+            new_att = create_extra(extra_attribute_type="NODE",
+                       extra_attribute_name=value['name'],
+                       extra_attribute_description=key,
+                       extra_attribute_default_value = value['init_value'],
+                       overwrite=True)
+
+        
+        network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")  
+        node_calculator_spec = json_to_dictionary("node_calculation")
+        transit_tod = transit_network_tod_dict[tod]
+        
+        print 'here'
+        if transit_tod in transit_node_constants.keys():
+            for line_id, attribute_dict in transit_node_constants[transit_tod].iteritems():
+                print 'here'
+                for attribute_name, value in attribute_dict.iteritems():
+                    print attribute_name, value
+                #Load in the necessary Dictionarie
+                #node_calculator_spec = json_to_dictionary("node_calculation")
+                    mod_calc = node_calculator_spec
+                    mod_calc["result"] = attribute_name
+                    mod_calc["expression"] = value
+                    mod_calc["selections"]["node"] = "Line = " + line_id
+                    network_calc(mod_calc)
+
+def change_modes(mode_change_dict, my_project):
+    NAMESPACE = "inro.emme.data.network.base.change_link_modes"
+    change_link_modes = my_project.tool(NAMESPACE)
+    for key, value in mode_change_dict.iteritems():
+        selection_expression = '@toll1 = .01, 99999'
+        select_modes = list(key)
+        for mode in select_modes:
+            selection_expression = selection_expression + ' and modes = ' + mode
+
+        change_link_modes(modes = value,
+                  action="SET",
+                  selection=selection_expression)
+
+
 def run_assignments_parallel(project_name):
 
     start_of_run = time.time()
@@ -1884,7 +1943,7 @@ def run_assignments_parallel(project_name):
     import_extra_attributes(m)
     arterial_delay_calc(m)
     vdf_initial(m)
-    
+    #change_modes(toll_modes_dict, m)
     #run auto assignment/skims
     traffic_assignment(m)
     
@@ -1913,13 +1972,16 @@ def run_assignments_parallel(project_name):
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + tod
     logging.debug(text)
 
+
+
+
 def main():
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     for x in range(0, global_iterations):
         start_of_run = time.time()
-        
+
         project_list=['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
                       'Projects/7to8/7to8.emp',
@@ -1932,30 +1994,29 @@ def main():
                       'Projects/17to18/17to18.emp',
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
-        #run assignments in parallel, number determined by global variable parallel_instances
         for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
         
-            #want pooled processes finished before executing more code in main:
+        #    #want pooled processes finished before executing more code in main:
 
         
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/5to6/5to6.emp')
-        f = open('inputs/converge.txt', 'w') 
-        if feedback_check('Banks/7to8/emmebank') == False:
-            go = 'continue'
-            json.dump(go, f)
-            print 'keep going!'
-            for i in range (0, 12, parallel_instances):
-                l = project_list[i:i+parallel_instances]
-                export_to_hdf5_pool(l)
-        else:
-            go = 'stop'
-            json.dump(go, f)
-        f.close()
+        #f = open('inputs/converge.txt', 'w') 
+        #if feedback_check('Banks/7to8/emmebank') == False:
+        #    go = 'continue'
+        #    json.dump(go, f)
+        #    print 'keep going!'
+        #    for i in range (0, 12, parallel_instances):
+        #        l = project_list[i:i+parallel_instances]
+        #        export_to_hdf5_pool(l)
+        #else:
+        #    go = 'stop'
+        #    json.dump(go, f)
+        #f.close()
 
-        #export_to_hdf5_pool(project_list)
+        export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
 
