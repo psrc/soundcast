@@ -65,9 +65,9 @@ ShowRunChoiceModelsStatus="true"
 UseShortDistanceNodeToNodeMeasures="false"
 
 VotVeryLowLow="3"
-VotLowMedium="6"
-VotMediumHigh="12"
-VotHighVeryHigh="20"
+VotLowMedium="8"
+VotMediumHigh="14"
+VotHighVeryHigh="28"
 
 UseJointTours="false"
 
