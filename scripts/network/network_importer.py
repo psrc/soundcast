@@ -22,7 +22,7 @@ base_net_name = '_roadway.in'
 turns_name = '_turns.in'
 transit_name = '_transit.in'
 shape_name = '_link_shape_1002.txt'
-
+no_toll_modes = ['s', 'h', 'i', 'j']
 class EmmeProject:
     def __init__(self, filepath):
         self.desktop = app.start_dedicated(True, "cth", filepath)
@@ -113,6 +113,55 @@ class EmmeProject:
     def change_scenario(self):
         self.current_scenario = list(self.bank.scenarios())[0]
 
+      
+    
+def import_tolls(emmeProject):
+    #create extra attributes:
+    create_extras = emmeProject.m.tool("inro.emme.data.extra_attribute.create_extra_attribute")
+    t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
+    t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
+    t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
+    t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
+    t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
+    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
+    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@brfer",extra_attribute_description="Bridge & Ferrry Flag",overwrite=True)
+    
+ 
+    
+    import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
+
+  
+    attr_file = function_file = 'inputs/tolls/tolls' + emmeProject.tod + '.txt'
+
+    # set tolls
+    import_attributes(attr_file, scenario = emmeProject.current_scenario,
+              column_labels={0: "inode",
+                             1: "jnode",
+                             2: "@toll1",
+                             3: "@toll2",
+                             4: "@toll3",
+                             5: "@trkc1",
+                             6: "@trkc2",
+                             7: "@trkc3"},
+              revert_on_error=False)
+
+    # set bridge/ferry flags
+    bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
+    import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
+              column_labels={0: "inode",
+                             1: "jnode",
+                             2: "@brfer"},
+              revert_on_error=False)
+
+    # change modes on tolled network, but exclude some bridges/ferries
+    network = emmeProject.current_scenario.get_network()
+    for link in network.links():
+        if link['@toll1'] > 0 and link['@brfer'] == 0:
+            for i in no_toll_modes:
+                link.modes -= set([network.mode(i)])
+    emmeProject.current_scenario.publish_network(network)
+
+    
 
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
@@ -146,6 +195,9 @@ def run_importer(project_name):
         if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
            my_project.process_transit('inputs/networks/' + value + transit_name)
+
+        #import tolls
+        import_tolls(my_project)
     
     
 

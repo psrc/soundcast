@@ -564,12 +564,13 @@ def intitial_extra_attributes(my_project):
     t22 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trnv3",extra_attribute_description="Transit Vehicles",overwrite=True)
 
     # Create the link extra attributes to store the toll rates in
-    t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
-    t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
-    t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
-    t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
-    t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
+    # This is done in network_importer now
+    #t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
+    #t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
+    #t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
+    #t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
+    #t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
+    #t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
 
     # Create the link extra attribute to store the arterial delay in
     t29 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@rdly",extra_attribute_description="Intersection Delay",overwrite=True)
@@ -597,7 +598,7 @@ def import_extra_attributes(my_project):
                              5: "@trkc1",
                              6: "@trkc2",
                              7: "@trkc3"},
-              revert_on_error=True)
+              revert_on_error=False)
 
     end_extra_attr_import = time.time()
 
@@ -1887,18 +1888,7 @@ def create_node_attributes(node_attribute_dict, my_project):
                     mod_calc["selections"]["node"] = "Line = " + line_id
                     network_calc(mod_calc)
 
-def change_modes(mode_change_dict, my_project):
-    NAMESPACE = "inro.emme.data.network.base.change_link_modes"
-    change_link_modes = my_project.tool(NAMESPACE)
-    for key, value in mode_change_dict.iteritems():
-        selection_expression = '@toll1 = .01, 99999'
-        select_modes = list(key)
-        for mode in select_modes:
-            selection_expression = selection_expression + ' and modes = ' + mode
 
-        change_link_modes(modes = value,
-                  action="SET",
-                  selection=selection_expression)
 
 
 def run_assignments_parallel(project_name):
@@ -1943,7 +1933,6 @@ def run_assignments_parallel(project_name):
     import_extra_attributes(m)
     arterial_delay_calc(m)
     vdf_initial(m)
-    #change_modes(toll_modes_dict, m)
     #run auto assignment/skims
     traffic_assignment(m)
     
