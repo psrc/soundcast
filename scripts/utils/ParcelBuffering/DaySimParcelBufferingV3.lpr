@@ -596,11 +596,10 @@ begin
 
      j:=5; getDBFReal(dbfhr,j, PARKPR_P[k][i]);  {PPRICDYP}
      j:=24; getDBFReal(dbfhr,j, PARKPR_P[k][i]);   {PPRICHRP}
-
+     end;
 
      {adjustments - min parcel size}
      if sqft_p[i]<100.0 then sqft_p[i]:=100.0;
-
 
    until (i>=nparcels);
 
