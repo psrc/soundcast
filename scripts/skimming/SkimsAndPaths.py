@@ -578,29 +578,7 @@ def intitial_extra_attributes(my_project):
     end_extra_attr = time.time()
 
 
-def import_extra_attributes(my_project):
 
-    start_extra_attr_import = time.time()
-    tod = my_project.emmebank.title
-
-    #Define the Emme Tools used in this function
-    import_attributes = my_project.tool("inro.emme.data.network.import_attribute_values")
-
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    attr_file = function_file = 'inputs/tolls/tolls' + tod + '.txt'
-
-    import_attributes(attr_file, scenario = current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@toll1",
-                             3: "@toll2",
-                             4: "@toll3",
-                             5: "@trkc1",
-                             6: "@trkc2",
-                             7: "@trkc3"},
-              revert_on_error=False)
-
-    end_extra_attr_import = time.time()
 
 
 def arterial_delay_calc(my_project):
@@ -1930,7 +1908,6 @@ def run_assignments_parallel(project_name):
 
     #set up for assignments
     intitial_extra_attributes(m)
-    import_extra_attributes(m)
     arterial_delay_calc(m)
     vdf_initial(m)
     #run auto assignment/skims
