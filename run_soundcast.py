@@ -120,6 +120,7 @@ def copy_large_inputs():
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
+    dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
     # the configuration does not currently use the node_node distance file
     #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
