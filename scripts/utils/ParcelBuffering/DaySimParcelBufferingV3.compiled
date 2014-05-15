@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Compiler Value="C:\lazarus\fpc\2.6.0\bin\x86_64-win64\fpc.exe" Date="1095333268"/>
+  <Params Value=" -Mdelphi -Scghi -O1 -g -gl -vewnhi -l -FuR:\ABModelDevelopment\Software\ParcelBuffering_Lazarus\ DaySimParcelBufferingV3.lpr"/>
+  <Complete Value="False"/>
+</CONFIG>
