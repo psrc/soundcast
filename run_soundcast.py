@@ -125,8 +125,8 @@ def copy_large_inputs():
     shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
-    shcopy(base_inputs+'/4k/trips_auto_4k.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/trips_transit_4k.h5','Inputs/4k')
+    shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
+    shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
 
 def run_R_summary(summary_name,iter):
      R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
