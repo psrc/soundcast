@@ -122,8 +122,8 @@ destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 #Zone Index
 tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
-hdf_auto_filename = 'inputs/4k/trips_auto_4k.h5'
-hdf_transit_filename = 'inputs/4k/trips_transit_4k.h5'
+hdf_auto_filename = 'inputs/4k/auto.h5'
+hdf_transit_filename = 'inputs/4k/transit.h5'
 
 #Change modes for toll links
 #toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
