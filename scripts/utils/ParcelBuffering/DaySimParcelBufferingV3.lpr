@@ -566,16 +566,6 @@ begin
      j:=11; getDBFInt (dbfhr,j, TAZ_P[i]);
      j:=14; getDBFInt (dbfhr,j, TYPE_P[i]);
 
-       for k:=1 to nlusevars do begin
-       j:=j+1; getDBFReal(dbfhr,j, LUSE_P[k][i]);
-     end;
-     for k:=1 to nparktypes do begin
-       j:=j+1; getDBFReal(dbfhr,j, PARKSP_P[k][i]);
-     end;
-     for k:=1 to nparktypes do begin
-       j:=j+1; getDBFReal(dbfhr,j, PARKPR_P[k][i]);
-     end;
-     for k:=1 to nlusevars do begin
      j:=19; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {HHP}
      j:=9; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {STUDK8_P}
      j:=7; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {STUHGH_P}
@@ -588,7 +578,7 @@ begin
      j:=2; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPOFC_P}
      j:=1; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPRET_P}
      j:=10; getDBFReal(dbfhr,j, LUSE_P[k][i]); {EMPSVC_P}
-     j:=16; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPRSC_P}
+     j:=25; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPOTH_P}
      j:=22; getDBFReal(dbfhr,j, LUSE_P[k][i]); {EMPTOT_P}
 
      j:=4; getDBFReal(dbfhr,j, PARKSP_P[k][i]);  {PARKDY_P}
@@ -596,7 +586,8 @@ begin
 
      j:=5; getDBFReal(dbfhr,j, PARKPR_P[k][i]);  {PPRICDYP}
      j:=24; getDBFReal(dbfhr,j, PARKPR_P[k][i]);   {PPRICHRP}
-     end;
+
+
 
      {adjustments - min parcel size}
      if sqft_p[i]<100.0 then sqft_p[i]:=100.0;
