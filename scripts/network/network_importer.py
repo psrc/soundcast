@@ -145,7 +145,9 @@ def import_tolls(emmeProject):
                              7: "@trkc3"},
               revert_on_error=False)
 
+def create_noToll_network(emmeProject):
     # set bridge/ferry flags
+    #Want to keep some tolled facilities open to all modes (including no toll)
     bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
     import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
@@ -153,6 +155,7 @@ def import_tolls(emmeProject):
                              2: "@brfer"},
               revert_on_error=False)
 
+    
     # change modes on tolled network, but exclude some bridges/ferries
     network = emmeProject.current_scenario.get_network()
     for link in network.links():
@@ -198,11 +201,13 @@ def run_importer(project_name):
 
         #import tolls
         import_tolls(my_project)
+        #No toll network- Not using right now
+        #create_noToll_network(my_project)
     
     
 
 
-#change network modes from 4k to AB
+
 
 def main():
     for tod in tod_networks:

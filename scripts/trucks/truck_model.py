@@ -15,7 +15,7 @@ from multiprocessing import Pool
 import h5py
 
 project = 'Projects/TruckModel/TruckModel.emp'
-hh_employment_file = 'hhemp'
+#hh_employment_file = 'tazdata.in'
 districts_file = 'districts19_ga.ens'
 truck_trips_h5_filename = 'inputs/4k/auto.h5'
 mode_file = 'modes.txt'
@@ -241,7 +241,7 @@ def skims_to_hdf5(EmmeProject):
     my_store.close()
      
 
-matrix_import_list = ['agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
+matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
                       'special_gen_light_trucks','special_gen_medium_trucks', 'special_gen_heavy_trucks', 
                       'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
 
@@ -273,7 +273,7 @@ for y in range (0, len(origin_destination_dict["Destination_Matrices"])):
 #import household/employment matrix
 #This is an input, ask chris how this is derived
 #hhemp is a full matrix where rows are taz's and columns represent employment/household info
-my_project.import_matrices('inputs/trucks/' + hh_employment_file)
+#my_project.import_matrices('inputs/trucks/' + hh_employment_file)
 
 #create scalar matrices:
 for y in range (0, len(origin_destination_dict["Scalar_Matrices"])):
