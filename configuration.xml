@@ -42,7 +42,7 @@ LargeDegreeOfParallelism="24"
 SmallDegreeOfParallelism="12"
 
 
-HouseholdSamplingRateOneInX="2" 
+HouseholdSamplingRateOneInX="20"
 
 HouseholdSamplingStartWithY="1"
 
