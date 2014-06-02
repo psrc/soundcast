@@ -190,6 +190,24 @@ def daysim_sample(iter):
     except:
      config_template.close()
      config.close()
+
+def clean_up():
+    delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
+                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv',
+                   'outputs\\aggregate_logsums.1.dat','outputs\\aggregate_logsums.2.dat', 'outputs\\aggregate_logsums.3.dat',
+                   'outputs\\aggregate_logsums.4.dat', 'outputs\\aggregate_logsums.5.dat', 'outputs\\aggregate_logsums.6.dat',
+                   'outputs\\aggregate_logsums.7.dat', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
+                   'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
+                   'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
+                   'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
+                   'working\\zone.pk' ]
+
+    for file in delete_files: 
+        if(os.path.isfile(os.path.join(os.getcwd(), file))):
+            os.remove(os.path.join(os.getcwd(), file))
+        else:
+            print file
+
 ##########################
 # Main Script:
 #copy_daysim_code()
@@ -274,6 +292,7 @@ run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
 logfile.close()
 
 #### ALL DONE ##################################################################
+clean_up()
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
 ##print '    Total run time:',time_assign_summ - time_start
 
