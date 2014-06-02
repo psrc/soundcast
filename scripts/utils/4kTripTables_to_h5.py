@@ -25,8 +25,8 @@ auto4k_path = 'R:/SoundCast/Inputs/2040/4k/auto/'
 non_motorized_4k_path = 'R:/SoundCast/Inputs/2040/4k/nonmotorized/'
 
 # Output File Location
-transit_h5_file = 'R:/SoundCast/Inputs/2040/4k/transit.h5'
-auto_h5_file = 'R:/SoundCast/Inputs/2040/4k/auto.h5'
+transit_h5_file = 'R:/SoundCast/Inputs/2010/4k/trips_transit_4k.h5'
+auto_h5_file = 'R:/SoundCast/Inputs/2010/4k/trips_auto_4k.h5'
 non_motorized_h5_file = 'R:/SoundCast/Inputs/2040/4k/nonmotorized.h5'
 
 def open_h5_file(h5_file_name):

@@ -16,27 +16,12 @@ import subprocess
 from multiprocessing import Pool
 import logging
 import datetime
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
-STOP_THRESHOLD= 0.1
-#Hard-coded paths/data will be moved to a Config file
-# Number of simultaneous parallel processes. Must be a factor of 12.
-
-parallel_instances = 12
-# Number of Global Iterations
-global_iterations = 1
-# Assignment Convergence Criteria
-max_iter = 50
-b_rel_gap = 0.0001
-
-#zone of externals- 1 because numpy is zero-based
-MIN_EXTERNAL = 3733-1
-MAX_EXTERNAL = 3749-1
-
-#zone of special generators - 1 because numpy is zero-based
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
 
 #Create a logging file to report model progress
-logging.basicConfig(filename='skims_log.txt', level=logging.DEBUG)
+logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 
 #Report model starting
 current_time = str(time.strftime("%H:%M:%S"))
@@ -54,82 +39,13 @@ else:
 
 if seed_trips:
 	print 'Using SURVEY SEED TRIPS.'
-	hdf5_file_path = 'inputs/seed_trips.h5'
+	hdf5_file_path = base_inputs + '/' + scenario_name + '/etc/survey_seed_trips.h5'
 elif daysim_seed_trips:
 	print 'Using DAYSIM OUTPUT SEED TRIPS'
 	hdf5_file_path = 'inputs/daysim_outputs_seed_trips.h5'
 else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
-
-
-#HDF5 Groups and Subgroups
-hdf5_maingroups=["Daysim","Emme","Truck Model","UrbanSim"]
-
-hdf5_emme_subgroups=["5to6","6to7","7to8","8to9","9to10","10to14",
-                     "14to15","15to16","16to17","17to18","18to20","20to5"]
-
-emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit"]
-
-hdf5_urbansim_subgroups=["Households","Parcels","Persons"]
-hdf5_freight_subgroups=["Inputs","Outputs","Rates"]
-hdf5_daysim_subgroups=["Household","Person","Trip","Tour"]
-
-#Skim for time, cost
-skim_matrix_designation_all_tods=['t','c']
-skim_matrix_designation_limited = ['d']
-
-
-
-
-
-#skim for distance for only these time periods
-distance_skim_tod = ['7to8', '17to18']
-generalized_cost_tod = ['7to8', '17to18']
-gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk'}
-#bike/walk
-bike_walk_skim_tod = ['5to6']
-bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
-                                 'demand' : 'walk', 'modes' : ["w", "x"],
-                                 'intrazonal_time' : 'izwtim'},
-                         'bike':{'time' : 'biket', 'description' : 'bike time',
-                                 'demand' : 'bike', 'modes' : ["k", "l", "q"],
-                                 'intrazonal_time' : 'izbtim'}}
-
-#transit inputs:
-transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
-transit_submodes=['b', 'c', 'f', 'p', 'r']
-transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 'wait_time_perception' :  {'name' : '@wait', 'init_value': 2}, 'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
-transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
-#fare
-zone_file = 'inputs/Fares/transit_fare_zones.grt'
-#peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
-#peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
-#offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
-#offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
-
-fare_matrices_tod = ['6to7', '9to10']
-
-
-
-#intrazonals
-intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
-taz_area_file = 'inputs/intrazonals/taz_acres.in'
-origin_tt_file = 'inputs/intrazonals/origin_tt.in'
-destination_tt_file = 'inputs/intrazonals/destination_tt.in'
-
-#Zone Index
-tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
-#Trip-Based Matrices for External, Trucks, and Special Generator Inputs
-hdf_auto_filename = 'inputs/4k/auto.h5'
-hdf_transit_filename = 'inputs/4k/transit.h5'
-
-#Change modes for toll links
-#toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
-
-
-   
 
 def create_hdf5_container(hdf_name):
 
@@ -212,7 +128,7 @@ def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
 
-    hdf5_filename = os.path.join('inputs', hdf5_name +'.h5').replace("\\","/")
+    hdf5_filename = os.path.join('inputs/', hdf5_name +'.h5').replace("\\","/")
     print hdf5_filename
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -1537,7 +1453,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
-     my_store=h5py.File(hdf5_file_path, "r+")
+     my_store = h5py.File(hdf5_file_path, "r+")
      daysim_set = my_store["Trip"]
      #open departure time array
      deptm = np.asarray(daysim_set["deptm"])
@@ -1945,45 +1861,47 @@ def main():
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
-    for x in range(0, global_iterations):
-        start_of_run = time.time()
+    #for x in range(0, global_iterations):
+    #    start_of_run = time.time()
 
-        project_list=['Projects/5to6/5to6.emp',
-                      'Projects/6to7/6to7.emp',
-                      'Projects/7to8/7to8.emp',
-                      'Projects/8to9/8to9.emp',
-                      'Projects/9to10/9to10.emp',
-                      'Projects/10to14/10to14.emp',
-                      'Projects/14to15/14to15.emp',
-                      'Projects/15to16/15to16.emp',
-                      'projects/16to17/16to17.emp',
-                      'Projects/17to18/17to18.emp',
-                      'Projects/18to20/18to20.emp',
-                      'Projects/20to5/20to5.emp' ]
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            start_pool(l)
+    #    project_list=['Projects/5to6/5to6.emp',
+    #                  'Projects/6to7/6to7.emp',
+    #                  'Projects/7to8/7to8.emp',
+    #                  'Projects/8to9/8to9.emp',
+    #                  'Projects/9to10/9to10.emp',
+    #                  'Projects/10to14/10to14.emp',
+    #                  'Projects/14to15/14to15.emp',
+    #                  'Projects/15to16/15to16.emp',
+    #                  'projects/16to17/16to17.emp',
+    #                  'Projects/17to18/17to18.emp',
+    #                  'Projects/18to20/18to20.emp',
+    #                  'Projects/20to5/20to5.emp' ]
+    #    for i in range (0, 12, parallel_instances):
+    #        l = project_list[i:i+parallel_instances]
+    #        start_pool(l)
         
         #    #want pooled processes finished before executing more code in main:
 
         
-        start_transit_pool(project_list)
-        #run_assignments_parallel('Projects/5to6/5to6.emp')
+        #start_transit_pool(project_list)
+        run_assignments_parallel('Projects/7to8/7to8.emp')
+        run_transit('Projects/7to8/7to8.emp')
+        start_export_to_hdf5('projects/6to7/6to7.emp')
         #f = open('inputs/converge.txt', 'w') 
         #if feedback_check('Banks/7to8/emmebank') == False:
         #    go = 'continue'
         #    json.dump(go, f)
         #    print 'keep going!'
-        #    for i in range (0, 12, parallel_instances):
-        #        l = project_list[i:i+parallel_instances]
-        #        export_to_hdf5_pool(l)
+        #for i in range (0, 12, parallel_instances):
+        #    l = project_list[i:i+parallel_instances]
+        #    export_to_hdf5_pool(l)
         #else:
         #    go = 'stop'
         #    json.dump(go, f)
         #f.close()
 
-        export_to_hdf5_pool(project_list)
 
+        
         end_of_run = time.time()
 
         text =  "Emme Skim Creation and Export to HDF5 completed normally"

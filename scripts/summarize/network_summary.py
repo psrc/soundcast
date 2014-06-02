@@ -15,23 +15,10 @@ import subprocess
 import csv 
 from multiprocessing import Pool
 import pandas as pd
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
-project = 'Projects/LoadTripTables/LoadTripTables.emp'
-fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2', 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6', 'connectors' : 'ul3 = 5'}
-extra_attributes_dict = {'@tveh' : 'total vehicles', '@mveh' : 'medium trucks', '@hveh' : 'heavy trucks', '@vmt' : 'vmt',\
-                         '@vht' : 'vht', '@trnv' : 'buses in auto equivalents', '@bveh' : 'number of buses'}
-transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
-sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md',\
-                     '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm',\
-                      '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
-#input files:
-counts_file = 'TrafficCounts_Mid.txt'
-#output_files: 
-net_summary_file = 'network_summary.csv'
-counts_output_file = 'counts_output.csv'
-screenlines_file = 'screenline_volumes.csv'
-uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
+
 class EmmeProject:
     def __init__(self, filepath):
         self.desktop = app.start_dedicated(True, "cth", filepath)
