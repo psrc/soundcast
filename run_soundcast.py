@@ -3,15 +3,7 @@
 # PSRC SoundCast Model Runner
 # ===========================
 
-# Daysim executable is also not on Git
-daysim_code = 'r:/soundcast/daysim'
-master_project = 'LoadTripTables'
-# Large input files are not in Git; copy them from:
-base_inputs = 'r:/soundcast/inputs'
-# make this configurable later
-network_summary_files=['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
-                       'counts_output', 'network_summary']
-logfile = open('d:/Soundcast_log.txt', 'wb')
+
 
 pop_sample = [20, 10, 5, 5, 2, 2, 1, 1]
 
@@ -22,6 +14,11 @@ from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
 import inro.emme.database.emmebank as _eb
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
+
+# Create text file to log model performance
+logfile = open(main_log_file, 'wb')
 
 time_start = datetime.datetime.now()
 print "\nSoundCast run: start time:", time_start
