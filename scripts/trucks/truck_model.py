@@ -13,23 +13,9 @@ import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
 import h5py
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
-project = 'Projects/TruckModel/TruckModel.emp'
-#hh_employment_file = 'tazdata.in'
-districts_file = 'districts19_ga.ens'
-truck_trips_h5_filename = 'inputs/4k/auto.h5'
-mode_file = 'modes.txt'
-base_net_name = 'am_roadway.in'
-#TOD to create Bi-Dir skims (AM/EV Peak)
-generalized_cost_tod = {'7to8' : 'am', '17to18' : 'pm'}
-#GC & Distance skims that get read in from Soundcast
-
-#4k time of day
-tod_list = ['am','md', 'pm', 'ev', 'ni']
-#External Magic Numbers
-LOW_STATION = 3733
-HIGH_STATION = 3750
-EXTERNAL_DISTRICT = 'ga20'
 class EmmeProject:
 
     def __init__(self, filepath):
@@ -203,7 +189,7 @@ def network_importer(EmmeProject):
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
     EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + base_net_name)
+    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)
     
 
 def json_to_dictionary(dict_name):
@@ -249,7 +235,7 @@ input_skims = json_to_dictionary('input_skims')
 
 truck_generation_dict = json_to_dictionary('truck_gen_calc_dict')
 
-my_project = EmmeProject(project)
+my_project = EmmeProject(truck_model_project)
 network_importer(my_project)
 
 
@@ -351,7 +337,7 @@ my_project.import_matrices('inputs/trucks/truck_operating_costs.in')
 #open GC skims from H5 container, average am/pm, import to emme:
 np_gc_skims = {}
 np_bidir_gc_skims = {}
-for tod in generalized_cost_tod.keys():
+for tod in truck_generalized_cost_tod.keys():
 
     hdf_file = h5py.File('inputs/' + tod + '.h5', "r")
     for item in input_skims.values():
@@ -359,13 +345,13 @@ for tod in generalized_cost_tod.keys():
         skim_name = item['gc_name']
         h5_skim = hdf_file['Skims'][skim_name]
         np_skim = np.matrix(h5_skim)
-        np_gc_skims[skim_name + '_' + generalized_cost_tod[tod]] = np_skim
+        np_gc_skims[skim_name + '_' + truck_generalized_cost_tod[tod]] = np_skim
         
         #distance
         skim_name = item['dist_name']
         h5_skim = hdf_file['Skims'][skim_name]
         np_skim = np.matrix(h5_skim)
-        np_gc_skims[skim_name + '_' + generalized_cost_tod[tod]] = np_skim
+        np_gc_skims[skim_name + '_' + truck_generalized_cost_tod[tod]] = np_skim
 
 zones=my_project.current_scenario.zone_numbers
 zonesDim=len(my_project.current_scenario.zone_numbers)

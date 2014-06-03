@@ -3,26 +3,15 @@ import inro.modeller as _m
 import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
-import os
+import os, sys
 import re 
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool, pool
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
 
-project = 'Projects/LoadTripTables/LoadTripTables.emp'
-tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
-sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
-
-mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 'ahijstuvbw' : 'asehdimjvutbpw'}
-mode_file = 'modes.txt'
-transit_vehicle_file = 'vehicles.txt'
-base_net_name = '_roadway.in'
-turns_name = '_turns.in'
-transit_name = '_transit.in'
-shape_name = '_link_shape_1002.txt'
-no_toll_modes = ['s', 'h', 'i', 'j']
 class EmmeProject:
     def __init__(self, filepath):
         self.desktop = app.start_dedicated(True, "cth", filepath)
@@ -131,7 +120,7 @@ def import_tolls(emmeProject):
     import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
 
   
-    attr_file = function_file = 'inputs/tolls/tolls' + emmeProject.tod + '.txt'
+    attr_file = base_inputs + '/tolls/' + 'tolls' + emmeProject.tod + '.txt'
 
     # set tolls
     import_attributes(attr_file, scenario = emmeProject.current_scenario,
@@ -148,7 +137,7 @@ def import_tolls(emmeProject):
 def create_noToll_network(emmeProject):
     # set bridge/ferry flags
     #Want to keep some tolled facilities open to all modes (including no toll)
-    bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
+    bridge_ferry_flag__file = base_inputs + 'tolls/bridge_ferry_flags.in'
     import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
                              1: "jnode",
@@ -203,11 +192,6 @@ def run_importer(project_name):
         import_tolls(my_project)
         #No toll network- Not using right now
         #create_noToll_network(my_project)
-    
-    
-
-
-
 
 def main():
     for tod in tod_networks:
@@ -225,8 +209,9 @@ def main():
         print 'done'
    
     
-    run_importer(project)
+    run_importer(network_summary_project)
     print 'done'
+
 if __name__ == "__main__":
     main()
 
