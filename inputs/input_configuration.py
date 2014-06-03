@@ -9,16 +9,16 @@ master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
 
 # Script and subprocess controls 
-run_copy_daysim_code = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
-run_copy_inputs = False
-run_import_networks = False 
-run_skims_and_paths = False
+run_copy_daysim_code = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
+run_copy_inputs = True
+run_import_networks = True 
+run_skims_and_paths = True
 run_truck_model = True
-run_daysim = False
-run_network_summary = False
-run_r_summaries = False
+run_daysim = True
+run_network_summary = True
+run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
 num_iter = 1
