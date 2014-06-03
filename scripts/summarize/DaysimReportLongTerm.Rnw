@@ -318,47 +318,7 @@ print("Share of Workers More than Twenty Miles to Work", include.rownames = FALS
 print(WrkrsGr20Mi, digits=3)
 @
 
-\subsection{Worker Flows}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-wkr_1_hzone_sum <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County, wkr_1_hzone$pwtaz), sum)
-colnames(wkr_1_hzone_sum)<- c("HomeCounty", "WorkTAZ", "Workers")
-wkr_1_wzone <- merge(zone_district, wkr_1_hzone_sum, by.y = "WorkTAZ", by.x = "TAZ")
-wkr_1_h_w <- aggregate(wkr_1_wzone$Workers, by = list(wkr_1_wzone$HomeCounty, wkr_1_wzone$County), sum)
-colnames(wkr_1_h_w)<-c("HomeCounty", "WorkCounty","Workers")
-wrk1_homecounty <- aggregate(wkr_1_hzone$hhexpfac, by = list(wkr_1_hzone$County), sum)
-wrk1_workcounty <- aggregate(wkr_1_h_w$Workers, by = list(wkr_1_h_w$WorkCounty), sum)
-colnames(wrk1_homecounty)<- c("HomeCounty","Model Workers")
-colnames(wrk1_workcounty)<- c("WorkCounty","Model Workers")
 
-CTPPHW<- read.csv(ctpp_file)
-
-CTPP_homecounty <- aggregate(CTPPHW$Workers, by = list(CTPPHW$HomeCounty), sum)
-colnames(CTPP_homecounty)<- c("HomeCounty","CTPP Workers")
-
-compare_model_CTPP_Home <- merge(CTPP_homecounty, wrk1_homecounty, by=c("HomeCounty"))
-colnames(compare_model_CTPP_Home) <- c("Home County", "CTPP Workers", "2010 Model Workers")
-
-CTPP_workcounty <- aggregate(CTPPHW$Workers, by = list(CTPPHW$WorkCounty), sum)
-colnames(CTPP_workcounty)<- c("WorkCounty","CTPP Workers")
-
-compare_model_CTPP_Work <- merge(CTPP_workcounty, wrk1_workcounty, by=c("WorkCounty"))
-colnames(compare_model_CTPP_Work) <- c("Work County", "CTPP Workers", "2010 Model Workers")
-
-print("Workers By HOME County", row.names=FALSE)
-print(compare_model_CTPP_Home)
-
-print("Workers By WORK County")
-print(compare_model_CTPP_Work, row.names=FALSE)
-
-compare_model_CTPP <- merge(CTPPHW, wkr_1_h_w, by=c("HomeCounty", "WorkCounty"))
-
-
-compare_model_CTPP$Difference <-compare_model_CTPP$Workers.y-compare_model_CTPP$Workers.x
-compare_model_CTPP$PercentDiff <-100*compare_model_CTPP$Difference/compare_model_CTPP$Workers.x
-colnames(compare_model_CTPP) <- c("Home County", "Work County", "CTPP Workers", "Model Workers", "Diff","PerDiff")
-
-print(compare_model_CTPP, include.rownames = FALSE)
-@
 
 <<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
 

@@ -1,25 +1,30 @@
 #!python.exe
-
+# Beta One
 # PSRC SoundCast Model Runner
 # ===========================
-import datetime, re
+
+# Daysim executable is also not on Git
+daysim_code = 'r:/soundcast/daysim'
+master_project = 'LoadTripTables'
+# Large input files are not in Git; copy them from:
+base_inputs = 'r:/soundcast/inputs'
+# make this configurable later
+network_summary_files=['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                       'counts_output', 'network_summary']
+logfile = open('d:/Soundcast_log.txt', 'wb')
+
+pop_sample = [20, 10, 5, 5, 2, 2, 1, 1]
+
+import os,sys,datetime,re
 import subprocess
-import inro.emme.database.emmebank as _eb
 import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
-import mmap
-import os, sys
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
-from input_configuration import *
-
-# Create text file to log model performance
-logfile = open(main_log_file, 'wb')
+import inro.emme.database.emmebank as _eb
 
 time_start = datetime.datetime.now()
 print "\nSoundCast run: start time:", time_start
-
 
 def multipleReplace(text, wordDict):
     for key in wordDict:
@@ -45,9 +50,10 @@ def copy_daysim_code():
     shcopy(daysim_code +'/hdf5dll.dll', 'daysim')
     shcopy(daysim_code +'/Ionic.Zip.dll', 'daysim')
     shcopy(daysim_code +'/msvcp100.dll', 'daysim')
+    shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
 
 def setup_emme_bank_folders():
-    emmebank_dimensions_dict = json.load(open(os.path.join('inputs','skim_params', 'emme_bank_dimensions.json')))
+    emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
     
     if not os.path.exists('Banks'):
         os.makedirs('Banks')
@@ -72,6 +78,7 @@ def setup_emme_bank_folders():
                 network.create_mode('AUTO', 'a')
                 scenario.publish_network(network)
                 emmebank.dispose()
+
 
 def setup_emme_project_folders():
     'Copy, unzip, and prepare the Projects/ and Banks/ emme folders'
@@ -109,20 +116,18 @@ def setup_emme_project_folders():
             source.close()
 
 def copy_large_inputs():
-    print 'Copying large inputs...'
-    
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs/')
+    print 'Copying large inputs...' 
+    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
+    dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
     # the configuration does not currently use the node_node distance file
     #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
-    shcopy(base_inputs+'/etc/psrc_parcel_decay.dat','Inputs/')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs/')
+    shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
+    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
-    shcopy(base_inputs+'/4k/trips_auto_4k.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/trips_transit_4k.h5','Inputs/4k')
-    time_copy = datetime.datetime.now()
-    print '###### Finished copying files:', time_copy - time_start
+    shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
+    shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
 
 def run_R_summary(summary_name,iter):
      R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
@@ -141,7 +146,6 @@ def run_Rcsv_summary(summary_name,iter):
     returncode = subprocess.check_call(run_R)
 
 def move_files_to_outputs(iter):
-    # this is hard-coded please fix later.
     shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(iter)+'.csv'))
     shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(iter)+'.csv'))
     os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
@@ -160,8 +164,9 @@ def run_all_R_summaries(iter):
      run_R_summary('DaysimReportDayPattern',iter)
      run_R_summary('ModeChoiceReport',iter)
      run_R_summary('DaysimDestChoice',iter)
-     run_R_summary('DaysimTimeChoice',iter)
+     #run_R_summary('DaysimTimeChoice',iter)
      run_Rcsv_summary('DaysimReport_District', iter)
+     run_Rcsv_summary('Daysim_PNRs', iter)
      move_files_to_outputs(iter)
      delete_tex_files()
 
@@ -171,26 +176,37 @@ def rename_network_outs(iter):
         if os.path.isfile(csv_output):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
-
+       
 def daysim_sample(iter):
     try: 
-     config= open('configuration.xml','a+b')
-     mem_config= mmap.mmap(config.fileno(),0, access=mmap.ACCESS_WRITE)
-     mem_config.seek(0)
-     loc_sample_str=re.search('HouseholdSamplingRateOneInX', mem_config)
-     sample_size=str(pop_sample[iter])
-     mem_config[loc_sample_str.end()+2]= sample_size[0:1]
-     mem_config[loc_sample_str.end()+3]= '\"'
-     mem_config[loc_sample_str.end()+4]= ' ' 
-     if len(sample_size)>1:
-        mem_config[loc_sample_str.end()+3] = sample_size[1:2]
-        mem_config[loc_sample_str.end()+4]= '\"'
-     mem_config.flush()
-     mem_config.close()
+     config_template= open('configuration_template.xml','r')
+     config= open('configuration.xml','w')
+
+     for line in config_template:
+         config.write(line.replace("$REPLACEME", str(pop_sample[iter])))
+
+     config_template.close()
      config.close()
     except:
+     config_template.close()
      config.close()
-     mem_config.close()
+
+def clean_up():
+    delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
+                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv',
+                   'outputs\\aggregate_logsums.1.dat','outputs\\aggregate_logsums.2.dat', 'outputs\\aggregate_logsums.3.dat',
+                   'outputs\\aggregate_logsums.4.dat', 'outputs\\aggregate_logsums.5.dat', 'outputs\\aggregate_logsums.6.dat',
+                   'outputs\\aggregate_logsums.7.dat', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
+                   'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
+                   'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
+                   'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
+                   'working\\zone.pk' ]
+
+    for file in delete_files: 
+        if(os.path.isfile(os.path.join(os.getcwd(), file))):
+            os.remove(os.path.join(os.getcwd(), file))
+        else:
+            print file
 
 ##########################
 # Main Script:
@@ -199,6 +215,12 @@ main_dict = {"copy_daysim_code" : run_copy_daysim_code,
              "setup_emme_bank_folders" : run_setup_emme_bank_folders,
              "copy_large_inputs" : run_copy_inputs}
 
+#copy_large_inputs()
+svn_file =open('daysim/svn_stamp_out.txt','r')
+svn_info=svn_file.read()
+logfile.write(svn_info)
+#time_copy = datetime.datetime.now()
+#print '###### Finished copying files:', time_copy - time_start
 sorted_main_dict = sorted(main_dict.iteritems())
 
 for i in range(len(sorted_main_dict)):
@@ -286,16 +308,16 @@ for iteration in range(0,num_iter):
          ##print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 
+print '###### Finished running assignment summary:',time_assign_summ - time_assign
+
 logfile.close()
 ##### SUMMARIZE DAYSIM##########################################################
-iteration = 'last'
-
-if run_r_summaries == True:
-    run_all_R_summaries(iteration)
+if run_r_summaries == True:	run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
 #### ALL DONE ##################################################################
+clean_up()
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
 ##print '    Total run time:',time_assign_summ - time_start
-#f.close()
+
 
 
 

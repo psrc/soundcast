@@ -366,62 +366,6 @@ print(worker_dist, digits=2, row.names=FALSE)
 @
 
 
-\subsection{Average Distance to School}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-students_1 <- subset(Person_1, psaudist>0.05 & psaudist<200, select=c("psaudist", "psexpfac"))
-students_2 <- subset(Person_2, psaudist>0.05 & psaudist<200,select=c("psaudist", "psexpfac"))
-
-students_1$share <- students_1$psexpfac/sum(students_1$psexpfac)
-students_2$share <- students_2$psexpfac/sum(students_2$psexpfac)
-
-students_1$type <- names(paths[1])
-students_2$type <- names(paths[2])
-
-students_1_avg_dist <-weighted.mean(students_1$psaudist, students_1$psexpfac)
-students_2_avg_dist <- weighted.mean(students_2$psaudist, students_2$psexpfac)
-
-students_dist <-cbind(students_1_avg_dist, students_2_avg_dist)
-colnames(students_dist )<-c(names(paths[1]),names(paths[2]))
-
-print("Average Distance in school in Miles (where distance >0.05, and <200 miles)")
-print(students_dist , digits=2, row.names=FALSE)
-
-#students_missing_sch_loc <- subset(Person_1, Person_1$pstyp>0 & Person_1$pspcl<=0)
-#grouped_sch_loc_miss <- aggregate(students_missing_sch_loc, by=list(students_missing_sch_loc$pptyp), length)
-#row.names(grouped_sch_loc_miss)<-c("High School Student 16+", "Student Age 5 to 15", "Student Under 5")
-#colnames(grouped_sch_loc_miss)<-c("Group","MissingLocations")
-#print(grouped_sch_loc_miss)
-
-@
-\section{Transit Pass and Auto Ownership}
-<<summary, cache=TRUE, eval=TRUE, echo=FALSE, include=TRUE, results = verbatim>>=
-Total_Transit_Passes1<- sum(merge_per_hh_1$ptpass*merge_per_hh_1$hhexpfac)
-Transit_Pass_Per1 <- Total_Transit_Passes1/Person_1_total
-Total_Transit_Passes2<- sum(merge_per_hh_2$ptpass*merge_per_hh_2$hhexpfac)
-Transit_Pass_Per2 <- Total_Transit_Passes2/Person_2_total
-
-Transit_Passes <- data.frame(rbind(cbind(Total_Transit_Passes1, Total_Transit_Passes2),
-                                         cbind(Transit_Pass_Per1, Transit_Pass_Per2)))
-row.names(Transit_Passes)<- c("Total Transit Passes", "Passes per Person")
-colnames(Transit_Passes)<- c(names(paths[1]), names(paths[2]))
-
-print(Transit_Passes)
-
-# recode the household vehicles above 4 in the survey to 4
-Household_2$hhvehs[Household_2$hhvehs>=4] <- 4
-
-auto_own1 <- aggregate(Household_1$hhexpfac, by = list(Household_1$hhvehs), sum)
-auto_own1$percent <- 100*auto_own1$x/Household_1_total
-auto_own2 <- aggregate(Household_2$hhexpfac, by = list(Household_2$hhvehs), sum)
-auto_own2$percent <- 100*auto_own2$x/Household_2_total
-
-Auto_Own <- data.frame(rbind(cbind(auto_own1$Group.1,auto_own1$percent,auto_own2$percent)))
-colnames(Auto_Own) <- c("Household Vehicles", paste("percent of",names(paths[1])),paste("percent of",names(paths[2])))
-print(Auto_Own)
-
-@
-
-
 
 
 \section{Trip Summaries}
@@ -509,31 +453,4 @@ trips_dist_graph <- ggplot(data= trips_1_2_append,
 trips_dist_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 1.0), alpha = 1.0) +xlab("Auto Distance (miles)") + ylab("Total Trips")+scale_x_continuous(limits = c(0, 50))+ labs(title="Trip Lengths")
 
 
-append_1_2 <- rbind(Trip_1_mode_time,Trip_2_mode_time)
-append_1_2_purpose <- rbind(Trip_1_mode_purpose,Trip_2_mode_purpose)
-
-append_1_2_purpose_omit<-append_1_2_purpose[append_1_2_purpose$dpurp != 'home' &append_1_2_purpose$dpurp != 'other'&!is.na(append_1_2_purpose$type),]
-
-trips_compare_mode <- ggplot(data=append_1_2,aes(x=type, y= mode_share, fill=mode))
-trips_compare_mode+geom_bar(stat = "identity")+theme(text = element_text(size=16),axis.text.x = element_text(angle=0, vjust=1))+scale_fill_brewer(palette="Spectral")+ xlab("Mode")+ylab("Mode Share")
-
-
-trips_compare_purpose <- ggplot(append_1_2_purpose_omit,
-                                aes(x=dpurp, y= total_trips, fill=dpurp))
-
-trips_compare_purpose+geom_bar(stat = "identity" )+facet_wrap(~type)+theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=1))                                                                                                 +scale_fill_brewer(palette="Paired")+ xlab("Total Trips")+ylab("Purpose")
-
-Trip_1_time$type <- names(paths[1])
-Trip_2_time$type <- names(paths[2])
-
-names(Trip_1_time) <- c("Time","trips","share", "type")
-names(Trip_2_time) <- c("Time","trips","share", "type")
-trips_by_time <- rbind(Trip_1_time,Trip_2_time)
-
-trips_by_time$type <- as.factor(trips_by_time$type)
-
-Trip_deptm_graph <- ggplot(data=trips_by_time,
-                           aes(x=Time, fill=type, weight=share))
-Trip_deptm_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width =1.0), alpha = 1.0) +xlab("Trip Departure Time") + ylab("Percent of Trips") +scale_x_continuous(breaks=number_ticks(12))  
-@
 \end{document}
