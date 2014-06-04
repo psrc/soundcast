@@ -1855,57 +1855,56 @@ def run_assignments_parallel(project_name):
     logging.debug(text)
 
 
-
-
 def main():
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
-    for x in range(0, global_iterations):
-        start_of_run = time.time()
+    start_of_run = time.time()
 
-        project_list=['Projects/5to6/5to6.emp',
-                      'Projects/6to7/6to7.emp',
-                      'Projects/7to8/7to8.emp',
-                      'Projects/8to9/8to9.emp',
-                      'Projects/9to10/9to10.emp',
-                      'Projects/10to14/10to14.emp',
-                      'Projects/14to15/14to15.emp',
-                      'Projects/15to16/15to16.emp',
-                      'projects/16to17/16to17.emp',
-                      'Projects/17to18/17to18.emp',
-                      'Projects/18to20/18to20.emp',
-                      'Projects/20to5/20to5.emp' ]
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            start_pool(l)
-        
-        #    #want pooled processes finished before executing more code in main:
+    project_list = ['Projects/5to6/5to6.emp',
+                    'Projects/6to7/6to7.emp',
+                    'Projects/7to8/7to8.emp',
+                    'Projects/8to9/8to9.emp',
+                    'Projects/9to10/9to10.emp',
+                    'Projects/10to14/10to14.emp',
+                    'Projects/14to15/14to15.emp',
+                    'Projects/15to16/15to16.emp',
+                    'projects/16to17/16to17.emp',
+                    'Projects/17to18/17to18.emp',
+                    'Projects/18to20/18to20.emp',
+                    'Projects/20to5/20to5.emp']
+    for i in range (0, 12, parallel_instances):
+        l = project_list[i:i+parallel_instances]
+        start_pool(l)    
+    #    #want pooled processes finished before executing more code in main:
 
-        
-        start_transit_pool(project_list)
-        
-        #f = open('inputs/converge.txt', 'w') 
-        #if feedback_check('Banks/7to8/emmebank') == False:
-        #    go = 'continue'
-        #    json.dump(go, f)
-        #    print 'keep going!'
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            export_to_hdf5_pool(l)
-        #else:
-        #    go = 'stop'
-        #    json.dump(go, f)
-        #f.close()
-        
-        end_of_run = time.time()
+    #run_assignments_parallel("Projects/8to9/8to9.emp")
+    #run_transit("Projects/8to9/8to9.emp")
+    #export_to_hdf5_pool("Projects/8to9/8to9.emp")
 
-        text =  "Emme Skim Creation and Export to HDF5 completed normally"
-        print text
-        logging.debug(text)
-        text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
-        print text
-        logging.debug(text)
+    start_transit_pool(project_list)
+        
+    #f = open('inputs/converge.txt', 'w') 
+    #if feedback_check('Banks/7to8/emmebank') == False:
+    #    go = 'continue'
+    #    json.dump(go, f)
+    #    print 'keep going!'
+    for i in range (0, 12, parallel_instances):
+        l = project_list[i:i+parallel_instances]
+        export_to_hdf5_pool(l)
+    #else:
+    #    go = 'stop'
+    #    json.dump(go, f)
+    #f.close()
+        
+    end_of_run = time.time()
+
+    text =  "Emme Skim Creation and Export to HDF5 completed normally"
+    print text
+    logging.debug(text)
+    text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
+    print text
+    logging.debug(text)
 
 if __name__ == "__main__":
     main()
