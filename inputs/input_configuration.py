@@ -21,7 +21,6 @@ run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-num_iter = 1
 pop_sample = [20, 20, 20, 20, 20, 20, 20, 20, 20]
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
@@ -33,7 +32,6 @@ good_thing = ["cookie", "pickle", "puppy", "beer", "snack"]
 log_file_name = 'skims_log.txt'
 STOP_THRESHOLD = 0.1
 parallel_instances = 6    # Number of simultaneous parallel processes. Must be a factor of 12.
-global_iterations = 1
 max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
