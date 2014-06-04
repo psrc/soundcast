@@ -3,10 +3,6 @@
 # PSRC SoundCast Model Runner
 # ===========================
 
-
-
-pop_sample = [20, 10, 5, 5, 2, 2, 1, 1]
-
 import os,sys,datetime,re
 import subprocess
 import json
@@ -250,7 +246,7 @@ if run_skims_and_paths == True:
     if returncode != 0:
         sys.exit(1)
 
-for iteration in range(0,num_iter):
+for iteration in range(0,len(pop_sample)):
      print "We're on iteration %d" % (iteration)
      logfile.write("We're on iteration %d\r\n" % (iteration))
      time_start = datetime.datetime.now()
