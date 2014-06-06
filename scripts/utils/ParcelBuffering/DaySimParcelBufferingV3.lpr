@@ -57,7 +57,6 @@ waittoexit:integer       = 1;
 frstpercent:integer =0;
 lastpercent:integer =100;
 
-
 var prtf:text; timestring:string;
 dlm:string[1];
 
@@ -566,31 +565,31 @@ begin
      j:=11; getDBFInt (dbfhr,j, TAZ_P[i]);
      j:=14; getDBFInt (dbfhr,j, TYPE_P[i]);
 
-     j:=19; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {HHP}
-     j:=9; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {STUDK8_P}
-     j:=7; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {STUHGH_P}
-     j:=20; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {STUUNI_P}
-     j:=13; getDBFReal(dbfhr,j, LUSE_P[k][i]);    {EMPEDU_P}
-     j:=21; getDBFReal(dbfhr,j, LUSE_P[k][i]);    {EMPFOOD_P}
-     j:=23; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPGOV_P}
-     j:=12; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPIND_P}
-     j:=15; getDBFReal(dbfhr,j, LUSE_P[k][i]);   {EMPMED_P}
-     j:=2; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPOFC_P}
-     j:=1; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPRET_P}
-     j:=10; getDBFReal(dbfhr,j, LUSE_P[k][i]); {EMPSVC_P}
-     j:=25; getDBFReal(dbfhr,j, LUSE_P[k][i]);  {EMPOTH_P}
-     j:=22; getDBFReal(dbfhr,j, LUSE_P[k][i]); {EMPTOT_P}
+     j:=19; getDBFReal(dbfhr,j, LUSE_P[1][i]);  {HHP}
+     j:=9; getDBFReal(dbfhr,j, LUSE_P[2][i]);   {STUDK8_P}
+     j:=7; getDBFReal(dbfhr,j, LUSE_P[3][i]);   {STUHGH_P}
+     j:=20; getDBFReal(dbfhr,j, LUSE_P[4][i]);   {STUUNI_P}
+     j:=13; getDBFReal(dbfhr,j, LUSE_P[5][i]);    {EMPEDU_P}
+     j:=21; getDBFReal(dbfhr,j, LUSE_P[6][i]);    {EMPFOOD_P}
+     j:=23; getDBFReal(dbfhr,j, LUSE_P[7][i]);  {EMPGOV_P}
+     j:=12; getDBFReal(dbfhr,j, LUSE_P[8][i]);  {EMPIND_P}
+     j:=15; getDBFReal(dbfhr,j, LUSE_P[9][i]);   {EMPMED_P}
+     j:=2; getDBFReal(dbfhr,j, LUSE_P[10][i]);  {EMPOFC_P}
+     j:=1; getDBFReal(dbfhr,j, LUSE_P[11][i]);  {EMPRET_P}
+     j:=10; getDBFReal(dbfhr,j, LUSE_P[12][i]); {EMPSVC_P}
+     j:=16; getDBFReal(dbfhr,j, LUSE_P[13][i]);  {EMPRSC_P}
+     j:=22; getDBFReal(dbfhr,j, LUSE_P[14][i]); {EMPTOT_P}
 
-     j:=4; getDBFReal(dbfhr,j, PARKSP_P[k][i]);  {PARKDY_P}
-     j:=18; getDBFReal(dbfhr,j, PARKSP_P[k][i]); {PARKHR_P}
+     j:=4; getDBFReal(dbfhr,j, PARKSP_P[1][i]);  {PARKDY_P}
+     j:=18; getDBFReal(dbfhr,j, PARKSP_P[2][i]); {PARKHR_P}
 
-     j:=5; getDBFReal(dbfhr,j, PARKPR_P[k][i]);  {PPRICDYP}
-     j:=24; getDBFReal(dbfhr,j, PARKPR_P[k][i]);   {PPRICHRP}
-
+     j:=5; getDBFReal(dbfhr,j, PARKPR_P[1][i]);  {PPRICDYP}
+     j:=24; getDBFReal(dbfhr,j, PARKPR_P[2][i]);   {PPRICHRP}
 
 
      {adjustments - min parcel size}
      if sqft_p[i]<100.0 then sqft_p[i]:=100.0;
+
 
    until (i>=nparcels);
 
