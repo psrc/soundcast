@@ -28,7 +28,7 @@ WorkingDirectory="..\working"
 WorkingSubpath = "..\working"
 EstimationSubpath = "estimation"
 
-RosterPath="psrc_full_roster_submode.csv"
+RosterPath="psrc_roster_more_no_toll.csv"
 RosterCombinationsPath="psrc-roster.combinations.csv"
 
 HDF5Filename = "hh_and_persons.h5"
@@ -42,7 +42,7 @@ LargeDegreeOfParallelism="24"
 SmallDegreeOfParallelism="12"
 
 
-HouseholdSamplingRateOneInX="20"
+HouseholdSamplingRateOneInX="1" 
 
 HouseholdSamplingStartWithY="1"
 
@@ -64,10 +64,11 @@ ShowRunChoiceModelsStatus="true"
 
 UseShortDistanceNodeToNodeMeasures="false"
 
-VotVeryLowLow="3"
-VotLowMedium="8"
-VotMediumHigh="14"
-VotHighVeryHigh="28"
+VotVeryLowLow="12"
+VotLowMedium="24"
+VotMediumHigh="30"
+VotHighVeryHigh="40"
+
 
 UseJointTours="false"
 
@@ -108,7 +109,7 @@ ParkAndRideShadowPriceTimeSpread="20"
 ParkAndRideShadowPriceStepSize="0.15"
 
 ImportZones="true"
-RawZonePath="TAZIndex_wo_gaps_district_422.txt"
+RawZonePath="TAZIndex_5_28_14.txt"
 RawZoneDelimiter="9"
 
 ImportParcels="true"
