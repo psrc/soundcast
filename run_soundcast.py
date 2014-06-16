@@ -208,18 +208,17 @@ main_dict = {"copy_daysim_code" : run_copy_daysim_code,
              "setup_emme_bank_folders" : run_setup_emme_bank_folders,
              "copy_large_inputs" : run_copy_inputs}
 
-#copy_large_inputs()
-svn_file =open('daysim/svn_stamp_out.txt','r')
-svn_info=svn_file.read()
-logfile.write(svn_info)
-#time_copy = datetime.datetime.now()
-#print '###### Finished copying files:', time_copy - time_start
 sorted_main_dict = sorted(main_dict.iteritems())
+
 
 for i in range(len(sorted_main_dict)):
     if sorted_main_dict[i][1] == True:
         function = sorted_main_dict[i][0]
         locals()[function]()
+
+svn_file =open('daysim/svn_stamp_out.txt','r')
+svn_info=svn_file.read()
+logfile.write(svn_info)
 
 ### IMPORT NETWORKS ###############################################################\
 if run_import_networks == True:
