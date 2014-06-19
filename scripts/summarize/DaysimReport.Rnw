@@ -452,5 +452,5 @@ trips_dist_graph <- ggplot(data= trips_1_2_append,
                            aes(x=travdist, weight=share, fill=type))
 trips_dist_graph + geom_histogram(binwidth = 1.5, colour= "black",position= position_dodge(width = 1.0), alpha = 1.0) +xlab("Auto Distance (miles)") + ylab("Total Trips")+scale_x_continuous(limits = c(0, 50))+ labs(title="Trip Lengths")
 
-
+@
 \end{document}
