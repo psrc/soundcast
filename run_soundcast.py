@@ -234,7 +234,7 @@ if run_import_networks == True:
 
 
 ### BUILD SKIMS ###############################################################
-if run_skims_and_paths == True:
+if run_skims_and_paths_seed_trips == True:
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,

@@ -3,17 +3,18 @@
 #################################### RUN SOUNDCAST ####################################
 
 # Scenario and input paths
-scenario_name = '2040'
+scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
 
 # Script and subprocess controls 
-run_copy_daysim_code = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_inputs = True
-run_import_networks = True 
+run_copy_daysim_code = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_inputs = False
+run_import_networks = False
+run_skims_and_paths_seed_trips = False
 run_skims_and_paths = True
 run_truck_model = True
 run_daysim = True
@@ -21,17 +22,17 @@ run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-pop_sample = [20, 20, 20, 20, 20, 20, 20, 20, 20]
+pop_sample = [1, 1, 1, 20, 20, 20, 20, 20, 20]
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
-good_thing = ["cookie", "pickle", "puppy", "beer", "snack"]
+good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap"]
 
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
 STOP_THRESHOLD = 0.1
-parallel_instances = 6    # Number of simultaneous parallel processes. Must be a factor of 12.
+parallel_instances = 6   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
@@ -93,8 +94,8 @@ destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
 
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
-hdf_auto_filename = 'inputs/4k/trips_auto_4k.h5'
-hdf_transit_filename = 'inputs/4k/trips_transit_4k.h5'
+hdf_auto_filename = 'inputs/4k/auto.h5'
+hdf_transit_filename = 'inputs/4k/transit.h5'
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
@@ -156,7 +157,7 @@ uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3',
 truck_model_project = 'Projects/TruckModel/TruckModel.emp'
 #hh_employment_file = 'tazdata.in'
 districts_file = 'districts19_ga.ens'
-truck_trips_h5_filename = 'inputs/4k/trips_auto_4k.h5'
+truck_trips_h5_filename = 'inputs/4k/auto.h5'
 truck_base_net_name = 'am_roadway.in'
 #TOD to create Bi-Dir skims (AM/EV Peak)
 truck_generalized_cost_tod = {'7to8' : 'am', '17to18' : 'pm'}
