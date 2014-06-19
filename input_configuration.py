@@ -22,7 +22,8 @@ run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-pop_sample = [1, 1, 1, 20, 20, 20, 20, 20, 20]
+pop_sample = [20, 20, 20, 20, 20, 20, 20, 20, 20]
+update_shadow_price = False
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
@@ -91,7 +92,7 @@ origin_tt_file = 'inputs/intrazonals/origin_tt.in'
 destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 
 # Zone Index
-tazIndexFile = '/inputs/TAZIndex_wo_gaps.txt'
+tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
 
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
 hdf_auto_filename = 'inputs/4k/auto.h5'
