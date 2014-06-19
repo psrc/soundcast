@@ -122,6 +122,12 @@ def copy_large_inputs():
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
 
+def copy_shadow_price_file():
+    print 'Copying shadow price file.' 
+    if not os.path.exists('working'):
+       os.makedirs('working')
+    shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
+
 def run_R_summary(summary_name,iter):
      R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
      tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
@@ -159,7 +165,7 @@ def run_all_R_summaries(iter):
      run_R_summary('DaysimDestChoice',iter)
      #run_R_summary('DaysimTimeChoice',iter)
      run_Rcsv_summary('DaysimReport_District', iter)
-     run_Rcsv_summary('Daysim_PNRs', iter)
+     #run_Rcsv_summary('Daysim_PNRs', iter)
      move_files_to_outputs(iter)
      delete_tex_files()
 
@@ -259,6 +265,8 @@ for iteration in range(0,len(pop_sample)):
      
      ### RUN DAYSIM ################################################################
      if run_daysim == True:
+         if update_shadow_price == False:
+             copy_shadow_price_file()
          daysim_sample(iteration)
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
          if returncode != 0:
