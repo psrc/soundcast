@@ -9,7 +9,7 @@ namespace DaysimTool {
 	class RosterWriter {
 		public static void Main() {
 
-			StreamWriter writeRoster = new StreamWriter("C:/temp/psrc_2.1/psrc_roster_test_write.csv");
+			StreamWriter writeRoster = new StreamWriter("C:/psrc_roster_more_no_toll.csv");
 			writeRoster.WriteLine("#variable,mode,path-type,vot-group,start-minute,end-minute,length,file-type, name, field, transpose, blend-variable,blend-path-type,factor,scaling");
 
 			// the field "name" now needs to include the name of the hdf5 file 
@@ -22,7 +22,9 @@ namespace DaysimTool {
 			List<SkimVariable> highway_skim_variables = HighwayDimensions.DefineSkimVariables();
 			List<ValueOfTime> sov_toll_highway_values_of_time = HighwayDimensions.DefineTollSOVValuesofTime();
 			List<ValueOfTime> hov_toll_highway_values_of_time = HighwayDimensions.DefineTollHOVValuesofTime();
-			List<ValueOfTime> no_toll_highway_values_of_time = HighwayDimensions.DefineNoTollValuesofTime();
+			List<ValueOfTime> sov_no_toll_highway_values_of_time = HighwayDimensions.DefineTollSOVValuesofTime();
+			List<ValueOfTime> hov_no_toll_highway_values_of_time = HighwayDimensions.DefineTollHOVValuesofTime();
+
 
 			List<Mode> transit_modes = TransitDimensions.DefineModes();
 			List<TimeOfDay> transit_times_of_day = TransitDimensions.DefineTimesOfDay();
@@ -40,10 +42,10 @@ namespace DaysimTool {
 			foreach (TimeOfDay tod in highway_times_of_day) {
 				foreach (ValueOfTime vot in sov_toll_highway_values_of_time) {
 					foreach (Mode mode in highway_modes) {
-						//foreach (PathType pt in highway_path_types) {
+						 foreach (PathType pt in highway_path_types) {
 							foreach (SkimVariable skim in highway_skim_variables) {
 
-								var pt =highway_path_types[1];
+								//var pt =highway_path_types[1];
 								string skimpath = string.Format(@"{0}.{1}/", tod.time_name, "h5");
 								string specificskim = "Skims/"+mode.emme_code + pt.emme_code + vot.vot_id.ToString() + skim.variable_emme_code;
 								string fullpathtoskim = skimpath + specificskim;
@@ -51,10 +53,10 @@ namespace DaysimTool {
 
 								RosterRecord record = new RosterRecord(skim.variable_name_roster, mode.mode_name, pt.path_type_name, vot.vot_name, tod.start_time, tod.end_time, fullpathtoskim, skim.blend_variable, mode.factor);
 								// we only need one distance skim for all day- let 5 to 6 stand in
-								if ((skim.variable_name_in_file == "Distance") && (tod.time_name != "5to6")) {
+								if ((skim.variable_name_in_file == "Distance") && (tod.time_name != "7to8")) {
 
 								}
-								else if ((skim.variable_name_in_file == "Distance") && (tod.time_name == "5to6")) {
+								else if ((skim.variable_name_in_file == "Distance") && (tod.time_name == "7to8")) {
 									record.start_minute = 0;
 									record.end_minute = 1439;
 
@@ -71,18 +73,18 @@ namespace DaysimTool {
 								}
 							}
 						}
-					//}
+					}
 				}
 			}
 
-			//Write Highway Toll - HOV
+			//Write Highway - HOV
 			foreach (TimeOfDay tod in highway_times_of_day) {
 				foreach (ValueOfTime vot in hov_toll_highway_values_of_time) {
 					foreach (Mode mode in highway_modes) {
-						//foreach (PathType pt in highway_path_types) {
+						foreach (PathType pt in highway_path_types) {
 							foreach (SkimVariable skim in highway_skim_variables) {
 
-								var pt =highway_path_types[1];
+								//var pt =highway_path_types[1];
 								string skimpath = string.Format(@"{0}.{1}/", tod.time_name, "h5");
 								string specificskim = "Skims/"+mode.emme_code + pt.emme_code + vot.vot_id.ToString() + skim.variable_emme_code;
 								string fullpathtoskim = skimpath + specificskim;
@@ -90,10 +92,10 @@ namespace DaysimTool {
 
 								RosterRecord record = new RosterRecord(skim.variable_name_roster, mode.mode_name, pt.path_type_name, vot.vot_name, tod.start_time, tod.end_time, fullpathtoskim, skim.blend_variable, mode.factor);
 								// we only need one distance skim for all day- let 5 to 6 stand in
-								if ((skim.variable_name_in_file == "Distance") && (tod.time_name != "5to6")) {
+								if ((skim.variable_name_in_file == "Distance") && (tod.time_name != "7to8")) {
 
 								}
-								else if ((skim.variable_name_in_file == "Distance") && (tod.time_name == "5to6")) {
+								else if ((skim.variable_name_in_file == "Distance") && (tod.time_name == "7to8")) {
 									record.start_minute = 0;
 									record.end_minute = 1439;
 
@@ -113,44 +115,11 @@ namespace DaysimTool {
 					//}
 				}
 			}
-
-			//Write Highway No Toll
-			foreach (TimeOfDay tod in highway_times_of_day) {
-				foreach (ValueOfTime vot in no_toll_highway_values_of_time) {
-					foreach (Mode mode in highway_modes) {
-						//foreach (PathType pt in highway_path_types) {
-							foreach (SkimVariable skim in highway_skim_variables) {
-
-								var pt =highway_path_types[0];
-								string skimpath = string.Format(@"{0}.{1}/", tod.time_name, "h5");
-								string specificskim = "Skims/"+mode.emme_code + pt.emme_code + vot.vot_id.ToString() + skim.variable_emme_code;
-								string fullpathtoskim = skimpath + specificskim;
-
-								RosterRecord record = new RosterRecord(skim.variable_name_roster, mode.mode_name, pt.path_type_name, vot.vot_name, tod.start_time, tod.end_time, fullpathtoskim, skim.blend_variable, mode.factor);
-								// we only need one distance skim for all day- let 5 to 6 stand in
-								if ((skim.variable_name_in_file == "Distance") && (tod.time_name != "5to6")) {
-
-								}
-								else if ((skim.variable_name_in_file == "Distance") && (tod.time_name == "5to6")) {
-									record.start_minute = 0;
-									record.end_minute = 1439;
-
-									writeRoster.WriteLine(record.variable + ',' + record.mode + ',' + record.path_type + ','
-										+ record.value_of_time_group + ',' + record.start_minute.ToString() + ',' + record.end_minute.ToString() + ',' +
-										record.length + ',' + record.file_type + ',' + record.name + ',' + record.field + ',' + record.transpose + ',' +
-										record.blend_var + ',' + record.blend_path_type + ',' + record.factor.ToString() + ',' + record.scaling);
-								}
-								else {
-									writeRoster.WriteLine(record.variable + ',' + record.mode + ',' + record.path_type + ','
-										+ record.value_of_time_group + ',' + record.start_minute.ToString() + ',' + record.end_minute.ToString() + ',' +
-										record.length + ',' + record.file_type + ',' + record.name + ',' + record.field + ',' + record.transpose + ',' +
-										record.blend_var + ',' + record.blend_path_type + ',' + record.factor.ToString() + ',' + record.scaling);
-								}
-							}
-						}
-					//}
-				}
 			}
+
+			
+
+		
 
 			writeRoster.Flush();
 
@@ -311,10 +280,10 @@ namespace DaysimTool {
 				transit_skim_variable.Add(new SkimVariable("xwaittime", "twtwa", "twtwa", "null"));
 				transit_skim_variable.Add(new SkimVariable("fare", "mfmfarbx", "mfmfarbx", "null"));
 				transit_skim_variable.Add(new SkimVariable("nboard", "ndbwa", "ndbwa", "null"));
-				transit_skim_variable.Add(new SkimVariable("ivtprembus", "ivtwap", "ivtwap", "null"));
-				transit_skim_variable.Add(new SkimVariable("ivtlitrail", "ivtwar", "ivtwar", "null"));
-				transit_skim_variable.Add(new SkimVariable("ivtcomrail", "ivtwac", "ivtwac", "null"));
-				transit_skim_variable.Add(new SkimVariable("ivtpxferry", "ivtwaf", "ivtwaf", "null"));
+				transit_skim_variable.Add(new SkimVariable("premtime", "ivtwap", "ivtwap", "null"));
+				transit_skim_variable.Add(new SkimVariable("lrttime", "ivtwar", "ivtwar", "null"));
+				transit_skim_variable.Add(new SkimVariable("comtime", "ivtwac", "ivtwac", "null"));
+				transit_skim_variable.Add(new SkimVariable("ferrtime", "ivtwaf", "ivtwaf", "null"));
 				return transit_skim_variable;
 			}
 
