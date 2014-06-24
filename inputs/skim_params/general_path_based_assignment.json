@@ -34,6 +34,24 @@
             }
         
         },
+{
+            "mode": "s",
+            "demand": "mfsvnt2v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        
+        },
+{
+            "mode": "s",
+            "demand": "mfsvnt3v",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        
+        },
         {
             "mode": "d",
             "demand": "mfh2tl1v",
@@ -66,6 +84,22 @@
                 "perception_factor": 1.0
             }
         },
+{
+            "mode": "h",
+            "demand": "mfh2nt2v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+{
+            "mode": "h",
+            "demand": "mfh2nt3v",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
         {
             "mode": "m",
             "demand": "mfh3tl1v",
@@ -93,6 +127,22 @@
         {
             "mode": "i",
             "demand": "mfh3nt1v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+{
+            "mode": "i",
+            "demand": "mfh3nt2v",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+{
+            "mode": "i",
+            "demand": "mfh3nt3v",
             "generalized_cost": {
                 "link_costs": "@toll3",
                 "perception_factor": 1.0
