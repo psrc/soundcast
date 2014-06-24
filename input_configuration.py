@@ -13,6 +13,7 @@ run_copy_daysim_code = False
 run_setup_emme_project_folders = False
 run_setup_emme_bank_folders = False
 run_copy_inputs = False
+run_update_parking = False
 run_import_networks = False
 run_skims_and_paths_seed_trips = False
 run_skims_and_paths = True
