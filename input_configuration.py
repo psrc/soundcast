@@ -7,6 +7,7 @@ scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
+input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
 run_copy_daysim_code = False
