@@ -282,7 +282,7 @@ for iteration in range(0,len(pop_sample)):
              sys.exit(1)
 
      if iteration > 0:
-        con_file = open('inputs/' + scenario_name + '/converge.txt', 'r')
+        con_file = open('inputs/converge.txt', 'r')
         converge = json.load(con_file)
         if converge == 'stop':
             print "done"
@@ -298,17 +298,14 @@ for iteration in range(0,len(pop_sample)):
 
      #print '###### Finished running assignments:',time_assign - time_daysim
 
-     ### ASSIGNMENT SUMMARY###############################################################
-     if run_network_summary == True:
-         returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-         returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
-         time_assign_summ = datetime.datetime.now()
-         if returncode != 0:
-             sys.exit(1)
-         ##print '###### Finished running assignment summary:',time_assign_summ - time_assign
-
-
-print '###### Finished running assignment summary:',time_assign_summ - time_assign
+### ASSIGNMENT SUMMARY###############################################################
+if run_network_summary == True:
+   returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+   #returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+   time_assign_summ = datetime.datetime.now()
+   if returncode != 0:
+      sys.exit(1)
+#print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 logfile.close()
 ##### SUMMARIZE DAYSIM##########################################################
