@@ -305,7 +305,6 @@ for iteration in range(0,len(pop_sample)):
 
      #print '###### Finished running assignments:',time_assign - time_daysim
 
-<<<<<<< HEAD
      ### ASSIGNMENT SUMMARY###############################################################
      if run_network_summary == True:
          returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
@@ -315,7 +314,6 @@ for iteration in range(0,len(pop_sample)):
              sys.exit(1)
          print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
-=======
 ### ASSIGNMENT SUMMARY###############################################################
 if run_network_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
@@ -324,7 +322,6 @@ if run_network_summary == True:
    if returncode != 0:
       sys.exit(1)
 #print '###### Finished running assignment summary:',time_assign_summ - time_assign
->>>>>>> 4ccc1da5dd7e7c75ca3db6a64bfe95802a918d72
 
 logfile.close()
 ##### SUMMARIZE DAYSIM##########################################################
