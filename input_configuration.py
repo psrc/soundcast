@@ -16,13 +16,13 @@ run_copy_inputs = False
 run_import_networks = False
 run_skims_and_paths_seed_trips = False
 run_skims_and_paths = True
-run_truck_model = True
-run_daysim = True
+run_truck_model = False
+run_daysim = False
 run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-pop_sample = [20, 20, 20, 20, 20, 20, 20, 20, 20]
+pop_sample = [1]
 update_shadow_price = False
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
@@ -150,8 +150,8 @@ counts_file = 'TrafficCounts_Mid.txt'
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
 screenlines_file = 'screenline_volumes.csv'
-uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3',
-           '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
+uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
+           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
 
 #################################### TRUCK MODEL ####################################
