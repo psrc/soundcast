@@ -226,6 +226,13 @@ svn_file =open('daysim/svn_stamp_out.txt','r')
 svn_info=svn_file.read()
 logfile.write(svn_info)
 
+### UPDATE PARCEL PARKING #############################################
+if run_update_parking == True:
+    returncode = subprocess.call([sys.executable,
+        'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+    if returncode != 0:
+        sys.exit(1)
+
 ### IMPORT NETWORKS ###############################################################\
 if run_import_networks == True:
     time_copy = datetime.datetime.now()
@@ -282,7 +289,7 @@ for iteration in range(0,len(pop_sample)):
              sys.exit(1)
 
      if iteration > 0:
-        con_file = open('inputs/' + scenario_name + '/converge.txt', 'r')
+        con_file = open('inputs/converge.txt', 'r')
         converge = json.load(con_file)
         if converge == 'stop':
             print "done"
@@ -305,10 +312,8 @@ for iteration in range(0,len(pop_sample)):
          time_assign_summ = datetime.datetime.now()
          if returncode != 0:
              sys.exit(1)
-         ##print '###### Finished running assignment summary:',time_assign_summ - time_assign
+         print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
-
-print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 logfile.close()
 ##### SUMMARIZE DAYSIM##########################################################
