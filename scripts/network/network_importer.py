@@ -134,10 +134,9 @@ def import_tolls(emmeProject):
                              7: "@trkc3"},
               revert_on_error=False)
 
-def create_noToll_network(emmeProject):
-    # set bridge/ferry flags
-    #Want to keep some tolled facilities open to all modes (including no toll)
-    bridge_ferry_flag__file = base_inputs + 'tolls/bridge_ferry_flags.in'
+# set bridge/ferry flags
+
+    bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
     import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
                              1: "jnode",
