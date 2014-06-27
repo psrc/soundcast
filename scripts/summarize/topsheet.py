@@ -4,19 +4,19 @@ import os
 import xlsxwriter
 
 # Load transit agency operator by transit line
-operator = pd.read_csv('inputs/route_id.csv')[["id","Code"]]
+operator = pd.read_csv('inputs/network_summary/route_id.csv')[["id","Code"]]
 
 # Define model time periods for AM period
 transit_am = ['6to7', '7to8', '8to9']
 
 # Set source for model boarding estimates
-model_board = 'outputs/am_transit.csv'
+model_board = 'inputs/network_summary/am_transit.csv'
 
 # Set source for network summary, by TOD
-network_summary_loc = 'outputs/network_summary.csv'
+network_summary_loc = 'inputs/network_summary/network_summary.csv'
 
 # Set source for VMT bu user class
-uc_vmt_loc = 'outputs/uc_vmt.csv'
+uc_vmt_loc = 'inputs/network_summary/uc_vmt.csv'
 
 # Define a dictionary to order TODs by logical order
 tod_list = ['am', 'md', 'pm', 'ev', 'ni']
