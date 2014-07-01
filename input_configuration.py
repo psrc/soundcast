@@ -41,6 +41,20 @@ b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
 MAX_EXTERNAL = 3749-1      #zone of externals (subtract 1 because numpy is zero-based)
 SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
+
+project_list = ['Projects/5to6/5to6.emp',
+                      'Projects/6to7/6to7.emp',
+                      'Projects/7to8/7to8.emp',
+                      'Projects/8to9/8to9.emp',
+                      'Projects/9to10/9to10.emp',
+                      'Projects/10to14/10to14.emp',
+                      'Projects/14to15/14to15.emp',
+                      'Projects/15to16/15to16.emp',
+                      'projects/16to17/16to17.emp',
+                      'Projects/17to18/17to18.emp',
+                      'Projects/18to20/18to20.emp',
+                      'Projects/20to5/20to5.emp' ]
+
 ## HDF5 Groups and Subgroups
 hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
 hdf5_emme_subgroups = ["5to6","6to7","7to8","8to9","9to10","10to14","14to15","15to16","16to17","17to18","18to20","20to5"]
