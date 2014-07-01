@@ -2058,8 +2058,6 @@ def main():
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
 
-        project_list=['Projects/7to8/7to8.emp']
-
         for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
