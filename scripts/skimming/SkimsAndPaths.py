@@ -2045,20 +2045,7 @@ def main():
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-        project_list=['Projects/5to6/5to6.emp',
-                      'Projects/6to7/6to7.emp',
-                      'Projects/7to8/7to8.emp',
-                      'Projects/8to9/8to9.emp',
-                      'Projects/9to10/9to10.emp',
-                      'Projects/10to14/10to14.emp',
-                      'Projects/14to15/14to15.emp',
-                      'Projects/15to16/15to16.emp',
-                      'projects/16to17/16to17.emp',
-                      'Projects/17to18/17to18.emp',
-                      'Projects/18to20/18to20.emp',
-                      'Projects/20to5/20to5.emp' ]
-
-        for i in range (0, 12, parallel_instances):
+                for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
         
