@@ -121,7 +121,7 @@ toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmv
 #################################### NETWORK IMPORTER ####################################
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
-sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
+sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
                        '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
                        '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
                        '18to20' : 'ev', '20to5' : 'ni'}
