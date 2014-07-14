@@ -192,10 +192,7 @@ def daysim_sample(iter):
 
 def clean_up():
     delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
-                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv',
-                   'outputs\\aggregate_logsums.1.dat','outputs\\aggregate_logsums.2.dat', 'outputs\\aggregate_logsums.3.dat',
-                   'outputs\\aggregate_logsums.4.dat', 'outputs\\aggregate_logsums.5.dat', 'outputs\\aggregate_logsums.6.dat',
-                   'outputs\\aggregate_logsums.7.dat', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
+                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
                    'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
                    'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
                    'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
@@ -209,18 +206,19 @@ def clean_up():
 
 ##########################
 # Main Script:
-main_dict = {"copy_daysim_code" : run_copy_daysim_code, 
-             "setup_emme_project_folders" : run_setup_emme_project_folders,
-             "setup_emme_bank_folders" : run_setup_emme_bank_folders,
-             "copy_large_inputs" : run_copy_inputs}
-
-sorted_main_dict = sorted(main_dict.iteritems())
+run_list = [{"copy_daysim_code" : run_copy_daysim_code}, 
+             {"setup_emme_project_folders" : run_setup_emme_project_folders},
+             {"setup_emme_bank_folders" : run_setup_emme_bank_folders},
+             {"copy_large_inputs" : run_copy_inputs}]
 
 
-for i in range(len(sorted_main_dict)):
-    if sorted_main_dict[i][1] == True:
-        function = sorted_main_dict[i][0]
-        locals()[function]()
+
+# there's probably a better way to do this
+for i in run_list:
+    for key, value in i.iteritems():
+        if value == True:
+            function = key
+            locals()[function]()
 
 svn_file =open('daysim/svn_stamp_out.txt','r')
 svn_info=svn_file.read()
