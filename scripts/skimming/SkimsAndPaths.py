@@ -1761,7 +1761,11 @@ def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    average_skims_to_hdf5_concurrent(m)
+    #do not average skims is using seed_trips because we are starting the first iteration
+    if seed_trips:
+        skims_to_hdf5_concurrent(m)
+    else:
+        average_skims_to_hdf5_concurrent(m)
     
 
 
@@ -2045,7 +2049,7 @@ def main():
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-                for i in range (0, 12, parallel_instances):
+        for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
         
@@ -2054,20 +2058,26 @@ def main():
         
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/5to6/5to6.emp')
-        f = open('inputs/converge.txt', 'w') 
-        if feedback_check('Banks/7to8/emmebank') == False:
+        f = open('inputs/converge.txt', 'w')
+       
+        #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
+        if not seed_trips:
+               #run feedback check
+              if feedback_check('Banks/7to8/emmebank') == False:
+                  go = 'continue'
+                  json.dump(go, f)
+              else:
+                  go = 'stop'
+                  json.dump(go, f)
+        else:
             go = 'continue'
             json.dump(go, f)
-            print 'keep going!'
-            for i in range (0, 12, parallel_instances):
+
+        #export skims even if skims converged
+        for i in range (0, 12, parallel_instances):
                 l = project_list[i:i+parallel_instances]
                 export_to_hdf5_pool(l)
-        else:
-            go = 'stop'
-            json.dump(go, f)
-            for i in range (0, 12, parallel_instances):
-                l = project_list[i:i+parallel_instances]
-                export_to_hdf5_pool(l)
+           
         f.close()
 
         #export_to_hdf5_pool(project_list)
