@@ -270,8 +270,12 @@ for iteration in range(0,len(pop_sample)):
      
      ### RUN DAYSIM ################################################################
      if run_daysim == True:
-         if update_shadow_price == False:
+         # we only use shadow pricing and update the file if the previous iteration had more than a one in two sample
+         if iteration == 0:
              copy_shadow_price_file()
+         elif pop_sample[iteration-1]>2:
+             copy_shadow_price_file()
+
          daysim_sample(iteration)
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
          if returncode != 0:
@@ -301,7 +305,7 @@ for iteration in range(0,len(pop_sample)):
      print time_assign
      logfile.write("ending assignment %s\r\n" %str((time_assign)))
 
-     #print '###### Finished running assignments:',time_assign - time_daysim
+     ##print '###### Finished running assignments:',time_assign - time_daysim
 
 
 ### ASSIGNMENT SUMMARY###############################################################

@@ -10,22 +10,22 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
-run_copy_daysim_code = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
-run_copy_inputs = False
+run_copy_daysim_code = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
+run_copy_inputs = True
 run_update_parking = False
-run_import_networks = False
-run_skims_and_paths_seed_trips = False
+run_import_networks = True
+run_skims_and_paths_seed_trips = True
 run_skims_and_paths = True
-run_truck_model = False
-run_daysim = False
+run_truck_model = True
+run_daysim = True
 run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-pop_sample = [1]
-update_shadow_price = False
+pop_sample = [20, 20, 2, 1]
+
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
