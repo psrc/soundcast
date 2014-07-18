@@ -211,7 +211,8 @@ run_list = [{"copy_daysim_code" : run_copy_daysim_code},
              {"setup_emme_bank_folders" : run_setup_emme_bank_folders},
              {"copy_large_inputs" : run_copy_inputs}]
 
-
+if not os.path.exists('outputs'):
+        os.makedirs('outputs')
 
 # there's probably a better way to do this
 for i in run_list:
