@@ -27,17 +27,26 @@ logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 current_time = str(time.strftime("%H:%M:%S"))
 logging.debug('----Began SkimsAndPaths script at ' + current_time)
 
+# When we start a model run, we want to start with seed trips to assign.  Usually this will be
+# an old daysim outputs, but sometimes you may want to use the expanded survey. On the second or
+# higher iteration, you will want to use daysim_outputs.h5 from the h5 directory because these outputs
+# result from using the latest assignment and skimming.
 if '-use_survey_seed_trips' in sys.argv:
-	seed_trips = True
+    survey_seed_trips = True
+    seed_trips = True
+    daysim_seed_trips= False
+
 elif '-use_daysim_output_seed_trips' in sys.argv:
-	daysim_seed_trips = True
-	seed_trips = False
+    survey_seed_trips = False
+    seed_trips = True
+    daysim_seed_trips= True
 else:
-	daysim_seed_trips = False
-	seed_trips = False
+    survey_seed_trips = False
+    seed_trips = False
+    daysim_seed_trips= False
 
 
-if seed_trips:
+if survey_seed_trips:
 	print 'Using SURVEY SEED TRIPS.'
 	hdf5_file_path = base_inputs + '/' + scenario_name + '/etc/survey_seed_trips.h5'
 elif daysim_seed_trips:
@@ -1435,7 +1444,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     trexpfac = np.asarray(daysim_set["trexpfac"])
     trexpfac = trexpfac[tod_index]
 
-    if not seed_trips:
+    if not survey_seed_trips:
         vot = np.asarray(daysim_set["vot"])
         vot = vot[tod_index]
 
@@ -1464,7 +1473,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     for x in range (0, len(otaz)):
         #Start building the tuple key, 3 VOT of categories...
-        if seed_trips:
+        if survey_seed_trips:
             vot = 2
             if mode[x]<7:
                 mat_name = matrix_dict[mode[x], vot, toll_path[x]]
@@ -1514,7 +1523,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
-    if seed_trips:
+    if survey_seed_trips:
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
@@ -1761,7 +1770,7 @@ def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    #do not average skims is using seed_trips because we are starting the first iteration
+    #do not average skims if using seed_trips because we are starting the first iteration
     if seed_trips:
         skims_to_hdf5_concurrent(m)
     else:
