@@ -206,20 +206,18 @@ def clean_up():
 
 ##########################
 # Main Script:
-run_list = [{"copy_daysim_code" : run_copy_daysim_code}, 
-             {"setup_emme_project_folders" : run_setup_emme_project_folders},
-             {"setup_emme_bank_folders" : run_setup_emme_bank_folders},
-             {"copy_large_inputs" : run_copy_inputs}]
+run_list = [("copy_daysim_code" , run_copy_daysim_code), 
+             ("setup_emme_project_folders", run_setup_emme_project_folders),
+             ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
+             ("copy_large_inputs" , run_copy_inputs)]
 
 if not os.path.exists('outputs'):
         os.makedirs('outputs')
 
-# there's probably a better way to do this
-for i in run_list:
-    for key, value in i.iteritems():
-        if value == True:
-            function = key
-            locals()[function]()
+for i in range(0,len(run_list)):
+  if run_list[i][1]==True:
+    function = run_list[i][0]
+    locals()[function]()
 
 svn_file =open('daysim/svn_stamp_out.txt','r')
 svn_info=svn_file.read()

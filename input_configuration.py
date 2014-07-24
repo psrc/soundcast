@@ -11,8 +11,8 @@ input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
 run_copy_daysim_code = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
 run_copy_inputs = True
 run_update_parking = False
 run_import_networks = True
@@ -40,6 +40,7 @@ max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
 MAX_EXTERNAL = 3749-1      #zone of externals (subtract 1 because numpy is zero-based)
+# this is the zone -1 one because numpy is zone based
 SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437}
 
 project_list = ['Projects/5to6/5to6.emp',
