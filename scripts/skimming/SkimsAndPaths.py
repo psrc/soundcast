@@ -33,16 +33,13 @@ logging.debug('----Began SkimsAndPaths script at ' + current_time)
 # result from using the latest assignment and skimming.
 if '-use_survey_seed_trips' in sys.argv:
     survey_seed_trips = True
-    seed_trips = True
     daysim_seed_trips= False
 
 elif '-use_daysim_output_seed_trips' in sys.argv:
     survey_seed_trips = False
-    seed_trips = True
     daysim_seed_trips= True
 else:
     survey_seed_trips = False
-    seed_trips = False
     daysim_seed_trips= False
 
 
@@ -1770,8 +1767,8 @@ def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    #do not average skims if using seed_trips because we are starting the first iteration
-    if seed_trips:
+    #do not average skims if using seed trips because we are starting the first iteration
+    if survey_seed_trips or daysim_seed_trips:
         skims_to_hdf5_concurrent(m)
     else:
         average_skims_to_hdf5_concurrent(m)
