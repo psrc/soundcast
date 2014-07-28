@@ -27,17 +27,23 @@ logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 current_time = str(time.strftime("%H:%M:%S"))
 logging.debug('----Began SkimsAndPaths script at ' + current_time)
 
+# When we start a model run, we want to start with seed trips to assign.  Usually this will be
+# an old daysim outputs, but sometimes you may want to use the expanded survey. On the second or
+# higher iteration, you will want to use daysim_outputs.h5 from the h5 directory because these outputs
+# result from using the latest assignment and skimming.
 if '-use_survey_seed_trips' in sys.argv:
-	seed_trips = True
+    survey_seed_trips = True
+    daysim_seed_trips= False
+
 elif '-use_daysim_output_seed_trips' in sys.argv:
-	daysim_seed_trips = True
-	seed_trips = False
+    survey_seed_trips = False
+    daysim_seed_trips= True
 else:
-	daysim_seed_trips = False
-	seed_trips = False
+    survey_seed_trips = False
+    daysim_seed_trips= False
 
 
-if seed_trips:
+if survey_seed_trips:
 	print 'Using SURVEY SEED TRIPS.'
 	hdf5_file_path = base_inputs + '/' + scenario_name + '/etc/survey_seed_trips.h5'
 elif daysim_seed_trips:
@@ -1435,7 +1441,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     trexpfac = np.asarray(daysim_set["trexpfac"])
     trexpfac = trexpfac[tod_index]
 
-    if not seed_trips:
+    if not survey_seed_trips:
         vot = np.asarray(daysim_set["vot"])
         vot = vot[tod_index]
 
@@ -1464,7 +1470,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     for x in range (0, len(otaz)):
         #Start building the tuple key, 3 VOT of categories...
-        if seed_trips:
+        if survey_seed_trips:
             vot = 2
             if mode[x]<7:
                 mat_name = matrix_dict[mode[x], vot, toll_path[x]]
@@ -1514,7 +1520,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
-    if seed_trips:
+    if survey_seed_trips:
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
@@ -1761,7 +1767,11 @@ def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    average_skims_to_hdf5_concurrent(m)
+    #do not average skims if using seed trips because we are starting the first iteration
+    if survey_seed_trips or daysim_seed_trips:
+        skims_to_hdf5_concurrent(m)
+    else:
+        average_skims_to_hdf5_concurrent(m)
     
 
 
@@ -2045,7 +2055,7 @@ def main():
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-                for i in range (0, 12, parallel_instances):
+        for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
         
@@ -2054,20 +2064,26 @@ def main():
         
         start_transit_pool(project_list)
         #run_assignments_parallel('Projects/5to6/5to6.emp')
-        f = open('inputs/converge.txt', 'w') 
-        if feedback_check('Banks/7to8/emmebank') == False:
+        f = open('inputs/converge.txt', 'w')
+       
+        #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
+        if not seed_trips:
+               #run feedback check
+              if feedback_check('Banks/7to8/emmebank') == False:
+                  go = 'continue'
+                  json.dump(go, f)
+              else:
+                  go = 'stop'
+                  json.dump(go, f)
+        else:
             go = 'continue'
             json.dump(go, f)
-            print 'keep going!'
-            for i in range (0, 12, parallel_instances):
+
+        #export skims even if skims converged
+        for i in range (0, 12, parallel_instances):
                 l = project_list[i:i+parallel_instances]
                 export_to_hdf5_pool(l)
-        else:
-            go = 'stop'
-            json.dump(go, f)
-            for i in range (0, 12, parallel_instances):
-                l = project_list[i:i+parallel_instances]
-                export_to_hdf5_pool(l)
+           
         f.close()
 
         #export_to_hdf5_pool(project_list)

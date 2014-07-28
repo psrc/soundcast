@@ -192,10 +192,7 @@ def daysim_sample(iter):
 
 def clean_up():
     delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
-                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv',
-                   'outputs\\aggregate_logsums.1.dat','outputs\\aggregate_logsums.2.dat', 'outputs\\aggregate_logsums.3.dat',
-                   'outputs\\aggregate_logsums.4.dat', 'outputs\\aggregate_logsums.5.dat', 'outputs\\aggregate_logsums.6.dat',
-                   'outputs\\aggregate_logsums.7.dat', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
+                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
                    'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
                    'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
                    'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
@@ -209,18 +206,18 @@ def clean_up():
 
 ##########################
 # Main Script:
-main_dict = {"copy_daysim_code" : run_copy_daysim_code, 
-             "setup_emme_project_folders" : run_setup_emme_project_folders,
-             "setup_emme_bank_folders" : run_setup_emme_bank_folders,
-             "copy_large_inputs" : run_copy_inputs}
+run_list = [("copy_daysim_code" , run_copy_daysim_code), 
+             ("setup_emme_project_folders", run_setup_emme_project_folders),
+             ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
+             ("copy_large_inputs" , run_copy_inputs)]
 
-sorted_main_dict = sorted(main_dict.iteritems())
+if not os.path.exists('outputs'):
+        os.makedirs('outputs')
 
-
-for i in range(len(sorted_main_dict)):
-    if sorted_main_dict[i][1] == True:
-        function = sorted_main_dict[i][0]
-        locals()[function]()
+for i in range(0,len(run_list)):
+  if run_list[i][1]==True:
+    function = run_list[i][0]
+    locals()[function]()
 
 svn_file =open('daysim/svn_stamp_out.txt','r')
 svn_info=svn_file.read()
@@ -272,8 +269,12 @@ for iteration in range(0,len(pop_sample)):
      
      ### RUN DAYSIM ################################################################
      if run_daysim == True:
-         if update_shadow_price == False:
+         # we only use shadow pricing and update the file if the previous iteration had more than a one in two sample
+         if iteration == 0:
              copy_shadow_price_file()
+         elif pop_sample[iteration-1]>2:
+             copy_shadow_price_file()
+
          daysim_sample(iteration)
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
          if returncode != 0:
@@ -288,7 +289,7 @@ for iteration in range(0,len(pop_sample)):
          if returncode != 0:
              sys.exit(1)
 
-     if iteration > 0:
+     if iteration > 0 & pop_sample[iteration] == 1:
         con_file = open('inputs/converge.txt', 'r')
         converge = json.load(con_file)
         if converge == 'stop':
@@ -303,7 +304,7 @@ for iteration in range(0,len(pop_sample)):
      print time_assign
      logfile.write("ending assignment %s\r\n" %str((time_assign)))
 
-     #print '###### Finished running assignments:',time_assign - time_daysim
+     ##print '###### Finished running assignments:',time_assign - time_daysim
 
 
 ### ASSIGNMENT SUMMARY###############################################################
