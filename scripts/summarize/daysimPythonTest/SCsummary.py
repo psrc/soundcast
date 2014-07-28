@@ -3,6 +3,7 @@ import pandas as pd
 import xlsxwriter
 import time
 import h5toDF
+import xlautofit
 
 def get_total(exp_fac):
     total=pd.Series.sum(exp_fac)
@@ -12,13 +13,13 @@ def get_total(exp_fac):
 
 def weighted_average(df_in,col,weights,grouper):
     if grouper==None:
-        df_in[col+'_sp']=df_in[col]*df_in[weights]
+        df_in[col+'_sp']=df_in[col].multiply(df_in[weights])
         n_out=pd.Series.sum(df_in[col+'_sp'])/pd.Series.sum(df_in[weights])
         return(n_out)
     else:
-        df_in[col+'_sp']=df_in[col]*df_in[weights]
+        df_in[col+'_sp']=df_in[col].multiply(df_in[weights])
         df_out=df_in.groupby(grouper).sum()
-        df_out[col+'_wa']=df_out[col+'_sp']/df_out[weights]
+        df_out[col+'_wa']=df_out[col+'_sp'].divide(df_out[weights])
         return(df_out)
 
 def recode_index(df,old_name,new_name):
@@ -47,116 +48,188 @@ def get_differences(df,colname1,colname2,roundto):
             df['Difference'][i]=round(df['Difference'][i],roundto)
     return(df)
 
+def DayPattern(data1,data2,name1,name2,location):
+    start=time.time()
+    merge_per_hh_1=pd.merge(data1['Person'],data1['Household'],'outer')
+    merge_per_hh_2=pd.merge(data2['Person'],data2['Household'],'outer')
+    Person_1_total=get_total(merge_per_hh_1['psexpfac'])
+    Person_2_total=get_total(merge_per_hh_2['psexpfac'])
 
-daysimfile='R:/JOE/summarize/daysim_outputs.h5'
-surveyfile='R:/JOE/summarize/survey.h5'
-guidefile='R:/JOE/summarize/CatVarDict.xlsx'
-name1='2010 Model Run'
-name2='2006 Survey'
-data1=h5toDF.convert(daysimfile,guidefile,name1)
-data2=h5toDF.convert(surveyfile,guidefile,name2)
-districtfile='R:/JOE/summarize/TAZ_TAD_County.csv'
-zone_district=get_districts(districtfile)
-location='R:/JOE/summarize/reports'
+    #Tours per person
+    tpp1=pd.Series.sum(data1['Tour']['toexpfac'])/pd.Series.sum(data1['Person']['psexpfac'])
+    tpp2=pd.Series.sum(data2['Tour']['toexpfac'])/pd.Series.sum(data2['Person']['psexpfac'])
+    tpp=pd.DataFrame(index=['Tours'])
+    tpp[name1]=tpp1
+    tpp[name2]=tpp2
+    tpp=get_differences(tpp,name1,name2,2)
 
+    #Percent of Tours by Purpose
+    ptbp1=data1['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data1['Tour']['toexpfac'])*100
+    ptbp2=data2['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data2['Tour']['toexpfac'])*100
+    ptbp=pd.DataFrame()
+    ptbp['Percent of Tours ('+name1+')']=ptbp1
+    ptbp['Percent of Tours ('+name2+')']=ptbp2
+    ptbp=get_differences(ptbp,'Percent of Tours ('+name1+')','Percent of Tours ('+name2+')',1)
+    ptbp=recode_index(ptbp,'pdpurp','Tour Purpose')
 
-#def DayPattern(data1,data2,name1,name2,location):
+    #Tours per Person by Purpose
+    tpbp1=data1['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data1['Person']['psexpfac'])
+    tpbp2=data2['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data2['Person']['psexpfac'])
+    tpbp=pd.DataFrame()
+    tpbp['Tours per Person ('+name1+')']=tpbp1
+    tpbp['Tours per Person ('+name2+')']=tpbp2
+    tpbp=get_differences(tpbp,'Tours per Person ('+name1+')','Tours per Person ('+name2+')',3)
+    tpbp=recode_index(tpbp,'pdpurp','Tour Purpose')
 
-merge_per_hh_1=pd.merge(data1['Person'],data1['Household'],'outer')
-merge_per_hh_2=pd.merge(data2['Person'],data2['Household'],'outer')
-Person_1_total=get_total(merge_per_hh_1['psexpfac'])
-Person_2_total=get_total(merge_per_hh_2['psexpfac'])
+    #Tours per Person by Purpose and Person Type/Number of Stops
+    PersonsDay1=pd.merge(data1['Person'],data1['PersonDay'],on=['hhno','pno'])
+    PersonsDay2=pd.merge(data2['Person'],data2['PersonDay'],on=['hhno','pno'])
+    tpd={}
+    stops={}
+    for purpose in pd.Series.value_counts(data1['Tour']['pdpurp']).index:
+        if purpose=='Work':
+            tc='wktours'
+            sc='wkstops'
+        elif purpose=='Social':
+            tc='sotours'
+            sc='sostops'
+        elif purpose=='School':
+            tc='sctours'
+            sc='scstops'
+        elif purpose=='Escort':
+            tc='estours'
+            sc='esstops'
+        elif purpose=='Personal Business':
+            tc='pbtours'
+            sc='pbstops'
+        elif purpose=='Shop':
+            tc='shtours'
+            sc='shstops'
+        elif purpose=='Meal':
+            tc='mltours'
+            sc='mlstops'
+        toursPersPurp1=weighted_average(PersonsDay1,tc,'psexpfac','pptyp')[tc+'_wa']
+        toursPersPurp2=weighted_average(PersonsDay2,tc,'psexpfac','pptyp')[tc+'_wa']
+        toursPersPurp=pd.DataFrame.from_items([(name1,toursPersPurp1),(name2,toursPersPurp2)])
+        toursPersPurp=get_differences(toursPersPurp,name1,name2,2)
+        toursPersPurp=recode_index(toursPersPurp,'pptyp','Person Type')
+        tpd.update({purpose:toursPersPurp})
+        person_day_hh1=pd.merge(data1['PersonDay'],data1['Household'],on=['hhno'])
+        person_day_hh2=pd.merge(data2['PersonDay'],data2['Household'],on=['hhno'])
+        no_stops1=pd.Series.sum(person_day_hh1.query(sc+'==0')['pdexpfac'])/pd.Series.sum(person_day_hh1['pdexpfac'])*100
+        no_stops2=pd.Series.sum(person_day_hh2.query(sc+'==0')['pdexpfac'])/pd.Series.sum(person_day_hh2['pdexpfac'])*100
+        has_stops1=100-no_stops1
+        has_stops2=100-no_stops2
+        ps=pd.DataFrame() 
+        ps['% of Tours ('+name1+')']=[no_stops1,has_stops1]
+        ps['% of Tours ('+name2+')']=[no_stops2,has_stops2]
+        ps['index']=['0','1+']
+        ps=ps.set_index('index')
+        ps=get_differences(ps,'% of Tours ('+name1+')','% of Tours ('+name2+')',1)
+        ps=recode_index(ps,'index',purpose+' Tours')
+        stops.update({purpose:ps})
 
-#Tours per person
-tpp1=pd.Series.sum(data1['Tour']['toexpfac'])/pd.Series.sum(data1['Person']['psexpfac'])
-tpp2=pd.Series.sum(data2['Tour']['toexpfac'])/pd.Series.sum(data2['Person']['psexpfac'])
-tpp=pd.DataFrame(index=['Tours'])
-tpp[name1]=tpp1
-tpp[name2]=tpp2
-tpp=get_differences(tpp,name1,name2,2)
+    #Work-Based Subtour Generation
+    #Total trips per person
+    atp1=pd.Series.sum(data1['Trip']['trexpfac'])/pd.Series.sum(data1['Person']['psexpfac'])
+    atp2=pd.Series.sum(data2['Trip']['trexpfac'])/pd.Series.sum(data2['Person']['psexpfac'])
+    atl1=weighted_average(data1['Trip'].query('travdist>0 and travdist<200'),'travdist','trexpfac',None)
+    atl2=weighted_average(data2['Trip'].query('travdist>0 and travdist<200'),'travdist','trexpfac',None)
+    ttp1=[atp1,atl1]
+    ttp2=[atp2,atl2]
+    label=['Average Trips Per Person','Average Trip Length']
+    ttp=pd.DataFrame.from_items([('',label),(name1,ttp1),(name2,ttp2)])
+    ttp=ttp.set_index('')
+    ttp=get_differences(ttp,name1,name2,1)
 
-#Percent of Tours by Purpose
-ptbp1=data1['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data1['Tour']['toexpfac'])*100
-ptbp2=data2['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data2['Tour']['toexpfac'])*100
-ptbp=pd.DataFrame()
-ptbp['Percent of Tours ('+name1+')']=ptbp1
-ptbp['Percent of Tours ('+name2+')']=ptbp2
-ptbp=get_differences(ptbp,'Percent of Tours ('+name1+')','Percent of Tours ('+name2+')',1)
-ptbp=recode_index(ptbp,'pdpurp','Tour Purpose')
+    #Trip Rates by Purpose
+    trp1=data1['Trip'].groupby('dpurp').sum()['trexpfac']/Person_1_total
+    trp2=data2['Trip'].groupby('dpurp').sum()['trexpfac']/Person_2_total
+    trp=pd.DataFrame()
+    trp['Trips per Person ('+name1+')']=trp1
+    trp['Trips per Person ('+name2+')']=trp2
+    trp=get_differences(trp,'Trips per Person ('+name1+')','Trips per Person ('+name2+')',2)
+    trp=recode_index(trp,'dpurp','Destination Purpose')
 
-#Tours per Person by Purpose
-tpp1=data1['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data1['Person']['psexpfac'])
-tpp2=data2['Tour'].groupby('pdpurp').sum()['toexpfac']/pd.Series.sum(data2['Person']['psexpfac'])
-tpp=pd.DataFrame()
-tpp['Tours per Person ('+name1+')']=tpp1
-tpp['Tours per Person ('+name2+')']=tpp2
-tpp=get_differences(tpp,'Tours per Person ('+name1+')','Tours per Person ('+name2+')',3)
-tpp=recode_index(tpp,'pdpurp','Tour Purpose')
-
-#Tours per Person by Purpose and Person Type/Number of Stops
-PersonsDay1=pd.merge(data1['Person'],data1['PersonDay'],on=['hhno','pno'])
-PersonsDay2=pd.merge(data2['Person'],data2['PersonDay'],on=['hhno','pno'])
-tpd={}
-stops={}
-for purpose in pd.Series.value_counts(data1['Tour']['pdpurp']).index:
-    if purpose=='Work':
-        tc='wktours'
-    elif purpose=='Social':
-        tc='sotours'
-    elif purpose=='School':
-        tc='sctours'
-    elif purpose=='Escort':
-        tc='estours'
-    elif purpose=='Personal Business':
-        tc='pbtours'
-    elif purpose=='Shop':
-        tc='shtours'
-    elif purpose=='Meal':
-        tc='mltours'
-    toursPersPurp1=weighted_average(PersonsDay1,tc,'psexpfac','pptyp')[tc+'_wa']
-    toursPersPurp2=weighted_average(PersonsDay2,tc,'psexpfac','pptyp')[tc+'_wa']
-    toursPersPurp=pd.DataFrame.from_items([(name1,toursPersPurp1),(name2,toursPersPurp2)])
-    toursPersPurp=get_differences(toursPersPurp,name1,name2,2)
-    tpd.update({purpose:toursPersPurp})
-    person_day_hh1=pd.merge(data1['PersonDay'],data1['Household'],on=['hhno'])
-    person_day_hh2=pd.merge(data2['PersonDay'],data2['Household'],on=['hhno'])
-    person_day_hh1['aps']=person_day_hh1['pdexpfac']/pd.Series.sum(person_day_hh1['pdexpfac'])*100
-    person_day_hh2['aps']=person_day_hh2['pdexpfac']/pd.Series.sum(person_day_hh2['pdexpfac'])*100
-    ave_purp_stops1=person_day_hh1.groupby(tc).sum()['aps']
-    ave_purp_stops2=person_day_hh2.groupby(tc).sum()['aps']
-    purp_stops=pd.DataFrame.from_items([('% of Tours ('+name1+')',ave_purp_stops1),('% of Tours ('+name2+')',ave_purp_stops2)])
-    no_stops=purp_stops.query(tc+'==0')
-    has_stops=100-no_stops
-    ps=pd.DataFrame()
-    ps['% of Tours ('+name1+')']=[no_stops['% of Tours ('+name1+')'][0],has_stops['% of Tours ('+name1+')'][0]]
-    ps['% of Tours ('+name2+')']=[no_stops['% of Tours ('+name2+')'][0],has_stops['% of Tours ('+name2+')'][0]]
-    ps['index']=['0','1+']
-    ps=ps.set_index('index')
-    ps=get_differences(ps,'% of Tours ('+name1+')','% of Tours ('+name2+')',1)
-    ps=recode_index(ps,'index',purpose+' Tours')
-    stops.update({purpose:ps})
-
-#Work-Based Subtour Generation
-#Total trips per person
-atp1=pd.Series.sum(data1['Trip']['trexpfac'])/pd.Series.sum(data1['Person']['psexpfac'])
-atp2=pd.Series.sum(data2['Trip']['trexpfac'])/pd.Series.sum(data2['Person']['psexpfac'])
-atl1=weighted_average(data1['Trip'],'travdist','trexpfac',None)
-atl2=weighted_average(data2['Trip'],'travdist','trexpfac',None)
-tt1[name1]=[atp1,atl1]
-tt2[name2]=[atp2,atl2]
-label=['Average Trips Per Person','Average Trip Length']
-tt=pd.DataFrame.from_items([(name1,tt1),(name2,tt2)],index=label)
-
-#Tours by Type by Person Type
-#wrkto1=data1['Tour'].query('pdpurp=="Work"')
-#wrkto2=data2['Tour'].query('pdpurp=="Work"')
-#numtours1=wrkto1.groupby(['hhno','pno']).sum()
-#numtours2=wrkto1.groupby(['hhno','pno']).sum()
-#persontours1=pd.merge(numtours1,data1['Person'],left_index=True,right_on=['hhno','pno'])
-#persontours2=pd.merge(numtours2,data2['Person'],left_index=True,right_on=['hhno','pno'])
-#wtpt1=persontours1.groupby('pptyp').sum()['toexpfac']/persontours1.groupby('pptyp').sum()['psexpfac']
-#wtpt2=persontours2.groupby('pptyp').sum()['toexpfac']/persontours1.groupby('pptyp').sum()['psexpfac']
-
+    #Compile file
+    writer=pd.ExcelWriter(location+'/DayPatternReport.xlsx',engine='xlsxwriter')
+    tpp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=1)
+    workbook=writer.book
+    worksheet=writer.sheets['Daily Activity Pattern']
+    merge_format=workbook.add_format({'align':'center','bold':True,'border':1})
+    worksheet.merge_range(0,0,0,4,'Tours Per Person',merge_format)
+    worksheet.merge_range(4,0,4,4,'Percent of Tours by Purpose',merge_format)
+    ptbp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=5)
+    worksheet.merge_range(15,0,15,4,'Tours per Person by Purpose',merge_format)
+    tpbp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=15)
+    purposes=pd.Series.value_counts(data1['Tour']['pdpurp']).index
+    for i in range(len(purposes)):
+        tpd[purposes[i]].to_excel(excel_writer=writer,sheet_name='Tours by Purpose',na_rep='NA',startrow=1,startcol=i*6)
+        worksheet=writer.sheets['Tours by Purpose']
+        worksheet.merge_range(0,6*i,0,6*i+4,purposes[i]+' Tours by Person Type',merge_format)
+        worksheet.merge_range(12,6*i,12,6*i+4,'Number of Stops',merge_format)
+        stops[purposes[i]].to_excel(excel_writer=writer,sheet_name='Tours by Purpose',na_rep='NA',startrow=13,startcol=i*6)
+        if i!=len(purposes):
+            worksheet.write(0,6*i+5,' ')
+    ttp.to_excel(excel_writer=writer,sheet_name='Work-Based Subtour Generation',na_rep='NA',startrow=1)
+    worksheet=writer.sheets['Work-Based Subtour Generation']
+    worksheet.merge_range(0,0,0,4,'Total Trips',merge_format)
+    worksheet.merge_range(5,0,5,4,'Trip Rates by Purpose',merge_format)
+    trp.to_excel(excel_writer=writer,sheet_name='Work-Based Subtour Generation',na_rep='NA',startrow=6)
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/DayPatternReport.xlsx')
+    colors=['#06192E','#4EAE47']
+    writer=pd.ExcelWriter(location+'/DayPatternReport.xlsx',engine='xlsxwriter')
+    tpp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=1)
+    workbook=writer.book
+    worksheet=writer.sheets['Daily Activity Pattern']
+    merge_format=workbook.add_format({'align':'center','bold':True,'border':1})
+    worksheet.merge_range(0,0,0,4,'Tours Per Person',merge_format)
+    worksheet.merge_range(4,0,4,4,'Percent of Tours by Purpose',merge_format)
+    ptbp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=5)
+    worksheet.merge_range(15,0,15,4,'Percent of Tours by Purpose',merge_format)
+    tpbp.to_excel(excel_writer=writer,sheet_name='Daily Activity Pattern',na_rep='NA',startrow=15)
+    purposes=pd.Series.value_counts(data1['Tour']['pdpurp']).index
+    for i in range(len(purposes)):
+        tpd[purposes[i]].to_excel(excel_writer=writer,sheet_name='Tours by Purpose',na_rep='NA',startrow=1,startcol=i*6)
+        worksheet=writer.sheets['Tours by Purpose']
+        worksheet.merge_range(0,6*i,0,6*i+4,purposes[i]+' Tours by Person Type',merge_format)
+        worksheet.merge_range(12,6*i,12,6*i+4,'Number of Stops',merge_format)
+        stops[purposes[i]].to_excel(excel_writer=writer,sheet_name='Tours by Purpose',na_rep='NA',startrow=13,startcol=i*6)
+        if i!=len(purposes):
+            worksheet.write(0,6*i+5,' ')
+    ttp.to_excel(excel_writer=writer,sheet_name='Work-Based Subtour Generation',na_rep='NA',startrow=1)
+    worksheet=writer.sheets['Work-Based Subtour Generation']
+    worksheet.merge_range(0,0,0,4,'Total Trips',merge_format)
+    worksheet.merge_range(5,0,5,4,'Trip Rates by Purpose',merge_format)
+    trp.to_excel(excel_writer=writer,sheet_name='Work-Based Subtour Generation',na_rep='NA',startrow=6)
+    for sheet in writer.sheets:
+        worksheet=writer.sheets[sheet]
+        for col_num in range(worksheet.dim_colmax+1):
+            worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
+        if sheet=='Tours by Purpose':
+            for i in range(len(purposes)):
+                chart=workbook.add_chart({'type':'column'})
+                for col_num in range(6*i+1,6*i+3):
+                    chart.add_series({'name':[sheet,1,col_num],
+                                      'categories':[sheet,3,6*i,10,6*i],
+                                      'values':[sheet,3,col_num,10,col_num],
+                                      'fill':{'color':colors[col_num%6-1]}})
+                    chart.set_legend({'position':'top'})
+                    chart.set_size({'x_scale':1.4,'y_scale':1.25})
+                worksheet.insert_chart(18,6*i,chart)
+        if sheet=='Work-Based Subtour Generation':
+            chart=workbook.add_chart({'type':'column'})
+            for col_num in range(1,3):
+                chart.add_series({'name':[sheet,6,col_num],
+                                  'categories':[sheet,8,0,16,0],
+                                  'values':[sheet,8,col_num,16,col_num],
+                                  'fill':{'color':colors[col_num-1]}})
+            chart.set_legend({'position':'top'})
+            chart.set_size({'x_scale':2,'y_scale':1.25})
+            worksheet.insert_chart(18,0,chart)
+    writer.save()
+    print('Day Pattern Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
 
 def DaysimReport(data1,data2,name1,name2,location,districtfile):
     start=time.time()
@@ -168,18 +241,18 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     Person_1_total=get_total(merge_per_hh_1['psexpfac'])
     Person_2_total=get_total(merge_per_hh_2['psexpfac'])
     label.append('Number of People')
-    value1.append(int(round(Person_1_total,-5)))
-    value2.append(int(round(Person_2_total,-5)))
+    value1.append(int(round(Person_1_total,-3)))
+    value2.append(int(round(Person_2_total,-3)))
     Trip_1_total=get_total(data1['Trip']['trexpfac'])
     Trip_2_total=get_total(data2['Trip']['trexpfac'])
     label.append('Number of Trips')
-    value1.append(int(round(Trip_1_total,-5)))
-    value2.append(int(round(Trip_2_total,-5)))
+    value1.append(int(round(Trip_1_total,-3)))
+    value2.append(int(round(Trip_2_total,-3)))
     Tour_1_total=get_total(data1['Tour']['toexpfac'])
     Tour_2_total=get_total(data2['Tour']['toexpfac'])
     label.append('Number of Tours')
-    value1.append(int(round(Tour_1_total,-5)))
-    value2.append(int(round(Tour_2_total,-5)))
+    value1.append(int(round(Tour_1_total,-3)))
+    value2.append(int(round(Tour_2_total,-3)))
     tour_ok_1=data1['Tour'].query('tautodist>0 and tautodist<2000')
     tour_ok_2=data2['Tour'].query('tautodist>0 and tautodist<2000')
     trip_ok_1=data1['Trip'].query('travdist>0 and travdist<2000')
@@ -191,27 +264,27 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     tp2=pd.Series.sum(data2['Person']['psexpfac'])
     th1=pd.Series.sum(data1['Household']['hhexpfac'])
     th2=pd.Series.sum(data2['Household']['hhexpfac'])
-    ttr1=pd.Series.sum(data1['Trip']['trexpfac'])
-    ttr2=pd.Series.sum(data2['Trip']['trexpfac'])
+    ttr1=pd.Series.sum(trip_ok_1['trexpfac'])
+    ttr2=pd.Series.sum(trip_ok_2['trexpfac'])
     ahhs1=tp1/th1
     ahhs2=tp2/th2
     ntr1=ttr1/tp1
     ntr2=ttr2/tp2
-    atl1=weighted_average(data1['Trip'],'travdist','trexpfac',None)
-    atl2=weighted_average(data2['Trip'],'travdist','trexpfac',None)
+    atl1=weighted_average(trip_ok_1,'travdist','trexpfac',None)
+    atl2=weighted_average(trip_ok_2,'travdist','trexpfac',None)
     driver_trips1=trip_ok_1.query('dorp=="Driver"')
     driver_trips2=trip_ok_2.query('dorp=="Driver"')
     vmpp1sp=pd.Series.sum(driver_trips1['travdist']*driver_trips1['trexpfac'])
     vmpp2sp=pd.Series.sum(driver_trips2['travdist']*driver_trips2['trexpfac'])
-    vmpp1=vmpp1sp/Trip_1_total
-    vmpp2=vmpp2sp/Trip_2_total
+    vmpp1=vmpp1sp/Person_1_total
+    vmpp2=vmpp2sp/Person_2_total
     #Work Location
     wrkrs1=merge_per_hh_1.query('pwtyp=="Paid Full-Time Worker" or pwtyp=="Paid Part-Time Worker"')
-    wrkrs2=merge_per_hh_1.query('pwtyp=="Paid Full-Time Worker" or pwtyp=="Paid Part-Time Worker"')
+    wrkrs2=merge_per_hh_2.query('pwtyp=="Paid Full-Time Worker" or pwtyp=="Paid Part-Time Worker"')
     wrkr_1_hzone=pd.merge(wrkrs1,districtfile,left_on='hhtaz',right_on='TAZ')
     wrkr_2_hzone=pd.merge(wrkrs2,districtfile,left_on='hhtaz',right_on='TAZ')
-    total_workers_1=pd.Series.count(wrkrs1['id'])
-    total_workers_2=pd.Series.count(wrkrs2['id'])
+    total_workers_1=pd.Series.count(wrkrs1['psexpfac'])
+    total_workers_2=pd.Series.count(wrkrs2['psexpfac'])
     workers_1=wrkr_1_hzone.query('pwpcl!=hhparcel and pwaudist>0 and pwaudist<200')
     workers_2=wrkr_2_hzone.query('pwpcl!=hhparcel and pwaudist>0 and pwaudist<200')
     workers_1['Share']=workers_1['psexpfac']/pd.Series.sum(workers_1['psexpfac'])
@@ -235,7 +308,7 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     thp=pd.DataFrame(index=['Total Persons','Total Households','Average Household Size','Average Trips Per Person','Average Trip Length','Vehicle Miles per Person','Average Distance to Work (Non-Home)','Average Distance to School (Non-Home)'])
     thp[name1]=[tp1,th1,ahhs1,ntr1,atl1,vmpp1,workers1_avg_dist,students1_avg_dist]
     thp[name2]=[tp2,th2,ahhs2,ntr2,atl2,vmpp2,workers2_avg_dist,students2_avg_dist]
-    thp=get_differences(thp,name1,name2,[-5,-5,1,1,1,1,1,1])
+    thp=get_differences(thp,name1,name2,[-3,-3,1,1,1,1,1,1])
 
     #Transit Pass Ownership
     ttp1=pd.Series.sum(data1['Person']['ptpass']*data1['Person']['psexpfac'])
@@ -245,7 +318,7 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     tpass=pd.DataFrame(index=['Total Passes','Passes per Person'])
     tpass[name1]=[ttp1,ppp1]
     tpass[name2]=[ttp2,ppp2]
-    tpass=get_differences(tpass,name1,name2,[-4,3])
+    tpass=get_differences(tpass,name1,name2,[-3,3])
 
     #Auto Ownership
     ao1=data1['Household'].groupby('hhvehs').sum()['hhexpfac']/pd.Series.sum(data1['Household']['hhexpfac'])*100
@@ -259,19 +332,29 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     #Boardings
     board=pd.DataFrame(index=['Boardings'])
     board['Total Observed Transit Boardings (2011)']=647127
-    board['Implied Transit Boardings (Assuming 1.3 Boardings/Trip']=1.3*pd.Series.sum((data1['Trip'].query('mode=="Transit"'))['trexpfac'])
-    board=get_differences(board,'Total Observed Transit Boardings (2011)','Implied Transit Boardings (Assuming 1.3 Boardings/Trip',0)
+    board['Implied Transit Boardings (Assuming 1.3 Boardings/Trip)']=1.3*pd.Series.sum((data1['Trip'].query('mode=="Transit"'))['trexpfac'])
+    board=get_differences(board,'Total Observed Transit Boardings (2011)','Implied Transit Boardings (Assuming 1.3 Boardings/Trip)',0)
 
     #File Compile
     writer=pd.ExcelWriter(location+'/DaysimReport.xlsx',engine='xlsxwriter')
     thp.to_excel(excel_writer=writer,sheet_name='Basic Summaries',na_rep='NA')
     tpass.to_excel(excel_writer=writer,sheet_name='Transit Pass Ownership',na_rep='NA')
     ao.to_excel(excel_writer=writer,sheet_name='Automobile Ownership',na_rep='NA')
+
+    board.to_excel(excel_writer=writer,sheet_name='Transit Boardings',na_rep='NA')
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/DaysimReport.xlsx')
+    writer=pd.ExcelWriter(location+'/DaysimReport.xlsx',engine='xlsxwriter')
+    thp.to_excel(excel_writer=writer,sheet_name='Basic Summaries',na_rep='NA')
+    tpass.to_excel(excel_writer=writer,sheet_name='Transit Pass Ownership',na_rep='NA')
+    ao.to_excel(excel_writer=writer,sheet_name='Automobile Ownership',na_rep='NA')
     board.to_excel(excel_writer=writer,sheet_name='Transit Boardings',na_rep='NA')
     workbook=writer.book
-    colors=['#ed3300','#00529f']
+    colors=['#4f8a10','#11568c']
     sheet='Basic Summaries'
     worksheet=writer.sheets[sheet]
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
     worksheet.set_column(0,worksheet.dim_colmax,width=35)
     worksheet.freeze_panes(0,1)
     chart=workbook.add_chart({'type':'column'})
@@ -285,6 +368,8 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     worksheet.insert_chart('B11',chart)
     sheet='Transit Pass Ownership'
     worksheet=writer.sheets[sheet]
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
     worksheet.set_column(0,worksheet.dim_colmax,width=35)
     worksheet.freeze_panes(0,1)
     chart=workbook.add_chart({'type':'column'})
@@ -298,6 +383,8 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     worksheet.insert_chart('B5',chart)
     sheet='Automobile Ownership'
     worksheet=writer.sheets[sheet]
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
     worksheet.set_column(0,worksheet.dim_colmax,width=35)
     worksheet.freeze_panes(0,1)
     chart=workbook.add_chart({'type':'column'})
@@ -312,6 +399,8 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     worksheet.insert_chart('B9',chart)
     sheet='Transit Boardings'
     worksheet=writer.sheets[sheet]
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
     worksheet.set_column(0,worksheet.dim_colmax,width=35)
     worksheet.freeze_panes(0,1)
     chart=workbook.add_chart({'type':'column'})
@@ -324,7 +413,6 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     chart.set_size({'x_scale':2,'y_scale':2.25})
     worksheet.insert_chart('B4',chart)
     writer.save()
-
     print('DaySim Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
 
 def DestChoice(data1,data2,name1,name2,location,districtfile):
@@ -341,8 +429,8 @@ def DestChoice(data1,data2,name1,name2,location,districtfile):
     #Average distance by tour purpose
     tourtrip1=pd.merge(tour_ok_1,trip_ok_1,on=['hhno','pno','tour','day'])
     tourtrip2=pd.merge(tour_ok_2,trip_ok_2,on=['hhno','pno','tour','day'])
-    triptotal1=weighted_average(tourtrip1,'tautodist','trexpfac','pdpurp')
-    triptotal2=weighted_average(tourtrip2,'tautodist','trexpfac','pdpurp')
+    triptotal1=weighted_average(tourtrip1,'tautodist','toexpfac','pdpurp')
+    triptotal2=weighted_average(tourtrip2,'tautodist','toexpfac','pdpurp')
     atl1=pd.DataFrame.from_items([('Average Tour Length ('+name1+')',pd.Series.round(triptotal1['tautodist_wa'],1))])
     #atl1=pd.DataFrame.from_items([('Average Trip Length ('+name1+')',tourtrip1.groupby('pdpurp').mean()['tautodist'])])
     atl2=pd.DataFrame.from_items([('Average Tour Length ('+name2+')',pd.Series.round(triptotal2['tautodist_wa'],1))])
@@ -367,13 +455,12 @@ def DestChoice(data1,data2,name1,name2,location,districtfile):
     nttp1=pd.DataFrame.from_items([('Average Number of Trips per Tour ('+name1+')',pd.Series.round(tourtotal1['notrips_wa'],1))])
     nttp2=pd.DataFrame.from_items([('Average Number of Trips per Tour ('+name2+')',pd.Series.round(tourtotal2['notrips_wa'],1))])
     nttp=pd.merge(nttp1,nttp2,'outer',left_index=True,right_index=True)
-    ttd['Difference']=pd.Series.round(ttd,1)
-    ttpd['Percent Difference']=pd.Series.round(ttpd,1)
+    nttp=get_differences(nttp,'Average Number of Trips per Tour ('+name1+')','Average Number of Trips per Tour ('+name2+')',1)
     nttp=recode_index(nttp,'pdpurp','Tour Purpose')
 
     #Average Distance by Trip Purpose
-    atripdist1=weighted_average(data1['Trip'],'travdist','trexpfac','dpurp')
-    atripdist2=weighted_average(data2['Trip'],'travdist','trexpfac','dpurp')
+    atripdist1=weighted_average(trip_ok_1,'travdist','trexpfac','dpurp')
+    atripdist2=weighted_average(trip_ok_2,'travdist','trexpfac','dpurp')
     atripdist=pd.DataFrame()
     atripdist['Average Distance ('+name1+')']=pd.Series.round(atripdist1['travdist_wa'],1)
     atripdist['Average Distance ('+name2+')']=pd.Series.round(atripdist2['travdist_wa'],1)
@@ -404,8 +491,8 @@ def DestChoice(data1,data2,name1,name2,location,districtfile):
     nttpm=recode_index(nttpm,'tmodetp','Tour Mode')
 
     #Average Distance by Trip Mode
-    atripdist1m=weighted_average(data1['Trip'],'travdist','trexpfac','mode')
-    atripdist2m=weighted_average(data2['Trip'],'travdist','trexpfac','mode')
+    atripdist1m=weighted_average(trip_ok_1,'travdist','trexpfac','mode')
+    atripdist2m=weighted_average(trip_ok_2,'travdist','trexpfac','mode')
     atripdistm=pd.DataFrame()
     atripdistm['Average Distance ('+name1+')']=pd.Series.round(atripdist1m['travdist_wa'],1)
     atripdistm['Average Distance ('+name2+')']=pd.Series.round(atripdist2m['travdist_wa'],1)
@@ -448,10 +535,23 @@ def DestChoice(data1,data2,name1,name2,location,districtfile):
     atripdistm.to_excel(excel_writer=writer,sheet_name='Average Dist by Trip Mode',na_rep='NA')
     tourdest.to_excel(excel_writer=writer,sheet_name='% Tours by Destination District',na_rep='NA')
     tripdest.to_excel(excel_writer=writer,sheet_name='% Trips by Destination District',na_rep='NA')
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/DaysimDestChoiceReport.xlsx')
+    writer=pd.ExcelWriter(location+'/DaysimDestChoiceReport.xlsx',engine='xlsxwriter')
+    atl.to_excel(excel_writer=writer,sheet_name='Average Dist by Tour Purpose',na_rep='NA',)
+    atlm.to_excel(excel_writer=writer,sheet_name='Average Dist by Tour Mode',na_rep='NA')
+    nttp.to_excel(excel_writer=writer,sheet_name='Trips per Tour by Tour Purpose',na_rep='NA')
+    nttpm.to_excel(excel_writer=writer,sheet_name='Trips per Tour by Tour Mode',na_rep='NA')
+    atripdist.to_excel(excel_writer=writer,sheet_name='Average Dist by Trip Purpose',na_rep='NA')
+    atripdistm.to_excel(excel_writer=writer,sheet_name='Average Dist by Trip Mode',na_rep='NA')
+    tourdest.to_excel(excel_writer=writer,sheet_name='% Tours by Destination District',na_rep='NA')
+    tripdest.to_excel(excel_writer=writer,sheet_name='% Trips by Destination District',na_rep='NA')
     workbook=writer.book
     colors=['#ed3300','#00529f']
     for sheet in writer.sheets:
         worksheet=writer.sheets[sheet]
+        for col_num in range(worksheet.dim_colmax+1):
+            worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
         worksheet.set_column(0,worksheet.dim_colmax,width=35)
         worksheet.freeze_panes(0,1)
         chart=workbook.add_chart({'type':'column'})
@@ -464,7 +564,6 @@ def DestChoice(data1,data2,name1,name2,location,districtfile):
         chart.set_size({'x_scale':2,'y_scale':1.5})
         worksheet.insert_chart('B15',chart)
     writer.save()
-
     print('Destination Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
 
 def ModeChoice(data1,data2,name1,name2,location):
@@ -479,18 +578,18 @@ def ModeChoice(data1,data2,name1,name2,location):
     Person_1_total=get_total(merge_per_hh_1['psexpfac'])
     Person_2_total=get_total(merge_per_hh_2['psexpfac'])
     label.append('Number of People')
-    value1.append(int(round(Person_1_total,-5)))
-    value2.append(int(round(Person_2_total,-5)))
+    value1.append(int(round(Person_1_total,-3)))
+    value2.append(int(round(Person_2_total,-3)))
     Trip_1_total=get_total(data1['Trip']['trexpfac'])
     Trip_2_total=get_total(data2['Trip']['trexpfac'])
     label.append('Number of Trips')
-    value1.append(int(round(Trip_1_total,-5)))
-    value2.append(int(round(Trip_2_total,-5)))
+    value1.append(int(round(Trip_1_total,-3)))
+    value2.append(int(round(Trip_2_total,-3)))
     Tour_1_total=get_total(data1['Tour']['toexpfac'])
     Tour_2_total=get_total(data2['Tour']['toexpfac'])
     label.append('Number of Tours')
-    value1.append(int(round(Tour_1_total,-5)))
-    value2.append(int(round(Tour_2_total,-5)))
+    value1.append(int(round(Tour_1_total,-3)))
+    value2.append(int(round(Tour_2_total,-3)))
     tour_ok_1=data1['Tour'].query('tautodist>0 and tautodist<2000')
     tour_ok_2=data2['Tour'].query('tautodist>0 and tautodist<2000')
     trip_ok_1=data1['Trip'].query('travtime>0 and travtime<2000')
@@ -514,8 +613,7 @@ def ModeChoice(data1,data2,name1,name2,location):
     msdf[name1+' Share']=modeshare1
     modeshare2=modeshare2.sort_index()
     msdf[name2+' Share']=modeshare2
-    difference=difference.sort_index()
-    msdf['Difference']=difference
+    msdf=get_differences(msdf,name1+' Share',name2+' Share',0)
     msdf=recode_index(msdf,'tmodetp','Mode')
 
 
@@ -544,8 +642,8 @@ def ModeChoice(data1,data2,name1,name2,location):
         mbpcdf[column]=filler
 
     for i in range(len(tpm['Purpose'])):
-        mbpcdf[tpm['Mode'][i]+' ('+name1+')'][tpm['Purpose'][i]]=round(tpm[name1+' Share'][i],1)
-        mbpcdf[tpm['Mode'][i]+' ('+name2+')'][tpm['Purpose'][i]]=round(tpm[name2+' Share'][i],1)
+        mbpcdf[tpm['Mode'][i]+' ('+name1+')'][tpm['Purpose'][i]]=round(tpm[name1+' Share'][i],0)
+        mbpcdf[tpm['Mode'][i]+' ('+name2+')'][tpm['Purpose'][i]]=round(tpm[name2+' Share'][i],0)
 
     #Trip Mode by Tour Mode
     tourtrip1=pd.merge(data1['Tour'],data1['Trip'],on=['hhno','pno','tour'])
@@ -647,7 +745,7 @@ def ModeChoice(data1,data2,name1,name2,location):
     tt1im=ttdf1.groupby(['mode','dpurp']).sum()['trexpfac']
     tt2im=ttdf2.groupby(['mode','dpurp']).sum()['trexpfac']
     tt1=pd.DataFrame(tt1im)
-    tt2=pd.DataFrame(tt1im)
+    tt2=pd.DataFrame(tt2im)
     ttrips1im=ttdf1.groupby(['mode','dpurp']).sum()
     ttrips2im=ttdf2.groupby(['mode','dpurp']).sum()
     ttrips1=pd.DataFrame(ttrips1im)
@@ -675,11 +773,22 @@ def ModeChoice(data1,data2,name1,name2,location):
     toursmtt.to_excel(excel_writer=writer,sheet_name='Tours by Mode & Travel Time',na_rep='NA')
     tripsmtt.to_excel(excel_writer=writer,sheet_name='Trips by Mode & Travel Time',na_rep='NA')
     tptt.to_excel(excel_writer=writer,sheet_name='Trips by Purpose & Travel Time',na_rep='NA')
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/ModeChoiceReport.xlsx')
+    writer=pd.ExcelWriter(location+'/ModeChoiceReport.xlsx',engine='xlsxwriter')
+    vmpp.to_excel(excel_writer=writer,sheet_name='# People, Trips, and Tours',na_rep='NA')
+    msdf.to_excel(excel_writer=writer,sheet_name='Mode Share',na_rep='NA')
+    mbpcdf.to_excel(excel_writer=writer,sheet_name='Mode Share by Purpose',na_rep='NA')
+    tmbtm.to_excel(excel_writer=writer,sheet_name='Trip Mode by Tour Mode',na_rep='NA')
+    toursmtt.to_excel(excel_writer=writer,sheet_name='Tours by Mode & Travel Time',na_rep='NA')
+    tripsmtt.to_excel(excel_writer=writer,sheet_name='Trips by Mode & Travel Time',na_rep='NA')
+    tptt.to_excel(excel_writer=writer,sheet_name='Trips by Purpose & Travel Time',na_rep='NA')    
     workbook=writer.book
-    colors=['#ed3300','#00529f']
+    colors=['#0c2c56','#005c5c']
     for sheet in writer.sheets:
         worksheet=writer.sheets[sheet]
-        worksheet.set_column(0,worksheet.dim_colmax,width=35)
+        for col_num in range(worksheet.dim_colmax+1):
+            worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
         worksheet.freeze_panes(0,1)
         if sheet in ['# People, Trips, and Tours','Mode Share']:
             chart=workbook.add_chart({'type':'column'})
@@ -699,28 +808,22 @@ def ModeChoice(data1,data2,name1,name2,location):
                     chart.set_legend({'position':'top'})
                     chart.set_size({'x_scale':2,'y_scale':1.75})
             worksheet.insert_chart('B12',chart)
-        elif sheet in ['Mode Share by Purpose','Trip Mode by Tour Mode']:
-            chart=workbook.add_chart({'type':'column'})
-            for row_num in range(1,worksheet.dim_rowmax):
-                chart.add_series({'name':[sheet,row_num,0],
-                                    'categories':[sheet,0,1,0,worksheet.dim_colmax],
-                                    'values':[sheet,row_num,1,row_num,worksheet.dim_colmax]})
-            chart.set_legend({'position':'top'})
-            chart.set_size({'x_scale':2,'y_scale':1.75})
-            worksheet.insert_chart('B12',chart)
-        elif sheet in ['Tours by Mode & Travel Time','Trips by Mode & Travel Time']:
-            chart=workbook.add_chart({'type':'column'})
-            for row_num in range(2,worksheet.dim_rowmax):
-                chart.add_series({'name':[sheet,row_num,0],
-                                    'categories':[sheet,0,1,0,worksheet.dim_colmax],
-                                    'values':[sheet,row_num,1,row_num,worksheet.dim_colmax]})
-            chart.set_legend({'position':'top'})
-            chart.set_size({'x_scale':2,'y_scale':1.75})
-            worksheet.insert_chart('B12',chart)
     writer.save()
-
+    writer.close()
     print('Mode Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
     
-DaysimReport(data1,data2,name1,name2,location,zone_district)
-ModeChoice(data1,data2,name1,name2,location)
-DestChoice(data1,data2,name1,name2,location,zone_district)
+def report_compile(file1,name1,file2,name2,guidefile,districtfile,location):
+    print('+-+-+-+Begin summary report file compilation+-+-+-+')
+    timerstart=time.time()
+    data1=h5toDF.convert(file1,guidefile,name1)
+    data2=h5toDF.convert(file2,guidefile,name2)
+    zone_district=get_districts(districtfile)
+    DaysimReport(data1,data2,name1,name2,location,zone_district)
+    DayPattern(data1,data2,name1,name2,location)
+    ModeChoice(data1,data2,name1,name2,location)
+    DestChoice(data1,data2,name1,name2,location,zone_district)
+    totaltime=time.time()-timerstart
+    if int(totaltime)/60==1:
+        print('+-+-+-+Summary report compilation complete in 1 minute and '+str(round(totaltime%60,1))+' seconds+-+-+-+')
+    else:
+        print('+-+-+-+Summary report compilation complete in '+str(int(totaltime)/60)+' minutes and '+str(round(totaltime%60,1))+' seconds+-+-+-+')
