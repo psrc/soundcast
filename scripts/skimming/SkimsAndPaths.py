@@ -2067,7 +2067,7 @@ def main():
         f = open('inputs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
-        if not seed_trips:
+        if (survey_seed_trips == False and daysim_seed_trips == False):
                #run feedback check
               if feedback_check('Banks/7to8/emmebank') == False:
                   go = 'continue'
