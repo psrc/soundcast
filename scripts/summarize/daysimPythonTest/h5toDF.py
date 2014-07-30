@@ -3,6 +3,7 @@ import pandas as pd
 import h5py
 import xlrd
 import time
+import json
 
 #Imports the variable guide Excel file
 def get_guide(guide_file):
@@ -42,32 +43,65 @@ def guide_to_dict(guide):
     print('Guide converted to dictionary in '+str(round(time.time()-time_start,1))+' seconds')
     return(catdict)
 
-def convert(filename,guidefile):
-    print('---Begin '+filename+' conversion---')
-    ts=time.time()
-    input=h5py.File(filename,'r+')
-    guides=get_guide(guidefile)
-    categorical_dict=guide_to_dict(guides)
-    output={}
-    for f in input: #loop through the files
-        fs=time.time()
-        df=pd.DataFrame()
-        for v in input[f]:
-            if type(input[f][v][0]) is np.void: #If entries are in the form '(number,)', this loop converts them to number
-                inarray=np.asarray(input[f][v])
-                outarray=[]
-                for i in range(len(inarray)):
-                    s=str(inarray[i])
-                    s=s.replace('(','')
-                    s=s.replace(',)','')
-                    outarray.append(float(s))
-                df[v]=outarray
-            else:
-                df[v]=np.asarray(input[f][v])
-            if v in categorical_dict:
-                local_dict=categorical_dict[v]                             
-                df[v]=df[v].map(local_dict)                                             
-        output.update({f:df})
-        print(f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
-    print('---'+filename+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
-    return(output)
+def convert(filename,guidefile,name):
+    L=len(guidefile)
+    if guidefile[L-4:L]=='json':
+        print('---Begin '+name+' conversion---')
+        ts=time.time()
+        input=h5py.File(filename,'r+')
+        with open(guidefile,'rb') as fp:
+            categorical_dict=json.load(fp)
+        output={}
+        for f in input: #loop through the files
+            fs=time.time()
+            df=pd.DataFrame()
+            for v in input[f]:
+                if type(input[f][v][0]) is np.void: #If entries are in the form '(number,)', this loop converts them to number
+                    inarray=np.asarray(input[f][v])
+                    outarray=[]
+                    for i in range(len(inarray)):
+                        s=str(inarray[i])
+                        s=s.replace('(','')
+                        s=s.replace(',)','')
+                        outarray.append(float(s))
+                    df[v]=outarray
+                else:
+                    df[v]=np.asarray(input[f][v])
+                if v in categorical_dict:
+                    local_dict=categorical_dict[v]                             
+                    df[v]=df[v].map(local_dict)                                             
+            output.update({f:df})
+            print(f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
+        print('---'+name+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
+        return(output)
+    elif guidefile[L-4:L]=='xlsx':
+        print('---Begin '+name+' conversion---')
+        ts=time.time()
+        input=h5py.File(filename,'r+')
+        guides=get_guide(guidefile)
+        categorical_dict=guide_to_dict(guides)
+        output={}
+        for f in input: #loop through the files
+            fs=time.time()
+            df=pd.DataFrame()
+            for v in input[f]:
+                if type(input[f][v][0]) is np.void: #If entries are in the form '(number,)', this loop converts them to number
+                    inarray=np.asarray(input[f][v])
+                    outarray=[]
+                    for i in range(len(inarray)):
+                        s=str(inarray[i])
+                        s=s.replace('(','')
+                        s=s.replace(',)','')
+                        outarray.append(float(s))
+                    df[v]=outarray
+                else:
+                    df[v]=np.asarray(input[f][v])
+                if v in categorical_dict:
+                    local_dict=categorical_dict[v]                             
+                    df[v]=df[v].map(local_dict)                                             
+            output.update({f:df})
+            print(f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
+        print('---'+name+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
+        return(output)
+    else:
+        raise ValueError('Guide file type '+guidefile[L-4:L]+' not supported.')
