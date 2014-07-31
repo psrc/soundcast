@@ -1168,17 +1168,24 @@ def LongTerm(data1,data2,name1,name2,location,districtfile):
 
     print('Long Term Report succesfuly compiled in '+str(round(time.time()-start,1))+' seconds')
     
-def report_compile(h5file1,name1,h5file2,name2,guidefile,districtfile,output_location):
+def report_compile(h5_results_file,h5_results_name,
+                   h5_comparison_file,h5_comparison_name,
+                   guidefile,districtfile,report_output_location):
     print('+-+-+-+Begin summary report file compilation+-+-+-+')
     timerstart=time.time()
-    data1=h5toDF.convert(h5file1,guidefile,name1)
-    data2=h5toDF.convert(h5file2,guidefile,name2)
-    zone_district=get_districts(districtfile)
-    DaysimReport(data1,data2,name1,name2,output_location,zone_district)
-    DayPattern(data1,data2,name1,name2,output_location)
-    ModeChoice(data1,data2,name1,name2,output_location)
-    DestChoice(data1,data2,name1,name2,output_location,zone_district)
-    LongTerm(data1,data2,name1,name2,output_location,zone_district)
+    data1 = h5toDF.convert(h5_results_file,guidefile,h5_results_name)
+    data2 = h5toDF.convert(h5_comparison_file,guidefile,h5_comparison_name)
+    zone_district = get_districts(districtfile)
+    if run_daysim_report == True:
+        DaysimReport(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+    if run_day_pattern_report == True:
+        DayPattern(data1,data2,h5_results_name,h5_comparison_name,report_output_location)
+    if run_mode_choice_report == True:
+        ModeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location)
+    if run_dest_choice_report == True:
+        DestChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+    if run_long_term_report == True:
+        LongTerm(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     totaltime=time.time()-timerstart
     if int(totaltime)/60==1:
         print('+-+-+-+Summary report compilation complete in 1 minute and '+str(round(totaltime%60,1))+' seconds+-+-+-+')
@@ -1187,6 +1194,8 @@ def report_compile(h5file1,name1,h5file2,name2,guidefile,districtfile,output_loc
 
 
 def main():
-    report_compile(h5file1,name1,h5file2,name2,guidefile,districtfile,output_location)
+    report_compile(h5_results_file,h5_results_name,
+                   h5_comparison_file,h5_comparison_name,
+                   guidefile,districtfile,report_output_location)
 
 main()

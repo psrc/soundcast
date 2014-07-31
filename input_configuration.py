@@ -10,18 +10,19 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
-run_copy_daysim_code = True
+run_copy_daysim_code = False
 run_setup_emme_project_folders = False
 run_setup_emme_bank_folders = False
-run_copy_inputs = True
+run_copy_inputs = False
 run_update_parking = False
-run_import_networks = True
-run_skims_and_paths_seed_trips = True
-run_skims_and_paths = True
-run_truck_model = True
-run_daysim = True
-run_network_summary = True
-run_r_summaries = True
+run_import_networks = False
+run_skims_and_paths_seed_trips = False
+run_skims_and_paths = False
+run_truck_model = False
+run_daysim = False
+run_network_summary = False
+run_soundcast_summary = True
+run_r_summaries = False
 
 # Model iterations, population sampling, log files, etc. 
 pop_sample = [20, 20, 2, 1]
@@ -188,3 +189,18 @@ LOW_STATION = 3733
 HIGH_STATION = 3750
 EXTERNAL_DISTRICT = 'ga20'
 					
+#################################### SOUNDCAST SUMMARY ####################################
+h5_results_file = 'outputs/daysim_outputs.h5'
+h5_results_name = 'DaysimOutputs'
+h5_comparison_file = 'scripts/summarize/survey.h5'
+h5_comparison_name = 'Survey'
+guidefile = 'scripts/summarize/daysimPythonTest/CatVarDict.xlsx'
+districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
+report_output_location = 'outputs'
+
+# Specific reports to run
+run_daysim_report = True
+run_day_pattern_report = False
+run_mode_choice_report = False
+run_dest_choice_report = False
+run_long_term_report = False

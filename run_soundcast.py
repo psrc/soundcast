@@ -307,7 +307,7 @@ for iteration in range(0,len(pop_sample)):
      ##print '###### Finished running assignments:',time_assign - time_daysim
 
 
-### ASSIGNMENT SUMMARY###############################################################
+### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
    returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
@@ -317,8 +317,14 @@ if run_network_summary == True:
 #print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 logfile.close()
-##### SUMMARIZE DAYSIM##########################################################
-if run_r_summaries == True:	run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
+##### SUMMARIZE DAYSIM ##########################################################
+if run_r_summaries == True:	
+    run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
+
+##### SUMMARIZE SOUNDCAST ##########################################################
+if run_soundcast_summary == True:
+   returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
+
 #### ALL DONE ##################################################################
 clean_up()
 print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
