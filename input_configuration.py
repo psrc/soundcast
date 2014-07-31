@@ -194,13 +194,13 @@ h5_results_file = 'outputs/daysim_outputs.h5'
 h5_results_name = 'DaysimOutputs'
 h5_comparison_file = 'scripts/summarize/survey.h5'
 h5_comparison_name = 'Survey'
-guidefile = 'scripts/summarize/daysimPythonTest/CatVarDict.xlsx'
+guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
 # Specific reports to run
 run_daysim_report = True
-run_day_pattern_report = False
-run_mode_choice_report = False
-run_dest_choice_report = False
-run_long_term_report = False
+run_day_pattern_report = True
+run_mode_choice_report = True
+run_dest_choice_report = True
+run_long_term_report = True
