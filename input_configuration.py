@@ -10,17 +10,17 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
-run_copy_daysim_code = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
-run_copy_inputs = False
-run_update_parking = False
-run_import_networks = False
+run_copy_daysim_code = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
+run_copy_inputs = True
+run_update_parking = True
+run_import_networks = True
 run_skims_and_paths_seed_trips = False
-run_skims_and_paths = False
-run_truck_model = False
-run_daysim = False
-run_network_summary = False
+run_skims_and_paths = True
+run_truck_model = True
+run_daysim = True
+run_network_summary = True
 run_soundcast_summary = True
 run_r_summaries = False
 
