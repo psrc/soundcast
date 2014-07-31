@@ -11,10 +11,10 @@ input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
 
 # Script and subprocess controls 
 run_copy_daysim_code = True
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
 run_copy_inputs = True
-run_update_parking = False
+run_update_parking = True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
 run_skims_and_paths = True
@@ -24,7 +24,7 @@ run_network_summary = True
 run_r_summaries = True
 
 # Model iterations, population sampling, log files, etc. 
-pop_sample = [20, 20, 2, 1]
+pop_sample = [20, 10, 2, 1, 1, 1]
 
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
@@ -34,8 +34,8 @@ good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap"]
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
-STOP_THRESHOLD = 0.1
-parallel_instances = 6   # Number of simultaneous parallel processes. Must be a factor of 12.
+STOP_THRESHOLD = 0.01
+parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
