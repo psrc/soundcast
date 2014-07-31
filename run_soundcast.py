@@ -178,8 +178,8 @@ def rename_network_outs(iter):
        
 def daysim_sample(iter):
     try: 
-     config_template= open('configuration_template.xml','r')
-     config= open('configuration.xml','w')
+     config_template= open('configuration_template.properties','r')
+     config= open('configuration.properties','w')
 
      for line in config_template:
          config.write(line.replace("$REPLACEME", str(pop_sample[iter])))
@@ -276,7 +276,7 @@ for iteration in range(0,len(pop_sample)):
              copy_shadow_price_file()
 
          daysim_sample(iteration)
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
+         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
          if returncode != 0:
              sys.exit(1)
 
