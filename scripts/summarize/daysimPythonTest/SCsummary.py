@@ -322,7 +322,6 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
 
     #Auto Ownership
     ao1=data1['Household'].groupby('hhvehs').sum()['hhexpfac']/pd.Series.sum(data1['Household']['hhexpfac'])*100
-<<<<<<< HEAD
     for i in range(5,len(ao1)):
         ao1[4]=ao1[4]+ao1[i]
         ao1=ao1.drop([i])
@@ -330,22 +329,15 @@ def DaysimReport(data1,data2,name1,name2,location,districtfile):
     for i in range(5,len(ao2)):
         ao2[4]=ao2[4]+ao2[i]
         ao2=ao2.drop([i])
-=======
-    ao2=data2['Household'].groupby('hhvehs').sum()['hhexpfac']/pd.Series.sum(data1['Household']['hhexpfac'])*100
->>>>>>> c85477ed4be7be09903aff6fc95c091f25b5583f
     ao=pd.DataFrame()
     ao['Percent of Households ('+name1+')']=ao1
     ao['Percent of Households ('+name2+')']=ao2
     ao=get_differences(ao,'Percent of Households ('+name1+')','Percent of Households ('+name2+')',1)
-<<<<<<< HEAD
     aonewcol=['0','1','2','3','4+']
     ao['Number of Vehicles in Household']=aonewcol
     ao=ao.reset_index()
     del ao['hhvehs']
     ao=ao.set_index('Number of Vehicles in Household')
-=======
-    ao=recode_index(ao,'hhvehs','Number of Vehicles in Household')
->>>>>>> c85477ed4be7be09903aff6fc95c091f25b5583f
 
     #Boardings
     board=pd.DataFrame(index=['Boardings'])
@@ -829,7 +821,6 @@ def ModeChoice(data1,data2,name1,name2,location):
     writer.save()
     writer.close()
     print('Mode Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
-<<<<<<< HEAD
 
 def LongTerm(data1,data2,name1,name2,location,districtfile):
     start=time.time()
@@ -1187,19 +1178,6 @@ def report_compile(h5file1,name1,h5file2,name2,guidefile,districtfile,output_loc
     ModeChoice(data1,data2,name1,name2,output_location)
     DestChoice(data1,data2,name1,name2,output_location,zone_district)
     LongTerm(data1,data2,name1,name2,output_location,zone_district)
-=======
-    
-def report_compile(file1,name1,file2,name2,guidefile,districtfile,location):
-    print('+-+-+-+Begin summary report file compilation+-+-+-+')
-    timerstart=time.time()
-    data1=h5toDF.convert(file1,guidefile,name1)
-    data2=h5toDF.convert(file2,guidefile,name2)
-    zone_district=get_districts(districtfile)
-    DaysimReport(data1,data2,name1,name2,location,zone_district)
-    DayPattern(data1,data2,name1,name2,location)
-    ModeChoice(data1,data2,name1,name2,location)
-    DestChoice(data1,data2,name1,name2,location,zone_district)
->>>>>>> c85477ed4be7be09903aff6fc95c091f25b5583f
     totaltime=time.time()-timerstart
     if int(totaltime)/60==1:
         print('+-+-+-+Summary report compilation complete in 1 minute and '+str(round(totaltime%60,1))+' seconds+-+-+-+')
