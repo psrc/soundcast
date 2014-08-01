@@ -4,6 +4,7 @@ import xlsxwriter
 import time
 import h5toDF
 import xlautofit
+import math
 from input_configuration import *
 
 def get_total(exp_fac):
@@ -48,6 +49,61 @@ def get_differences(df,colname1,colname2,roundto):
             df[colname2][i]=round(df[colname2][i],roundto)
             df['Difference'][i]=round(df['Difference'][i],roundto)
     return(df)
+
+def hhmm_to_min(input):
+    minmap={}
+    for i in range(0,24):
+        for j in range(0,60):
+            minmap.update({i*100+j:i*60+j})
+    if pd.Series.max(input['Trip']['deptm'])>=1440:
+        input['Trip']['deptm']=input['Trip']['deptm'].map(minmap)
+    if pd.Series.max(input['Trip']['arrtm'])>=1440:
+        input['Trip']['arrtm']=input['Trip']['arrtm'].map(minmap)
+    if pd.Series.max(input['Trip']['endacttm'])>=1440:
+        input['Trip']['endacttm']=input['Trip']['endacttm'].map(minmap)
+    if pd.Series.max(input['Tour']['tlvorig'])>=1440:
+        input['Tour']['tlvorig']=input['Tour']['tlvorig'].map(minmap)
+    if pd.Series.max(input['Tour']['tardest'])>=1440:
+        input['Tour']['tardest']=input['Tour']['tardest'].map(minmap)
+    if pd.Series.max(input['Tour']['tlvdest'])>=1440:
+        input['Tour']['tlvdest']=input['Tour']['tlvdest'].map(minmap)
+    if pd.Series.max(input['Tour']['tarorig'])>=1440:
+        input['Tour']['tarorig']=input['Tour']['tarorig'].map(minmap)
+    return(input)
+
+def min_to_hour(input,base):
+    timemap={}
+    for i in range(0,24):
+        if i+base<24:
+            for j in range(0,60):
+                if i+base<9:
+                    timemap.update({i*60+j:'0'+str(i+base)+'-0'+str(i+base+1)})
+                elif i+base==9:
+                    timemap.update({i*60+j:'0'+str(i+base)+'-'+str(i+base+1)})
+                else:
+                    timemap.update({i*60+j:str(i+base)+'-'+str(i+base+1)})
+        else:
+            for j in range(0,60):
+                if i+base-24<9:
+                    timemap.update({i*60+j:'0'+str(i+base-24)+'-0'+str(i+base-23)})
+                elif i+base-24==9:
+                    timemap.update({i*60+j:'0'+str(i+base-24)+'-'+str(i+base-23)})
+                else:
+                    timemap.update({i*60+j:str(i+base-24)+'-'+str(i+base-23)})
+    output=input.map(timemap)
+    return output
+
+def random_colors(number_of_colors):
+    colorlist=[]
+    for i in range(number_of_colors):
+        color='#'
+        for j in range(3):
+            rn=str(hex(int(math.floor(np.random.uniform(0,256)))))
+            if len(rn)==3:
+                rn=rn[0:2]+'0'+rn[2]
+            color=color+rn[2:4]
+        colorlist.append(color)
+    return(colorlist)
 
 def DayPattern(data1,data2,name1,name2,location):
     start=time.time()
@@ -1167,6 +1223,130 @@ def LongTerm(data1,data2,name1,name2,location,districtfile):
     writer.save()
 
     print('Long Term Report succesfuly compiled in '+str(round(time.time()-start,1))+' seconds')
+
+def TimeChoice(data1,data2,name1,name2,location,districtfile):
+    start=time.time()
+    merge_per_hh_1=pd.merge(data1['Person'],data1['Household'],on='hhno')
+    merge_per_hh_2=pd.merge(data1['Person'],data2['Household'],on='hhno')
+    person_1_total=get_total(merge_per_hh_1['psexpfac'])
+    person_2_total=get_total(merge_per_hh_2['psexpfac'])
+    trip_ok_1=data1['Trip'].query('travdist>0 and travdist<200')
+    trip_ok_2=data2['Trip'].query('travdist>0 and travdist<200')
+    trip_ok_1=trip_ok_1.reset_index()
+    trip_ok_2=trip_ok_2.reset_index()
+    tour_ok_1=data1['Tour'].query('tautodist>0 and tautodist<200')
+    tour_ok_2=data2['Tour'].query('tautodist>0 and tautodist<200')
+    tour_ok_1=tour_ok_1.reset_index()
+    tour_ok_2=tour_ok_2.reset_index()
+
+    #Trip arrival time by hour
+    trip_ok_1['hr']=min_to_hour(trip_ok_1['arrtm'],3)
+    trip_ok_2['hr']=min_to_hour(trip_ok_2['arrtm'],3)
+    trip_1_time=trip_ok_1.groupby('hr').sum()['trexpfac']
+    trip_2_time=trip_ok_2.groupby('hr').sum()['trexpfac']
+    trip_1_time_share=100*trip_1_time/pd.Series.sum(trip_1_time)
+    trip_2_time_share=100*trip_2_time/pd.Series.sum(trip_2_time)
+    trip_time=pd.DataFrame()
+    trip_time[name1]=trip_1_time_share
+    trip_time[name2]=trip_2_time_share
+    trip_time=get_differences(trip_time,name1,name2,1)
+    trip_time=recode_index(trip_time,'hr','Arrival Hour')
+
+    #Tour Primary Destination arrival time by hour
+    tour_ok_1['hrapd']=min_to_hour(tour_ok_1['tardest'],3)
+    tour_ok_2['hrapd']=min_to_hour(tour_ok_2['tardest'],3)
+    tour_1_time_apd=tour_ok_1.groupby('hrapd').sum()['toexpfac']
+    tour_2_time_apd=tour_ok_2.groupby('hrapd').sum()['toexpfac']
+    tour_1_time_share_apd=100*tour_1_time_apd/pd.Series.sum(tour_1_time_apd)
+    tour_2_time_share_apd=100*tour_2_time_apd/pd.Series.sum(tour_2_time_apd)
+    tour_time_apd=pd.DataFrame()
+    tour_time_apd[name1]=tour_1_time_share_apd
+    tour_time_apd[name2]=tour_2_time_share_apd
+    tour_time_apd=get_differences(tour_time_apd,name1,name2,1)
+    tour_time_apd=recode_index(tour_time_apd,'hrapd','Primary Destination Arrival Hour')
+
+    #Tour Primary Destination Departure time by hour
+    tour_ok_1['hrlpd']=min_to_hour(tour_ok_1['tlvdest'],3)
+    tour_ok_2['hrlpd']=min_to_hour(tour_ok_2['tlvdest'],3)
+    tour_1_time_lpd=tour_ok_1.groupby('hrlpd').sum()['toexpfac']
+    tour_2_time_lpd=tour_ok_2.groupby('hrlpd').sum()['toexpfac']
+    tour_1_time_share_lpd=100*tour_1_time_lpd/pd.Series.sum(tour_1_time_lpd)
+    tour_2_time_share_lpd=100*tour_2_time_lpd/pd.Series.sum(tour_2_time_lpd)
+    tour_time_lpd=pd.DataFrame()
+    tour_time_lpd[name1]=tour_1_time_share_lpd
+    tour_time_lpd[name2]=tour_2_time_share_lpd
+    tour_time_lpd=get_differences(tour_time_lpd,name1,name2,1)
+    tour_time_lpd=recode_index(tour_time_lpd,'hrlpd','Primary Destination Departure Hour')
+
+    #Compile the file
+    writer=pd.ExcelWriter(location+'/TimeChoiceReport.xlsx',engine='xlsxwriter')
+    workbook=writer.book
+    merge_format=workbook.add_format({'align':'center','bold':True,'border':1})
+    trip_time.to_excel(excel_writer=writer,sheet_name='Trip Arrival Times by Hour',na_rep='NA')
+    tour_time_apd.to_excel(excel_writer=writer,sheet_name='Tour PD Arr & Dep Times by Hour',na_rep='NA',startrow=1)
+    tour_time_lpd.to_excel(excel_writer=writer,sheet_name='Tour PD Arr & Dep Times by Hour',na_rep='NA',startrow=1,startcol=6)
+    worksheet=writer.sheets['Tour PD Arr & Dep Times by Hour']
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/TimeChoiceReport.xlsx')
+    colors=random_colors(6)
+    writer=pd.ExcelWriter(location+'/TimeChoiceReport.xlsx',engine='xlsxwriter')
+    workbook=writer.book
+    merge_format=workbook.add_format({'align':'center','bold':True,'border':1})
+    trip_time.to_excel(excel_writer=writer,sheet_name='Trip Arrival Times by Hour',na_rep='NA')
+    tour_time_apd.to_excel(excel_writer=writer,sheet_name='Tour PD Arr & Dep Times by Hour',na_rep='NA',startrow=1)
+    tour_time_lpd.to_excel(excel_writer=writer,sheet_name='Tour PD Arr & Dep Times by Hour',na_rep='NA',startrow=29)
+    sheet='Trip Arrival Times by Hour'
+    worksheet=writer.sheets[sheet]
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
+    chart=workbook.add_chart({'type':'column'})
+    for colnum in range(1,3):
+        chart.add_series({'name':[sheet,0,colnum],
+                          'categories':[sheet,2,0,25,0],
+                          'values':[sheet,2,colnum,25,colnum],
+                          'fill':{'color':colors[colnum-1]},
+                          'border':{'color':'black'}})
+    chart.set_title({'name':'Trip Arrival Time by Hour of Day'})
+    chart.set_size({'width':768,'height':520})
+    chart.set_x_axis({'name':'Hour of Day'})
+    chart.set_y_axis({'name':'Percent of Trips'})
+    chart.set_legend({'position':'top'})
+    worksheet.insert_chart('G1',chart)
+    sheet='Tour PD Arr & Dep Times by Hour'
+    worksheet=writer.sheets[sheet]
+    worksheet.merge_range(0,0,0,4,'Tour Share by Primary Destination Arrival Hour',merge_format)
+    worksheet.merge_range(28,0,28,4,'Tour Share by Primary Destination Departure Hour',merge_format)
+    for col_num in range(worksheet.dim_colmax+1):
+        worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
+    chart=workbook.add_chart({'type':'column'})
+    for colnum in range(1,3):
+        chart.add_series({'name':[sheet,1,colnum],
+                          'categories':[sheet,3,0,26,0],
+                          'values':[sheet,3,colnum,26,colnum],
+                          'fill':{'color':colors[colnum+1]},
+                          'border':{'color':'black'}})
+    chart.set_title({'name':[sheet,0,0]})
+    chart.set_size({'width':640,'height':540})
+    chart.set_x_axis({'name':'Hour of Day'})
+    chart.set_y_axis({'name':'Percent of Tours'})
+    chart.set_legend({'position':'top'})
+    worksheet.insert_chart('F1',chart)
+    chart=workbook.add_chart({'type':'column'})
+    for colnum in range(1,3):
+        chart.add_series({'name':[sheet,29,colnum],
+                          'categories':[sheet,31,0,54,0],
+                          'values':[sheet,31,colnum,54,colnum],
+                          'fill':{'color':colors[colnum+3]},
+                          'border':{'color':'black'}})
+    chart.set_title({'name':[sheet,28,0]})
+    chart.set_size({'width':640,'height':540})
+    chart.set_x_axis({'name':'Hour of Day'})
+    chart.set_y_axis({'name':'Percent of Tours'})
+    chart.set_legend({'position':'top'})
+    worksheet.insert_chart('F29',chart)
+    writer.save()
+
+    print('Time Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
     
 def report_compile(h5_results_file,h5_results_name,
                    h5_comparison_file,h5_comparison_name,
@@ -1175,6 +1355,8 @@ def report_compile(h5_results_file,h5_results_name,
     timerstart=time.time()
     data1 = h5toDF.convert(h5_results_file,guidefile,h5_results_name)
     data2 = h5toDF.convert(h5_comparison_file,guidefile,h5_comparison_name)
+    data1=hhmm_to_min(data1)
+    data2=hhmm_to_min(data2)
     zone_district = get_districts(districtfile)
     if run_daysim_report == True:
         DaysimReport(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
@@ -1186,6 +1368,8 @@ def report_compile(h5_results_file,h5_results_name,
         DestChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     if run_long_term_report == True:
         LongTerm(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+    if run_time_choice_report == True:
+        TimeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location)
     totaltime=time.time()-timerstart
     if int(totaltime)/60==1:
         print('+-+-+-+Summary report compilation complete in 1 minute and '+str(round(totaltime%60,1))+' seconds+-+-+-+')
