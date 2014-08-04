@@ -752,8 +752,8 @@ def ModeChoice(data1,data2,name1,name2,location):
     tpm=pd.merge(tpm1,tpm2,'outer')
     tpm=tpm.sort(name2+' Share')
 
-    nrows=pd.Series.value_counts(tpm['Purpose'])
-    halfcols=pd.Series.value_counts(tpm['Mode'])
+    nrows=pd.Series.value_counts(tpm['Mode'])
+    halfcols=pd.Series.value_counts(tpm['Purpose'])
     modenames=halfcols.index
     ncols=[]
     for i in range(len(modenames)):
@@ -766,9 +766,9 @@ def ModeChoice(data1,data2,name1,name2,location):
             filler[purpose]=float('Nan')
         mbpcdf[column]=filler
 
-    for i in range(len(tpm['Purpose'])):
-        mbpcdf[tpm['Mode'][i]+' ('+name1+')'][tpm['Purpose'][i]]=round(tpm[name1+' Share'][i],0)
-        mbpcdf[tpm['Mode'][i]+' ('+name2+')'][tpm['Purpose'][i]]=round(tpm[name2+' Share'][i],0)
+    for i in range(len(tpm['Mode'])):
+        mbpcdf[tpm['Purpose'][i]+' ('+name1+')'][tpm['Mode'][i]]=round(tpm[name1+' Share'][i],1)
+        mbpcdf[tpm['Purpose'][i]+' ('+name2+')'][tpm['Mode'][i]]=round(tpm[name2+' Share'][i],1)
 
     #Trip Mode by Tour Mode
     tourtrip1=pd.merge(data1['Tour'],data1['Trip'],on=['hhno','pno','tour'])
@@ -933,8 +933,23 @@ def ModeChoice(data1,data2,name1,name2,location):
                     chart.set_legend({'position':'top'})
                     chart.set_size({'x_scale':2,'y_scale':1.75})
             worksheet.insert_chart('B12',chart)
+        elif sheet == 'Mode Share by Purpose':
+            for i in range(1,8):
+                chart=workbook.add_chart({'type':'column'})
+                for col_num in range(1,3):
+                    c=2*(i-1)+col_num
+                    chart.add_series({'name':[sheet,0,c],
+                                      'categories':[sheet,1,0,8,0],
+                                      'values':[sheet,1,c,8,c],
+                                      'fill':{'color':colors[col_num-1]}})
+                chart.set_legend({'position':'top'})
+                chart.set_size({'x_scale':0.8,'y_scale':0.9})
+                chart.set_y_axis({'name':'Mode Share'})
+                if i%2==1:
+                    worksheet.insert_chart(10,2*i-1,chart)
+                else:
+                    worksheet.insert_chart(24,2*i-3,chart)
     writer.save()
-    writer.close()
     print('Mode Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
 
 def LongTerm(data1,data2,name1,name2,location,districtfile):
