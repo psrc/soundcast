@@ -188,6 +188,25 @@ tod_list = ['am','md', 'pm', 'ev', 'ni']
 LOW_STATION = 3733
 HIGH_STATION = 3750
 EXTERNAL_DISTRICT = 'ga20'
+
+truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
+                             'special_gen_light_trucks','special_gen_medium_trucks', 'special_gen_heavy_trucks', 
+                             'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
+
+truck_tod_factor_dict = {'lttrk' : {'daily_trips' : 'mflgtod', 
+                                    'am' : '.194', 'md' : '.346', 'pm' : '.240', 'ev' : '.126', 'ni' : '.094'}, 
+                         'mdtrk' : {'daily_trips' : 'mfmedod', 
+                                    'am' : '.208', 'md' : '.417', 'pm' : '.204', 'ev' : '.095', 'ni' : '.076'}, 
+                         'hvtrk' : {'daily_trips' : 'mfhvyod', 
+                                    'am' : '.209', 'md' : '.417', 'pm' : '.189', 'ev' : '.071', 'ni' : '.063'}}
+
+truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup" : "prodsh*manu", 
+                  "manue" : "eqshar * manu", "tcu" : "tcushr * wtcu", "whls" : "whlssh * wtcu", 
+                  "retail" : "ret1 + ret2 + ret3", "fires" : "fires1 + fires2 + fires3", 
+                  "govedu" : "gov1 + gov2 + gov3 + edu"}
+
+origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
+                   'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
 					
 #################################### SOUNDCAST SUMMARY ####################################
 h5_results_file = 'outputs/daysim_outputs.h5'

@@ -158,12 +158,14 @@ class EmmeProject:
         process(transaction_file = basenet_file,
               revert_on_error = True,
               scenario = self.current_scenario)
+
     def process_turn(self, turn_file):
         NAMESPACE = "inro.emme.data.network.turn.turn_transaction"
         process = self.m.tool(NAMESPACE)
         process(transaction_file = turn_file,
             revert_on_error = False,
             scenario = self.current_scenario) 
+
     def create_scenario(self, scenario_number, scenario_title = 'test'):
         NAMESPACE = "inro.emme.data.scenario.create_scenario"
         create_scenario = self.m.tool(NAMESPACE)
@@ -189,8 +191,7 @@ def network_importer(EmmeProject):
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
     EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)
-    
+    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)  
 
 def json_to_dictionary(dict_name):
 
@@ -199,6 +200,7 @@ def json_to_dictionary(dict_name):
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
+
 def skims_to_hdf5(EmmeProject):
         
     truck_od_matrices = ['lttrk', 'mdtrk', 'hvtrk']
@@ -226,11 +228,6 @@ def skims_to_hdf5(EmmeProject):
                     
     my_store.close()
      
-
-matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
-                      'special_gen_light_trucks','special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                      'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-
 input_skims = json_to_dictionary('input_skims')
 
 truck_generation_dict = json_to_dictionary('truck_gen_calc_dict')
@@ -272,9 +269,9 @@ for y in range (0, len(origin_destination_dict["Full_Matrices"])):
                              origin_destination_dict['Full_Matrices'][y]['Description'], 0, True, my_project.current_scenario)
 
 #import matrices(employment shares):
-for i in range(0, len(matrix_import_list)):
-    print 'inputs/' + matrix_import_list[i] + '.in'
-    my_project.import_matrices('inputs/trucks/' + matrix_import_list[i] + '.in')
+for i in range(0, len(truck_matrix_import_list)):
+    print 'inputs/' + truck_matrix_import_list[i] + '.in'
+    my_project.import_matrices('inputs/trucks/' + truck_matrix_import_list[i] + '.in') 
 
 
 #calculate total households (9_calculate_total_households.mac) by origin:
@@ -284,17 +281,12 @@ my_project.matrix_calculator(result = 'mohhlds', expression = 'mfhhemp', aggrega
 
 #Populating origin matrices from household/employment matrix (10_copy_matrices.mac)
 #Copying each colunn into the appropriate Origin Matrix
-origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
-                   'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
 
 for key, value in origin_emp_dict.iteritems():
     my_project.matrix_calculator(result = key, aggregation_destinations = '+',  constraint_by_zone_origins = '*', 
                                  constraint_by_zone_destinations = value, expression = 'hhemp')
     
 #Populating origin matrices with Employment Sector totals by origin
-truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup" : "prodsh*manu", "manue" : "eqshar * manu", "tcu" : 
-                  "tcushr * wtcu", "whls" : "whlssh * wtcu", "retail" : "ret1 + ret2 + ret3", "fires" : "fires1 + fires2 + fires3", 
-                  "govedu" : "gov1 + gov2 + gov3 + edu"}
 for key, value in truck_emp_dict.iteritems():
     my_project.matrix_calculator(result = key, expression = value)
    
@@ -389,63 +381,67 @@ for mat_name, matrix in np_bidir_gc_skims.iteritems():
 
 #Balance Refactored Light Truck Attractions to productions:
 my_project.matrix_calculator(result = 'msltprof', expression = 'moltprof', aggregation_origins = '+')
-
 my_project.matrix_calculator(result = 'msltattf', expression = 'mdltattf', aggregation_destinations = '+')
-
 my_project.matrix_calculator(result = 'msltatfe', expression = 'mdltattf', constraint_by_zone_destinations = str(LOW_STATION) 
                              + '-' + str(HIGH_STATION), aggregation_destinations = '+')
-
 my_project.matrix_calculator(result = 'mdltattf', expression = 'mdltattf * ((msltprof - msltatfe)/(msltattf-msltatfe))')
 
 #Balance Refactored Medium Truck Attractions to productions:
 my_project.matrix_calculator(result = 'msmtprof', expression = 'momtprof', aggregation_origins = '+')
-
 my_project.matrix_calculator(result = 'msmtattf', expression = 'mdmtattf', aggregation_destinations = '+')
-
-my_project.matrix_calculator(result = 'msmtatfe', expression = 'mdmtattf', constraint_by_zone_destinations = str(LOW_STATION) + '-' 
-                             + str(HIGH_STATION), aggregation_destinations = '+')
-
+my_project.matrix_calculator(result = 'msmtatfe', expression = 'mdmtattf', constraint_by_zone_destinations = str(LOW_STATION) 
+                             + '-' + str(HIGH_STATION), aggregation_destinations = '+')
 my_project.matrix_calculator(result = 'mdmtattf', expression = 'mdmtattf * ((msmtprof - msmtatfe)/(msmtattf-msmtatfe))')
 
 #Balance Refactored Heavy Truck Attractions to productions:
 my_project.matrix_calculator(result = 'mshtprof', expression = 'mohtprof', aggregation_origins = '+')
-
 my_project.matrix_calculator(result = 'mshtattf', expression = 'mdhtattf', aggregation_destinations = '+')
-
-my_project.matrix_calculator(result = 'mshtatfe', expression = 'mdhtattf', constraint_by_zone_destinations = str(LOW_STATION) + '-' 
-                             + str(HIGH_STATION), aggregation_destinations = '+')
+my_project.matrix_calculator(result = 'mshtatfe', expression = 'mdhtattf', constraint_by_zone_destinations = str(LOW_STATION) 
+                             + '-' + str(HIGH_STATION), aggregation_destinations = '+')
 
 my_project.matrix_calculator(result = 'mdhtattf', expression = 'mdhtattf * ((mshtprof - mshtatfe)/(mshtattf-mshtatfe))')
 
 #calculate impedances
 #set flag to 0 for external-external od paris and all others euqal to 1
 my_project.matrix_calculator(result = 'mfintflg', expression = '1')
-my_project.matrix_calculator(result = 'mfintflg', expression = '0', constraint_by_zone_destinations = EXTERNAL_DISTRICT, 
+my_project.matrix_calculator(result = 'mfintflg', expression = '0', 
+                             constraint_by_zone_destinations = EXTERNAL_DISTRICT, 
                              constraint_by_zone_origins = EXTERNAL_DISTRICT)
 
 #calculate light truck impedances:
 my_project.matrix_calculator(result = 'mflgtimp', expression = 'exp(-0.04585*(mfblgtcs+(mfblgtds*mslgtop*.0150)))*mfintflg', 
-                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
 #calculate medium truck impedances:
 my_project.matrix_calculator(result = 'mfmedimp', expression = 'exp(-0.0053*(mfbmedcs+(mfbmedds*msmedop*.0133)))*mfintflg', 
-                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
 #calculate heavy truck impedances:
 my_project.matrix_calculator(result = 'mfhvyimp', expression = 'exp(-0.008*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
-                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+                             constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
 #matrix balancing
-my_project.matrix_balancing(results_od_balanced_values = 'mflgtdis', od_values_to_balance = 'mflgtimp', origin_totals = 'moltprof', 
-                            destination_totals = 'mdltattf', constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+my_project.matrix_balancing(results_od_balanced_values = 'mflgtdis', 
+                            od_values_to_balance = 'mflgtimp', 
+                            origin_totals = 'moltprof', destination_totals = 'mdltattf', 
+                            constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
-my_project.matrix_balancing(results_od_balanced_values = 'mfmeddis', od_values_to_balance = 'mfmedimp', origin_totals = 'momtprof', 
-                            destination_totals = 'mdmtattf', constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+my_project.matrix_balancing(results_od_balanced_values = 'mfmeddis', 
+                            od_values_to_balance = 'mfmedimp', 
+                            origin_totals = 'momtprof', 
+                            destination_totals = 'mdmtattf', 
+                            constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
-my_project.matrix_balancing(results_od_balanced_values = 'mfhvydis', od_values_to_balance = 'mfhvyimp', origin_totals = 'mohtprof', 
-                            destination_totals = 'mdhtattf', constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+my_project.matrix_balancing(results_od_balanced_values = 'mfhvydis', 
+                            od_values_to_balance = 'mfhvyimp', 
+                            origin_totals = 'mohtprof', 
+                            destination_totals = 'mdhtattf', 
+                            constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                             constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
 #Calculate Daily OD trips:
@@ -462,12 +458,9 @@ my_project.matrix_calculator(result = 'mfmedod', expression = 'mfmedod * 1.5')
 my_project.matrix_calculator(result = 'mfhvyod', expression = 'mfhvyod * 2')
 
 #apply time of day factors:
-tod_factor_dict = {'lttrk' : {'daily_trips' : 'mflgtod', 'am' : '.194', 'md' : '.346', 'pm' : '.240', 'ev' : '.126', 'ni' : '.094'}, 
-                   'mdtrk' : {'daily_trips' : 'mfmedod', 'am' : '.208', 'md' : '.417', 'pm' : '.204', 'ev' : '.095', 'ni' : '.076'}, 'hvtrk' :
-                   {'daily_trips' : 'mfhvyod', 'am' : '.209', 'md' : '.417', 'pm' : '.189', 'ev' : '.071', 'ni' : '.063'}}
- 
+
 for tod in tod_list:
-    for key, value in tod_factor_dict.iteritems():
+    for key, value in truck_tod_factor_dict.iteritems():
         my_project.matrix_calculator(result = 'mf' + tod[0] + key, expression = value['daily_trips'] + '*' + value[tod])
 
 skims_to_hdf5(my_project)
