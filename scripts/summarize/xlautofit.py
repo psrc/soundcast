@@ -1,6 +1,7 @@
 import xlrd
 
 def run(file): #This function "autofits" all of the columns in the workbook. However, it removes all charts and images
+    print(u'\u2620 \u2620 \u2620 WARNING: Running xlautofit.run() removes charts, images, and styles \u2620 \u2620 \u2620')
     import openpyxl
     wd={}
     colnums=[]

@@ -69,9 +69,19 @@ def convert(filename,guidefile,name):
                     df[v]=np.asarray(input[f][v])
                 if v in categorical_dict:
                     local_dict=categorical_dict[v]                             
-                    df[v]=df[v].map(local_dict)                                             
+                    df[v]=df[v].map(local_dict)
+                else:
+                    if v in ['psexpfac','pdexpfac','hhexpfac','hdexpfac','toexpfac','trexpfac']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u2620 \u2620 \u2620 WARNING: Negative Expansion Factor Present! \u2620 \u2620 \u2620')
+                    if v in ['taudist','travdist']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u26a0 \u26a0 \u26a0 WARNING: Negative Travel Distance Present! \u26a0 \u26a0 \u26a0')
+                    if v in ['tautotime','travtime']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u2622 \u2622 \u2622 WARNING: Negative Travel Time Present! \u2622 \u2622 \u2622')                                             
             output.update({f:df})
-            print(f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
+            print(u'\u2714 '+f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
         print('---'+name+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
         return(output)
     elif guidefile[L-4:L]=='xlsx':
@@ -98,9 +108,19 @@ def convert(filename,guidefile,name):
                     df[v]=np.asarray(input[f][v])
                 if v in categorical_dict:
                     local_dict=categorical_dict[v]                             
-                    df[v]=df[v].map(local_dict)                                             
+                    df[v]=df[v].map(local_dict)
+                else:
+                    if v in ['psexpfac','pdexpfac','hhexpfac','hdexpfac','toexpfac','trexpfac']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u2620 \u2620 \u2620 WARNING: Negative Expansion Factor Present! \u2620 \u2620 \u2620')
+                    if v in ['taudist','travdist']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u26a0 \u26a0 \u26a0 WARNING: Negative Travel Distance Present! \u26a0 \u26a0 \u26a0')
+                    if v in ['tautotime','travtime']:
+                        if pd.Series.min(df[v])<0:
+                            print(u'\u2622 \u2622 \u2622 WARNING: Negative Travel Time Present! \u2622 \u2622 \u2622')                                             
             output.update({f:df})
-            print(f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
+            print(u'\u2714 '+f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
         print('---'+name+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
         return(output)
     else:
