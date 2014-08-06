@@ -5,6 +5,37 @@ import xlrd
 import time
 import json
 
+def zero_out_negative_expansion_factors(data, name):
+    zotimestart = time.time()
+    hh_exp_fac = pd.Series.value_counts(data['Household']['hhexpfac'])
+    ps_exp_fac = pd.Series.value_counts(data['Person']['psexpfac'])
+    hd_exp_fac = pd.Series.value_counts(data['HouseholdDay']['hdexpfac'])
+    pd_exp_fac = pd.Series.value_counts(data['PersonDay']['pdexpfac'])
+    tr_exp_fac = pd.Series.value_counts(data['Trip']['trexpfac'])
+    to_exp_fac = pd.Series.value_counts(data['Tour']['toexpfac'])
+    negatives = []
+    negatives.append(hh_exp_fac.where(hh_exp_fac.index<0).index)
+    negatives.append(ps_exp_fac.where(ps_exp_fac.index<0).index)
+    negatives.append(hd_exp_fac.where(hd_exp_fac.index<0).index)
+    negatives.append(pd_exp_fac.where(pd_exp_fac.index<0).index)
+    negatives.append(tr_exp_fac.where(tr_exp_fac.index<0).index)
+    negatives.append(to_exp_fac.where(to_exp_fac.index<0).index)
+    zeromap = {}
+    for i in range(len(negatives)):
+        for value in negatives[i]:
+            if value not in zeromap and value < 0:
+                zeromap.update({value: 0})
+            elif value not in zeromap and value >= 0:
+                zeromap.update({value: value})
+    data['Household']['hhexpfac']=data['Household']['hhexpfac'].map(zeromap)
+    data['Person']['psexpfac']=data['Person']['psexpfac'].map(zeromap)
+    data['HouseholdDay']['hdexpfac']=data['HouseholdDay']['hdexpfac'].map(zeromap)
+    data['PersonDay']['pdexpfac']=data['PersonDay']['pdexpfac'].map(zeromap)
+    data['Trip']['trexpfac']=data['Trip']['trexpfac'].map(zeromap)
+    data['Tour']['toexpfac']=data['Tour']['toexpfac'].map(zeromap)
+    print('Negative expansion factors set to zero for '+name+' data in '+str(round(time.time()-zostart,1))+' seconds')
+    return(data)
+
 #Imports the variable guide Excel file
 def get_guide(guide_file):
     guide=xlrd.open_workbook(guide_file,on_demand=True)
@@ -44,6 +75,7 @@ def guide_to_dict(guide):
     return(catdict)
 
 def convert(filename,guidefile,name):
+    has_negative_expansion_factors = False
     L=len(guidefile)
     if guidefile[L-4:L]=='json':
         print('---Begin '+name+' conversion---')
@@ -112,6 +144,7 @@ def convert(filename,guidefile,name):
                 else:
                     if v in ['psexpfac','pdexpfac','hhexpfac','hdexpfac','toexpfac','trexpfac']:
                         if pd.Series.min(df[v])<0:
+                            has_negative_expansion_factors = True
                             print(u'\u2620 \u2620 \u2620 WARNING: Negative Expansion Factor Present! \u2620 \u2620 \u2620')
                     if v in ['taudist','travdist']:
                         if pd.Series.min(df[v])<0:
@@ -121,6 +154,8 @@ def convert(filename,guidefile,name):
                             print(u'\u2622 \u2622 \u2622 WARNING: Negative Travel Time Present! \u2622 \u2622 \u2622')                                             
             output.update({f:df})
             print(u'\u2714 '+f+' File import/recode complete in '+str(round(time.time()-fs,1))+' seconds')
+        if has_negative_expansion_factors == True:
+            output = zero_out_negative_expansion_factors(output, name)
         print('---'+name+' import/recode complete in '+str(round(time.time()-ts,1))+' seconds---')
         return(output)
     else:
