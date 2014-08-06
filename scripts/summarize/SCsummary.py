@@ -105,6 +105,64 @@ def random_colors(number_of_colors):
         colorlist.append(color)
     return(colorlist)
 
+def DistrictSummary(data1,data2,name1,name2,location,districtfile):
+    start=time.time()
+    trip_ok_1=data1['Trip'].query('travdist>0 and travdist<200')
+    trip_ok_2=data2['Trip'].query('travdist>0 and travdist<200')
+    DistrictDict={}
+    for i in range(len(districtfile['TAZ'])):
+        if districtfile['TAZ'][i] not in DistrictDict and math.isnan(districtfile['TAZ'][i]) is False:
+            DistrictDict.update({int(districtfile['TAZ'][i]):districtfile['New DistrictName'][i]})
+    trip_ok_1['Origin']=trip_ok_1['otaz'].map(DistrictDict)
+    trip_ok_2['Origin']=trip_ok_2['otaz'].map(DistrictDict)
+    trip_ok_1['Destination']=trip_ok_1['dtaz'].map(DistrictDict)
+    trip_ok_2['Destination']=trip_ok_2['dtaz'].map(DistrictDict)
+    trip_od1=pd.Series.round(trip_ok_1.groupby(['Origin','Destination']).sum()['trexpfac'],0)
+    trip_od2=pd.Series.round(trip_ok_2.groupby(['Origin','Destination']).sum()['trexpfac'],0)
+    trip_od1=pd.DataFrame.from_items([('Trips',trip_od1)])
+    trip_od2=pd.DataFrame.from_items([('Trips',trip_od2)])
+    trip_od1=trip_od1.reset_index()
+    trip_od2=trip_od2.reset_index()
+    tripod1=trip_od1.pivot('Origin','Destination','Trips')
+    tripod2=trip_od2.pivot('Origin','Destination','Trips')
+    tripoddiff=tripod1-tripod2
+    tripodpd=tripoddiff/tripod2*100
+    for column in tripodpd.columns:
+        tripodpd[column]=pd.Series.round(tripodpd[column],1)
+    writer=pd.ExcelWriter(location+'/DistrictReport.xlsx',engine='xlsxwriter')
+    tripod1.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=1)
+    tripod2.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=16)
+    tripoddiff.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=31)
+    tripodpd.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=46)
+    writer.save()
+    colwidths=xlautofit.getwidths(location+'/DistrictReport.xlsx')
+    writer=pd.ExcelWriter(location+'/DistrictReport.xlsx',engine='xlsxwriter')
+    workbook=writer.book
+    merge_format=workbook.add_format({'align':'center','bold':True,'border':1})
+    tripod1.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=1)
+    tripod2.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=16)
+    tripoddiff.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=31)
+    tripodpd.to_excel(excel_writer=writer,sheet_name='Number of Trips by District',na_rep=0,startrow=46)
+    sheet='Number of Trips by District'
+    worksheet=writer.sheets[sheet]
+    worksheet.merge_range(0,0,0,11,name1,merge_format)
+    worksheet.merge_range(15,0,15,11,name2,merge_format)
+    worksheet.merge_range(30,0,30,11,'Difference',merge_format)
+    worksheet.merge_range(45,0,45,11,'Percent Difference',merge_format)
+    worksheet.write(1,0,'Destination ->',merge_format)
+    worksheet.write(16,0,'Destination ->',merge_format)
+    worksheet.write(31,0,'Destination ->',merge_format)
+    worksheet.write(46,0,'Destination ->',merge_format)
+    for colnum in range(worksheet.dim_colmax+1):
+        worksheet.set_column(colnum,colnum,colwidths[sheet][colnum])
+    worksheet.conditional_format('B4:L14',{'type':'3_color_scale','min_color':'#d1ebed','mid_color':'#ebedd1','max_color':'#edd3d1'})
+    worksheet.conditional_format('B19:L29',{'type':'3_color_scale','min_color':'#d1ebed','mid_color':'#ebedd1','max_color':'#edd3d1'})
+    worksheet.conditional_format('B34:L44',{'type':'3_color_scale','min_color':'#edd3d1','mid_color':'#d1edd3','max_color':'#edd3d1','mid_type':'num','mid_value':0})
+    worksheet.conditional_format('B49:L59',{'type':'3_color_scale','min_color':'#edd3d1','mid_color':'#d1edd3','max_color':'#edd3d1','mid_type':'num','mid_value':0})
+    worksheet.freeze_panes(0,1)
+    writer.save()
+    print('District Summary compiled in '+str(round(time.time()-start,1))+' seconds')
+
 def DayPattern(data1,data2,name1,name2,location):
     start=time.time()
     merge_per_hh_1=pd.merge(data1['Person'],data1['Household'],'outer')
@@ -694,8 +752,8 @@ def ModeChoice(data1,data2,name1,name2,location):
     tpm=pd.merge(tpm1,tpm2,'outer')
     tpm=tpm.sort(name2+' Share')
 
-    nrows=pd.Series.value_counts(tpm['Purpose'])
-    halfcols=pd.Series.value_counts(tpm['Mode'])
+    nrows=pd.Series.value_counts(tpm['Mode'])
+    halfcols=pd.Series.value_counts(tpm['Purpose'])
     modenames=halfcols.index
     ncols=[]
     for i in range(len(modenames)):
@@ -708,9 +766,9 @@ def ModeChoice(data1,data2,name1,name2,location):
             filler[purpose]=float('Nan')
         mbpcdf[column]=filler
 
-    for i in range(len(tpm['Purpose'])):
-        mbpcdf[tpm['Mode'][i]+' ('+name1+')'][tpm['Purpose'][i]]=round(tpm[name1+' Share'][i],0)
-        mbpcdf[tpm['Mode'][i]+' ('+name2+')'][tpm['Purpose'][i]]=round(tpm[name2+' Share'][i],0)
+    for i in range(len(tpm['Mode'])):
+        mbpcdf[tpm['Purpose'][i]+' ('+name1+')'][tpm['Mode'][i]]=round(tpm[name1+' Share'][i],1)
+        mbpcdf[tpm['Purpose'][i]+' ('+name2+')'][tpm['Mode'][i]]=round(tpm[name2+' Share'][i],1)
 
     #Trip Mode by Tour Mode
     tourtrip1=pd.merge(data1['Tour'],data1['Trip'],on=['hhno','pno','tour'])
@@ -875,8 +933,23 @@ def ModeChoice(data1,data2,name1,name2,location):
                     chart.set_legend({'position':'top'})
                     chart.set_size({'x_scale':2,'y_scale':1.75})
             worksheet.insert_chart('B12',chart)
+        elif sheet == 'Mode Share by Purpose':
+            for i in range(1,8):
+                chart=workbook.add_chart({'type':'column'})
+                for col_num in range(1,3):
+                    c=2*(i-1)+col_num
+                    chart.add_series({'name':[sheet,0,c],
+                                      'categories':[sheet,1,0,8,0],
+                                      'values':[sheet,1,c,8,c],
+                                      'fill':{'color':colors[col_num-1]}})
+                chart.set_legend({'position':'top'})
+                chart.set_size({'x_scale':0.8,'y_scale':0.9})
+                chart.set_y_axis({'name':'Mode Share'})
+                if i%2==1:
+                    worksheet.insert_chart(10,2*i-1,chart)
+                else:
+                    worksheet.insert_chart(24,2*i-3,chart)
     writer.save()
-    writer.close()
     print('Mode Choice Report successfully compiled in '+str(round(time.time()-start,1))+' seconds')
 
 def LongTerm(data1,data2,name1,name2,location,districtfile):
@@ -1370,6 +1443,8 @@ def report_compile(h5_results_file,h5_results_name,
         LongTerm(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     if run_time_choice_report == True:
         TimeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location)
+    if run_district_summary_report == True:
+        DistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     totaltime=time.time()-timerstart
     if int(totaltime)/60==1:
         print('+-+-+-+Summary report compilation complete in 1 minute and '+str(round(totaltime%60,1))+' seconds+-+-+-+')

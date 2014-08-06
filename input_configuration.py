@@ -224,3 +224,4 @@ run_mode_choice_report = True
 run_dest_choice_report = True
 run_long_term_report = True
 run_time_choice_report = True
+run_district_summary_report = True
