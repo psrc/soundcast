@@ -18,6 +18,7 @@ import logging
 import datetime
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
+from EmmeProject import *
 
 
 #Create a logging file to report model progress
@@ -195,273 +196,139 @@ def open_emme_project(my_project):
 def vdf_initial(my_project):
 
     start_vdf_initial = time.time()
-    tod = my_project.emmebank.title
-    #Define the Emme Tools used in this function
-    manage_vdfs = my_project.tool("inro.emme.data.function.function_transaction")
-
+    
     #Point to input file for the VDF's and Read them in
     #function_file = os.path.join(os.path.dirname(my_project.emmebank.path),"inputs/vdfs.txt").replace("\\","/")
-    function_file = 'inputs/vdfs/vdfs' + tod + '.txt'
+    function_file = 'inputs/vdfs/vdfs' + my_project.tod + '.txt'
 
-    manage_vdfs(transaction_file = function_file,throw_on_error = True)
-
+    #manage_vdfs(transaction_file = function_file,throw_on_error = True)
+    my_project.process_function_file(function_file)
     end_vdf_initial = time.time()
 
 
 def delete_matrices(my_project, matrix_type):
-
-    start_delete_matrices = time.time()
-
-    #Define the Emme Tools used in this function
-    delete_matrix = my_project.tool("inro.emme.data.matrix.delete_matrix")
-
-
-    data_explorer = my_project.desktop.data_explorer()
-    for database in data_explorer.databases():
-        emmebank = database.core_emmebank
-
-        # find first non-empty scenario
-        scenarios = list(emmebank.scenarios())
-        for  scenario in scenarios:
-            if len(scenario.zone_numbers) > 0:
-                break
-
-        #zone_numbers = scenario.zone_numbers
-        for matrix in emmebank.matrices():
-            if matrix.type == matrix_type:
-                delete_matrix(matrix, emmebank)
-
-    end_delete_matrices = time.time()
-
+    for matrix in my_project.bank.matrices():
+        if matrix.type == matrix_type:
+            my_project.delete_matrix(matrix)
 
 def define_matrices(my_project):
     print 'starting define matrices'
 
     start_define_matrices = time.time()
-
-    #Define the Emme Tools used in this function
-    create_matrix = my_project.tool("inro.emme.data.matrix.create_matrix")
-
-    #Load in the necessary Dictionaries
+    ##Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
+    
 
-    data_explorer = my_project.desktop.data_explorer()
-    for database in data_explorer.databases():
-        my_bank = database.core_emmebank
-        #get the tod for this bank, which should be it's title, e.g. 5to6
-        tod = my_bank.title
-
-        # find first non-empty scenario
-        scenarios = list(my_bank.scenarios())
-        for  scenario in scenarios:
-            if len(scenario.zone_numbers) > 0:
-                break
-        current_scenario = scenario
-
-    # Create the Full Demand Matrices in Emme
-        for x in range (0, len(emme_matrix_subgroups)):
-
-            for y in range (0, len(matrix_dict[emme_matrix_subgroups[x]])):
-                create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= matrix_dict[emme_matrix_subgroups[x]][y]["Name"],
-                          matrix_description= matrix_dict[emme_matrix_subgroups[x]][y]["Description"],
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+    for x in range (0, len(emme_matrix_subgroups)):
+        for y in range (0, len(matrix_dict[emme_matrix_subgroups[x]])):
+                my_project.create_matrix(matrix_dict[emme_matrix_subgroups[x]][y]["Name"],
+                          matrix_dict[emme_matrix_subgroups[x]][y]["Description"], "FULL")
 
     # Create the Highway Skims in Emme
         #Check to see if we want to make Distance skims for this period:
-        if tod in distance_skim_tod:
+    if my_project.tod in distance_skim_tod:
             #overide the global skim matrix designation (time & cost most likely) to make sure distance skims are created for this tod
-            my_skim_matrix_designation=skim_matrix_designation_limited + skim_matrix_designation_all_tods
-        else:
-            my_skim_matrix_designation = skim_matrix_designation_all_tods
+        my_skim_matrix_designation=skim_matrix_designation_limited + skim_matrix_designation_all_tods
+    else:
+        my_skim_matrix_designation = skim_matrix_designation_all_tods
 
-
-        for x in range (0, len(my_skim_matrix_designation)):
-
+    for x in range (0, len(my_skim_matrix_designation)):
             for y in range (0, len(matrix_dict["Highway"])):
-                create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x],
-                          matrix_description= matrix_dict["Highway"][y]["Description"],
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
-
-
+                my_project.create_matrix(matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x], 
+                                          matrix_dict["Highway"][y]["Description"], "FULL")
+                   
     #Create Generalized Cost Skims matrices for only for tod in generalized_cost_tod
-    if tod in generalized_cost_tod:
+    if my_project.tod in generalized_cost_tod:
         for key, value in gc_skims.iteritems():
-            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= value + 'g',
-                          matrix_description= "Generalized Cost Skim: " + key,
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+            my_project.create_matrix(value + 'g', "Generalized Cost Skim: " + key, "FULL")
 
     #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
     # Actual In Vehicle Times by Mode
-    if tod in transit_skim_tod:
+    if my_project.tod in transit_skim_tod:
         for item in transit_submodes:
-             create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= 'ivtwa' + item,
-                          matrix_description= "Actual IVTs by Mode: " + item,
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
-
+            my_project.create_matrix('ivtwa' + item, "Actual IVTs by Mode: " + item, "FULL")
+             
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
 
         for key, value in dct_aggregate_transit_skim_names.iteritems():
-            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= key,
-                          matrix_description= value,
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+            my_project.create_matrix(key, value, "FULL")  
+               
     #bike & walk, do not need for all time periods. most likely just 1:
-    if tod in bike_walk_skim_tod:
+    if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
-            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= bike_walk_matrix_dict[key]['time'],
-                          matrix_description= bike_walk_matrix_dict[key]['description'],
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
-
+            my_project.create_matrix(bike_walk_matrix_dict[key]['time'], bike_walk_matrix_dict[key]['description'], "FULL")
+          
     #transit fares, farebox & monthly matrices :
     fare_dict = json_to_dictionary('transit_fare_dictionary')
-    if tod in fare_matrices_tod:
-        for value in fare_dict[tod]['Names'].itervalues():
-            create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= value,
-                          matrix_description= 'transit fare',
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+    if my_project.tod in fare_matrices_tod:
+        for value in fare_dict[my_project.tod]['Names'].itervalues():
+             my_project.create_matrix(value, 'transit fare', "FULL")
+            
     #intrazonals:
     for key, value in intrazonal_dict.iteritems():
-        create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= value,
-                          matrix_description= key,
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+         my_project.create_matrix(value, key, "FULL")
+     
     
     #origin matrix to hold TAZ Area:
-    create_matrix(matrix_id= my_bank.available_matrix_identifier("ORIGIN"),
-                          matrix_name= 'tazacr',
-                          matrix_description= 'taz area',
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+    my_project.create_matrix('tazacr', 'taz area', "ORIGIN")
+    
     #origin terminal time:
-    create_matrix(matrix_id= my_bank.available_matrix_identifier("ORIGIN"),
-                          matrix_name= 'prodtt',
-                          matrix_description= 'origin terminal times',
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
-
+    my_project.create_matrix('prodtt', 'origin terminal times', "ORIGIN")
+   
     #Destination terminal time:
-    create_matrix(matrix_id= my_bank.available_matrix_identifier("DESTINATION"),
-                          matrix_name= 'attrtt',
-                          matrix_description= 'destination terminal times',
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
+    my_project.create_matrix('attrtt', 'destination terminal times', "DESTINATION")
+   
     #Combined O/D terminal times:
-    create_matrix(matrix_id= my_bank.available_matrix_identifier("FULL"),
-                          matrix_name= 'termti',
-                          matrix_description= 'combined terminal times',
-                          default_value=0,
-                          overwrite=True,
-                          scenario=current_scenario)
-
+    my_project.create_matrix('termti', 'combined terminal times', "FULL")
+  
     end_define_matrices = time.time()
 
     text = 'It took ' + str(round((end_define_matrices-start_define_matrices)/60,2)) + ' minutes to define all matrices in Emme.'
     logging.debug(text)
 
 def create_fare_zones(my_project, zone_file, fare_file):
-    my_bank = my_project.emmebank
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-
-
-    init_partition = my_project.tool("inro.emme.data.zone_partition.init_partition")
-    gt = my_bank.partition("gt")
-    init_partition(partition=gt)
-
-    process_zone_partition = my_project.tool("inro.emme.data.zone_partition.partition_transaction")
-    process_zone_partition(transaction_file = zone_file,
-                           throw_on_error = True,
-                           scenario = current_scenario)
-
-
-
-    matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
-    matrix_transaction(transaction_file = fare_file,
-                       throw_on_error = True,
-                       scenario = current_scenario)
+   
+    my_project.initialize_zone_partition("gt")
+    my_project.process_zone_partition(zone_file)
+    my_project.matrix_transaction(fare_file) 
+    
 
 
 def populate_intrazonals(my_project):
     #populate origin matrix with zone areas:
 
-    my_bank = my_project.emmebank
-    
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    matrix_transaction =  my_project.tool("inro.emme.data.matrix.matrix_transaction")
     #taz area
-    matrix_transaction(transaction_file = taz_area_file,
-                       throw_on_error = True,
-                       scenario = current_scenario)
+    print taz_area_file
+    my_project.matrix_transaction(taz_area_file)
+    
     #origin terminal times
-    matrix_transaction(transaction_file = origin_tt_file,
-                       throw_on_error = True,
-                       scenario = current_scenario)
+    my_project.matrix_transaction(origin_tt_file)
+    
     #destination terminal times
-    matrix_transaction(transaction_file = destination_tt_file,
-                       throw_on_error = True,
-                       scenario = current_scenario)
-
-    matrix_calculator = json_to_dictionary("matrix_calculation")
-    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
-
-    app.App.refresh_data
-
-    taz_area_matrix = my_bank.matrix('tazacr').id
-    distance_matrix = my_bank.matrix(intrazonal_dict['distance']).id
+    my_project.matrix_transaction(destination_tt_file)
+    
+    taz_area_matrix = my_project.bank.matrix('tazacr').id
+    distance_matrix = my_project.bank.matrix(intrazonal_dict['distance']).id
 
     #Hard coded for now, generalize later
     for key, value in intrazonal_dict.iteritems():
+        
         if key == 'distance':
-
-            mod_calc = matrix_calculator
-            mod_calc["result"] = value
-            mod_calc["expression"] = "sqrt(" +taz_area_matrix + "/640) * 45/60*(p.eq.q)"
-            matrix_calc(mod_calc)
+            my_project.matrix_calculator(result = value, expression = "sqrt(" +taz_area_matrix + "/640) * 45/60*(p.eq.q)")
+         
         if key == 'time auto':
-            mod_calc = matrix_calculator
-            mod_calc["result"] = value
-            mod_calc["expression"] = distance_matrix + " *(60/15)"
-            matrix_calc(mod_calc)
+            my_project.matrix_calculator(result = value, expression = distance_matrix + " *(60/15)")
+           
         if key == 'time bike':
-            mod_calc = matrix_calculator
-            mod_calc["result"] = value
-            mod_calc["expression"] = distance_matrix + " *(60/10)"
-            matrix_calc(mod_calc)
+            my_project.matrix_calculator(result = value, expression = distance_matrix + " *(60/10)")
+            
         if key == 'time walk':
-            mod_calc = matrix_calculator
-            mod_calc["result"] = value
-            mod_calc["expression"] = distance_matrix + " *(60/3)"
-            matrix_calc(mod_calc)
+            my_project.matrix_calculator(result = value, expression = distance_matrix + " *(60/3)")
+            
     #calculate full matrix terminal times
-    mod_calc = matrix_calculator
-    mod_calc["result"] = 'termti'
-    mod_calc["expression"] = 'prodtt + attrtt' 
-    matrix_calc(mod_calc)
+    my_project.matrix_calculator(result = 'termti', expression = 'prodtt + attrtt' )
+    
     logging.debug('finished populating intrazonals')
 
 
@@ -469,130 +336,70 @@ def intitial_extra_attributes(my_project):
 
     start_extra_attr = time.time()
 
-    #Define the Emme Tools used in this function
-    create_extras = my_project.tool("inro.emme.data.extra_attribute.create_extra_attribute")
-
     #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
 
     # Create the link extra attributes to store volume results
     for x in range (0, len(matrix_dict["Highway"])):
-        create_extras(extra_attribute_type="LINK",
-                      extra_attribute_name= "@"+matrix_dict["Highway"][x]["Name"],
-                      extra_attribute_description= matrix_dict["Highway"][x]["Description"],
-                      overwrite=True)
+        my_project.create_extra_attribute("LINK", "@"+matrix_dict["Highway"][x]["Name"], matrix_dict["Highway"][x]["Description"], True)
+                     
 
     # Create the link extra attributes to store the auto equivalent of bus vehicles
-    t22 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trnv3",extra_attribute_description="Transit Vehicles",overwrite=True)
-
-    # Create the link extra attributes to store the toll rates in
-    # This is done in network_importer now
-    #t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
-    #t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
-    #t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
-    #t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
-    #t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
-    #t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
-
+    my_project.create_extra_attribute("LINK", "@trnv3", "Transit Vehicles",True)
+ 
     # Create the link extra attribute to store the arterial delay in
-    t29 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@rdly",extra_attribute_description="Intersection Delay",overwrite=True)
+    my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
 
     end_extra_attr = time.time()
-
-
-
 
 
 def arterial_delay_calc(my_project):
 
     start_arterial_calc = time.time()
 
-    #Define the Emme Tools used in this function
-    create_extras = my_project.tool("inro.emme.data.extra_attribute.create_extra_attribute")
-    network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")
-    delete_extras = my_project.tool("inro.emme.data.extra_attribute.delete_extra_attribute")
-
-    #Load in the necessary Dictionaries
-    link_calculator = json_to_dictionary("link_calculation")
-    node_calculator = json_to_dictionary("node_calculation")
-
     # Create the temporary attributes needed for the signal delay calculations
-    t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@tmpl1",extra_attribute_description="temp link calc 1",overwrite=True)
-    t2 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@tmpl2",extra_attribute_description="temp link calc 2",overwrite=True)
-    t3 = create_extras(extra_attribute_type="NODE",extra_attribute_name="@tmpn1",extra_attribute_description="temp node calc 1",overwrite=True)
-    t4 = create_extras(extra_attribute_type="NODE",extra_attribute_name="@tmpn2",extra_attribute_description="temp node calc 2",overwrite=True)
-    t5 = create_extras(extra_attribute_type="NODE",extra_attribute_name="@cycle",extra_attribute_description="Cycle Length",overwrite=True)
-    t6 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@red",extra_attribute_description="Red Time",overwrite=True)
+    #t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@tmpl1",extra_attribute_description="temp link calc 1",overwrite=True)
+    t1 = my_project.create_extra_attribute("LINK", "@tmpl1", "temp link calc 1", True)
+    t2 = my_project.create_extra_attribute("LINK", "@tmpl2", "temp link calc 2", True)
+    t3 = my_project.create_extra_attribute("NODE", "@tmpn1", "temp node calc 1", True)
+    t4 = my_project.create_extra_attribute("NODE", "@tmpn2", "temp node calc 2", True)
+    t5 = my_project.create_extra_attribute("NODE", "@cycle", "Cycle Length", True)
+    t6 = my_project.create_extra_attribute("LINK", "@red", "Red Time", True)
 
     # Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
     # Exclude links that intersect with centroid connectors and weave links
-    mod_calc = link_calculator
-    mod_calc["result"] = "@tmpl1"
-    mod_calc["expression"] = "1"
-    #mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
-    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@tmpl1", expression = "1", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+    
     # Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
     # for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
     # Exclude links that intersect with centroid connectors and weave links
-    mod_calc = link_calculator
-    mod_calc["result"] = "@tmpl2"
-    mod_calc["expression"] = "(lanes+2).min.5"
-    #mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99"
-    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@tmpl2", expression = "(lanes+2).min.5", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+   
     # Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
-    mod_calc = link_calculator
-    mod_calc["result"] = "@tmpn1"
-    mod_calc["expression"] = "@tmpl1"
-    mod_calc["aggregation"] = "+"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@tmpn1", expression = "@tmpl1", aggregation = "+")
+    
     # Set Temporary Node Attribute #2 to sum of intersecting arterial links (@tmpl2)
-    mod_calc = link_calculator
-    mod_calc["result"] = "@tmpn2"
-    mod_calc["expression"] = "@tmpl2"
-    mod_calc["aggregation"] = "+"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@tmpn2", expression = "@tmpl2", aggregation = "+")
+    
     # Cycle Time at Every I-Node
-    mod_calc = node_calculator
-    mod_calc["result"] = "@cycle"
-    mod_calc["expression"] = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)"
-    network_calc(mod_calc)
-
-    link_calculator = json_to_dictionary("link_calculation")
-
+    my_project.network_calculator("node_calculation", result = "@cycle", expression = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)")
+ 
+    my_project.network_calculator("link_calculation", result = "@red", expression = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999")
     # Red Time at Every J-Node
-    mod_calc = link_calculator
-    mod_calc["result"] = "@red"
-    mod_calc["expression"] = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))"
-    mod_calc["selections"]["link"] = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999"
-    network_calc(mod_calc)
-
+    
     # Calculate intersection delay factor for every link with a cycle time exceeding zero
-    mod_calc = link_calculator
-    mod_calc["result"] = "@rdly"
-    mod_calc["expression"] = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0"
-    mod_calc["selections"]["link"] = "@cyclej=0.01,999999"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@rdly", expression = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0", selections_by_link = "@cyclej=0.01,999999")
+ 
     # Set intersection delay factor to 0 for links of 0.01 mile lenght or less
-    mod_calc = link_calculator
-    mod_calc["result"] = "@rdly"
-    mod_calc["expression"] = "0"
-    mod_calc["selections"]["link"] = "length=0,0.01"
-    network_calc(mod_calc)
-
+    my_project.network_calculator("link_calculation", result = "@rdly", expression = "0", selections_by_link = "length=0,0.01")
+    
     #delete the temporary extra attributes
-    delete_extras(t1)
-    delete_extras(t2)
-    delete_extras(t3)
-    delete_extras(t4)
-    delete_extras(t5)
-    delete_extras(t6)
+    my_project.delete_extra_attribute("@tmpl1")
+    my_project.delete_extra_attribute("@tmpl2")
+    my_project.delete_extra_attribute("@tmpn1")
+    my_project.delete_extra_attribute("@tmpn2")
+    my_project.delete_extra_attribute("@cycle")
+    my_project.delete_extra_attribute("@red")
 
     end_arterial_calc = time.time()
 
@@ -600,10 +407,10 @@ def arterial_delay_calc(my_project):
 def traffic_assignment(my_project):
 
     start_traffic_assignment = time.time()
-    print 'starting traffic assignment for' +  my_project.emmebank.title
+    print 'starting traffic assignment for' +  my_project.tod
     #Define the Emme Tools used in this function
-    assign_extras = my_project.tool("inro.emme.traffic_assignment.set_extra_function_parameters")
-    assign_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_assignment")
+    assign_extras = my_project.m.tool("inro.emme.traffic_assignment.set_extra_function_parameters")
+    assign_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_assignment")
 
     #Load in the necessary Dictionaries
     assignment_specification = json_to_dictionary("general_path_based_assignment")
@@ -623,8 +430,6 @@ def traffic_assignment(my_project):
 
 
     assign_extras(el1 = "@rdly", el2 = "@trnv3")
-
-
 
     assign_traffic(mod_assign)
 
@@ -662,7 +467,6 @@ def transit_assignment2(my_project, tod):
         emmebank = database.core_emmebank
         if emmebank.title == tod:
             #Define the Emme Tools used in this function
-
 
             #Load in the necessary Dictionaries
             assignment_specification = json_to_dictionary("extended_transit_assignment")
@@ -703,20 +507,12 @@ def attribute_based_skims(my_project,my_skim_attribute):
 
     start_time_skim = time.time()
 
-    #Define the Emme Tools used in this function
-    create_extras = my_project.tool("inro.emme.data.extra_attribute.create_extra_attribute")
-    network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")
-    skim_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
-    delete_extras = my_project.tool("inro.emme.data.extra_attribute.delete_extra_attribute")
-
+    skim_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
+   
     #Load in the necessary Dictionaries
     skim_specification = json_to_dictionary("general_attribute_based_skim")
-    link_calculator = json_to_dictionary("link_calculation")
     my_user_classes = json_to_dictionary("user_classes")
-
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
-    tod = my_bank.title
+    tod = my_project.tod 
 
     #Figure out what skim matrices to use based on attribute (either time or length)
     if my_skim_attribute =="Time":
@@ -726,36 +522,27 @@ def attribute_based_skims(my_project,my_skim_attribute):
         skim_desig = "t"
 
         #Create the Extra Attribute
-        t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name=my_extra,extra_attribute_description="copy of "+my_attribute,overwrite=True)
+        t1 = my_project.create_extra_attribute("LINK", my_extra, "copy of "+ my_attribute, True)
 
         # Store timau (auto time on links) into an extra attribute so we can skim for it
-        mod_calcs = link_calculator
-        mod_calcs["result"] = my_extra
-        mod_calcs["expression"] = my_attribute
-        mod_calcs["selections"]["link"] = "all"
-        network_calc(mod_calcs)
+        my_project.network_calculator("link_calculation", result = my_extra, expression = my_attribute, selections_by_link = "all") 
 
     if my_skim_attribute =="Distance":
         my_attribute = "length"
         my_extra = "@dist"
         skim_type = "Distance Skims"
         skim_desig = "d"
-        #Create the Extra Attribute
-        t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name=my_extra,extra_attribute_description="copy of "+my_attribute,overwrite=True)
-
+        
+        t1 = my_project.create_extra_attribute("LINK", my_extra, "copy of "+ my_attribute, True)
         # Store Length (auto distance on links) into an extra attribute so we can skim for it
-        mod_calcs = link_calculator
-        mod_calcs["result"] = my_extra
-        mod_calcs["expression"] = my_attribute
-        mod_calcs["selections"]["link"] = "all"
-        network_calc(mod_calcs)
-
+        my_project.network_calculator("link_calculation", result = my_extra, expression = my_attribute, selections_by_link = "all") 
+        
     mod_skim = skim_specification
 
     for x in range (0, len(mod_skim["classes"])):
         my_extra = my_user_classes["Highway"][x][my_skim_attribute]
         matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
-        matrix_id = my_bank.matrix(matrix_name).id
+        matrix_id = my_project.bank.matrix(matrix_name).id
         mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
         mod_skim["path_analysis"]["link_component"] = my_extra
         #only need generalized cost skims for trucks and only doing it when skimming for time.
@@ -769,46 +556,30 @@ def attribute_based_skims(my_project,my_skim_attribute):
     skim_traffic(mod_skim)
 
     #add in intrazonal values & terminal times:
-    matrix_calculator = json_to_dictionary("matrix_calculation")
-    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
-    inzone_auto_time = my_bank.matrix(intrazonal_dict['time auto']).id
-    inzone_terminal_time = my_bank.matrix('termti').id
-    inzone_distance = my_bank.matrix(intrazonal_dict['distance']).id
+    inzone_auto_time = my_project.bank.matrix(intrazonal_dict['time auto']).id
+    inzone_terminal_time = my_project.bank.matrix('termti').id
+    inzone_distance = my_project.bank.matrix(intrazonal_dict['distance']).id
     if my_skim_attribute =="Time":
         for x in range (0, len(mod_skim["classes"])):
             matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
-            matrix_id = my_bank.matrix(matrix_name).id
-            mod_calc = matrix_calculator
-            mod_calc["result"] = matrix_id
-            mod_calc["expression"] = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id
-            matrix_calc(mod_calc)
+            matrix_id = my_project.bank.matrix(matrix_name).id
+            my_project.matrix_calculator(result = matrix_id, expression = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id)
            
     #only want to do this once!
-    if tod in generalized_cost_tod and skim_desig == 't': 
+    if my_project.tod in generalized_cost_tod and skim_desig == 't': 
         for value in gc_skims.values():
            matrix_name = value + 'g'
-           matrix_id = my_bank.matrix(matrix_name).id
-           mod_calc = matrix_calculator
-           mod_calc["result"] = matrix_id
-           mod_calc["expression"] = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id
-           matrix_calc(mod_calc)
+           matrix_id = my_project.bank.matrix(matrix_name).id
+           my_project.matrix_calculator(result = matrix_id, expression = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id)      
 
     if my_skim_attribute =="Distance":
         for x in range (0, len(mod_skim["classes"])):
             matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
-            matrix_id = my_bank.matrix(matrix_name).id
-            mod_calc = matrix_calculator
-            mod_calc["result"] = matrix_id
-            mod_calc["expression"] = inzone_distance + "+" + matrix_id
-            matrix_calc(mod_calc)
-
-
-
-
-    #json.dump(mod_skim, open('D://time_mod_skim.ems', 'wb'))
-
+            matrix_id = my_project.bank.matrix(matrix_name).id
+            my_project.matrix_calculator(result = matrix_id, expression = inzone_distance + "+" + matrix_id)
+            
     #delete the temporary extra attributes
-    delete_extras(t1)
+    my_project.delete_extra_attribute(my_extra)
 
     end_time_skim = time.time()
 
@@ -821,12 +592,12 @@ def attribute_based_toll_cost_skims(my_project, toll_attribute):
 
      start_time_skim = time.time()
 
-     skim_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
+     skim_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
      skim_specification = json_to_dictionary("general_attribute_based_skim")
      my_user_classes = json_to_dictionary("user_classes")
 
-     current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-     my_bank = current_scenario.emmebank
+     #current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
+     my_bank = my_project.bank
 
      my_skim_attribute = "Toll"
      skim_desig = "c"
@@ -877,7 +648,7 @@ def class_specific_volumes(my_project):
     start_vol_skim = time.time()
 
     #Define the Emme Tools used in this function
-    skim_traffic = my_project.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
+    skim_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
 
     #Load in the necessary Dictionaries
     skim_specification = json_to_dictionary("general_path_based_volume")
@@ -1064,10 +835,6 @@ def skims_to_hdf5_concurrent(my_project):
         print "Group Skims Created"
 
     
-    #Determine the Path and Scenario File
-
-    
-
     #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
 
@@ -1101,6 +868,11 @@ def skims_to_hdf5_concurrent(my_project):
                 #make sure max value is set to uint16 max
                 matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             else:
+                if my_skim_matrix_designation[x] == 'c' and matrix_value.max() >= 1800:
+                    i,j = np.unravel_index(a.argmax(), matrix_value.shape)
+                    print matrix_name + ' exceded max time of 1800 minutes at ' + i, j
+                    exit()
+
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
                 matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
                 
@@ -1398,18 +1170,18 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     start_time = time.time()
 
     #Determine the Path and Scenario File and Zone indicies that go with it
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
-    zonesDim=len(current_scenario.zone_numbers)
-    zones=current_scenario.zone_numbers
-    bank_name = my_project.emmebank.title
+    
+    #my_bank = current_scenario.emmebank
+    zonesDim = len(my_project.current_scenario.zone_numbers)
+    zones = my_project.current_scenario.zone_numbers
+    #bank_name = my_project.emmebank.title
  
 
     #load zones into a NumpyArray to index trips otaz and dtaz
     tazIndex = np.asarray(zones)
 
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
-    tod_index = create_trip_tod_indices(bank_name)
+    tod_index = create_trip_tod_indices(my_project.tod)
 
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
@@ -1524,14 +1296,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
-        matrix_id = my_bank.matrix(str(mat_name)).id
+        matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
-        my_bank.matrix(matrix_id).set_data(emme_matrix,current_scenario)
-
+        my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
     
-        
     end_time = time.time()
 
     print 'It took', round((end_time-start_time)/60,2), ' minutes to import trip tables to emme.'
@@ -1542,7 +1312,7 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
 
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
 
-    tod = my_project.emmebank.title
+    tod = my_project.tod
 
     time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary')
     class_dictionary = json_to_dictionary('demand_crosswalk_ab_4k_dictionary')
@@ -1662,34 +1432,21 @@ def create_trip_tod_indices(tod):
 
 def matrix_controlled_rounding(my_project):
     #
-
-
-
     print 'start matrix conrolled rounding'
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
     matrix_dict = text_to_dictionary('demand_matrix_dictionary')
     uniqueMatrices = set(matrix_dict.values())
+    
     NAMESPACE = "inro.emme.matrix_calculation.matrix_controlled_rounding"
     for matrix_name in uniqueMatrices:
-        matrix_id = my_bank.matrix(matrix_name).id
-        matrix_calculator = json_to_dictionary("matrix_calculation")
-        matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
-        mod_calc = matrix_calculator
-        mod_calc["result"] = None
-        mod_calc["expression"] = matrix_name
-        mod_calc["aggregation"]["origins"] = "+"
-        mod_calc["aggregation"]["destinations"] = "+"
-        result = matrix_calc(mod_calc)
-        
+        matrix_id = my_project.bank.matrix(matrix_name).id
+        result = my_project.matrix_calculator(result = None, aggregation_destinations = '+', aggregation_origins = '+', expression = matrix_name)
         if result['maximum'] > 0:
-            controlled_rounding = my_project.tool("inro.emme.matrix_calculation.matrix_controlled_rounding")
+            controlled_rounding = my_project.m.tool("inro.emme.matrix_calculation.matrix_controlled_rounding")
             report = controlled_rounding(demand_to_round=matrix_id,
                              rounded_demand=matrix_id,
                              min_demand=0.1,
                              values_to_round="SMALLER_THAN_MIN")
     text = 'finished matrix controlled rounding'
-    print text
     logging.debug(text)
 
 def start_pool(project_list):
@@ -1767,7 +1524,7 @@ def start_export_to_hdf5(test):
 
     my_desktop = app.start_dedicated(True, "sc", test)
     m = _m.Modeller(my_desktop)
-    #do not average skims if using seed trips because we are starting the first iteration
+    #do not average skims if using seed_trips because we are starting the first iteration
     if survey_seed_trips or daysim_seed_trips:
         skims_to_hdf5_concurrent(m)
     else:
@@ -1775,7 +1532,7 @@ def start_export_to_hdf5(test):
     
 
 
-def bike_walk_assignment(my_project, tod, assign_for_all_tods):
+def bike_walk_assignment(my_project, assign_for_all_tods):
     #One bank
     #this runs the assignment and produces a time skim as well, which we need is all we need- converted
     #to distance in Daysim.
@@ -1783,9 +1540,9 @@ def bike_walk_assignment(my_project, tod, assign_for_all_tods):
     #skim for one TOD. Skim is an optional output of the assignment.
 
     start_transit_assignment = time.time()
-    my_bank = my_project.emmebank
+    my_bank = my_project.bank
     #Define the Emme Tools used in this function
-    assign_transit = my_project.tool("inro.emme.transit_assignment.standard_transit_assignment")
+    assign_transit = my_project.m.tool("inro.emme.transit_assignment.standard_transit_assignment")
 
     #Load in the necessary Dictionaries
 
@@ -1796,11 +1553,10 @@ def bike_walk_assignment(my_project, tod, assign_for_all_tods):
     mod_assign = assignment_specification
     #only skim for time for certain tod
     #Also fill in intrazonals
-    matrix_calculator = json_to_dictionary("matrix_calculation")
-    matrix_calc = my_project.tool("inro.emme.matrix_calculation.matrix_calculator")
-    intrazonal_dict
+    
+    #intrazonal_dict
 
-    if tod in bike_walk_skim_tod:
+    if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             #modify spec
             mod_assign['demand'] = 'mf' + bike_walk_matrix_dict[key]['demand']
@@ -1811,10 +1567,8 @@ def bike_walk_assignment(my_project, tod, assign_for_all_tods):
             #intrazonal
             matrix_name= bike_walk_matrix_dict[key]['intrazonal_time']
             matrix_id = my_bank.matrix(matrix_name).id
-            mod_calc = matrix_calculator
-            mod_calc["result"] = 'mf' + bike_walk_matrix_dict[key]['time']
-            mod_calc["expression"] = 'mf' + bike_walk_matrix_dict[key]['time'] + "+" + matrix_id
-            matrix_calc(mod_calc)
+            my_project.matrix_calculator(result = 'mf' + bike_walk_matrix_dict[key]['time'], expression = 'mf' + bike_walk_matrix_dict[key]['time'] + "+" + matrix_id)
+            
     elif assign_for_all_tods == 'true':
         #Dont Skim
         for key in bike_walk_matrix_dict.keys():
@@ -1981,71 +1735,60 @@ def run_assignments_parallel(project_name):
 
     start_of_run = time.time()
 
-
-    my_desktop = app.start_dedicated(True, "sc", project_name)
-
-
-    m = _m.Modeller(my_desktop)
+    my_project = EmmeProject(project_name)
    
-    #delete locki if one exists
-    m.emmebank.dispose()
+    ##delete and create new demand and skim matrices:
+    delete_matrices(my_project, "FULL")
+    delete_matrices(my_project, "ORIGIN")
+    delete_matrices(my_project, "DESTINATION")
 
+    define_matrices(my_project)
 
-    #delete and create new demand and skim matrices:
-    delete_matrices(m, "FULL")
-    delete_matrices(m, "ORIGIN")
-    delete_matrices(m, "DESTINATION")
+    ###import demand/trip tables to emme. this is actually quite fast con-currently.
+    hdf5_trips_to_Emme(my_project, hdf5_file_path)
+    matrix_controlled_rounding(my_project)
 
-
-    define_matrices(m)
-
-    #Import demand/trip tables to emme. This is actually quite fast con-currently.
-    hdf5_trips_to_Emme(m, hdf5_file_path)
-    matrix_controlled_rounding(m)
-
-    tod = m.emmebank.title
-    populate_intrazonals(m)
+    ##tod = m.emmebank.title
+    populate_intrazonals(my_project)
     
-    #create transit fare matrices:
-    if tod in fare_matrices_tod:
+    ##create transit fare matrices:
+    if my_project.tod in fare_matrices_tod:
         fare_dict = json_to_dictionary('transit_fare_dictionary')
-        fare_file = fare_dict[tod]['Files']['fare_box_file']
+        fare_file = fare_dict[my_project.tod]['Files']['fare_box_file']
         #fare box:
-        create_fare_zones(m, zone_file, fare_file)
+        create_fare_zones(my_project, zone_file, fare_file)
         #monthly:
-        fare_file = fare_dict[tod]['Files']['monthly_pass_file']
-        create_fare_zones(m, zone_file, fare_file)
+        fare_file = fare_dict[my_project.tod]['Files']['monthly_pass_file']
+        create_fare_zones(my_project, zone_file, fare_file)
 
-    #set up for assignments
-    intitial_extra_attributes(m)
-    arterial_delay_calc(m)
-    vdf_initial(m)
-    #run auto assignment/skims
-    traffic_assignment(m)
+    ##set up for assignments
+    intitial_extra_attributes(my_project)
+    arterial_delay_calc(my_project)
+    vdf_initial(my_project)
+    ##run auto assignment/skims
+    traffic_assignment(my_project)
     
-    attribute_based_skims(m, "Time")
+    attribute_based_skims(my_project, "Time")
 
-    #get tod from bank name.
+    ###bike/walk:
+    bike_walk_assignment(my_project, 'false')
+    ###Only skim for distance if in global distance_skim_tod list
+    if my_project.tod in distance_skim_tod:
+       attribute_based_skims(my_project,"Distance")
 
-    #bike/walk:
-    bike_walk_assignment(m, tod, 'false')
-    #Only skim for distance if in global distance_skim_tod list
-    if tod in distance_skim_tod:
-       attribute_based_skims(m,"Distance")
+    ####Toll skims
+    attribute_based_toll_cost_skims(my_project, "@toll1")
+    attribute_based_toll_cost_skims(my_project, "@toll2")
+    attribute_based_toll_cost_skims(my_project, "@toll3")
+    class_specific_volumes(my_project)
 
-    #Toll skims
-    attribute_based_toll_cost_skims( m, "@toll1")
-    attribute_based_toll_cost_skims( m, "@toll2")
-    attribute_based_toll_cost_skims( m, "@toll3")
-    class_specific_volumes(m)
-
-    #dispose emmebank
-    m.emmebank.dispose()
-    app.App.close(my_desktop)
-    print tod + " finished"
+    ##dispose emmebank
+    my_project.bank.dispose()
+    #app.App.close(my_desktop)
+    print my_project.tod + " finished"
     end_of_run = time.time()
-    print 'It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + tod
-    text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + tod
+    print 'It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + my_project.tod
+    text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod
     logging.debug(text)
 
 
@@ -2059,11 +1802,11 @@ def main():
             l = project_list[i:i+parallel_instances]
             start_pool(l)
         
-        #    #want pooled processes finished before executing more code in main:
+        #want pooled processes finished before executing more code in main:
 
         
         start_transit_pool(project_list)
-        #run_assignments_parallel('Projects/5to6/5to6.emp')
+        #run_assignments_parallel('Projects/6to7/6to7.emp')
         f = open('inputs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
