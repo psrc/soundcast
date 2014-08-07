@@ -3,18 +3,18 @@
 #################################### RUN SOUNDCAST ####################################
 
 # Scenario and input paths
+base_year = '2010'
 scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
-input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
+input_parcels = 'R:/soundcast/inputs/' + scenario_name + '/landuse/parcels.txt'
 
 # Script and subprocess controls 
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_inputs = True
-run_update_parking = True
 run_import_networks = True
 run_skims_and_paths_seed_trips = False
 run_skims_and_paths = True
@@ -23,6 +23,8 @@ run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
 run_r_summaries = False
+# Only update parking for future-year analysis!
+run_update_parking = False
 
 # Model iterations, population sampling, log files, etc. 
 pop_sample = [20, 10, 2, 1, 1, 1]

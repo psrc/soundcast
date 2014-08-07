@@ -225,10 +225,13 @@ logfile.write(svn_info)
 
 ### UPDATE PARCEL PARKING #############################################
 if run_update_parking == True:
-    returncode = subprocess.call([sys.executable,
-        'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
-    if returncode != 0:
-        sys.exit(1)
+    if base_year == scenario_name:
+        print("----- This is a base-year analysis. Parking parcles are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
+    else:
+        returncode = subprocess.call([sys.executable,
+                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+    #if returncode != 0:
+    #    sys.exit(1)
 
 ### IMPORT NETWORKS ###############################################################\
 if run_import_networks == True:
@@ -237,7 +240,6 @@ if run_import_networks == True:
         'scripts/network/network_importer.py', base_inputs])
     time_network = datetime.datetime.now()
     print '###### Finished Importing Networks:', str(time_network - time_copy)
-
     if returncode != 0:
         sys.exit(1)
 

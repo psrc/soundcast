@@ -14,9 +14,9 @@ import numpy as np
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import patsy
+from input_configuration import *
 
 # Cannot import parcel data CSV, truncated by Excel
-input_parcels = "inputs\parcels.txt"
 parcel_h5 = "outputs\daysim_outputs.h5"
 daily_parking_cost = "inputs\daily_parking_costs.csv"
 hourly_parking_cost = "inputs\hourly_parking_costs.csv"
