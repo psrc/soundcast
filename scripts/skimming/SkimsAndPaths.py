@@ -868,10 +868,10 @@ def skims_to_hdf5_concurrent(my_project):
                 #make sure max value is set to uint16 max
                 matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             else:
-                if my_skim_matrix_designation[x] == 'c' and matrix_value.max() >= 1800:
-                    i,j = np.unravel_index(a.argmax(), matrix_value.shape)
-                    print matrix_name + ' exceded max time of 1800 minutes at ' + i, j
-                    exit()
+                #if my_skim_matrix_designation[x] == 'c' and matrix_value.max() >= 1800:
+                #    i,j = np.unravel_index(a.argmax(), matrix_value.shape)
+                #    print matrix_name + ' exceded max time of 1800 minutes at ' + i, j
+                #    exit()
 
                 matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
                 matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
