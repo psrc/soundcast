@@ -176,16 +176,17 @@ def rename_network_outs(iter):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
        
-def daysim_sample(iter):
-    try: 
-     config_template= open('configuration_template.properties','r')
+def daysim_sample(recipr_sample, config_name):
+    try:
+     config_template= open(config_name,'r')
      config= open('configuration.properties','w')
 
      for line in config_template:
-         config.write(line.replace("$REPLACEME", str(pop_sample[iter])))
+         config.write(line.replace("$REPLACEME", str(recipr_sample)))
 
      config_template.close()
      config.close()
+
     except:
      config_template.close()
      config.close()
@@ -204,7 +205,60 @@ def clean_up():
         else:
             print file
 
-##########################
+def daysim_assignment(iteration, recipr_sample, copy_shadow):
+     print "We're on iteration %d" % (iteration)
+     logfile.write("We're on iteration %d\r\n" % (iteration))
+     time_start = datetime.datetime.now()
+     logfile.write("starting run %s" %str((time_start)))
+
+      ### RUN Truck Model ################################################################
+     if run_truck_model == True:
+         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+         if returncode != 0:
+            sys.exit(1)
+     
+     ### RUN DAYSIM ################################################################
+     if run_daysim == True:
+         if copy_shadow:
+             copy_shadow_price_file()
+
+         daysim_sample(recipr_sample, 'configuration_template.properties')
+         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         if returncode != 0:
+             sys.exit(1)
+
+         time_daysim = datetime.datetime.now()
+         print time_daysim
+         logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
+
+     #### ASSIGNMENTS ###############################################################
+     if run_skims_and_paths == True:
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         print 'return code from skims and paths is ' + str(returncode)
+         if returncode != 0:
+             returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+             if returncode != 0: 
+                  sys.exit(1)
+                  print 'return code from skims and paths is ' + str(returncode)
+
+     if iteration > 0 & recipr_sample == 1:
+        con_file = open('inputs/converge.txt', 'r')
+        converge = json.load(con_file)
+        if converge == 'stop':
+            print "done"
+            con_file.close()
+        print 'keep going'
+        con_file.close()
+
+     
+     time_assign = datetime.datetime.now()
+     print time_assign
+     logfile.write("ending assignment %s\r\n" %str((time_assign)))
+
+     ##print '###### Finished running assignments:',time_assign - time_daysim
+
+#####################################################################################################
+######################################################################################################
 # Main Script:
 run_list = [("copy_daysim_code" , run_copy_daysim_code), 
              ("setup_emme_project_folders", run_setup_emme_project_folders),
@@ -240,10 +294,9 @@ if run_import_networks == True:
         'scripts/network/network_importer.py', base_inputs])
     time_network = datetime.datetime.now()
     print '###### Finished Importing Networks:', str(time_network - time_copy)
+
     if returncode != 0:
         sys.exit(1)
-
-
 
 ### BUILD SKIMS ###############################################################
 if run_skims_and_paths_seed_trips == True:
@@ -257,57 +310,27 @@ if run_skims_and_paths_seed_trips == True:
     if returncode != 0:
         sys.exit(1)
 
-for iteration in range(0,len(pop_sample)):
-     print "We're on iteration %d" % (iteration)
-     logfile.write("We're on iteration %d\r\n" % (iteration))
-     time_start = datetime.datetime.now()
-     logfile.write("starting run %s" %str((time_start)))
+### RUN DAYSIM AND ASSIGNMENT TO GET INITIAL SKIMS ####################################
+for preshad_iter in range(0, len(pre_shadow_sample)):
+    copy_shadow = True
+    daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow)
 
-      ### RUN Truck Model ################################################################
-     if run_truck_model == True:
-         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-         if returncode != 0:
-            sys.exit(1)
-     
-     ### RUN DAYSIM ################################################################
-     if run_daysim == True:
-         # we only use shadow pricing and update the file if the previous iteration had more than a one in two sample
-         if iteration == 0:
-             copy_shadow_price_file()
-         elif pop_sample[iteration-1]>2:
-             copy_shadow_price_file()
-
-         daysim_sample(iteration)
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-         if returncode != 0:
+### BUILD SHADOW PRICE FILES FOR WORK ###################################################
+for shad_iter in range(0, len(shadow_work)):
+         if run_daysim == True:
+            daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
+            returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+            if returncode != 0:
              sys.exit(1)
 
          time_daysim = datetime.datetime.now()
          print time_daysim
-         logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
-     #### ASSIGNMENTS ###############################################################
-     if run_skims_and_paths == True:
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-         if returncode != 0:
-             sys.exit(1)
+         logfile.write("ending daysim %s\r\n" %str((time_daysim)))              
 
-     if iteration > 0 & pop_sample[iteration] == 1:
-        con_file = open('inputs/converge.txt', 'r')
-        converge = json.load(con_file)
-        if converge == 'stop':
-            print "done"
-            con_file.close()
-            break
-        print 'keep going'
-        con_file.close()
-
-     
-     time_assign = datetime.datetime.now()
-     print time_assign
-     logfile.write("ending assignment %s\r\n" %str((time_assign)))
-
-     ##print '###### Finished running assignments:',time_assign - time_daysim
-
+### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
+for iteration in range(0,len(pop_sample)):
+    copy_shadow = False
+    daysim_assignment(iteration, pop_sample[iteration], copy_shadow) 
 
 ### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:
