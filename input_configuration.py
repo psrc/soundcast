@@ -32,7 +32,7 @@ pop_sample = [20, 10, 2, 1, 1, 1]
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
-good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap"]
+good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamon dolce latte"]
 
 
 #################################### SKIMS AND PATHS ####################################
