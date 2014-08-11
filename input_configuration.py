@@ -22,7 +22,6 @@ run_truck_model = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
-run_r_summaries = False
 # Only update parking for future-year analysis!
 run_update_parking = False
 
@@ -234,3 +233,4 @@ run_mode_choice_report = True
 run_dest_choice_report = True
 run_long_term_report = True
 run_time_choice_report = True
+run_district_summary_report = True
