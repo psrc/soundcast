@@ -239,7 +239,7 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow):
              returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
              if returncode != 0: 
                   sys.exit(1)
-                  print 'return code from skims and paths is ' + str(returncode)
+                  print 'EMME problems! Why?'
 
      if iteration > 0 & recipr_sample == 1:
         con_file = open('inputs/converge.txt', 'r')
@@ -305,18 +305,29 @@ if run_skims_and_paths_seed_trips == True:
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
         '-use_daysim_output_seed_trips'])
+    if returncode != 0:
+             returncode = subprocess.call([sys.executable,
+                           'scripts/skimming/SkimsAndPaths.py',
+                            '-use_daysim_output_seed_trips'])
+             if returncode != 0: 
+                  sys.exit(1)
+                  print 'EMME problems! Why?'
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
     if returncode != 0:
         sys.exit(1)
 
-### RUN DAYSIM AND ASSIGNMENT TO GET INITIAL SKIMS ####################################
-for preshad_iter in range(0, len(pre_shadow_sample)):
-    copy_shadow = True
-    daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow)
 
-### BUILD SHADOW PRICE FILES FOR WORK ###################################################
-for shad_iter in range(0, len(shadow_work)):
+### BUILDING SHADOW PRICE FILE ########################################################
+if should_build_shadow_price == True:
+
+    ### RUN DAYSIM AND ASSIGNMENT TO GET INITIAL SKIMS #######################################
+    for preshad_iter in range(0, len(pre_shadow_sample)):
+        copy_shadow = True
+        daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow)
+
+    ### BUILD SHADOW PRICE FILES FOR WORK ###################################################
+    for shad_iter in range(0, len(shadow_work)):
          if run_daysim == True:
             daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
@@ -326,6 +337,8 @@ for shad_iter in range(0, len(shadow_work)):
          time_daysim = datetime.datetime.now()
          print time_daysim
          logfile.write("ending daysim %s\r\n" %str((time_daysim)))              
+
+
 
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
 for iteration in range(0,len(pop_sample)):
