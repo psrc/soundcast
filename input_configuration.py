@@ -50,7 +50,7 @@ b_rel_gap = 0.0001         # Assignment Convergence Criteria
 MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
 MAX_EXTERNAL = 3750-1      #zone of externals (subtract 1 because numpy is zero-based)
 # this is the zone -1 one because numpy is zone based
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3108,"exhibition center":630, "Seattle Center":437, 
+SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437, 
                       "Military": 3625, "Military2": 2254, "Military3": 3517, "Military4": 3352, 
                       "Military5": 3069, "Military6": 3495, "Military7": 389, "Military8": 3347, 
                       "Military9": 3353}
