@@ -937,51 +937,60 @@ def skims_to_hdf5_concurrent(my_project):
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
-def average_skims_to_hdf5_concurrent(my_project):
-#one project, one bank
+
+def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, max_value = None):
+    matrix_id = emmebank.matrix(matrix_name).id
+    emme_matrix = emmebank.matrix(matrix_id)
+    matrix_data = emme_matrix.get_data()
+    np_matrix = np.matrix(matrix_data.raw_data) 
+    print np_matrix.max()
+    if max_value <> None:
+        if np_matrix.max() >= max_value:
+            i,j = np.unravel_index(np_matrix.argmax(), np_matrix.shape)
+        #print matrix_name +  ' ' + str(i) + '-' + str(j)
+            print matrix_name + ' exceded max value of ' + str(max_value) + ' at ' +  str(i) + '-' + str(j) +'. Exiting Program!'
+            exit()
+
+    np_matrix = np_matrix * multiplier
+    np_matrix = np.where(np_matrix > np.iinfo(np_data_type).max, np.iinfo(np_data_type).max, np_matrix)
+    return np_matrix
+
+def average_matrices(old_matrix, new_matrix):
+    avg_matrix = old_matrix + new_matrix
+    avg_matrix = avg_matrix * .5
+    print 'here'
+    return avg_matrix
+
+def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     start_export_hdf5 = time.time()
 
-    #Determine the Path and Scenario File
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
-    zones=current_scenario.zone_numbers
-    bank_name = my_project.emmebank.title
-    tod = bank_name
-
-    #matrix_dict = text_to_dictionary('demand_matrix_dictionary')
-    #uniqueMatrices = set(matrix_dict.values())
-    #Load in the necessary Dictionaries
     my_user_classes = json_to_dictionary("user_classes")
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
 
-    #hdf_filename = create_hdf5_container(bank_name)
-    
-
-    hdf5_filename = create_hdf5_skim_container2(tod)
+    hdf5_filename = create_hdf5_skim_container2(my_project.tod)
     my_store=h5py.File(hdf5_filename, "r+")
-    np_old_matrices = {}
-    for key in my_store['Skims'].keys():
-        np_matrix = my_store['Skims'][key]
-        np_matrix = np.matrix(np_matrix)
-        print str(key)
-        np_old_matrices[str(key)] = np_matrix
+    #if averaging, load old skims in dictionary of numpy matrices
+    if average_skims:
+        np_old_matrices = {}
+        for key in my_store['Skims'].keys():
+            np_matrix = my_store['Skims'][key]
+            np_matrix = np.matrix(np_matrix)
+            print str(key)
+            np_old_matrices[str(key)] = np_matrix
 
     e = "Skims" in my_store
+    #Now delete "Skims" store if exists   
     if e:
         del my_store["Skims"]
         skims_group = my_store.create_group("Skims")
-        print "Group Skims Exists. Group deleted then created"
+        print "Group Skims Exists. Group deleSted then created"
         #If not there, create the group
     else:
         skims_group = my_store.create_group("Skims")
         print "Group Skims Created"
 
-    
-    #Determine the Path and Scenario File
-
-    
 
     #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
@@ -989,19 +998,20 @@ def average_skims_to_hdf5_concurrent(my_project):
 
    # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
     try:
-        mat_id=my_bank.matrix("mf01")
-        em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
+        mat_id=my_project.bank.matrix("mf01")
+        emme_matrix = my_project.bank.matrix(mat_id)
+        em_val = emme_matrix.get_data()
         my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
     except RuntimeError:
         del my_store["Skims"]["indices"]
         my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
 
-
         # Loop through the Subgroups in the HDF5 Container
         #highway, walk, bike, transit
         #need to make sure we include Distance skims for TOD specified in distance_skim_tod
-    if tod in distance_skim_tod:
+
+    if my_project.tod in distance_skim_tod:
         my_skim_matrix_designation = skim_matrix_designation_limited + skim_matrix_designation_all_tods
     else:
         my_skim_matrix_designation = skim_matrix_designation_all_tods
@@ -1010,107 +1020,78 @@ def average_skims_to_hdf5_concurrent(my_project):
 
         for y in range (0, len(matrix_dict["Highway"])):
             matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-            matrix_id = my_bank.matrix(matrix_name).id
             if my_skim_matrix_designation[x] == 'c':
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
-                #make sure max value is set to uint16 max
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
+            elif my_skim_matrix_designation[x] == 'd':
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
             else:
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             #delete old skim so new one can be written out to h5 container
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
+
         #transit
-    if tod in transit_skim_tod:
+    if my_project.tod in transit_skim_tod:
         for item in transit_submodes:
             matrix_name= 'ivtwa' + item
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
-            
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
-                #Transit, All Modes:
+        #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
 
         for key, value in dct_aggregate_transit_skim_names.iteritems():
             matrix_name= key
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
-            
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
-        #bike/walk
-    if tod in bike_walk_skim_tod:
+
+    #bike/walk
+    if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
-
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
-        #transit/fare
+
+    #transit/fare
     fare_dict = json_to_dictionary('transit_fare_dictionary')
-    if tod in fare_matrices_tod:
-        for value in fare_dict[tod]['Names'].values():
+    if my_project.tod in fare_matrices_tod:
+        for value in fare_dict[my_project.tod]['Names'].values():
             matrix_name= 'mf' + value
-            matrix_id = my_bank.matrix(matrix_name).id
-            #make sure max value is set to uint16 max
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
-
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
-    if tod in generalized_cost_tod:
+    if my_project.tod in generalized_cost_tod:
         for value in gc_skims.values():
             matrix_name = value + 'g'
-            matrix_id = my_bank.matrix(matrix_name).id 
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data) 
-            
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
             #open old skim and average
             print matrix_name
-            old_skim = np_old_matrices[matrix_name]
-            matrix_value = matrix_value + old_skim
-            matrix_value *= .5
-
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
@@ -1119,6 +1100,7 @@ def average_skims_to_hdf5_concurrent(my_project):
     print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.'
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
+
 def hdf5_to_emme(my_project):
 
     start_import_hdf5 = time.time()
@@ -1458,9 +1440,12 @@ def start_pool(project_list):
     #Doing some testing on best approaches to con-currency
     pool = Pool(processes=parallel_instances)
     pool.map(run_assignments_parallel,project_list[0:parallel_instances])
+    pool.close()
 
-
-
+def start_delete_matrices_pool(project_list):
+    pool = Pool(processes=parallel_instances)
+    pool.map(delete_matrices_parallel, project_list[0:parallel_instances])
+    pool.close()
 
 def start_transit_pool(project_list):
     #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one
@@ -1482,6 +1467,8 @@ def start_transit_pool(project_list):
 
     pool = Pool(processes=1)
     pool.map(run_transit,project_list[6:7])
+
+    pool.close()
 
 def run_transit(project_name):
     start_of_run = time.time()
@@ -1522,13 +1509,15 @@ def export_to_hdf5_pool(project_list):
 
 def start_export_to_hdf5(test):
 
-    my_desktop = app.start_dedicated(True, "sc", test)
-    m = _m.Modeller(my_desktop)
+    #my_desktop = app.start_dedicated(True, "sc", test)
+    #m = _m.Modeller(my_desktop)
+    my_project = EmmeProject(test)
     #do not average skims if using seed_trips because we are starting the first iteration
     if survey_seed_trips or daysim_seed_trips:
-        skims_to_hdf5_concurrent(m)
+        #skims_to_hdf5_concurrent(m)
+        average_skims_to_hdf5_concurrent(my_project, False)
     else:
-        average_skims_to_hdf5_concurrent(m)
+        average_skims_to_hdf5_concurrent(my_project, True)
     
 
 
@@ -1643,19 +1632,19 @@ def bike_walk_assignment_NonConcurrent(project_name):
     text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the bike/walk assignment.'
     logging.debug(text)
 
-def feedback_check(emmebank_path):
+def feedback_check(emmebank_path_list):
      
-     #current_scenario = m.desktop.data_explorer().primary_scenario.core_scenario.ref
-     my_bank =  _eb.Emmebank(emmebank_path)
-     tod = my_bank.title
+     #current_scenario = m.desktop.data_explorer().primary_scenario.core_scenario.refe_list
      matrix_dict = json_to_dictionary("user_classes")
-     my_store=h5py.File('inputs/' + tod + '.h5', "r+")
-     #put current time skims in numpy:
-     skims_dict = {}
      passed = True
+     for emmbank_path in emmebank_path_list:
+        my_bank =  _eb.Emmebank(emmebank_path)
+        tod = my_bank.title
+        my_store=h5py.File('inputs/' + tod + '.h5', "r+")
+        #put current time skims in numpy:
+        skims_dict = {}
 
-
-     for y in range (0, len(matrix_dict["Highway"])):
+        for y in range (0, len(matrix_dict["Highway"])):
            #trips
             matrix_name= matrix_dict["Highway"][y]["Name"]
             matrix_id = my_bank.matrix(matrix_name).id
@@ -1686,13 +1675,13 @@ def feedback_check(emmebank_path):
             change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
             print 'test value'
             print change_test
-            text = str(change_test) + " " + matrix_name
+            text = tod + " " + str(change_test) + " " + matrix_name
             logging.debug(text)
             if change_test > STOP_THRESHOLD:
                 passed = False
                 break
 
-     my_bank.dispose()
+        my_bank.dispose()
      return passed
 
 def create_node_attributes(node_attribute_dict, my_project):
@@ -1729,7 +1718,13 @@ def create_node_attributes(node_attribute_dict, my_project):
                     network_calc(mod_calc)
 
 
-
+def delete_matrices_parallel(project_name):
+    my_project = EmmeProject(project_name)
+   
+    ##delete and create new demand and skim matrices:
+    delete_matrices(my_project, "FULL")
+    delete_matrices(my_project, "ORIGIN")
+    delete_matrices(my_project, "DESTINATION")
 
 def run_assignments_parallel(project_name):
 
@@ -1811,8 +1806,8 @@ def main():
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
         if (survey_seed_trips == False and daysim_seed_trips == False):
-               #run feedback check
-              if feedback_check('Banks/7to8/emmebank') == False:
+               #run feedback check 
+              if feedback_check([feedback_list]) == False:
                   go = 'continue'
                   json.dump(go, f)
               else:
@@ -1826,10 +1821,11 @@ def main():
         for i in range (0, 12, parallel_instances):
                 l = project_list[i:i+parallel_instances]
                 export_to_hdf5_pool(l)
+        
+        #delete emme matrices to save space:
+        start_delete_matrices_pool(project_list)
            
         f.close()
-
-        #export_to_hdf5_pool(project_list)
 
         end_of_run = time.time()
 
