@@ -54,7 +54,7 @@ SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "
                       "Military": 3625, "Military2": 2254, "Military3": 3517, "Military4": 3352, 
                       "Military5": 3069, "Military6": 3495, "Military7": 389, "Military8": 3347, 
                       "Military9": 3353}
-
+feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 project_list = ['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
                       'Projects/7to8/7to8.emp',
