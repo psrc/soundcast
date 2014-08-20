@@ -952,7 +952,8 @@ def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, m
             exit()
 
     np_matrix = np_matrix * multiplier
-    np_matrix = np.where(np_matrix > np.iinfo(np_data_type).max, np.iinfo(np_data_type).max, np_matrix)
+    if np_matrix.dtype <> 'float':
+        np_matrix = np.where(np_matrix > np.iinfo(np_data_type).max, np.iinfo(np_data_type).max, np_matrix)
     return np_matrix
 
 def average_matrices(old_matrix, new_matrix):
@@ -1637,7 +1638,8 @@ def feedback_check(emmebank_path_list):
      #current_scenario = m.desktop.data_explorer().primary_scenario.core_scenario.refe_list
      matrix_dict = json_to_dictionary("user_classes")
      passed = True
-     for emmbank_path in emmebank_path_list:
+     for emmebank_path in emmebank_path_list:
+        print emmebank_path
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
         my_store=h5py.File('inputs/' + tod + '.h5', "r+")
@@ -1647,9 +1649,18 @@ def feedback_check(emmebank_path_list):
         for y in range (0, len(matrix_dict["Highway"])):
            #trips
             matrix_name= matrix_dict["Highway"][y]["Name"]
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix = my_bank.matrix(matrix_id)
-            matrix_value = np.matrix(matrix.raw_data) 
+            #matrix_id = emmebank.matrix(matrix_name).id
+            #emme_matrix = emmebank.matrix(matrix_id)
+            #matrix_data = emme_matrix.get_data()
+            #np_matrix = np.matrix(matrix_data.raw_data) 
+            #matrix_id = my_bank.matrix(matrix_name).id
+            #emme_matrix = my_bank.matrix(matrix_id)
+            #matrix_data = emme_matrix.get_data()
+            #matrix = my_bank.matrix(matrix_id)
+            #np_matrix = np.matrix(matrix_data.raw_data
+            #matrix_value = np.matrix(matrix_data.raw_data)
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
+            #print matrix_value.size() 
             trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             print 'trips'
             print trips[563,547]
@@ -1657,9 +1668,11 @@ def feedback_check(emmebank_path_list):
 
             #new skims
             matrix_name = matrix_name + 't'
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix = my_bank.matrix(matrix_id)
-            matrix_value = np.matrix(matrix.raw_data) * 100
+            #matrix_id = my_bank.matrix(matrix_name).id
+            #matrix = my_bank.matrix(matrix_id)
+            #matrix_data = matrix.get_data()
+            #matrix_value = np.matrix(matrix_data.raw_data) * 100
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
             new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             #skims_dict[matrix_name + 'n'] = matrix
             print matrix_name
@@ -1801,13 +1814,13 @@ def main():
 
         
         start_transit_pool(project_list)
-        #run_assignments_parallel('Projects/6to7/6to7.emp')
+       
         f = open('inputs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
         if (survey_seed_trips == False and daysim_seed_trips == False):
                #run feedback check 
-              if feedback_check([feedback_list]) == False:
+              if feedback_check(feedback_list) == False:
                   go = 'continue'
                   json.dump(go, f)
               else:
