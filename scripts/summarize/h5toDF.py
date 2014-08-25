@@ -62,18 +62,18 @@ def guide_to_dict(guide):
         vnames = guide[file].row(0)
         for var in range((len((guide[file].row(0))) + 1) / 2):
             vardict = {} #Subdictionary for specific variable
-            for value in range(1, len(guide[file]. col(2 * var))):
-                if(str(guide[file].cell(value, 2 * var))[7:len(str(guide[file].cell(value, 2 * var))) - 2]) == '':
+            for cell_value in range(1, len(guide[file]. col(2 * var))):
+                if guide[file].cell(cell_value, 2 * var).value == '':
                     pass
                 else:
                     #If a cell has an entry, this updates the subdictionary with the cell (an integer), and the cell next to it (the meaning of the integer)
-                    vardict.update({int(str(guide[file].cell(value, 2 * var))[7:len(str(guide[file].cell(value, 2 * var))) - 2]): str(guide[file].cell(value, 2 * var + 1))[7:len(str(guide[file].cell(value, 2 * var + 1))) - 1]})                  
+                    vardict.update({int(guide[file].cell(cell_value, 2 * var).value): guide[file].cell(cell_value, 2 * var + 1).value})                  
             if 0 in vardict:
                 pass
             else:
                 vardict.update({0: 'N\A'}) #If 0 is not a possible entry for the variable and 0 is an actual entry, this converts the entry to 'Error'
             vardict.update({-1: 'N\A'}) #Some entries for categorical variables are -1, so this converts those to 'Error'
-            catdict.update({str(vnames[2 * var])[7:len(str(vnames[2 * var])) - 1]: vardict})
+            catdict.update({vnames[2 * var].value: vardict})
     print('Guide converted to dictionary in ' + str(round(time.time() - time_start, 1)) + ' seconds')
     return(catdict)
 
