@@ -885,17 +885,17 @@ def ModeChoice(data1, data2, name1, name2, location):
         mbpcdf[tpm['Purpose'][i] + ' (' + name2 + ')'][tpm['Mode'][i]] = round(tpm[name2 + ' Share (%)'][i], 1)
 
     cp3 = time.time()
-    print('Tour Mode Share by Purpose data frame created in ' + str(round(cp3 - cp2, 1)) + ' seconds')
+    print('Tour Mode Share by Purpose data frame created in '+str(round(cp3 - cp2, 1))+' seconds')
 
     #Trip Mode by Tour Mode
 
     #Merge tour and trip data frames
     tourtrip1 = pd.merge(data1['Tour'][['hhno', 'pno', 'tour', 'day', 'tmodetp', 'toexpfac']],
-                         data1['Trip'][['hhno', 'pno', 'tour', 'day', 'mode', 'trexpfac']],
-                         on = ['hhno', 'pno', 'tour'])
+                            data1['Trip'][['hhno', 'pno', 'tour', 'day', 'mode', 'trexpfac']],
+                            on = ['hhno', 'pno', 'tour'])
     tourtrip2 = pd.merge(data2['Tour'][['hhno', 'pno', 'tour', 'day', 'tmodetp', 'toexpfac']],
-                         data2['Trip'][['hhno', 'pno', 'tour', 'day', 'mode', 'trexpfac']],
-                         on = ['hhno', 'pno', 'tour'])
+                            data2['Trip'][['hhno', 'pno', 'tour', 'day', 'mode', 'trexpfac']],
+                            on = ['hhno', 'pno', 'tour'])
 
     tourtrip1['Primary Tour Mode'] = tourtrip1['tmodetp']
     tourtrip2['Primary Tour Mode'] = tourtrip2['tmodetp']
@@ -903,16 +903,55 @@ def ModeChoice(data1, data2, name1, name2, location):
     tourtrip2['Trip Mode'] = tourtrip2['mode']
 
     #Create pivot tables
-    counts1 = tourtrip1.groupby(['Primary Tour Mode', 'Trip Mode']).sum()['trexpfac']#creates data frame grouped by trip and primary tour mode
-    counts2 = tourtrip2.groupby(['Primary Tour Mode', 'Trip Mode']).sum()['trexpfac']
+    counts1 = tourtrip1[['Primary Tour Mode', 'Trip Mode', 'trexpfac']].groupby(['Primary Tour Mode', 'Trip Mode']).sum()['trexpfac']#creates data frame grouped by trip and primary tour mode
+    counts2 = tourtrip2[['Primary Tour Mode', 'Trip Mode', 'trexpfac']].groupby(['Primary Tour Mode', 'Trip Mode']).sum()['trexpfac']
     counts1 = pd.DataFrame.from_items([('Trips', counts1)])
     counts2 = pd.DataFrame.from_items([('Trips', counts2)])
     counts1 = counts1.reset_index()
     counts2 = counts2.reset_index()
     counts1pivot = counts1.pivot(index = 'Primary Tour Mode', columns = 'Trip Mode', values = 'Trips')
     counts2pivot = counts2.pivot(index = 'Primary Tour Mode', columns = 'Trip Mode', values = 'Trips')
+    if 'Other' not in counts1pivot.columns.tolist():
+        counts1pivot['Other'] = np.nan
+    counts1pivot = counts1pivot.reindex(['Other', 'Transit', 'School Bus', 'HOV3+', 'HOV2', 'SOV', 'Bike', 'Walk'])[['Other', 'Transit', 'School Bus', 'HOV3+', 'HOV2', 'SOV', 'Bike', 'Walk']]
+    counts2pivot = counts2pivot.reindex(['Other', 'Transit', 'School Bus', 'HOV3+', 'HOV2', 'SOV', 'Bike', 'Walk'])[['Other', 'Transit', 'School Bus', 'HOV3+', 'HOV2', 'SOV', 'Bike', 'Walk']]
+    counts1pivot = counts1pivot.fillna(0).transpose()
+    counts2pivot = counts2pivot.fillna(0).transpose()
     counts_difference = counts1pivot - counts2pivot
-    counts_pd = 100 * counts_difference / counts2pivot
+    counts_pd = 100*counts_difference/counts2pivot
+
+    modes = counts1pivot.columns.tolist()
+
+    percent1pivot = pd.DataFrame(index = modes, columns = modes)
+    percent2pivot = pd.DataFrame(index = modes, columns = modes)
+    share_difference = pd.DataFrame(index = modes, columns = modes)
+    share_pd = pd.DataFrame(index = modes, columns = modes)
+    toursbymode1 = counts1pivot.sum()
+    toursbymode2 = counts2pivot.sum()
+    for tour_mode in modes:
+        for trip_mode in modes:
+            try:
+                percent1pivot[tour_mode][trip_mode] = counts1pivot[tour_mode][trip_mode] / toursbymode1[tour_mode] * 100
+            except ZeroDivisionError:
+                percent1pivot[tour_mode][trip_mode] = float('nan')
+            try:
+                percent2pivot[tour_mode][trip_mode] = counts2pivot[tour_mode][trip_mode] / toursbymode2[tour_mode] * 100
+            except ZeroDivisionError:
+                percent2pivot[tour_mode][trip_mode] = float('nan')
+            share_difference[tour_mode][trip_mode] = percent1pivot[tour_mode][trip_mode] - percent2pivot[tour_mode][trip_mode]
+            try:
+                share_pd[tour_mode][trip_mode] = share_difference[tour_mode][trip_mode] / percent2pivot[tour_mode][trip_mode] * 100
+            except ZeroDivisionError:
+                share_pd[tour_mode][trip_mode] = float('nan')
+        roundto = 2
+        percent1pivot[tour_mode] = percent1pivot[tour_mode].astype('float').round(roundto)
+        percent1pivot = add_index_name(percent1pivot, 'Trip_Mode')
+        percent2pivot[tour_mode] = percent2pivot[tour_mode].astype('float').round(roundto)
+        percent2pivot = add_index_name(percent2pivot, 'Trip_Mode')
+        share_difference[tour_mode] = share_difference[tour_mode].astype('float').round(roundto)
+        share_difference = add_index_name(share_difference, 'Trip_Mode')
+        share_pd[tour_mode] = share_pd[tour_mode].astype('float').round(roundto)
+        share_pd = add_index_name(share_pd, 'Trip_Mode')
 
     for column in counts1pivot.columns:
         counts1pivot[column] = counts1pivot[column].round(0)
@@ -921,7 +960,7 @@ def ModeChoice(data1, data2, name1, name2, location):
         counts_pd[column] = counts_pd[column].round(2)
 
     cp4 = time.time()
-    print('Trip Mode by Tour Mode data frame created in ' + str(round(cp4 - cp3, 1)) + ' seconds')
+    print('Trip Mode by Tour Mode data frames created in '+str(round(cp4 - cp3, 1))+' seconds')
 
     ##Trip Cross-Tabulations
 
@@ -1007,76 +1046,122 @@ def ModeChoice(data1, data2, name1, name2, location):
     tptt = tptt.set_index(['Mode', 'Purpose'])
 
     cp7 = time.time()
-    print('Trips by Purpose and Travel Time data frame created in ' + str(round(cp7 - cp6, 1)) + ' seconds')
+    print('Trips by Purpose and Travel Time data frame created in '+str(round(cp7 - cp6, 1))+' seconds')
 
     #Write DataFrames to Excel File
     writer = pd.ExcelWriter(location + '/ModeChoiceReport.xlsx', engine = 'xlsxwriter')
     vmpp.to_excel(excel_writer = writer, sheet_name = '# People, Trips, and Tours', na_rep = 'NA')
     msdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share', na_rep = 'NA')
     mbpcdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share by Purpose', na_rep = 'NA')
-    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA')
-    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 11)
-    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 22)
-    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 33)
+    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1)
+    percent1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1, startcol = 10)
+    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13)
+    percent2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13, startcol = 10)
+    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25)
+    share_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25, startcol = 10)
+    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37)
+    share_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37, startcol = 10)
+    worksheet = writer.sheets['Trip Mode by Tour Mode']
+    worksheet.write(1, 0, 'Tour Mode ->')
+    worksheet.write(1, 10, 'Tour Mode ->')
+    worksheet.write(13, 0, 'Tour Mode ->')
+    worksheet.write(13, 10, 'Tour Mode ->')
+    worksheet.write(25, 0, 'Tour Mode ->')
+    worksheet.write(25, 10, 'Tour Mode ->')
+    worksheet.write(37, 0, 'Tour Mode ->')
+    worksheet.write(37, 10, 'Tour Mode ->')
+    worksheet.write(0, 9, ' ')
     toursmtt.to_excel(excel_writer = writer, sheet_name = 'Tours by Mode & Travel Time', na_rep = 'NA')
     tripsmtt.to_excel(excel_writer = writer, sheet_name = 'Trips by Mode & Travel Time', na_rep = 'NA')
-    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time', na_rep = 'NA')
+    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time',na_rep = 'NA')
+
     writer.save()
+    colwidths=xlautofit.getmaxwidths(location+'/ModeChoiceReport.xlsx')
 
-    colwidths = xlautofit.getmaxwidths(location + '/ModeChoiceReport.xlsx')
-    colors = ['#004488', '#00C0C0']
-
-    writer = pd.ExcelWriter(location + '/ModeChoiceReport.xlsx', engine = 'xlsxwriter')
+    writer=pd.ExcelWriter(location+'/ModeChoiceReport.xlsx',engine='xlsxwriter')
+    workbook=writer.book
+    merge_format = workbook.add_format({'bold': True, 'align': 'center', 'border': True})
+    value_format = workbook.add_format({'bold': True, 'font_color': '#0000CC'})
+    pd_format = workbook.add_format({'bold': True, 'font_color': '#880000'})
     vmpp.to_excel(excel_writer = writer, sheet_name = '# People, Trips, and Tours', na_rep = 'NA')
     msdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share', na_rep = 'NA')
     mbpcdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share by Purpose', na_rep = 'NA')
-    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA')
-    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 11)
-    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 22)
-    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 33)
+    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1)
+    percent1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1, startcol = 10)
+    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13)
+    percent2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13, startcol = 10)
+    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25)
+    share_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25, startcol = 10)
+    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37)
+    share_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37, startcol = 10)
+    worksheet = writer.sheets['Trip Mode by Tour Mode']
+    worksheet.merge_range(0, 0, 0, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name1 + ')', merge_format)
+    worksheet.merge_range(0, 10, 0, 18, 'Mode Share by Tour Mode (' + name1 + ') (%)', merge_format)
+    worksheet.merge_range(12, 0, 12, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name2 + ')', merge_format)
+    worksheet.merge_range(12, 10, 12, 18, 'Mode Share by Tour Mode (' + name2 + ') (%)', merge_format)
+    worksheet.merge_range(24, 0, 24, 8, 'Difference in Number of Trips', merge_format)
+    worksheet.merge_range(24, 10, 24, 18, 'Difference in Mode Share', merge_format)
+    worksheet.merge_range(36, 0, 36, 8, 'Percent Difference in Number of Trips', merge_format)
+    worksheet.merge_range(36, 10, 36, 18, 'Percent Difference in Mode Share', merge_format)
+    worksheet.write(1, 0, 'Tour Mode ->', merge_format)
+    worksheet.write(1, 10, 'Tour Mode ->', merge_format)
+    worksheet.write(13, 0, 'Tour Mode ->', merge_format)
+    worksheet.write(13, 10, 'Tour Mode ->', merge_format)
+    worksheet.write(25, 0, 'Tour Mode ->', merge_format)
+    worksheet.write(25, 10, 'Tour Mode ->', merge_format)
+    worksheet.write(37, 0, 'Tour Mode ->', merge_format)
+    worksheet.write(37, 10, 'Tour Mode ->', merge_format)
+    worksheet.write(0, 9, ' ')
+    worksheet.conditional_format('L4:S11', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
+    worksheet.conditional_format('L16:S23', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
+    worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
+    worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
+    worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
+    worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
     toursmtt.to_excel(excel_writer = writer, sheet_name = 'Tours by Mode & Travel Time', na_rep = 'NA')
     tripsmtt.to_excel(excel_writer = writer, sheet_name = 'Trips by Mode & Travel Time', na_rep = 'NA')
-    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time', na_rep = 'NA') 
-    workbook = writer.book
+    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time',na_rep = 'NA') 
+    colors=['#0c2c56','#005c5c']
     for sheet in writer.sheets:
-        worksheet = writer.sheets[sheet]
-        for colnum in range(worksheet.dim_colmax + 1):
-            worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-        worksheet.freeze_panes(0, 1)
+        worksheet=writer.sheets[sheet]
+        for col_num in range(worksheet.dim_colmax+1):
+            worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
+        if sheet != 'Trip Mode by Tour Mode':
+            worksheet.freeze_panes(0,1)
         if sheet in ['# People, Trips, and Tours','Mode Share']:
-            chart = workbook.add_chart({'type':'column'})
-            for col_num in range(1, 3):
-                if sheet == '# People, Trips, and Tours':
-                    chart.add_series({'name': [sheet, 0, col_num],
-                                        'categories': [sheet, 1, 0, worksheet.dim_rowmax, 0],
-                                        'values': [sheet, 1, col_num, worksheet.dim_rowmax, col_num],
-                                        'fill': {'color': colors[col_num - 1]}})
-                    chart.set_legend({'position': 'top'})
-                    chart.set_size({'x_scale': 2, 'y_scale': 1.75})
-                else:
-                    chart.add_series({'name': [sheet, 0, col_num],
-                                        'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                                        'values': [sheet, 2, col_num, worksheet.dim_rowmax, col_num],
-                                        'fill':{'color': colors[col_num - 1]}})
+            chart=workbook.add_chart({'type':'column'})
+            for col_num in range(1,3):
+                if sheet=='# People, Trips, and Tours':
+                    chart.add_series({'name':[sheet, 0, col_num],
+                                        'categories':[sheet,1,0,worksheet.dim_rowmax,0],
+                                        'values':[sheet,1,col_num,worksheet.dim_rowmax,col_num],
+                                        'fill':{'color':colors[col_num-1]}})
                     chart.set_legend({'position':'top'})
-                    chart.set_size({'x_scale': 2,'y_scale': 1.75})
-            worksheet.insert_chart('B12', chart)
-        elif sheet == 'Tour Mode Share by Purpose':
-            for i in range(1, 8):
-                chart = workbook.add_chart({'type': 'column'})
-                for col_num in range(1, 3):
-                    c = 2 * (i - 1) + col_num
-                    chart.add_series({'name': [sheet, 0, c],
-                                        'categories': [sheet, 1, 0, 8, 0],
-                                        'values': [sheet, 1, c, 8, c],
-                                        'fill': {'color': colors[col_num - 1]}})
-                chart.set_legend({'position': 'top'})
-                chart.set_size({'x_scale': 1.3, 'y_scale': 0.9})
-                chart.set_y_axis({'name': 'Mode Share'})
-                if i % 2 == 1:
-                    worksheet.insert_chart(10, 2 * i - 1, chart)
+                    chart.set_size({'x_scale':2,'y_scale':1.75})
                 else:
-                    worksheet.insert_chart(24, 2 * i - 3, chart)
+                    chart.add_series({'name':[sheet, 0, col_num],
+                                        'categories':[sheet,2,0,worksheet.dim_rowmax,0],
+                                        'values':[sheet,2,col_num,worksheet.dim_rowmax,col_num],
+                                        'fill':{'color':colors[col_num-1]}})
+                    chart.set_legend({'position':'top'})
+                    chart.set_size({'x_scale':2,'y_scale':1.75})
+            worksheet.insert_chart('B12',chart)
+        elif sheet == 'Mode Share by Purpose':
+            for i in range(1,8):
+                chart=workbook.add_chart({'type':'column'})
+                for col_num in range(1,3):
+                    c=2*(i-1)+col_num
+                    chart.add_series({'name':[sheet,0,c],
+                                        'categories':[sheet,1,0,8,0],
+                                        'values':[sheet,1,c,8,c],
+                                        'fill':{'color':colors[col_num-1]}})
+                chart.set_legend({'position':'top'})
+                chart.set_size({'x_scale':0.8,'y_scale':0.9})
+                chart.set_y_axis({'name':'Mode Share'})
+                if i%2==1:
+                    worksheet.insert_chart(10,2*i-1,chart)
+                else:
+                    worksheet.insert_chart(24,2*i-3,chart)
     writer.save()
 
     print('---Mode Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
