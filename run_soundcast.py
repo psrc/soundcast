@@ -355,9 +355,6 @@ if run_network_summary == True:
 #print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
 logfile.close()
-##### SUMMARIZE DAYSIM ##########################################################
-if run_r_summaries == True:	
-    run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
 
 ##### SUMMARIZE SOUNDCAST ##########################################################
 if run_soundcast_summary == True:
