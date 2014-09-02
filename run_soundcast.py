@@ -348,7 +348,7 @@ for iteration in range(0,len(pop_sample)):
 ### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-   returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+   #returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
    time_assign_summ = datetime.datetime.now()
    if returncode != 0:
       sys.exit(1)
