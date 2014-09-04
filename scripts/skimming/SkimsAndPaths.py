@@ -54,82 +54,6 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
-def create_hdf5_container(hdf_name):
-
-    start_time = time.time()
-
-    # Create the HDF5 Container with subgroups
-    # (only creates it if one does not already exist using "w-")
-    # Currently uses the subgroups as shown in the "hdf5_subgroups" list hardcoded above,
-    # this could be read from a control file.
-
-    hdf_filename = os.path.join('HDF5',hdf_name +'.hdf5').replace("\\","/")
-    print hdf_filename
-    my_user_classes = json_to_dictionary('user_classes')
-
-    #IOError will occur if file already exists with "w-", so in this case just prints it exists
-    #If file does not exist, opens new hdf5 file and create groups based on the subgroup list above.
-
-    try:
-        my_store=h5py.File(hdf_filename, "w-")
-
-        #First Create the Main Groups
-        for x in range (0, len(hdf5_maingroups)):
-            my_store.create_group(hdf5_maingroups[x])
-
-        #Now Loop over the Emme Subgroups
-        for x in range (0, len(hdf5_emme_subgroups)):
-            my_store["Emme"].create_group(hdf5_emme_subgroups[x])
-
-        #Now Loop over the UrbanSim Subgroups
-        for x in range (0, len(hdf5_urbansim_subgroups)):
-            my_store["UrbanSim"].create_group(hdf5_urbansim_subgroups[x])
-
-        #Now Loop over the Daysim Subgroups
-        for x in range (0, len(hdf5_daysim_subgroups)):
-            my_store["Daysim"].create_group(hdf5_daysim_subgroups[x])
-
-        print 'HDF5 File was successfully created'
-        my_store.close()
-
-    except IOError:
-        print 'HDF5 File already exists - no file was created'
-
-    end_time = time.time()
-    text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
-    logging.debug(text)
-
-    return hdf_filename
-
-def create_hdf5_skim_container(hdf5_name):
-    #create containers for TOD skims
-    start_time = time.time()
-
-    hdf5_filename = os.path.join('HDF5',hdf5_name +'.hdf5').replace("\\","/")
-    print hdf5_filename
-    my_user_classes = json_to_dictionary('user_classes')
-
-    #IOError will occur if file already exists with "w-", so in this case just prints it exists
-    #If file does not exist, opens new hdf5 file and create groups based on the subgroup list above.
-
-    #Create a sub groups with the same name as the container, e.g. 5to6, 7to8
-    #These facilitate multi-processing and will be imported to a master HDF5 file at the end of the run
-    try:
-        my_store=h5py.File(hdf5_filename, "w-")
-        my_store.create_group(hdf5_name)
-        print 'HDF5 File was successfully created'
-        my_store.close()
-
-    except IOError:
-        print 'HDF5 File already exists - no file was created'
-
-
-
-    end_time = time.time()
-    text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
-    logging.debug(text)
-
-    return hdf5_filename
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
@@ -160,6 +84,7 @@ def create_hdf5_skim_container2(hdf5_name):
     text = 'It took ' + str(round((end_time-start_time),2)) + ' seconds to create the HDF5 file.'
     logging.debug(text)
     return hdf5_filename
+
 def text_to_dictionary(dict_name):
 
     input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
@@ -180,17 +105,6 @@ def json_to_dictionary(dict_name):
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
-
-def open_emme_project(my_project):
-
-    #If you do not want the Emme window to show, change True to False
-     #my_desktop = app.start_dedicated(False, "cth", project_name)
-    my_desktop = app.start_dedicated(True, "PSRC", my_project)
-    my_modeller = _m.Modeller(my_desktop)
-
-    return(my_modeller)
-
-
 
 
 def vdf_initial(my_project):
@@ -458,24 +372,6 @@ def transit_assignment(my_project):
     end_transit_assignment = time.time()
     print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
 
-def transit_assignment2(my_project, tod):
-
-    start_transit_assignment = time.time()
-    assign_transit = my_project.tool("inro.emme.transit_assignment.extended_transit_assignment")
-    data_explorer = my_project.desktop.data_explorer()
-    for database in data_explorer.databases():
-        emmebank = database.core_emmebank
-        if emmebank.title == tod:
-            #Define the Emme Tools used in this function
-
-            #Load in the necessary Dictionaries
-            assignment_specification = json_to_dictionary("extended_transit_assignment")
-            assign_transit(assignment_specification)
-
-    end_transit_assignment = time.time()
-    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
-    text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the transit assignment.'
-    logging.debug(text)
 
 def transit_skims(my_project):
 
@@ -485,21 +381,6 @@ def transit_skims(my_project):
     my_spec_list = skim_specs["spec1"]
     for item in my_spec_list:
         skim_transit(item)
-def transit_skims2(my_project, tod):
-    start_time_skim = time.time()
-    skim_transit = my_project.tool("inro.emme.transit_assignment.extended.matrix_results")
-    data_explorer = my_project.desktop.data_explorer()
-    for database in data_explorer.databases():
-        emmebank = database.core_emmebank
-        if emmebank.title == tod:
-        #specs are stored in a dictionary where "spec1" is the key and a list of specs for each skim is the value
-            skim_specs = json_to_dictionary("transit_skim_setup")
-            my_spec_list = skim_specs["spec1"]
-            for item in my_spec_list:
-               skim_transit(item)
-
-    end_time_skim = time.time()
-    print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the transit skim'
 
 
 def attribute_based_skims(my_project,my_skim_attribute):
@@ -666,278 +547,6 @@ def class_specific_volumes(my_project):
     logging.debug(text)
 
 
-
-def skims_to_hdf5(my_project):
-#This is for multiple banks in one project
-
-    start_export_hdf5 = time.time()
-    data_explorer = my_project.desktop.data_explorer()
-    matrix_dict = text_to_dictionary('demand_matrix_dictionary')
-    uniqueMatrices = set(matrix_dict.values())
-
-    #Read the Time of Day File from the Dictionary File and Set Unique TOD List
-    tod_dict = text_to_dictionary('time_of_day')
-    uniqueTOD = set(tod_dict.values())
-    uniqueTOD = list(uniqueTOD)
-
-    #populate a dictionary of with key=bank name, value = emmebank object
-    all_emmebanks = {}
-    for database in data_explorer.databases():
-        emmebank = database.core_emmebank
-        all_emmebanks.update({emmebank.title: emmebank})
-
-    #See if there is a group called Skims.IF so, it probably has old data in it. Delete the group and create a new one.
-    for tod in uniqueTOD:
-        
-        hdf5_filename = create_hdf5_skim_container2(tod)
-        my_store=h5py.File(hdf5_filename, "r+")
-        e = "Skims" in my_store
-        if e:
-            del my_store["Skims"]
-            skims_group = my_store.create_group("Skims")
-            print "Group Skims Exists. Group deleted then created"
-            #If not there, create the group
-        else:
-            skims_group = my_store.create_group("Skims")
-            print "Group Skims Created"
-
-        my_bank = all_emmebanks[tod]
-        #need a scenario, get the first one
-        current_scenario = list(my_bank.scenarios())[0]
-        #Determine the Path and Scenario File
-
-        zones=current_scenario.zone_numbers
-        bank_name = my_bank.title
-
-        #Load in the necessary Dictionaries
-        matrix_dict = json_to_dictionary("user_classes")
-
-
-        # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
-        try:
-            mat_id=my_bank.matrix("mf01")
-            em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
-            my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
-
-        except RuntimeError:
-            del my_store["Skims"]["indices"]
-            my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
-
-
-        # Loop through the Subgroups in the HDF5 Container
-        #highway, walk, bike, transit
-        #need to make sure we include Distance skims for TOD specified in distance_skim_tod
-        if tod in distance_skim_tod:
-            my_skim_matrix_designation = skim_matrix_designation_limited + skim_matrix_designation_all_tods
-        else:
-            my_skim_matrix_designation = skim_matrix_designation_all_tods
-
-        for x in range (0, len(my_skim_matrix_designation)):
-
-            for y in range (0, len(matrix_dict["Highway"])):
-                matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-                matrix_id = my_bank.matrix(matrix_name).id
-                if my_skim_matrix_designation[x] == 'c':
-                    matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
-                    #make sure max value is set to uint16 max
-                    matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                else:
-                    matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                    matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                
-
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
-        #transit
-        if tod in transit_skim_tod:
-            for item in transit_submodes:
-                matrix_name= 'ivtwa' + item
-                matrix_id = my_bank.matrix(matrix_name).id
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                #make sure max value is set to uint16 max
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
-
-                #Transit, All Modes:
-            dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
-
-            for key, value in dct_aggregate_transit_skim_names.iteritems():
-                matrix_name= key
-                matrix_id = my_bank.matrix(matrix_name).id
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                #make sure max value is set to uint16 max
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
-        #bike/walk
-        if tod in bike_walk_skim_tod:
-            for key in bike_walk_matrix_dict.keys():
-                matrix_name= bike_walk_matrix_dict[key]['time']
-                matrix_id = my_bank.matrix(matrix_name).id
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                #make sure max value is set to uint16 max
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
-        #transit/fare
-        fare_dict = json_to_dictionary('transit_fare_dictionary')
-        if tod in fare_matrices_tod:
-            for value in fare_dict[tod]['Names'].values():
-                matrix_name= 'mf' + value
-                print matrix_name
-                print my_bank.matrix(matrix_name).id
-                matrix_id = my_bank.matrix(matrix_name).id
-                #make sure max value is set to uint16 max
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-                print matrix_name+' was transferred to the HDF5 container.'
-                
-        my_store.close()
-    end_export_hdf5 = time.time()
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to import matrices to Emme.'
-    text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
-    logging.debug(text)
-
-def skims_to_hdf5_concurrent(my_project):
-#one project, one bank
-
-    start_export_hdf5 = time.time()
-
-    #Determine the Path and Scenario File
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
-    zones=current_scenario.zone_numbers
-    bank_name = my_project.emmebank.title
-    tod = bank_name
-
-    #matrix_dict = text_to_dictionary('demand_matrix_dictionary')
-    #uniqueMatrices = set(matrix_dict.values())
-    #Load in the necessary Dictionaries
-    my_user_classes = json_to_dictionary("user_classes")
-
-    #Create the HDF5 Container if needed and open it in read/write mode using "r+"
-
-    #hdf_filename = create_hdf5_container(bank_name)
-    
-
-    hdf5_filename = create_hdf5_skim_container2(tod)
-    my_store=h5py.File(hdf5_filename, "r+")
-    e = "Skims" in my_store
-    if e:
-        del my_store["Skims"]
-        skims_group = my_store.create_group("Skims")
-        print "Group Skims Exists. Group deleted then created"
-        #If not there, create the group
-    else:
-        skims_group = my_store.create_group("Skims")
-        print "Group Skims Created"
-
-    
-    #Load in the necessary Dictionaries
-    matrix_dict = json_to_dictionary("user_classes")
-
-
-   # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
-    try:
-        mat_id=my_bank.matrix("mf01")
-        em_val=inro.emme.database.matrix.FullMatrix.get_data(mat_id,current_scenario)
-        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
-
-    except RuntimeError:
-        del my_store["Skims"]["indices"]
-        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
-
-
-        # Loop through the Subgroups in the HDF5 Container
-        #highway, walk, bike, transit
-        #need to make sure we include Distance skims for TOD specified in distance_skim_tod
-    if tod in distance_skim_tod:
-        my_skim_matrix_designation = skim_matrix_designation_limited + skim_matrix_designation_all_tods
-    else:
-        my_skim_matrix_designation = skim_matrix_designation_all_tods
-
-    for x in range (0, len(my_skim_matrix_designation)):
-
-        for y in range (0, len(matrix_dict["Highway"])):
-            matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-            matrix_id = my_bank.matrix(matrix_name).id
-            if my_skim_matrix_designation[x] == 'c':
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)
-                #make sure max value is set to uint16 max
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            else:
-                #if my_skim_matrix_designation[x] == 'c' and matrix_value.max() >= 1800:
-                #    i,j = np.unravel_index(a.argmax(), matrix_value.shape)
-                #    print matrix_name + ' exceded max time of 1800 minutes at ' + i, j
-                #    exit()
-
-                matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                
-
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-        #transit
-    if tod in transit_skim_tod:
-        for item in transit_submodes:
-            matrix_name= 'ivtwa' + item
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-                #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-
-                #Transit, All Modes:
-        dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names')
-
-        for key, value in dct_aggregate_transit_skim_names.iteritems():
-            matrix_name= key
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-        #bike/walk
-    if tod in bike_walk_skim_tod:
-        for key in bike_walk_matrix_dict.keys():
-            matrix_name= bike_walk_matrix_dict[key]['time']
-            matrix_id = my_bank.matrix(matrix_name).id
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            #make sure max value is set to uint16 max
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-        #transit/fare
-    fare_dict = json_to_dictionary('transit_fare_dictionary')
-    if tod in fare_matrices_tod:
-        for value in fare_dict[tod]['Names'].values():
-            matrix_name= 'mf' + value
-            print matrix_name
-            print my_bank.matrix(matrix_name).id
-            matrix_id = my_bank.matrix(matrix_name).id
-            #make sure max value is set to uint16 max
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data)*100
-            matrix_value = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-    if tod in generalized_cost_tod:
-        for value in gc_skims.values():
-            matrix_name = value + 'g'
-            matrix_id = my_bank.matrix(matrix_name).id 
-            matrix_value = np.matrix(my_bank.matrix(matrix_id).raw_data) 
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-    my_store.close()
-    end_export_hdf5 = time.time()
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.'
-    text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
-    logging.debug(text)
-
-
 def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, max_value = None):
     matrix_id = emmebank.matrix(matrix_name).id
     emme_matrix = emmebank.matrix(matrix_id)
@@ -1024,7 +633,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if my_skim_matrix_designation[x] == 'c':
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
             elif my_skim_matrix_designation[x] == 'd':
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
             else:
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
             #open old skim and average
@@ -1100,51 +709,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     end_export_hdf5 = time.time()
     print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.'
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
-    logging.debug(text)
-
-def hdf5_to_emme(my_project):
-
-    start_import_hdf5 = time.time()
-
-    #Determine the Path and Scenario File and Zone indicies that go with it
-    current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-    my_bank = current_scenario.emmebank
-    zones=current_scenario.zone_numbers
-    bank_name = my_project.emmebank.title
-
-    #Load in the necessary Dictionaries
-    my_user_classes = json_to_dictionary("user_classes")
-
-    #Open the HDF5 Container in read only mode using "r"
-    hdf_filename = os.path.join(os.path.dirname(my_bank.path), 'Skims/Emme_Skims.hdf5').replace("\\","/")
-    hdf_file = h5py.File(hdf_filename, "r")
-
-    #Delimiter of a Demand Matrix in Emme - this could be part of a control file but hardcoded for now
-    tod = bank_name
-
-    for x in range (0, len(my_user_classes["Highway"])):
-        matrix_name= my_user_classes["Highway"][x]["Name"]
-        matrix_id = my_bank.matrix(matrix_name).id
-
-        try:
-            hdf_matrix = hdf_file['Emme']['Highway'][tod][matrix_name]
-            np_matrix = np.matrix(hdf_matrix)
-            np_matrix = np_matrix.astype(float)
-            np_array = np.squeeze(np.asarray(np_matrix))
-            emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
-            emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
-            my_bank.matrix(matrix_id).set_data(emme_matrix,current_scenario)
-
-        #If the HDF5 File does not have a matirx of that name
-        except KeyError:
-
-            print matrix_id+' does not exist in the HDF5 container - no matrix was imported'
-
-    hdf_file.close()
-    end_import_hdf5 = time.time()
-
-    print 'It took', round((end_import_hdf5-start_import_hdf5)/60,2), ' minutes to import matrices to Emme.'
-    text = 'It took ' + str(round((end_import_hdf5-start_import_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
 
@@ -1502,6 +1066,7 @@ def run_transit(project_name):
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
     my_bank.dispose()
+
 def export_to_hdf5_pool(project_list):
 
     pool = Pool(processes=parallel_instances)
@@ -1649,32 +1214,17 @@ def feedback_check(emmebank_path_list):
         for y in range (0, len(matrix_dict["Highway"])):
            #trips
             matrix_name= matrix_dict["Highway"][y]["Name"]
-            #matrix_id = emmebank.matrix(matrix_name).id
-            #emme_matrix = emmebank.matrix(matrix_id)
-            #matrix_data = emme_matrix.get_data()
-            #np_matrix = np.matrix(matrix_data.raw_data) 
-            #matrix_id = my_bank.matrix(matrix_name).id
-            #emme_matrix = my_bank.matrix(matrix_id)
-            #matrix_data = emme_matrix.get_data()
-            #matrix = my_bank.matrix(matrix_id)
-            #np_matrix = np.matrix(matrix_data.raw_data
-            #matrix_value = np.matrix(matrix_data.raw_data)
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
-            #print matrix_value.size() 
+            
             trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
             print 'trips'
             print trips[563,547]
-            #skims_dict[matrix_name] = matrix
-
+            
             #new skims
             matrix_name = matrix_name + 't'
-            #matrix_id = my_bank.matrix(matrix_name).id
-            #matrix = my_bank.matrix(matrix_id)
-            #matrix_data = matrix.get_data()
-            #matrix_value = np.matrix(matrix_data.raw_data) * 100
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
             new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            #skims_dict[matrix_name + 'n'] = matrix
+            
             print matrix_name
             print 'new_skim'
             print new_skim[563,547]
@@ -1836,7 +1386,7 @@ def main():
                 export_to_hdf5_pool(l)
         
         #delete emme matrices to save space:
-        start_delete_matrices_pool(project_list)
+        #start_delete_matrices_pool(project_list)
            
         f.close()
 
