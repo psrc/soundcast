@@ -275,12 +275,15 @@ def main():
        #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
        #keys=None, levels=None, names=None, verify_integrity=False)
 
+       workbook = writer.book
+       index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
+       df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
        if col == 0:
-           df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries') #index = True and startcol = 0 are defaults
-           col = col + 3
-       else:
-           df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-           col = col + 2
+           worksheet = writer.sheets['Transit Summaries']
+           routes = df.index.tolist()
+           for route_no in range(len(routes)):
+               worksheet.write_string(route_no + 1, 0, routes, index_format)
+       col = col + 2
 
 
     #*******write out counts:
