@@ -1,15 +1,8 @@
 import pandas as pd
-import sys
 import h5toDF
 import math
 
-
-
-daysim_file = 'R:/JOE/my_first_model_run_outputs.h5' #Daysim outputs
-guide_file = 'R:/JOE/summarize/CatVarDict.xlsx' #To recode categorical variables in Daysim outputs
-urbansim_file = 'R:/JOE/psrc_parcel_decay_2010.dat' #Urbansim Outputs
-
-def get_percent_rmse(urbansim_file, daysim_file, guide_file, iteration_number):
+def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     urbansim_data = pd.io.parsers.read_table(urbansim_file, sep = ' ') #Read in UrbanSim data
     jobs_by_taz = urbansim_data[['taz_p', 'emptot_p']].groupby('taz_p').sum() #Get number of jobs by TAZ
     daysim_data = h5toDF.convert_single(daysim_file, guide_file, 'Daysim Outputs', 'Person') #Read in person file from DaySim data
@@ -23,10 +16,10 @@ def get_percent_rmse(urbansim_file, daysim_file, guide_file, iteration_number):
     workers_jobs_by_taz['Squared Difference'] = workers_jobs_by_taz['Difference']**2
     rms_error = math.sqrt(workers_jobs_by_taz['Squared Difference'].mean())
     percent_rmse = rms_error / workers_jobs_by_taz['DaySim'].mean() * 100
-    print '%RMSE for iteration ' + str(iteration_number) + ': ' + str(round(percent_rmse, 2)) + '%'
+    print '%RMSE: ' + str(round(percent_rmse, 2)) + '%'
     return percent_rmse
 
-def convergence_check(rmse_list, convergence_criterion, iteration):
+def convergence_check(rmse_list, convergence_criterion, iteration): #Function not presently in use
     if iteration == 1:
         convergence = False
         return convergence #No comparison on the first iteration
@@ -36,4 +29,10 @@ def convergence_check(rmse_list, convergence_criterion, iteration):
         convergence = False
     return convergence
 
-get_percent_rmse(urbansim_file, daysim_file, guide_file, '[Insert Iteration Number Here]')
+def main():
+    current_percent_rmse = get_percent_rmse(parcel_decay_file, h5_results_file, guidefile)
+    shadow_rmse = open('inputs/shadow_rmse.txt', 'r+')
+    shadow_rmse.write(str(current_percent_rmse) + '\n')
+    shadow_rmse.close()
+
+main()

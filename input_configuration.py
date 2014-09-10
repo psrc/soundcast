@@ -226,6 +226,7 @@ h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
+parcel_decay_file = 'inputs/psrc_parcel_decay_2010.dat'
 
 # Specific reports to run
 run_daysim_report = True
