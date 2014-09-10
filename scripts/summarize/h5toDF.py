@@ -155,3 +155,74 @@ def convert(filename, guidefile, name):
         return(output)
     else:
         raise ValueError('Guide file type ' + guidefile[L-4:L] + ' not supported.')
+
+def convert_single(filename, guidefile, name, table):
+    has_negative_expansion_factors = False
+    L = len(guidefile)
+    if guidefile[L-4:L] == 'json':
+        input = h5py.File(filename, 'r+')
+        with open(guidefile, 'rb') as fp:
+            categorical_dict = json.load(fp)
+        output = {}
+        f = table
+        fs = time.time()
+        df = pd.DataFrame()
+        for v in input[f]:
+            if type(input[f][v][0]) is np.void: #If entries are in the form '(number,)', this loop converts them to number
+                inarray = np.asarray(input[f][v])
+                outarray = []
+                for i in range(len(inarray)):
+                    s = str(inarray[i])
+                    s = s.replace('(', '')
+                    s  =s.replace(',)', '')
+                    outarray.append(float(s))
+                df[v] = outarray
+            else:
+                df[v] = np.asarray(input[f][v])
+            if v in categorical_dict:
+                local_dict = categorical_dict[v]                             
+                df[v] = df[v].map(local_dict) 
+            else:
+                negative_check(df[v], v)                                            
+        output.update({f: df})
+        return(output)
+    elif guidefile[L-4:L] == 'xlsx':
+        input = h5py.File(filename, 'r+')
+        guides = get_guide(guidefile)
+        categorical_dict = guide_to_dict(guides)
+        output = {}
+        f = table
+        fs = time.time()
+        df = pd.DataFrame()
+        for v in input[f]:
+            if type(input[f][v][0]) is np.void: #If entries are in the form '(number,)', this loop converts them to number
+                inarray = np.asarray(input[f][v])
+                outarray = []
+                for i in range(len(inarray)):
+                    s = str(inarray[i])
+                    s = s.replace('(', '')
+                    s = s.replace(',)', '')
+                    outarray.append(float(s))
+                df[v] = outarray
+            else:
+                df[v] = np.asarray(input[f][v])
+            if v in categorical_dict:
+                local_dict = categorical_dict[v]                             
+                df[v] = df[v].map(local_dict)
+            else:
+                if v in ['psexpfac', 'pdexpfac', 'hhexpfac', 'hdexpfac', 'toexpfac', 'trexpfac']:
+                    if pd.Series.min(df[v]) < 0:
+                        has_negative_expansion_factors = True
+                        print('WARNING: Negative Expansion Factor Present!')
+                if v in ['taudist', 'travdist']:
+                    if pd.Series.min(df[v]) < 0:
+                        print('WARNING: Negative Travel Distance Present!')
+                if v in ['tautotime', 'travtime']:
+                    if pd.Series.min(df[v]) < 0:
+                        print('WARNING: Negative Travel Time Present!')
+        output.update({f: df})
+        if has_negative_expansion_factors == True:
+            output = zero_out_negative_expansion_factors(output, name)
+        return(output)
+    else:
+        raise ValueError('Guide file type ' + guidefile[L-4:L] + ' not supported.')
