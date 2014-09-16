@@ -756,6 +756,48 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     cp9 = time.time()
     print('Percent of Trips by Destination District data frame created in ' + str(round(cp9 - cp8, 1)) + ' seconds')
 
+    #People, workers, and students by District
+    HHPer1 = pd.merge(data1['Person'][['hhno', 'psexpfac']], data1['Household'][['hhno', 'hhtaz']], 'outer', on = 'hhno')
+    HHPer2 = pd.merge(data2['Person'][['hhno', 'psexpfac']], data2['Household'][['hhno', 'hhtaz']], 'outer', on = 'hhno')
+    people_per_taz_1 = HHPer1.groupby('hhtaz').sum()['psexpfac']
+    people_per_taz_2 = HHPer2.groupby('hhtaz').sum()['psexpfac']
+    people_per_taz = pd.DataFrame.from_items([('Number of People (' + name1 + ')', people_per_taz_1), ('Number of People (' + name2 + ')', people_per_taz_2)])
+    people_per_taz_district = pd.merge(people_per_taz, districtfile, left_index = True, right_on = 'TAZ')
+    people_per_district = people_per_taz_district[['Number of People (' + name1 + ')', 'Number of People (' + name2 + ')', 'New DistrictName']].groupby('New DistrictName').sum()
+    people_per_district = get_differences(people_per_district, 'Number of People (' + name1 + ')', 'Number of People (' + name2 + ')', 0)
+    people_per_district['Difference (People)'] = people_per_district['Difference']
+    people_per_district['% Difference (People)'] = people_per_district['% Difference']
+    del people_per_district['Difference']
+    del people_per_district['% Difference']
+
+    workers_per_taz_1 = data1['Person'][['pwtaz', 'psexpfac']].groupby('pwtaz').sum()['psexpfac']
+    workers_per_taz_2 = data2['Person'][['pwtaz', 'psexpfac']].groupby('pwtaz').sum()['psexpfac']
+    workers_per_taz = pd.DataFrame.from_items([('Number of Workers (' + name1 + ')', workers_per_taz_1), ('Number of Workers (' + name2 + ')', workers_per_taz_2)])
+    workers_per_taz_district = pd.merge(workers_per_taz, districtfile, left_index = True, right_on = 'TAZ')
+    workers_per_district = workers_per_taz_district[['Number of Workers (' + name1 + ')', 'Number of Workers (' + name2 + ')', 'New DistrictName']].groupby('New DistrictName').sum()
+    workers_per_district = get_differences(workers_per_district, 'Number of Workers (' + name1 + ')', 'Number of Workers (' + name2 + ')', 0)
+    workers_per_district['Difference (Workers)'] = workers_per_district['Difference']
+    workers_per_district['% Difference (Workers)'] = workers_per_district['% Difference']
+    del workers_per_district['Difference']
+    del workers_per_district['% Difference']
+
+    students_per_taz_1 = data1['Person'][['pstaz', 'psexpfac']].groupby('pstaz').sum()['psexpfac']
+    students_per_taz_2 = data2['Person'][['pstaz', 'psexpfac']].groupby('pstaz').sum()['psexpfac']
+    students_per_taz = pd.DataFrame.from_items([('Number of Students (' + name1 + ')', students_per_taz_1), ('Number of Students (' + name2 + ')', students_per_taz_2)])
+    students_per_taz_district = pd.merge(students_per_taz, districtfile, left_index = True, right_on = 'TAZ')
+    students_per_district = students_per_taz_district[['Number of Students (' + name1 + ')', 'Number of Students (' + name2 + ')', 'New DistrictName']].groupby('New DistrictName').sum()
+    students_per_district = get_differences(students_per_district, 'Number of Students (' + name1 + ')', 'Number of Students (' + name2 + ')', 0)
+    students_per_district['Difference (Students)'] = students_per_district['Difference']
+    students_per_district['% Difference (Students)'] = students_per_district['% Difference']
+    del students_per_district['Difference']
+    del students_per_district['% Difference']
+
+    people_workers_district = pd.merge(people_per_district, workers_per_district, left_index = True, right_index = True)
+    people_workers_students_district = pd.merge(people_workers_district, students_per_district, left_index = True, right_index = True)
+
+    cp10 = time.time()
+    print('Number of People, Workers, and Students by District data frame created in ' + str(round(cp10-cp9,1)) + ' seconds')
+
     #Compile the file
     writer = pd.ExcelWriter(location + '/DaysimDestChoiceReport.xlsx', engine = 'xlsxwriter')
     atl.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Purpose', na_rep = 'NA')
@@ -766,6 +808,7 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     atripdistm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Mode', na_rep = 'NA')
     tourdest.to_excel(excel_writer = writer, sheet_name = '% Tours by Destination District', na_rep = 'NA')
     tripdest.to_excel(excel_writer = writer, sheet_name = '% Trips by Destination District', na_rep = 'NA')
+    people_workers_students_district.to_excel(excel_writer=writer,sheet_name='#People by District',na_rep='NA')
     writer.save()
 
     colwidths = xlautofit.getmaxwidths(location + '/DaysimDestChoiceReport.xlsx')
@@ -780,6 +823,7 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     atripdistm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Mode', na_rep = 'NA')
     tourdest.to_excel(excel_writer = writer, sheet_name = '% Tours by Destination District', na_rep = 'NA')
     tripdest.to_excel(excel_writer = writer, sheet_name = '% Trips by Destination District', na_rep = 'NA')
+    people_workers_students_district.to_excel(excel_writer=writer,sheet_name='#People by District',na_rep='NA')
     workbook = writer.book
     for sheet in writer.sheets:
         worksheet = writer.sheets[sheet]
@@ -795,6 +839,30 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
         chart.set_legend({'position': 'top'})
         chart.set_size({'x_scale': 2, 'y_scale': 1.5})
         worksheet.insert_chart('B15', chart)
+    num_workers = workbook.add_chart({'type': 'column'})
+    num_workers.add_series({'name': [sheet, 0, 5],
+                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                            'values': [sheet, 2, 5, worksheet.dim_rowmax, 5],
+                            'fill': {'color': colors[0]}})
+    num_workers.add_series({'name': [sheet, 0, 6],
+                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                            'values': [sheet, 2, 6, worksheet.dim_rowmax, 6],
+                            'fill': {'color': colors[1]}})
+    num_workers.set_legend({'position': 'top'})
+    num_workers.set_size({'x_scale':2,'y_scale':1.5})
+    worksheet.insert_chart('F15', num_workers)
+    num_students = workbook.add_chart({'type': 'column'})
+    num_students.add_series({'name': [sheet, 0, 9],
+                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                            'values': [sheet, 2, 9, worksheet.dim_rowmax, 9],
+                            'fill': {'color': colors[0]}})
+    num_students.add_series({'name': [sheet, 0, 10],
+                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                            'values': [sheet, 2, 10, worksheet.dim_rowmax, 10],
+                            'fill': {'color': colors[1]}})
+    num_students.set_legend({'position': 'top'})
+    num_students.set_size({'x_scale':2,'y_scale':1.5})
+    worksheet.insert_chart('J15', num_students)
     writer.save()
 
     print('---Destination Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
