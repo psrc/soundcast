@@ -24,7 +24,7 @@ puma_taz_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/ensembles/puma0
 taz_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/landuse/tazdata.in'
 pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/' 
 externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
-trip_table_loc = 'outputs/prod_att.csv'
+trip_table_loc = 'D:/soundcast/soundcat/outputs/prod_att.csv'
 
 inc_size_workers_dict = {"inc1_size_workers" : {"start" : 14, "end" : 26,
                                                 "hhs" : [], "share" : [], 
@@ -180,6 +180,7 @@ for cross_class in [inc_size_workers_dict, inc_k12_dict, inc_college_dict, inc_v
 
 # Create a dataframe that includes only the household cross-classes
 hhs = master_taz[[str(i) for i in xrange(1, 101)]]
+# Create a dataframe that includes only the employment cross-classes
 nonhhs = taz_data[[str(i) for i in xrange(109, 125)]]
 
 # Create an empty data frame to hold results
@@ -226,7 +227,6 @@ airport_wb_share = 1 - airport_hb_share
 # to general home-based attractions (hboatt)
 for key, value in spg_general.iteritems():
     trip_table.iloc[key - 1]["hboatt"] += value
-    trip_table.iloc[key - 1]["wkoatt"] += value
 
 # Add 25% of airport trips to work-based attractions
 trip_table.iloc[spg_airport.keys()[0] - 1]["hboatt"] += airport_hb_share * spg_airport.values()[0]
@@ -247,9 +247,9 @@ for key, value in trip_purp_col.iteritems():
         bal_factor = (prod - ext)/(att - ext)
         trip_table[value].loc[0:3699] *= bal_factor
         print "key " + key + ", " + value + ' ' + str(bal_factor)
-    # Balance productions to attractions for school and college trips
+    # Balance productions to attractions for college trips
     else:
-        prod = trip_table[value].sum() ; att = trip_table[key].sum()
+        prod = trip_table[key].sum() ; att = trip_table[value].sum()
         ext = trip_table[key].iloc[3700:3749].sum()
         bal_factor = (att - ext)/(prod - ext)
         trip_table[key].loc[0:3699] *= bal_factor
@@ -257,7 +257,6 @@ for key, value in trip_purp_col.iteritems():
    
 # set zonal nhb work-other productions equal to zonal nhb work-other attractions
 # set zonal nhb other-other productions equal to zonal nhb other-other attractions
-# Not clear why exactly this is happening...
 
 trip_table = pd.DataFrame(trip_table,columns=["hbwpro", "colpro", "hsppro", "hbopro",
                 "schpro", "wkoatt", "otoatt", "empty1",
@@ -266,6 +265,8 @@ trip_table = pd.DataFrame(trip_table,columns=["hbwpro", "colpro", "hsppro", "hbo
                 "hbwpr1", "hbwpr2", "hbwpr3", "hbwpr4", 
                 "hbwat1", "hbwat2", "hbwat3", "hbwat4"])
 
+# Add externals back in 
+#trip_table = trip_table.append(externals)
 trip_table.columns = trip_col
 
 # Write results to CSV
