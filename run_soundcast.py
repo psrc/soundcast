@@ -128,46 +128,6 @@ def copy_shadow_price_file():
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
-def run_R_summary(summary_name,iter):
-     R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-     tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-     run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-     returncode = subprocess.check_call(run_R)
-     shcopy(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.pdf'))
-     shcopy(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+ str(iter)+'_Plot.pdf'))
-     os.remove(os.path.join(os.getcwd(), summary_name+'.pdf'))
-     os.remove(os.path.join(os.getcwd(), 'Rplots.pdf'))
-
-def run_Rcsv_summary(summary_name,iter):
-    R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-    tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-    run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-    returncode = subprocess.check_call(run_R)
-
-def move_files_to_outputs(iter):
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(iter)+'.csv'))
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(iter)+'.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'))
-    
-def delete_tex_files():
-    for root, dirs, files in os.walk(os.getcwd()):
-        for currentFile in files:
-            print "processing file: " + currentFile
-            if currentFile.endswith('tex'):
-                os.remove(os.path.join(root, currentFile))
-
-def run_all_R_summaries(iter):
-     run_R_summary('DaySimReport',iter)
-     run_R_summary('DaysimReportLongTerm',iter)
-     run_R_summary('DaysimReportDayPattern',iter)
-     run_R_summary('ModeChoiceReport',iter)
-     run_R_summary('DaysimDestChoice',iter)
-     #run_R_summary('DaysimTimeChoice',iter)
-     run_Rcsv_summary('DaysimReport_District', iter)
-     #run_Rcsv_summary('Daysim_PNRs', iter)
-     move_files_to_outputs(iter)
-     delete_tex_files()
 
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
