@@ -116,7 +116,7 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
     # the configuration does not currently use the node_node distance file
     #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
-    shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
+    shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
@@ -128,6 +128,46 @@ def copy_shadow_price_file():
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
+def run_R_summary(summary_name,iter):
+     R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
+     tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
+     run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
+     returncode = subprocess.check_call(run_R)
+     shcopy(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.pdf'))
+     shcopy(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+ str(iter)+'_Plot.pdf'))
+     os.remove(os.path.join(os.getcwd(), summary_name+'.pdf'))
+     os.remove(os.path.join(os.getcwd(), 'Rplots.pdf'))
+
+def run_Rcsv_summary(summary_name,iter):
+    R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
+    tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
+    run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
+    returncode = subprocess.check_call(run_R)
+
+def move_files_to_outputs(iter):
+    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(iter)+'.csv'))
+    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(iter)+'.csv'))
+    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
+    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'))
+    
+def delete_tex_files():
+    for root, dirs, files in os.walk(os.getcwd()):
+        for currentFile in files:
+            print "processing file: " + currentFile
+            if currentFile.endswith('tex'):
+                os.remove(os.path.join(root, currentFile))
+
+def run_all_R_summaries(iter):
+     run_R_summary('DaySimReport',iter)
+     run_R_summary('DaysimReportLongTerm',iter)
+     run_R_summary('DaysimReportDayPattern',iter)
+     run_R_summary('ModeChoiceReport',iter)
+     run_R_summary('DaysimDestChoice',iter)
+     #run_R_summary('DaysimTimeChoice',iter)
+     run_Rcsv_summary('DaysimReport_District', iter)
+     #run_Rcsv_summary('Daysim_PNRs', iter)
+     move_files_to_outputs(iter)
+     delete_tex_files()
 
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
@@ -165,7 +205,7 @@ def clean_up():
         else:
             print file
 
-def daysim_assignment(iteration, recipr_sample, copy_shadow):
+def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_template):
      print "We're on iteration %d" % (iteration)
      logfile.write("We're on iteration %d\r\n" % (iteration))
      time_start = datetime.datetime.now()
@@ -182,7 +222,7 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow):
          if copy_shadow:
              copy_shadow_price_file()
 
-         daysim_sample(recipr_sample, 'configuration_template.properties')
+         daysim_sample(recipr_sample, configuration_template)
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
          if returncode != 0:
              sys.exit(1)
@@ -283,27 +323,57 @@ if should_build_shadow_price == True:
 
     ### RUN DAYSIM AND ASSIGNMENT TO GET INITIAL SKIMS #######################################
     for preshad_iter in range(0, len(pre_shadow_sample)):
-        copy_shadow = True
-        daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow)
+        #Shadow price file might exist in working dir. We want to remove it in order to start fresh. 
+        if os.path.isfile('working/shadow_prices.txt'):
+                os.remove('working/shadow_prices.txt')
+        copy_shadow = False
+        daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow, 'configuration_template_nosp.properties')
 
     ### BUILD SHADOW PRICE FILES FOR WORK ###################################################
     for shad_iter in range(0, len(shadow_work)):
+         if shad_iter== 0: #Checks if the file exists on the first iteration and deletes it
+            if os.path.isfile('inputs/shadow_rmse.txt'):
+                os.remove('inputs/shadow_rmse.txt')
          if run_daysim == True:
             daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
             if returncode != 0:
-             sys.exit(1)
+               sys.exit(1)
+            returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+            shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
+            rmse_list = shadow_con_file.readlines()
+            iteration_number = len(rmse_list)
+            current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
+         if current_rmse < shadow_con:
+            print "done with shadow prices"
+            shadow_con_file.close()
+            break
 
          time_daysim = datetime.datetime.now()
          print time_daysim
          logfile.write("ending daysim %s\r\n" %str((time_daysim)))              
 
 
-
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
-for iteration in range(0,len(pop_sample)):
-    copy_shadow = False
-    daysim_assignment(iteration, pop_sample[iteration], copy_shadow) 
+
+# We are not building shadow pricing, so use the existing shadow prices.
+# So copy the shadow prices from an existing file.
+if should_build_shadow_price == False:
+    # on the first iteration, start with an old shadow price file, then build new sps each round
+    copy_shadow = True
+
+    for iteration in range(0,len(pop_sample)):
+        #copy_shadow = False
+        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
+        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        copy_shadow = False
+
+# We built some shadow prices, so file exists, and continue building.
+else:
+      for iteration in range(0,len(pop_sample)):
+        copy_shadow = False
+        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
+        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
 
 ### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:

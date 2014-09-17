@@ -1,6 +1,8 @@
 import pandas as pd
 import h5toDF
 import math
+import os.path
+from input_configuration import *
 
 def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     urbansim_data = pd.io.parsers.read_table(urbansim_file, sep = ' ') #Read in UrbanSim data
@@ -10,6 +12,9 @@ def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     workers_jobs_by_taz = pd.merge(jobs_by_taz, workers_by_taz, left_index = True, right_index = True) #Merge them
     workers_jobs_by_taz['DaySim'] = workers_jobs_by_taz['psexpfac'] #Rename columns...
     workers_jobs_by_taz['UrbanSim'] = workers_jobs_by_taz['emptot_p']
+    f = open("c:/workers_jobs.csv", 'w')
+    workers_jobs_by_taz.to_csv(f)
+    f.close()
     del workers_jobs_by_taz['emptot_p']
     del workers_jobs_by_taz['psexpfac']
     workers_jobs_by_taz['Difference'] = workers_jobs_by_taz['DaySim'] - workers_jobs_by_taz['UrbanSim']
@@ -30,9 +35,11 @@ def convergence_check(rmse_list, convergence_criterion, iteration): #Function no
     return convergence
 
 def main():
+    if not os.path.isfile('inputs/shadow_rmse.txt'):
+        open('inputs/shadow_rmse.txt', 'a').close()
     current_percent_rmse = get_percent_rmse(parcel_decay_file, h5_results_file, guidefile)
-    shadow_rmse = open('inputs/shadow_rmse.txt', 'r+')
-    shadow_rmse.write(str(current_percent_rmse) + '\n')
+    shadow_rmse = open('inputs/shadow_rmse.txt', 'a')
+    shadow_rmse.writelines(str(current_percent_rmse) + '\n')
     shadow_rmse.close()
 
 main()

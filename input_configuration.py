@@ -31,9 +31,11 @@ run_update_parking = False
 # Run a few iterations of assignment and daysim to build skims before shadow prices
 pre_shadow_sample = [20, 10]
 # start building shadow prices - only run work locations
-shadow_work = [1, 1, 1]
+shadow_work = [1, 1, 1, 1, 1, 1]
+shadow_con = 5 #%RMSE for shadow pricing to consider being converged
+parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
-pop_sample = [1, 1, 1]
+pop_sample = [1, 1, 1, 1]
 
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
@@ -164,7 +166,8 @@ extra_attributes_dict = {'@tveh' : 'total vehicles',
                          '@hveh' : 'heavy trucks', 
                          '@vmt' : 'vmt',\
                          '@vht' : 'vht', 
-                         '@trnv' : 'buses in auto equivalents', 
+                         '@trnv' : 'buses in auto equivalents',
+                         '@ovol' : 'observed volume', 
                          '@bveh' : 'number of buses'}
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
 transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
@@ -226,7 +229,7 @@ h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
-parcel_decay_file = 'inputs/psrc_parcel_decay_2010.dat'
+
 
 # Specific reports to run
 run_daysim_report = True
