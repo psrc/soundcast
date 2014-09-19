@@ -45,6 +45,36 @@ def copy_daysim_code():
     shcopy(daysim_code +'/msvcp100.dll', 'daysim')
     shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
 
+def copy_parcel_buffering_files():
+    if not os.path.exists('Inputs/parcel_buffer'):
+        os.makedirs('Inputs/parcel_buffer')
+    if not os.path.exists('scripts/parcel_buffer'):
+        os.makedirs('scripts/parcel_buffer')
+
+    print 'Copying Parcel Buffering Network Inputs.  The file is about 2 GB so it could take a couple of minutes.'
+    try: 
+        shcopy(network_buffer_inputs, 'Inputs/parcel_buffer')
+    except:
+        print 'error copying network_buffer inputs at ' + network_buffer_inputs
+        
+ 
+    main_dir = os.path.abspath('')
+    unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
+    returncode= subprocess.call(unzip_net_ins)
+    if returncode!=0:
+        print 'Could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
+        sys.exit(0)
+    
+    print 'Copying UrbanSim parcel file'
+    shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
+
+    print 'Copying Parcel Buffering Code'
+    dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
+
+
+
+    
+    
 def setup_emme_bank_folders():
     emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
     
@@ -114,8 +144,6 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
-    # the configuration does not currently use the node_node distance file
-    #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
     shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
@@ -128,46 +156,7 @@ def copy_shadow_price_file():
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
-def run_R_summary(summary_name,iter):
-     R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-     tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-     run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-     returncode = subprocess.check_call(run_R)
-     shcopy(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.pdf'))
-     shcopy(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+ str(iter)+'_Plot.pdf'))
-     os.remove(os.path.join(os.getcwd(), summary_name+'.pdf'))
-     os.remove(os.path.join(os.getcwd(), 'Rplots.pdf'))
 
-def run_Rcsv_summary(summary_name,iter):
-    R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-    tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-    run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-    returncode = subprocess.check_call(run_R)
-
-def move_files_to_outputs(iter):
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(iter)+'.csv'))
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(iter)+'.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'))
-    
-def delete_tex_files():
-    for root, dirs, files in os.walk(os.getcwd()):
-        for currentFile in files:
-            print "processing file: " + currentFile
-            if currentFile.endswith('tex'):
-                os.remove(os.path.join(root, currentFile))
-
-def run_all_R_summaries(iter):
-     run_R_summary('DaySimReport',iter)
-     run_R_summary('DaysimReportLongTerm',iter)
-     run_R_summary('DaysimReportDayPattern',iter)
-     run_R_summary('ModeChoiceReport',iter)
-     run_R_summary('DaysimDestChoice',iter)
-     #run_R_summary('DaysimTimeChoice',iter)
-     run_Rcsv_summary('DaysimReport_District', iter)
-     #run_Rcsv_summary('Daysim_PNRs', iter)
-     move_files_to_outputs(iter)
-     delete_tex_files()
 
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
@@ -175,6 +164,37 @@ def rename_network_outs(iter):
         if os.path.isfile(csv_output):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
+
+def create_buffer_xml():
+    try:
+     'Creating xml file for the parcel buffering script pointing to your inputs'
+     buffer_template= open('scripts\parcel_buffer\parc_buff_template.xml','r')
+     buffer_config = open('parc_buffer.xml', 'w+')
+     
+     main_dir = os.path.abspath('')
+     
+     in_dir = '\inputs\parcel_buffer'
+     out_dir = '\inputs'
+     code_dir = '\scripts\parcel_buffer'
+
+     replace_dirs = {"$INDIR": main_dir+in_dir,
+                     "$OUTDIR" : main_dir+out_dir,
+                     "$CODEDIR": main_dir+code_dir}
+
+     for line in buffer_template:
+         print line
+         for key in replace_dirs.keys():
+            if key in line:
+                line = line.replace(key, replace_dirs[key])
+         buffer_config.write(line)
+   
+     buffer_template.close()
+     buffer_config.close()
+
+    except:
+     print 'Error in Creating Parcel Buffer xml'
+     buffer_template.close()
+     buffer_config.close()
        
 def daysim_sample(recipr_sample, config_name):
     try:
@@ -197,7 +217,10 @@ def clean_up():
                    'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
                    'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
                    'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
-                   'working\\zone.pk' ]
+                   'working\\zone.pk', 'inputs\\parcel_buffer\\intersection_node_correspondence.txt', 'inputs\\parcel_buffer\\open_spaces_correspondence.txt',
+                   'inputs\\parcel_buffer\\parcels_urbansim.txt','inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt',
+                   'inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt.bin', 'psrc_node_node_shortest_path_out.txt.index',
+                   'inputs\\parcel_buffer\\stop_node_correspondence']
 
     for file in delete_files: 
         if(os.path.isfile(os.path.join(os.getcwd(), file))):
@@ -260,6 +283,24 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
 #####################################################################################################
 ######################################################################################################
 # Main Script:
+## RUN PARCEL BUFFERING ON URBANSIM OUTPUTS ##########################################################
+if run_parcel_buffering == True:
+    copy_parcel_buffering_files()
+    create_buffer_xml()
+    print 'running buffer tool'
+    main_dir = os.path.abspath('')
+    returncode = subprocess.call(main_dir+'/scripts/parcel_buffer/DSBuffTool.exe')
+    if returncode != 0:
+        print 'Error running parcel buffering tool'
+        sys.exit(1)
+    os.remove(main_dir+ '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
+else:
+# parcel_decay should be renamed to a generic name- not 2010- rename this everywhere
+     print 'Copying already buffered parcel data from ' + base_inputs
+     shcopy(base_inputs+'/etc/buffered_parcel.dat','Inputs')
+
+### SET UP OTHER INPUTS ###############################################################################
+
 run_list = [("copy_daysim_code" , run_copy_daysim_code), 
              ("setup_emme_project_folders", run_setup_emme_project_folders),
              ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
@@ -277,6 +318,8 @@ svn_file =open('daysim/svn_stamp_out.txt','r')
 svn_info=svn_file.read()
 logfile.write(svn_info)
 
+
+
 ### UPDATE PARCEL PARKING #############################################
 if run_update_parking == True:
     if base_year == scenario_name:
@@ -286,7 +329,6 @@ if run_update_parking == True:
                                       'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
     #if returncode != 0:
     #    sys.exit(1)
-
 ### IMPORT NETWORKS ###############################################################\
 if run_import_networks == True:
     time_copy = datetime.datetime.now()

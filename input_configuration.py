@@ -8,13 +8,15 @@ scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
-input_parcels = 'R:/soundcast/inputs/' + scenario_name + 'landuse/parcels.txt'
+network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
+network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 # Script and subprocess controls 
-run_copy_daysim_code = True
-run_setup_emme_project_folders = True
+run_parcel_buffering = True
+run_copy_daysim_code = False
+run_setup_emme_project_folders =True
 run_setup_emme_bank_folders = True
-run_copy_inputs = True
+run_copy_inputs = False
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
 should_build_shadow_price = True
@@ -32,7 +34,7 @@ run_update_parking = False
 pre_shadow_sample = [20, 10]
 # start building shadow prices - only run work locations
 shadow_work = [1, 1, 1, 1, 1, 1]
-shadow_con = 5 #%RMSE for shadow pricing to consider being converged
+shadow_con = 10 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 pop_sample = [1, 1, 1, 1]
@@ -229,6 +231,8 @@ h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
+
+parcel_decay_file = 'inputs/buffered_parcels.dat'
 
 
 # Specific reports to run
