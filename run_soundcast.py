@@ -149,6 +149,8 @@ def copy_large_inputs():
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
+    if run_parcel_buffering == False:
+        shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
 
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
@@ -290,15 +292,9 @@ if run_parcel_buffering == True:
     print 'running buffer tool'
     main_dir = os.path.abspath('')
     returncode = subprocess.call(main_dir+'/scripts/parcel_buffer/DSBuffTool.exe')
-    if returncode != 0:
-        print 'Error running parcel buffering tool'
-        sys.exit(1)
     os.remove(main_dir+ '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
-else:
-# parcel_decay should be renamed to a generic name- not 2010- rename this everywhere
-     print 'Copying already buffered parcel data from ' + base_inputs
-     shcopy(base_inputs+'/etc/buffered_parcel.dat','Inputs')
 
+    
 ### SET UP OTHER INPUTS ###############################################################################
 
 run_list = [("copy_daysim_code" , run_copy_daysim_code), 
