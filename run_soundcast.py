@@ -10,8 +10,10 @@ from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
 import inro.emme.database.emmebank as _eb
+import random
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
+
 
 # Create text file to log model performance
 logfile = open(main_log_file, 'wb')
@@ -430,7 +432,7 @@ if run_soundcast_summary == True:
 
 #### ALL DONE ##################################################################
 clean_up()
-print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
+print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 
 
