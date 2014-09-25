@@ -10,19 +10,20 @@ master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
 network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
+supplemental_loc = 'D:/soundcast/soundcat/outputs/supplemental/'
 
 # Script and subprocess controls 
-run_parcel_buffering = True
+run_parcel_buffering = False
 run_copy_daysim_code = False
-run_setup_emme_project_folders =True
-run_setup_emme_bank_folders = True
+run_setup_emme_project_folders =False
+run_setup_emme_bank_folders = False
 run_copy_inputs = False
-run_import_networks = True
-run_skims_and_paths_seed_trips = True
-should_build_shadow_price = True
+run_import_networks = False
+run_skims_and_paths_seed_trips = False
+should_build_shadow_price = False
 run_skims_and_paths = True
-run_truck_model = True
-run_daysim = True
+run_truck_model = False
+run_daysim = False
 run_network_summary = True
 run_soundcast_summary = True
 # Only update parking for future-year analysis!
@@ -222,6 +223,7 @@ truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup
 
 origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
                    'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
+
 					
 #################################### SOUNDCAST SUMMARY ####################################
 h5_results_file = 'outputs/daysim_outputs.h5'

@@ -20,6 +20,9 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from EmmeProject import *
 
+# Move this to input config ...
+group_quarters_trips = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters/'
+ext_spg_trips = 'D:/soundcast/soundcat/outputs/supplemental/ext_spg/'
 
 #Create a logging file to report model progress
 logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
@@ -781,9 +784,16 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #also load up the external and truck trips
     demand_matrices={}
    
-    for matrix_name in uniqueMatrices:
+    for matrix_name in ['lttrk','metrk','hvtrk']:
         demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
+
+    # Load in supplemental trips
+    # We're assuming all trips are only for income 2, toll classes
+    for matrix_name in ['svtl2', 'svtl3', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk']:
+        demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
+        demand_matrices.update({matrix_name : demand_matrix})
+
     #Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
     #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
 
@@ -805,11 +815,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                         
                         OtazInt = int(myOtaz[0])
                         DtazInt = int(myDtaz[0])
-                        if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
-                            trips = np.asscalar(np.float32(trexpfac[x]))
-                            trips = round(trips, 2)
-                            print trips
+                        #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                        trips = np.asscalar(np.float32(trexpfac[x]))
+                        trips = round(trips, 2)
+                        print trips
                         #print trips
+                        if mode in supplemental_modes:
                             demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
                    
             
@@ -833,16 +844,17 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     OtazInt = int(myOtaz[0])
                     DtazInt = int(myDtaz[0])
                      #add the trip, if it's not in a special generator location
-                    if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
-                        trips = np.asscalar(np.float32(trexpfac[x]))
-                        trips = round(trips, 2)
+                    #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                    trips = np.asscalar(np.float32(trexpfac[x]))
+                    trips = round(trips, 2)
+                    if mode in supplemental_modes:
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
     if survey_seed_trips:
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
-    for mat_name in uniqueMatrices:
+    for mat_name in supplemental_modes:
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
@@ -872,14 +884,6 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
     this_class_dictionary = class_dictionary[matrix_name]
     trip_time= this_time_dictionary['TripBasedTime']
 
-    if(this_class_dictionary['TripBasedMode']=='transit' and (trip_time=='ev' or trip_time =='ni')) :
-        return demand_matrix
-
-    if(this_class_dictionary['TripBasedMode']=='transit'):
-        hdf_file = h5py.File(hdf_transit_filename, "r")
-    else:
-        hdf_file = h5py.File(hdf_auto_filename, "r")
-
     #now we are constructing the name of the trip-based matrices needed for this matrix_name
 
     #replace the third letter for the time period in the trip based model
@@ -899,52 +903,37 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
     np_matrix_1 = np.matrix(matrix_4k_1)
     np_matrix_1 = np_matrix_1.astype(float)
 
-    # for the pm transit transpose the am
-    if this_class_dictionary['TripBasedMode']=='transit' and tod == 'pm':
-         np_matrix_1  = np.transpose(np_matrix_1)
-
-    # some of the auto matrices need two trip-based auto matrices
-    if 'SecondTripBasedClass' in this_class_dictionary:
-        time_class_name_2 = list(this_class_dictionary['SecondTripBasedClass'])
-        time_class_name_2[0]=this_time_dictionary['TripTimeLetter']
-        trip_name_2=''.join(time_class_name_2)
-        matrix_4k_2 = hdf_file[trip_time][trip_name_2]
-        np_matrix_2 = np.matrix(matrix_4k_2)
-        np_matrix_2 = np_matrix_2.astype(float)
-
-    # the trucks just get copied with a time of day factor
+    # Copy truck trip tables with a time of day factor
     if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
        sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
        demand_matrix = np.squeeze(np.asarray(np_matrix))
        
-    # replace the ab matrix with the factored trip matrix in the external and spec gen rows and columns
-    for external in range(MIN_EXTERNAL, MAX_EXTERNAL):
-        for zone in range(0,zonesDim):
-            demand_matrix[external, zone]=np_matrix_1[external,zone]*\
-            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-            demand_matrix[zone, external]=np_matrix_1[zone,external]*\
-            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-            if 'SecondTripBasedClass' in this_class_dictionary:
-                demand_matrix[external, zone]+=np_matrix_2[external,zone]*\
-                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-                demand_matrix[zone, external]+=np_matrix_2[zone,external]*\
-                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
+    return demand_matrix
+
+def load_supplemental_trips(my_project, matrix_name, zonesDim):
+    ''' Load externals, special generator, and group quarters trips
+        from the supplemental trip model. Supplemental trips are assumed
+        only on Income Class 2, so only these income class modes are modified here. '''
+
+    tod = my_project.tod
+    # Create empty array to fill with trips
+    demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
+    hdf_file = h5py.File(supplemental_loc + tod + '.h5', "r")
+    # Call correct mode name by removing income class value when needed
+    if matrix_name not in ['bike', 'trnst', 'walk']:
+        mode_name = matrix_name[:-1]
+    else:
+        mode_name = matrix_name
+
+    # Open mode-specific array for this TOD and mode
+    hdf_array = hdf_file[mode_name]
     
-    for spec_gen in SPECIAL_GENERATORS.itervalues():
-        for zone in range(0,zonesDim):
-            demand_matrix[spec_gen, zone]=np_matrix_1[spec_gen,zone]*\
-            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-            demand_matrix[zone, spec_gen]=np_matrix_1[zone,spec_gen]*\
-            this_class_dictionary["FirstTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-            if 'SecondTripBasedClass' in this_class_dictionary:
-                demand_matrix[spec_gen, zone]+=np_matrix_2[spec_gen,zone]*\
-                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-                demand_matrix[zone, spec_gen]+=np_matrix_2[zone,spec_gen]*\
-                this_class_dictionary["SecondTripBasedFactor"]*this_time_dictionary["TimeFactor"]
-    
-    #return np.round(demand_matrix,4)
+    # Extract specified array size and store as NumPy array 
+    sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
+    demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
+
     return demand_matrix
 
 def create_trip_tod_indices(tod):
@@ -1349,6 +1338,17 @@ def run_assignments_parallel(project_name):
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod
     logging.debug(text)
 
+def add_group_quarters(hdf5_file_path, group_quarters_trips, tod):
+    ''' Add group quarters trips to DaySim trips. '''
+
+    # Open DaySim trip table
+    #daysim_trips = h5py.File(hdf5_file_path, "r+")
+    # Hard code this for testing
+    daysim_trips = h5py.File('R:/SoundCast/Inputs/2010/etc/survey_seed_trips', "r+")
+
+    # Open Group Quarter trip table
+    gq_trips = h5py.File(group_quarters_trips + tod + '.h5', "r+")
+
 
 def main():
     #Start Daysim-Emme Equilibration
@@ -1400,6 +1400,19 @@ def main():
         logging.debug(text)
 
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
 
+supplemental_loc = 'D:/soundcast/soundcat/outputs/supplemental/'
+
+
+#my_project = EmmeProject(project_name)
+
+#zonesDim = len(my_project.current_scenario.zone_numbers)
+#zones = my_project.current_scenario.zone_numbers
+
+# Replace the "load_external_trucks" function
+
+# Test with one scenario
+project_name = 'D:/soundcast/soundcat/projects/7to8/7to8.emp'
+run_assignments_parallel(project_name)

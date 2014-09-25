@@ -5,13 +5,26 @@ import time
 import gc
 import os
 import json
+import shutil
 
 skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/10to14.h5'
 base_skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/7to8.h5'
-trip_table_loc = 'outputs/prod_att.csv'
-crosswalk_dict = 'D:/soundcast/soundcat/inputs/skim_params/demand_crosswalk_ab_4k_dictionary'
-#hdf5_filename_dist = 'D:/soundcast/soundcat/test_h5_results.h5'
+trip_table_loc = 'D:/soundcast/soundcat/outputs/prod_att.csv'
+#crosswalk_dict = 'D:/soundcast/soundcat/inputs/skim_params/demand_crosswalk_ab_4k_dictionary'
+output_dir = 'D:/soundcast/soundcat/outputs/supplemental/'
+gq_directory = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters'
+hdf5_filename_dist = 'D:/soundcast/soundcat/outputs/supplemental/supplemental_'
+gq_trips_loc = 'D:/soundcast/soundcat/outputs/gc_prod_att.csv'
 
+
+
+trip_table = pd.read_csv(trip_table_loc, index_col="index")
+trip_table = pd.DataFrame(trip_table,dtype="float32")
+
+gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")
+gq_trip_table = pd.DataFrame(gq_trip_table,dtype="float32")
+
+# Iterations for fratar process in trip distribution
 bal_iters = 1
 
 # Define gravity model coefficients
@@ -19,20 +32,21 @@ autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # Load some VOT parameters for this...
 
 coeff = {'col': -0.1382, 'hbo': -0.1423, 'sch': -0.2290,
-         'hsp': -0.2223, 'wk1': -0.0858, 'wk2': -0.0775,
-         'wk3': -0.0740, 'wk4': -0.0629, 'oto': -0.1493, 'wko': -0.0910}
+         'hsp': -0.2223, 'hw1': -0.0858, 'hw2': -0.0775,
+         'hw3': -0.0740, 'hw4': -0.0629, 'oto': -0.1493, 'wko': -0.0910}
 
-mode_dict = {'svtl': {'hbw': 0.151087966, 'col': 0.005726962, 'sch': 0.00465709, 'hsp': 0.0591891, 
-                     'hbo': 0.16576724, 'wko': 0.08090121, 'oto': 0.085479633},
-             'h2tl': {'hbw': 0.012272062,'col': 0.000676537, 'sch': 0.016551551, 'hsp': 0.023584386,
-                     'hbo': 0.11446058, 'wko': 0.011265124, 'oto': 0.063657389},
-             'h3tl': {'hbw': 0.003068016, 'col': 0.000330402, 'sch': 0.024496924, 'hsp': 0.011029123,
-                     'hbo': 0.105366667, 'wko': 0.004940292, 'oto': 0.055491748}}
-
-# Need to update these values...
-###
-####
-###
+mode_dict = {'svtl': {'hbw': 0.2733, 'col': 0.0104, 'sch': 0.0084, 'hsp': 0.1071, 
+                     'hbo': 0.2999, 'wko': 0.1463, 'oto': 0.1546},
+             'h2tl': {'hbw': 0.0506,'col': 0.0028, 'sch': 0.0683, 'hsp': 0.0973,
+                     'hbo': 0.4721, 'wko': 0.0465, 'oto': 0.2625},
+             'h3tl': {'hbw': 0.0150, 'col': 0.0016, 'sch': 0.1197, 'hsp': 0.0405,
+                     'hbo': 0.5147, 'wko': 0.0241, 'oto': 0.2711},
+             'trnst': {'hbw': 0.5410,'col': 0.0488, 'sch': 0.0433, 'hsp': 0.0405,
+                     'hbo': 0.1543, 'wko': 0.1040, 'oto': 0.0681},
+             'walk': {'hbw': 0.0601,'col': 0.0039, 'sch': 0.1006, 'hsp': 0.0752,
+                     'hbo': 0.4157, 'wko': 0.1686, 'oto': 0.1759},
+             'bike': {'hbw': 0.3756,'col': 0.0199, 'sch': 0.1169, 'hsp': 0.0510,
+                     'hbo': 0.2799, 'wko': 0.0808, 'oto': 0.0759}}
 
 time_dict = {'svtl': {'5to6': 0.720, '6to7': 0.596, '7to8': 0.506, '8to9': 0.445,
                      '9to10': 0.510, '10to14': 0.513, '14to15': 0.487, '15to16': 0.426,
@@ -42,123 +56,51 @@ time_dict = {'svtl': {'5to6': 0.720, '6to7': 0.596, '7to8': 0.506, '8to9': 0.445
                      '16to17': 0.202, '17to18': 0.200, '18to20': 0.238, '20to5': 0.252},
              'h3tl': {'5to6': 0.062, '6to7': 0.075, '7to8': 0.142, '8to9': 0.208,
                      '9to10': 0.150, '10to14': 0.140, '14to15': 0.146, '15to16': 0.224,
-                     '16to17': 0.179, '17to18': 0.206, '18to20': 0.243, '20to5': 0.202}
+                     '16to17': 0.179, '17to18': 0.206, '18to20': 0.243, '20to5': 0.202},
+             'trnst': {'5to6': 0.070, '6to7': 0.129, '7to8': 0.083, '8to9': 0.053,
+                     '9to10': 0.038, '10to14': 0.026, '14to15': 0.027, '15to16': 0.034,
+                     '16to17': 0.059, '17to18': 0.067, '18to20': 0.029, '20to5': 0.022},
+             'walk': {'5to6': 0.035, '6to7': 0.047, '7to8': 0.064, '8to9': 0.094,
+                     '9to10': 0.093, '10to14': 0.099, '14to15': 0.106, '15to16': 0.103,
+                     '16to17': 0.073, '17to18': 0.061, '18to20': 0.077, '20to5': 0.072},
+             'bike': {'5to6': 0.011, '6to7': 0.012, '7to8': 0.014, '8to9': 0.018,
+                     '9to10': 0.012, '10to14': 0.006, '14to15': 0.010, '15to16': 0.012,
+                     '16to17': 0.010, '17to18': 0.014, '18to20': 0.014, '20to5': 0.008},
              }
 
-mode_list = ['svtl1', 'svtl2', 'svtl3', 'h2tl1', 'h2tl2', 'h2tl3', 'h3tl1', 'h3tl2', 'h3tl3']
+mode_list = ['svtl2', 'h2tl2', 'h3tl2', 'trnst', 'walk', 'bike']
 
 
              
 # Trip purpose shares by time of day, from 2006 PSRC HH Survey
-#####
-####
-### Fill this in...
-##
-#
-#purp_tod_dict = {'hbw' : {'5to6': 0.04659, '6to7': 0.105994, '7to8': 0.1528, '8to9': 0.0963,
-#                          '9to10': 0.039881, '10to14': 0.087311, '14to15': 0.059555, '16to17': 0.095013, 
-#                          '17to18':0.122922, '18to20': 0.091353, '20to5': 0.0664118},
-purp_tod_dict = {                 'col' : {'5to6': 0.0, '6to7': 0.0444, '7to8': 0.092063, '8to9': 0.119,
-                          '9to10': 0.1063492, '10to14': 0.22381, '14to15': 0.060317, '15to16': 0.049,
-                          '16to17': 0.065079, '17to18':0.073016, '18to20': 0.073016, '20to5': 0.093651}}
-####
-### Fill this in...
-##
-#
-
-# Load trip table
-trip_table = pd.read_csv(trip_table_loc)[:3700]
-trip_table = pd.DataFrame(trip_table,dtype="float32")
-
-# Allocate productions and attractions to times of day
-pro_dict = purp_tod_dict    # Hold all the TOD productions here
-att_dict = purp_tod_dict    # all TOD attractions here
-trip_purps = purp_tod_dict.keys()
-tods = purp_tod_dict['col'].keys()
+purp_tod_dict = {'col' : {'5to6': 0.0, '6to7': 0.044, '7to8': 0.092, '8to9': 0.119,
+                          '9to10': 0.106, '10to14': 0.224, '14to15': 0.060, '15to16': 0.049,
+                          '16to17': 0.065, '17to18':0.073, '18to20': 0.073, '20to5': 0.094},
+                 'sch' : {'5to6': 0.003, '6to7': 0.040, '7to8': 0.196, '8to9': 0.231,
+                          '9to10': 0.039, '10to14': 0.070, '14to15': 0.126, '15to16': 0.201,
+                          '16to17': 0.033, '17to18':0.039, '18to20': 0.017, '20to5': 0.006},
+                 'hsp' : {'5to6': 0.002, '6to7': 0.009, '7to8': 0.017, '8to9': 0.021,
+                          '9to10': 0.043, '10to14': 0.298, '14to15': 0.086, '15to16': 0.086,
+                          '16to17': 0.095, '17to18':0.095, '18to20': 0.154, '20to5': 0.095},
+                 'hbo' : {'5to6': 0.009, '6to7': 0.024, '7to8': 0.050, '8to9': 0.071,
+                          '9to10': 0.060, '10to14': 0.199, '14to15': 0.058, '15to16': 0.079,
+                          '16to17': 0.076, '17to18':0.091, '18to20': 0.158, '20to5': 0.125},
+                 'wko' : {'5to6': 0.008, '6to7': 0.029, '7to8': 0.066, '8to9': 0.067,
+                          '9to10': 0.062, '10to14': 0.330, '14to15': 0.078, '15to16': 0.090,
+                          '16to17': 0.105, '17to18':0.091, '18to20': 0.055, '20to5': 0.019},
+                 'oto' : {'5to6': 0.001, '6to7': 0.006, '7to8': 0.027, '8to9': 0.038,
+                          '9to10': 0.054, '10to14': 0.355, '14to15': 0.094, '15to16': 0.102,
+                          '16to17': 0.082, '17to18':0.074, '18to20': 0.106, '20to5': 0.060}}
 
 time_periods = time_dict['svtl'].keys()
 
-# Multiply trip-type-TOD shares by original productions and attractions
-for key, value in pro_dict.iteritems():
-    # Calculate productions by time of day
-    for tod in time_periods:
-        value[tod] *= trip_table[key + 'pro']
-    gc.collect()
-    # Returns dictionary of productions by TOD and trip purpose
-
-for key, value in att_dict.iteritems():
-    # Calculate productions by time of day
-    for tod in time_periods:
-        value[tod] *= trip_table[key + 'att']
-    gc.collect()
-    # Returns dictionary of productions by TOD and trip purpose
-
-#### Develop friction factors
- #Using coefficients estimated for trip-based model
- #   Assuming impedance skims are from AM peak for home-based work and home-based college trips. 
- #   Off-peak costs are assumed for all other trips.
- #   Choosing 8to9 for AM peak and 10to14 for off-peak.
- #   Also assuming the skims are for SOVs. 
-
-
-# Load skim container
-skim_file = h5py.File(skim_file_loc, "r")
-base_skim_file = h5py.File(base_skim_file_loc, "r")
-
-# Access the cost and time skims
-# import am non-hbw sov generalized cost skim matrix
-# divide skims by 100 since they had previously been converted to remove decimals
-cost_skim = pd.DataFrame(skim_file['Skims']['svtl1c'][:3700])/100
-cost_skim = cost_skim[[x for x in xrange(0,3700)]]
-time_skim = pd.DataFrame(skim_file['Skims']['svtl1t'][:3700])/100
-time_skim = time_skim[[x for x in xrange(0,3700)]]
-dist_skim = pd.DataFrame(base_skim_file['Skims']['svtl1d'][:3700])/100
-dist_skim = dist_skim[[x for x in xrange(0,3700)]]
-
-# Calculate friction factors for all trip purposes
-friction_fac_dic = {}
-for key, value in coeff.iteritems():
-    friction_fac_dic[key] = np.exp((coeff[key])*(cost_skim[0:3700][0:3700] \
-                                         + (dist_skim[0:3700][0:3700]*autoop*avotda)))
-    gc.collect()
-#### Distribute trips across each trip purpose and each time of day
-# Convert to long form
-
-trip_dict = {}
-for key, value in friction_fac_dic.iteritems():
-    trip_dict[key] = pd.DataFrame(value.unstack())
-    trip_dict[key] = trip_dict[key].reset_index()
-    trip_dict[key].columns = ['origin', 'destination','friction']
-    trip_dict[key]['origin'] += 1 
-    trip_dict[key]['destination'] += 1
-    gc.collect()
-# Create empty columns for processing and add to each trip table
-df = pd.DataFrame(np.ones([len(trip_dict['hbo']),3]))
-df = df.reset_index()    # Reindex
-df.columns = ["index", "alpha", "beta", 'trips']
-df = df[["alpha", "beta", 'trips']]
-
-# Define productions and attractions
-pro_dict = {} ; att_dict = {}
-for key, value in friction_fac_dic.iteritems():
-    pro_dict[key] = pd.DataFrame(trip_table[key + 'pro'][:3700])
-    pro_dict[key].index = [i for i in xrange(1, 3700 + 1)]
-    att_dict[key] = pd.DataFrame(trip_table[key + 'att'][:3700])
-    att_dict[key].index = pro_dict[key].index
-    gc.collect()
-# Join productions, attractions, and friction factors by trip purpose
-for key, value in trip_dict.iteritems():
-    print 'Processing trip purpose: ' + str(key)
-    trip_dict[key] = pd.DataFrame(trip_dict[key].join(df))
-    print 'Joining productions for ' + str(key)
-    trip_dict[key] = pd.DataFrame(trip_dict[key].join(pro_dict[key],'origin'))
-    print 'Joining attractions for ' + str(key)
-    trip_dict[key] = pd.DataFrame(trip_dict[key].join(att_dict[key],'destination'))
-    # Rename columns 
-    trip_dict[key].columns = ['origin', 'destination', 'friction', 'alpha', 'beta', 'trips', 'prod', 'attr']
-    gc.collect()
-# Clean up some dataframes...
-del pro_dict ; del att_dict ; del df ; del skim_file ; del base_skim_file
+def create_empty_tod_dict():
+    ''' Create an empty dataset matching structure of purp_tod_dict '''
+    key_dict = dict.fromkeys(purp_tod_dict.iterkeys(), 0 )
+    value_dict = purp_tod_dict.fromkeys(purp_tod_dict['hbo'], 0)
+    for key, value in key_dict.iteritems():
+        key_dict[key] = value_dict
+    return key_dict
 
 def calc_beta(df):
     ''' Calculate beta balancing term. '''
@@ -194,7 +136,7 @@ def error_check(df):
     balatt = balatt.sum()['trips']
     # Calculate error
     prodiff = np.abs(balpro - prod)
-    attdiff = np.abs(balatt[0:3700] - attr)
+    attdiff = np.abs(balatt[0:len(trip_table)] - attr)
     error = prodiff.sum() + attdiff.sum()
     return error
 
@@ -220,84 +162,309 @@ def json_to_dictionary(dict_name):
 
     return(my_dictionary)
 
-# Initialization
+# Multiply trip-type-TOD shares by original productions and attractions
+def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
+    for key, value in purp_tod_dict.items():
+        # Calculate productions by time of day
+        for tod in time_periods:
+            pro_dict_results[key][tod] = trip_table[key + 'pro'] * purp_tod_dict[key][tod]
+        gc.collect()
+    # Returns dictionary of productions by TOD and trip purpose
+    for key, value in purp_tod_dict.items():
+        # Calculate productions by time of day
+        for tod in time_periods:
+            att_dict_results[key][tod] = trip_table[key + 'att'] * purp_tod_dict[key][tod]
+        #gc.collect()
+    # Returns dictionary of attractions by TOD and trip purpose
+
+# Calculate friction factors for all trip purposes
+def calc_fric_fac(trip_table, cost_skim, dist_skim):
+    friction_fac_dic = {}
+    for key, value in coeff.iteritems():
+        friction_fac_dic[key] = np.exp((coeff[key])*(cost_skim[0:len(trip_table)][0:len(trip_table)] \
+                                             + (dist_skim[0:len(trip_table)][0:len(trip_table)]*autoop*avotda)))
+        gc.collect()
+    return friction_fac_dic
+
+#### Distribute trips across each trip purpose and each time of day
+trip_dict = {}
+def dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic):
+    for key, value in friction_fac_dic.iteritems():
+        trip_table_dic[key] = pd.DataFrame(value.unstack())    # Convert to long form
+        trip_table_dic[key] = trip_table_dic[key].reset_index()
+        trip_table_dic[key].columns = ['origin', 'destination','friction']
+        trip_table_dic[key]['origin'] += 1 
+        trip_table_dic[key]['destination'] += 1
+        gc.collect()
+
+    # Store index for converting back to matrix form 
+    global origin_dest_index
+    origin_dest_index = pd.DataFrame(trip_table_dic['hbo'][['origin','destination']])
+
+    # Create empty columns for processing and add to each trip table
+    df = pd.DataFrame(np.ones([len(trip_table_dic['hbo']),3]))
+    df = df.reset_index()    # Reindex
+    df.columns = ["index", "alpha", "beta", 'trips']
+    df = df[["alpha", "beta", 'trips']]
+
+    # Define productions and attractions
+    pro_dict = {} ; att_dict = {}
+    for key, value in friction_fac_dic.iteritems():
+        pro_dict[key] = pd.DataFrame(trip_table[key + 'pro'])
+        pro_dict[key].index = [i for i in xrange(1, len(trip_table) + 1)]
+        att_dict[key] = pd.DataFrame(trip_table[key + 'att'])
+        att_dict[key].index = pro_dict[key].index
+        gc.collect()
+    # Join productions, attractions, and friction factors by trip purpose
+    for key, value in trip_table_dic.iteritems():
+        print 'Processing trip purpose: ' + str(key)
+        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(df))
+        print 'Joining productions for ' + str(key)
+        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(pro_dict[key],'origin'))
+        print 'Joining attractions for ' + str(key)
+        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(att_dict[key],'destination'))
+        # Rename columns 
+        trip_table_dic[key].columns = ['origin', 'destination', 'friction', 'alpha', 'beta', 'trips', 'prod', 'attr']
+        gc.collect()
+
+    # Clean up some dataframes...
+    del pro_dict ; del att_dict ; del df 
+
 
 # Fratar
-iter = 0
-df_0 = {} ; df1 = {}; df2 = {}
-results = {}
-for key, value in trip_dict.iteritems():
-    print 'Balancing trip purpose: ' + str(key)
-    df_0[key] = pd.DataFrame(trip_dict[key], dtype="float32")
-    df1[key] = pd.DataFrame(calc_alpha(df_0[key]), dtype="float32")
-    df2[key] = pd.DataFrame(calc_beta(df1[key]), dtype="float32")
-    for x in xrange(0,bal_iters):
-        print "iteration " + str(x)
-        df1[key] = pd.DataFrame(calc_beta(df2[key]), dtype="float32")
-        #error = emme_error(df1[key],df2[key])
-        #print error
-        df2[key] = pd.DataFrame(calc_alpha(df1[key]), dtype="float32")
-        #error = emme_error(df1[key],df2[key])
-        #print error
-        gc.collect()
-    # Export the data and delete old DFs?
-    results[key] = pd.DataFrame(df2[key],dtype="float32")
-    del df2[key] ; del df1[key];
+def fratar(trip_dict):
+    iter = 0
+    df_0 = {} ; df1 = {}; df2 = {}
+    results = {}
+    for key, value in trip_dict.iteritems():
+        print 'Balancing trip purpose: ' + str(key)
+        df_0[key] = pd.DataFrame(trip_dict[key], dtype="float32")
+        df1[key] = pd.DataFrame(calc_alpha(df_0[key]), dtype="float32")
+        df2[key] = pd.DataFrame(calc_beta(df1[key]), dtype="float32")
+        for x in xrange(0,bal_iters):
+            print "iteration " + str(x)
+            df1[key] = pd.DataFrame(calc_beta(df2[key]), dtype="float32")
+            #error = emme_error(df1[key],df2[key])
+            #print error
+            df2[key] = pd.DataFrame(calc_alpha(df1[key]), dtype="float32")
+            #error = emme_error(df1[key],df2[key])
+            #print error
+            gc.collect()
+        # Export the data and delete old DFs?
+        results[key] = pd.DataFrame(df2[key],dtype="float32")
 
-del df_0; del df1; del df2; del trip_dict
-gc.collect()
-
-
-
-#### Distribute across modes
-
-final_results = {} ; trips_by_mode = {}
-#final = {}
-for key, value in mode_dict.iteritems():
-    print key
-    for purpose in ['hbo', 'sch', 'wko', 'oto', 'hbw', 'col']:
-        print purpose
-        # Use the same shares for HBW trips (for all income groups)
-        if purpose == 'hbw':
-            for incomeclass in ['wk1', 'wk2', 'wk3', 'wk4']:
-                final_results[purpose] = mode_dict[key]['hbw'] * results[incomeclass]['trips']
-                #print str(incomeclass) + ' final results = ' + str(final_results[key][0]) 
-        # all other trip types
-        else:
-            final_results[purpose] = mode_dict[key][purpose] * results[purpose]['trips']
-        print final_results[purpose][0]
-    # sum purposes across modes
-    trips_by_mode[key] = pd.DataFrame(sum([final_results[x] for x in final_results]))
+        del df2[key] ; del df1[key];
+    return results
+    # Clean up unused variables from memory
+    del df_0; del df1; del df2; del trip_dict
     gc.collect()
 
-del final_results ; del results
+#### Distribute across modes
+def dist_by_mode(results):
+    init_results = {} ; trips_by_mode = {}
+    #final = {}
+    for key, value in mode_dict.iteritems():
+        print key
+        for purpose in ['hbo', 'sch', 'wko', 'oto', 'col']:
+            print purpose
+            # Use the same shares for HBW trips (for all income groups)
+            if purpose == 'hbw':
+                for incomeclass in ['hw1', 'hw2', 'hw3', 'hw4']:
+                    init_results[purpose] = mode_dict[key]['hbw'] * results[incomeclass]['trips']
+                    #print str(incomeclass) + ' final results = ' + str(final_results[key][0]) 
+            # all other trip types
+            else:
+                init_results[purpose] = mode_dict[key][purpose] * results[purpose]['trips']
+            print init_results[purpose][0]
+        # sum purposes across modes
+        trips_by_mode[key] = pd.DataFrame(sum([init_results[x] for x in init_results]))
+        gc.collect()
+    return trips_by_mode 
+    del init_results ; del results
  
 # Distribute trips across times of day
-tod_df = {} ; trips_by_tod = {}
-for key, value in time_dict.iteritems():
-    for tod in time_periods:
-        tod_df[tod] = trips_by_mode[key] * time_dict[key][tod]
-    trips_by_tod[key] = tod_df
-
-# Distribute across income classes
-# see demand_crosswalk_ab_4k_dictionary.json
-
-crosswalk = json_to_dictionary(crosswalk_dict)
-#### Save as an H5 container
-# Assume that all trips are toll class? or no toll?
-
-df_final = {} ; df_inner = {}
-for key, value in crosswalk.iteritems():
-    if key not in mode_list:
-        pass
-    else:
+def dist_by_tod(trips_by_mode):
+    tod_df = {} ; trips_by_tod = {}
+    for key, value in time_dict.iteritems():
         for tod in time_periods:
-            df_inner[tod] = trips_by_tod[key[0:4]][tod]*value['FirstTripBasedFactor']
-        df_final[key] = df_inner
+            tod_df[tod] = trips_by_mode[key] * time_dict[key][tod]
+            print tod
+        trips_by_tod[key] = tod_df
+        tod_df = {}
+        print key
+    return trips_by_tod
+    del trips_by_mode
 
-# Convert back to matrix format???
 
-# Write results out to H5 format
-my_store = h5py.File(hdf5_filename_dist, "w-")
-my_store.create_dataset('test',data=df_final['svtl1']['5to6'])
-my_store.close()
+# Reformat as matrix
+def reformat_to_matrix(trips_by_tod):
+    matrix_trips = {}; matrix_trips_inner = {}
+    for key, value in trips_by_tod.iteritems():
+        print key
+        for tod in time_periods:
+            print tod
+            join_od_index = trips_by_tod[key][tod].join(origin_dest_index)
+            matrix_trips_inner[tod] = join_od_index.pivot(index='origin', columns='destination', values='trips')
+        matrix_trips[key] = matrix_trips_inner
+        matrix_trips_inner = {}
+    return matrix_trips
+    del _matrix_trips_inner ; del trips_by_tod
+
+def init_dir(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    os.mkdir(directory)
+
+# Sort files with modes in TOD H5 containers
+def export_to_hdf(matrix_trips, output_dir):
+    tod_matrices = {} ; tod_matrices_inner = {}
+    for tod in time_periods:
+        print tod
+        for key, value in matrix_trips.iteritems():
+            print key
+            tod_matrices_inner[key] = matrix_trips[key][tod]
+        tod_matrices[tod] = tod_matrices_inner
+        tod_matrices_inner = {}
+        # Save result to H5 format
+        my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
+        for key, value in matrix_trips.iteritems():
+            my_store.create_dataset(str(key), data=tod_matrices[tod][key])
+        my_store.close()
+    gc.collect()
+    del tod_matrices ; del tod_matrices_inner; del matrix_trips
+
+SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437, 
+                      "Military": 3625, "Military2": 2254, "Military3": 3517, "Military4": 3352, 
+                      "Military5": 3069, "Military6": 3495, "Military7": 389, "Military8": 3347, 
+                      "Military9": 3353}
+
+# Combine group quarters and special generators into single trip table
+def combine_trips(output_dir):
+    combined = {}
+    # import H5 files
+    for tod in purp_tod_dict['col'].keys():
+        mode_result = {}
+        # 
+        my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
+        # Loop through each TOD
+        ext_spg = h5py.File('D:/soundcast/soundcat/outputs/supplemental/ext_spg/' + str(tod) + '.h5', 'r')
+        group_quarters = h5py.File('D:/soundcast/soundcat/outputs/supplemental/group_quarters/' + str(tod) + '.h5', 'r')
+        # Loop through each mode
+        filtered = []
+        for mode in mode_dict.keys():
+            # Add placeholders to group quarters to make sure array sizes match
+            empty_rows = len(ext_spg[mode]) - len(group_quarters[mode])
+            # Append rows
+            gq = np.array(np.append(group_quarters[mode][:],
+                                    np.zeros([empty_rows,len(group_quarters[mode])]),
+                                    axis=0))
+            # Append columns
+            gq = np.array(np.append(gq,
+                                    np.zeros([len(ext_spg[mode]), empty_rows]),
+                                    axis=1))
+            filtered = np.empty_like(ext_spg[mode])
+            # Add only special generator rows
+            for key, value in SPECIAL_GENERATORS.iteritems():
+                # Add rows
+                filtered[value,:] = ext_spg[mode][value,:]
+                # Add columns
+                filtered[:,value] = ext_spg[mode][:,value]
+                # Combine with group quarters array
+                filtered += gq
+            # Add only external rows and columns
+            filtered[3700:][:] = ext_spg[mode][3700:][:]
+            filtered[:][3700:] = ext_spg[mode][:][3700:]
+            # Save mode result
+            mode_result[mode] = filtered
+            my_store.create_dataset(str(mode), data=mode_result[mode])
+        #combined[tod] = mode_result
+        my_store.close()
+        
+    #return combined
+
+
+    #tod_matrices = {} ; tod_matrices_inner = {}
+    #for tod in time_periods:
+    #    print tod
+    #    for key, value in matrix_trips.iteritems():
+    #        print key
+    #        tod_matrices_inner[key] = matrix_trips[key][tod]
+    #    tod_matrices[tod] = tod_matrices_inner
+    #    tod_matrices_inner = {}
+    #    # Save result to H5 format
+    #    my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
+    #    for key, value in matrix_trips.iteritems():
+            
+    #    my_store.close()
+
+
+def load_skims(trip_table, skim_file_loc, mode_name):
+    #define_fric_factors
+    skim_file = h5py.File(skim_file_loc, "r")
+    skim = pd.DataFrame(skim_file['Skims'][mode_name][:len(trip_table)])/100
+    skim = skim[[x for x in xrange(0,len(trip_table))]]
+    return skim
+    del skim_file
+
+# Access the cost and time skims
+# import am non-hbw sov generalized cost skim matrix
+# divide skims by 100 since they had previously been converted to remove decimals
+#cost_skim = pd.DataFrame(skim_file['Skims']['svtl1c'][:len(trip_table)])/100
+#cost_skim = cost_skim[[x for x in xrange(0,len(trip_table))]]
+#time_skim = pd.DataFrame(skim_file['Skims']['svtl1t'][:len(trip_table)])/100
+#time_skim = time_skim[[x for x in xrange(0,len(trip_table))]]
+#dist_skim = pd.DataFrame(base_skim_file['Skims']['svtl1d'][:len(trip_table)])/100
+#dist_skim = dist_skim[[x for x in xrange(0,len(trip_table))]]
+
+
+
+def crunch_the_numbers(trip_table, results_dir):
+    # all trips table
+    # load skims
+    cost_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1c')
+    #time_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1t')
+    dist_skim = load_skims(trip_table, base_skim_file_loc, mode_name='svtl1d')
+    ## Allocate productions and attractions to times of day
+    pro_dict = create_empty_tod_dict()    # Hold all the TOD productions here for general trips
+    att_dict = create_empty_tod_dict()    # all TOD attractions here
+    trip_purps = purp_tod_dict.keys()
+    tods = purp_tod_dict['col'].keys()
+    trips_by_tod(pro_dict, att_dict, trip_table)
+    print 1
+    friction_fac_dic = calc_fric_fac(trip_table, cost_skim, dist_skim)
+    trip_table_dic = {}
+    print 2
+    dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic)
+    del trip_table ; del friction_fac_dic
+    print 3
+    dist_trips = fratar(trip_table_dic)
+    del trip_table_dic
+    print 4
+    by_mode_results = dist_by_mode(dist_trips)
+    del dist_trips
+    print 5
+    by_tod_results = dist_by_tod(by_mode_results)
+    del by_mode_results
+    print 6
+    reformatted = reformat_to_matrix(by_tod_results)
+    del by_tod_results
+    print 7
+    export_to_hdf(reformatted, results_dir)
+    del reformatted
+    #return by_mode_results
+
+def main():
+    #init_dir(output_dir)
+
+    # Create trip table for externals and speciaskl generators
+    crunch_the_numbers(trip_table, results_dir = 'D:/soundcast/soundcat/outputs/supplemental/ext_spg')
+
+    # Create trip table for group quarters
+    crunch_the_numbers(gq_trip_table, results_dir = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters')
+
+    # Combine trips
+    combine_trips('D:/soundcast/soundcat/outputs/supplemental/')
+
+if __name__ == "__main__":
+    main()
+
