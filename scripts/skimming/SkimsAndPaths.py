@@ -20,10 +20,6 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from EmmeProject import *
 
-# Move this to input config ...
-group_quarters_trips = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters/'
-ext_spg_trips = 'D:/soundcast/soundcat/outputs/supplemental/ext_spg/'
-
 #Create a logging file to report model progress
 logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 
@@ -870,7 +866,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 def load_trucks_external(my_project, matrix_name, zonesDim):
 
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
-
+    hdf_file = h5py.File(hdf_auto_filename, "r")
     tod = my_project.tod
 
     time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary')
@@ -1338,18 +1334,6 @@ def run_assignments_parallel(project_name):
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod
     logging.debug(text)
 
-def add_group_quarters(hdf5_file_path, group_quarters_trips, tod):
-    ''' Add group quarters trips to DaySim trips. '''
-
-    # Open DaySim trip table
-    #daysim_trips = h5py.File(hdf5_file_path, "r+")
-    # Hard code this for testing
-    daysim_trips = h5py.File('R:/SoundCast/Inputs/2010/etc/survey_seed_trips', "r+")
-
-    # Open Group Quarter trip table
-    gq_trips = h5py.File(group_quarters_trips + tod + '.h5', "r+")
-
-
 def main():
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
@@ -1400,19 +1384,5 @@ def main():
         logging.debug(text)
 
 
-#if __name__ == "__main__":
-#    main()
-
-supplemental_loc = 'D:/soundcast/soundcat/outputs/supplemental/'
-
-
-#my_project = EmmeProject(project_name)
-
-#zonesDim = len(my_project.current_scenario.zone_numbers)
-#zones = my_project.current_scenario.zone_numbers
-
-# Replace the "load_external_trucks" function
-
-# Test with one scenario
-project_name = 'D:/soundcast/soundcat/projects/7to8/7to8.emp'
-run_assignments_parallel(project_name)
+if __name__ == "__main__":
+    main()

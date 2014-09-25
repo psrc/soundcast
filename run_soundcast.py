@@ -233,54 +233,64 @@ def clean_up():
             print file
 
 def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_template):
-     print "We're on iteration %d" % (iteration)
-     logfile.write("We're on iteration %d\r\n" % (iteration))
-     time_start = datetime.datetime.now()
-     logfile.write("starting run %s" %str((time_start)))
+    print "We're on iteration %d" % (iteration)
+    logfile.write("We're on iteration %d\r\n" % (iteration))
+    time_start = datetime.datetime.now()
+    logfile.write("starting run %s" %str((time_start)))
 
       ### RUN Truck Model ################################################################
-     if run_truck_model == True:
-         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-         if returncode != 0:
+    if run_truck_model == True:
+        returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+        if returncode != 0:
             sys.exit(1)
+
+      ### RUN Supplemental Trips ################################################################
+    ''' Adds external, special generator, and group quarters trips to DaySim outputs.'''
+    if run_supplemental_trips:
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+        if returncode != 0:
+           sys.exit(1)
+        #returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+        #if returncode != 0:
+        #   sys.exit(1)
      
      ### RUN DAYSIM ################################################################
-     if run_daysim == True:
-         if copy_shadow:
-             copy_shadow_price_file()
+    if run_daysim == True:
+        if copy_shadow:
+            copy_shadow_price_file()
 
-         daysim_sample(recipr_sample, configuration_template)
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-         if returncode != 0:
-             sys.exit(1)
+        daysim_sample(recipr_sample, configuration_template)
+        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        if returncode != 0:
+            sys.exit(1)
 
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
+        time_daysim = datetime.datetime.now()
+        print time_daysim
+        logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
 
      #### ASSIGNMENTS ###############################################################
-     if run_skims_and_paths == True:
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-         print 'return code from skims and paths is ' + str(returncode)
-         if returncode != 0:
-             returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-             if returncode != 0: 
-                  sys.exit(1)
-                  print 'EMME problems! Why?'
+    if run_skims_and_paths == True:
+        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+        print 'return code from skims and paths is ' + str(returncode)
+        if returncode != 0:
+            returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+            if returncode != 0: 
+                 sys.exit(1)
+                 print 'EMME problems! Why?'
 
-     if iteration > 0 & recipr_sample == 1:
-        con_file = open('inputs/converge.txt', 'r')
-        converge = json.load(con_file)
-        if converge == 'stop':
-            print "done"
-            con_file.close()
-        print 'keep going'
-        con_file.close()
+    if iteration > 0 & recipr_sample == 1:
+       con_file = open('inputs/converge.txt', 'r')
+       converge = json.load(con_file)
+       if converge == 'stop':
+           print "done"
+           con_file.close()
+       print 'keep going'
+       con_file.close()
 
      
-     time_assign = datetime.datetime.now()
-     print time_assign
-     logfile.write("ending assignment %s\r\n" %str((time_assign)))
+    time_assign = datetime.datetime.now()
+    print time_assign
+    logfile.write("ending assignment %s\r\n" %str((time_assign)))
 
      ##print '###### Finished running assignments:',time_assign - time_daysim
 

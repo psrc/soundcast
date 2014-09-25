@@ -7,29 +7,22 @@ import os
 import json
 import shutil
 
-skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/10to14.h5'
-base_skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/7to8.h5'
-trip_table_loc = 'D:/soundcast/soundcat/outputs/prod_att.csv'
-#crosswalk_dict = 'D:/soundcast/soundcat/inputs/skim_params/demand_crosswalk_ab_4k_dictionary'
-output_dir = 'D:/soundcast/soundcat/outputs/supplemental/'
-gq_directory = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters'
-hdf5_filename_dist = 'D:/soundcast/soundcat/outputs/supplemental/supplemental_'
-gq_trips_loc = 'D:/soundcast/soundcat/outputs/gc_prod_att.csv'
-
-
-
+# Load external and special generator trips into dataframe
 trip_table = pd.read_csv(trip_table_loc, index_col="index")
 trip_table = pd.DataFrame(trip_table,dtype="float32")
 
+# Load group quarters trips into dataframe
 gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")
 gq_trip_table = pd.DataFrame(gq_trip_table,dtype="float32")
 
 # Iterations for fratar process in trip distribution
-bal_iters = 1
+bal_iters = 5
+
+# Load in JSON inputs
 
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
-avotda = 0.0303    # Load some VOT parameters for this...
+avotda = 0.0303    # VOT
 
 coeff = {'col': -0.1382, 'hbo': -0.1423, 'sch': -0.2290,
          'hsp': -0.2223, 'hw1': -0.0858, 'hw2': -0.0775,
@@ -92,8 +85,6 @@ purp_tod_dict = {'col' : {'5to6': 0.0, '6to7': 0.044, '7to8': 0.092, '8to9': 0.1
                           '9to10': 0.054, '10to14': 0.355, '14to15': 0.094, '15to16': 0.102,
                           '16to17': 0.082, '17to18':0.074, '18to20': 0.106, '20to5': 0.060}}
 
-time_periods = time_dict['svtl'].keys()
-
 def create_empty_tod_dict():
     ''' Create an empty dataset matching structure of purp_tod_dict '''
     key_dict = dict.fromkeys(purp_tod_dict.iterkeys(), 0 )
@@ -155,15 +146,15 @@ def emme_error(df1,df2):
     return error
 
 def json_to_dictionary(dict_name):
-
-    #Determine the Path to the input files and load them
+    ''' Loads input files as dictionary '''
     input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
 
-# Multiply trip-type-TOD shares by original productions and attractions
 def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
+    ''' Multiply trip-type-TOD shares by original productions and attractions.
+        Returns dictionary of attractions by TOD and trip purpose. '''
     for key, value in purp_tod_dict.items():
         # Calculate productions by time of day
         for tod in time_periods:
@@ -175,10 +166,9 @@ def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
         for tod in time_periods:
             att_dict_results[key][tod] = trip_table[key + 'att'] * purp_tod_dict[key][tod]
         #gc.collect()
-    # Returns dictionary of attractions by TOD and trip purpose
 
-# Calculate friction factors for all trip purposes
 def calc_fric_fac(trip_table, cost_skim, dist_skim):
+    ''' Calculate friction factors for all trip purposes '''
     friction_fac_dic = {}
     for key, value in coeff.iteritems():
         friction_fac_dic[key] = np.exp((coeff[key])*(cost_skim[0:len(trip_table)][0:len(trip_table)] \
@@ -186,9 +176,9 @@ def calc_fric_fac(trip_table, cost_skim, dist_skim):
         gc.collect()
     return friction_fac_dic
 
-#### Distribute trips across each trip purpose and each time of day
-trip_dict = {}
 def dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic):
+    ''' Distribute trips across each trip purpose and each time of day '''
+    trip_dict = {}
     for key, value in friction_fac_dic.iteritems():
         trip_table_dic[key] = pd.DataFrame(value.unstack())    # Convert to long form
         trip_table_dic[key] = trip_table_dic[key].reset_index()
@@ -259,8 +249,8 @@ def fratar(trip_dict):
     del df_0; del df1; del df2; del trip_dict
     gc.collect()
 
-#### Distribute across modes
 def dist_by_mode(results):
+    ''' Distribute trips across modes '''
     init_results = {} ; trips_by_mode = {}
     #final = {}
     for key, value in mode_dict.iteritems():
@@ -282,8 +272,8 @@ def dist_by_mode(results):
     return trips_by_mode 
     del init_results ; del results
  
-# Distribute trips across times of day
 def dist_by_tod(trips_by_mode):
+    ''' Distribute trips across times of day '''
     tod_df = {} ; trips_by_tod = {}
     for key, value in time_dict.iteritems():
         for tod in time_periods:
@@ -333,11 +323,6 @@ def export_to_hdf(matrix_trips, output_dir):
     gc.collect()
     del tod_matrices ; del tod_matrices_inner; del matrix_trips
 
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437, 
-                      "Military": 3625, "Military2": 2254, "Military3": 3517, "Military4": 3352, 
-                      "Military5": 3069, "Military6": 3495, "Military7": 389, "Military8": 3347, 
-                      "Military9": 3353}
-
 # Combine group quarters and special generators into single trip table
 def combine_trips(output_dir):
     combined = {}
@@ -347,8 +332,8 @@ def combine_trips(output_dir):
         # 
         my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
         # Loop through each TOD
-        ext_spg = h5py.File('D:/soundcast/soundcat/outputs/supplemental/ext_spg/' + str(tod) + '.h5', 'r')
-        group_quarters = h5py.File('D:/soundcast/soundcat/outputs/supplemental/group_quarters/' + str(tod) + '.h5', 'r')
+        ext_spg = h5py.File('outputs/supplemental/ext_spg/' + str(tod) + '.h5', 'r')
+        group_quarters = h5py.File('outputs/supplemental/group_quarters/' + str(tod) + '.h5', 'r')
         # Loop through each mode
         filtered = []
         for mode in mode_dict.keys():
@@ -380,24 +365,6 @@ def combine_trips(output_dir):
         #combined[tod] = mode_result
         my_store.close()
         
-    #return combined
-
-
-    #tod_matrices = {} ; tod_matrices_inner = {}
-    #for tod in time_periods:
-    #    print tod
-    #    for key, value in matrix_trips.iteritems():
-    #        print key
-    #        tod_matrices_inner[key] = matrix_trips[key][tod]
-    #    tod_matrices[tod] = tod_matrices_inner
-    #    tod_matrices_inner = {}
-    #    # Save result to H5 format
-    #    my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
-    #    for key, value in matrix_trips.iteritems():
-            
-    #    my_store.close()
-
-
 def load_skims(trip_table, skim_file_loc, mode_name):
     #define_fric_factors
     skim_file = h5py.File(skim_file_loc, "r")
@@ -406,23 +373,10 @@ def load_skims(trip_table, skim_file_loc, mode_name):
     return skim
     del skim_file
 
-# Access the cost and time skims
-# import am non-hbw sov generalized cost skim matrix
-# divide skims by 100 since they had previously been converted to remove decimals
-#cost_skim = pd.DataFrame(skim_file['Skims']['svtl1c'][:len(trip_table)])/100
-#cost_skim = cost_skim[[x for x in xrange(0,len(trip_table))]]
-#time_skim = pd.DataFrame(skim_file['Skims']['svtl1t'][:len(trip_table)])/100
-#time_skim = time_skim[[x for x in xrange(0,len(trip_table))]]
-#dist_skim = pd.DataFrame(base_skim_file['Skims']['svtl1d'][:len(trip_table)])/100
-#dist_skim = dist_skim[[x for x in xrange(0,len(trip_table))]]
-
-
-
 def crunch_the_numbers(trip_table, results_dir):
-    # all trips table
+    time_periods = time_dict['svtl'].keys()
     # load skims
     cost_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1c')
-    #time_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1t')
     dist_skim = load_skims(trip_table, base_skim_file_loc, mode_name='svtl1d')
     ## Allocate productions and attractions to times of day
     pro_dict = create_empty_tod_dict()    # Hold all the TOD productions here for general trips
@@ -430,40 +384,37 @@ def crunch_the_numbers(trip_table, results_dir):
     trip_purps = purp_tod_dict.keys()
     tods = purp_tod_dict['col'].keys()
     trips_by_tod(pro_dict, att_dict, trip_table)
-    print 1
     friction_fac_dic = calc_fric_fac(trip_table, cost_skim, dist_skim)
     trip_table_dic = {}
-    print 2
     dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic)
     del trip_table ; del friction_fac_dic
-    print 3
     dist_trips = fratar(trip_table_dic)
     del trip_table_dic
-    print 4
     by_mode_results = dist_by_mode(dist_trips)
     del dist_trips
-    print 5
     by_tod_results = dist_by_tod(by_mode_results)
     del by_mode_results
-    print 6
     reformatted = reformat_to_matrix(by_tod_results)
     del by_tod_results
-    print 7
     export_to_hdf(reformatted, results_dir)
     del reformatted
-    #return by_mode_results
 
 def main():
-    #init_dir(output_dir)
+    # Initialize directory for storing HDF5 output
+    for dir in [output_dir, ext_spg_dir, gq_directory]:
+        init_dir(dir)
 
-    # Create trip table for externals and speciaskl generators
-    crunch_the_numbers(trip_table, results_dir = 'D:/soundcast/soundcat/outputs/supplemental/ext_spg')
+    # Create trip table for externals and special generators
+    crunch_the_numbers(trip_table, results_dir = ext_spg_dir)
 
     # Create trip table for group quarters
-    crunch_the_numbers(gq_trip_table, results_dir = 'D:/soundcast/soundcat/outputs/supplemental/group_quarters')
+    crunch_the_numbers(gq_trip_table, results_dir = gq_directory)
 
-    # Combine trips
-    combine_trips('D:/soundcast/soundcat/outputs/supplemental/')
+    # Combine external, special gen., and group quarters trips
+    combine_trips(output_dir = 'outputs/supplemental/')
+
+    # Clean up separate H5 files
+    # Delete all but combined H5 files?
 
 if __name__ == "__main__":
     main()

@@ -1,105 +1,47 @@
-import array as _array
-import inro.emme.desktop.app as app
-import inro.modeller as _m
-import inro.emme.matrix as ematrix
-import inro.emme.database.matrix
-import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
 import pandas as pd
-import time
 import os,sys
-import Tkinter, tkFileDialog
-import multiprocessing as mp
-import subprocess
-from multiprocessing import Pool
 import h5py
-import collections
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
-# Load trip rate inputs for households and attractors
-LOW_STATION = 3733
-HIGH_STATION = 3750
-LOW_PNR = 3751
-HIGH_PNR = 4000
-HIGH_TAZ = 3700
-hh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/landuse/tazdata.in'
-pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/' 
-externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
-trip_table_loc = 'D:/soundcast/soundcat/outputs/prod_att.csv'
-gq_trips_loc = 'D:/soundcast/soundcat/outputs/gc_prod_att.csv'
-
-inc_size_workers_dict = {"inc1_size_workers" : {"start" : 14, "end" : 26,
-                                                "hhs" : [], "share" : [], 
-                                                "factored": [], "inc" : "inc1"},
-                         "inc2_size_workers" : {"start" : 27, "end" : 39,
-                                                "hhs" : [], "share" : [], 
-                                                "factored": [], "inc" : "inc2"},
-                         "inc3_size_workers" : {"start" : 40, "end" : 52,
-                                                "hhs" : [], "share" : [], 
-                                                "factored": [], "inc" : "inc3"},
-                         "inc4_size_workers" : {"start" : 53, "end" : 65,
-                                                "hhs" : [], "share" : [], 
-                                                "factored": [], "inc" : "inc4"}}
-
-inc_k12_dict = {"inc1_k12" : {"start" : 70, "end" : 73, 
-                              "hhs" : [], "share" : [], 
-                              "factored": [], "inc" : "inc1"},
-                "inc2_k12" : {"start" : 74, "end" : 77, 
-                              "hhs" : [], "share" : [], 
-                              "factored": [], "inc" : "inc2"},
-                "inc3_k12" : {"start" : 78, "end" : 81, 
-                              "hhs" : [], "share" : [], 
-                              "factored": [], "inc" : "inc3"},
-                "inc4_k12" : {"start" : 82, "end" : 85, 
-                              "hhs" : [], "share" : [], 
-                              "factored": [], "inc" : "inc4"}}
-
-inc_college_dict = {"inc1_college" : {"start" : 89, "end" : 91, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc1"},
-                    "inc2_college" : {"start" : 92, "end" : 94, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc2"},
-                    "inc3_college" : {"start" : 95, "end" : 97, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc3"},
-                    "inc4_college" : {"start" : 98, "end" : 100, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc4"}}
-
-inc_veh_dict = {"inc1_veh" : {"start" : 201, "end" : 264, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc1"},
-                    "inc2_veh" : {"start" : 265, "end" : 328, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc2"},
-                    "inc3_veh" : {"start" : 329, "end" : 392, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc3"},
-                    "inc4_veh" : {"start" : 393, "end" : 456, 
-                                      "hhs" : [], "share" : [], 
-                                      "factored": [], "inc" : "inc4"}}
-
+# Initialize working dictionaries
 hhs_by_income = {"inc1" : { "column" : "102", "hhs" : []},
                  "inc2" : { "column" : "103", "hhs" : []},
                  "inc3" : { "column" : "104", "hhs" : []},
                  "inc4" : { "column" : "105", "hhs" : []}}
 
-trip_col = ["hbwpro", "colpro", "hsppro", "hbopro",
-            "schpro", "wkopro", "otopro", "empty1",
-            "hbwatt", "colatt", "hspatt", "hboatt", 
-            "schatt", "wkoatt", "otoatt", "empty2",
-            "hw1pro", "hw2pro", "hw3pro", "hw4pro", 
-            "hw1att", "hw2att", "hw3att", "hw4att"]
+# Trip purposes for column names
+trip_col = ["hbwpro", "colpro", "hsppro", "hbopro", "schpro", "wkopro", "otopro", "empty1",
+            "hbwatt", "colatt", "hspatt", "hboatt", "schatt", "wkoatt", "otoatt", "empty2",
+            "hw1pro", "hw2pro", "hw3pro", "hw4pro", "hw1att", "hw2att", "hw3att", "hw4att"]
 
 trip_purp_col = {"hbwpro": "hbwatt", "colpro": "colatt", "hsppro": "hspatt",
                  "hbopro": "hboatt", "schpro": "schatt", "wkopro": "wkoatt",
-                  "otopro": "otoatt", "empty1": "empty2", "hw1pro": "hw1att", 
-                  "hw2pro": "hw2att", "hw3pro": "hw3att", "hw4pro": "hw4att"}
+                 "otopro": "otoatt", "empty1": "empty2", "hw1pro": "hw1att", 
+                 "hw2pro": "hw2att", "hw3pro": "hw3att", "hw4pro": "hw4att"}
+
+def json_to_dictionary(dict_name):
+    ''' loads JSON input as dictionary '''
+    input_filename = os.path.join('D:/soundcast/soundcat/inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    my_dictionary = json.load(open(input_filename))
+    return(my_dictionary)
+
+def init_dir(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+# Load JSON inputs
+inc_size_workers_dict = json_to_dictionary('inc_size_workers_dict')
+inc_k12_dict = json_to_dictionary('inc_k12_dict')
+inc_college_dict = json_to_dictionary('inc_college_dict')
+inc_veh_dict = json_to_dictionary('inc_veh_dict')
+
+# Delete existing supplemental trip tables
+for file in [trip_table_loc, gq_trips_loc]:
+    init_dir(file)
 
 def process_inputs(file_loc, start_row, col_names, clean_column, pivot_fields, reorder):
     ''' Load Emme-formated input files as cleaned dataframe '''
@@ -201,7 +143,7 @@ gq_trips = pd.DataFrame(np.zeros([3700,24]),
 
 # Compute household trip rates by TAZ and by purpose
 for purpose in xrange(1, 24 + 1):
-    print 'purpose ' + str(purpose)
+    print 'Computing trip rates by purpose (of 24): ' + str(purpose)
     trip_rate = pd.DataFrame(hh_trip['rate'].loc[str(purpose)])
     trip_rate.index = [str(i) for i in xrange(1, 100 + 1)]
     trip_rate.columns = ['col']
@@ -212,7 +154,7 @@ for purpose in xrange(1, 24 + 1):
     gq_trip_rate.index = [str(i) for i in xrange(122, 124 + 1)]
     gq_trip_rate.columns = ['col']
     for zone in xrange(1,3700 + 1):
-        print 'zone ' + str(zone)
+        #print 'zone ' + str(zone)
         hhs1 = pd.DataFrame(hhs.iloc[zone-1])
         nonhhs1 = pd.DataFrame(nonhhs.iloc[zone-1])
         gq1 = pd.DataFrame(gq.iloc[zone-1])
@@ -318,6 +260,12 @@ trip_table = trip_table.sort_index(axis=0)
 gq_append = gq_append.fillna(0)
 trip_table = trip_table.fillna(0)
 
-# Write results to CSV
-trip_table.to_csv(trip_table_loc, index_label="index")
-gq_append.to_csv(gq_trips_loc, index_label="index")
+def main():
+    print "Calculating supplemental trips generated by exterals, special generators, and group quarters."
+
+    # Write results to CSV
+    trip_table.to_csv(trip_table_loc, index_label="index")
+    gq_append.to_csv(gq_trips_loc, index_label="index")
+
+if __name__ == "__main__":
+    main()
