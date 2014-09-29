@@ -12,7 +12,7 @@ network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buf
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 # Script and subprocess controls 
-run_parcel_buffering = True
+run_parcel_buffering = False
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
@@ -45,7 +45,7 @@ good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamo
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
-STOP_THRESHOLD = 0.02
+STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
