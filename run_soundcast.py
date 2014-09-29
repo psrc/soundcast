@@ -278,16 +278,6 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
              if returncode != 0: 
                   sys.exit(1)
                   print 'EMME problems! Why?'
-
-     if iteration > 0 & recipr_sample == 1:
-        con_file = open('inputs/converge.txt', 'r')
-        converge = json.load(con_file)
-        if converge == 'stop':
-            print "done"
-            con_file.close()
-        print 'keep going'
-        con_file.close()
-
      
      time_assign = datetime.datetime.now()
      print time_assign
