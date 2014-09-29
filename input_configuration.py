@@ -137,6 +137,7 @@ destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
 
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
+supplemental_loc = 'outputs/supplemental/'
 hdf_auto_filename = 'inputs/4k/auto.h5'
 hdf_transit_filename = 'inputs/4k/transit.h5' 
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
@@ -160,7 +161,6 @@ gq_trips_loc = 'outputs/gc_prod_att.csv'
 
 # Iterations for fratar process in trip distribution
 bal_iters = 5
-
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
