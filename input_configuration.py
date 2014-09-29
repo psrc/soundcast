@@ -10,7 +10,6 @@ master_project = 'LoadTripTables'
 base_inputs = 'R:/soundcast/inputs/' + scenario_name
 network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
-supplemental_loc = 'outputs/supplemental/'
 
 # Script and subprocess controls 
 run_parcel_buffering = False
@@ -78,6 +77,10 @@ project_list = ['Projects/5to6/5to6.emp',
                       'Projects/18to20/18to20.emp',
                       'Projects/20to5/20to5.emp' ]
 
+## Alternate creation for project_list
+#tods = sound_cast_net_dict.keys()
+#proj_list = b = ['Projects/' + tod + '/' + tod + '.emp.' for tod in tods]
+
 ## HDF5 Groups and Subgroups
 hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
 hdf5_emme_subgroups = ["5to6","6to7","7to8","8to9","9to10","10to14","14to15","15to16","16to17","17to18","18to20","20to5"]
@@ -144,7 +147,7 @@ nonhh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/nonhh_t
 puma_taz_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/ensembles/puma00.ens'
 taz_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/landuse/tazdata.in'
 pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/' 
-externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/externals.csv'
+externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
 
 # Assuming AM skims (8 to 9 AM)
 skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/8to9.h5'
@@ -154,6 +157,13 @@ output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
 gq_trips_loc = 'outputs/gc_prod_att.csv'
+
+# Iterations for fratar process in trip distribution
+bal_iters = 5
+
+# Define gravity model coefficients
+autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
+avotda = 0.0303    # VOT
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
