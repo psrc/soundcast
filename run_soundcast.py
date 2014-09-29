@@ -246,8 +246,8 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
             sys.exit(1)
 
       ### RUN Supplemental Trips ################################################################
-    ''' Adds external, special generator, and group quarters trips to DaySim outputs.'''
-    if run_supplemental_trips:
+    #''' Adds external, special generator, and group quarters trips to DaySim outputs.'''
+     if run_supplemental_trips:
         returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
         if returncode != 0:
            sys.exit(1)
