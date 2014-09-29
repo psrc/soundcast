@@ -13,32 +13,29 @@ network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 # Script and subprocess controls 
 run_parcel_buffering = False
-run_copy_daysim_code = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
-run_copy_inputs = False
-run_import_networks = False
-run_skims_and_paths_seed_trips = False
-should_build_shadow_price = False
+run_copy_daysim_code = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
+run_copy_inputs = True
+run_import_networks = True
+run_skims_and_paths_seed_trips = True
+should_build_shadow_price = True
 run_skims_and_paths = True
-run_truck_model = False
-run_supplemental_trips = True
-run_daysim = False
-run_network_summary = False
-run_soundcast_summary = False
+run_truck_model = True
+run_daysim = True
+run_network_summary = True
+run_soundcast_summary = True
 # Only update parking for future-year analysis!
 run_update_parking = False
 
 # Model iterations, population sampling, log files, etc.
-
-# Run a few iterations of assignment and daysim to build skims before shadow prices
-pre_shadow_sample = [20, 10]
+pop_sample = [10, 5, 1, 1, 1, 1, 1, 1, 1]
 # start building shadow prices - only run work locations
-shadow_work = [1, 1, 1, 1, 1, 1]
+shadow_work = [1, 1, 1, 1, 1, 1, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
-pop_sample = [1, 1, 1, 1]
+
 
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
@@ -48,7 +45,7 @@ good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamo
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
-STOP_THRESHOLD = 0.02
+STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50              # Assignment Convergence Criteria
 b_rel_gap = 0.0001         # Assignment Convergence Criteria
@@ -168,6 +165,7 @@ avotda = 0.0303    # VOT
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
 
+
 #################################### NETWORK IMPORTER ####################################
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
@@ -255,7 +253,6 @@ truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup
 
 origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
                    'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
-
 					
 #################################### SOUNDCAST SUMMARY ####################################
 h5_results_file = 'outputs/daysim_outputs.h5'
@@ -270,10 +267,10 @@ parcel_decay_file = 'inputs/buffered_parcels.dat'
 
 
 # Specific reports to run
-run_daysim_report = False
-run_day_pattern_report = False
-run_mode_choice_report = False
-run_dest_choice_report = False
-run_long_term_report = False
-run_time_choice_report = False
-run_district_summary_report = False
+run_daysim_report = True
+run_day_pattern_report = True
+run_mode_choice_report = True
+run_dest_choice_report = True
+run_long_term_report = True
+run_time_choice_report = True
+run_district_summary_report = True
