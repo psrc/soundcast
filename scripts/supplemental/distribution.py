@@ -6,6 +6,7 @@ import gc
 import os
 import json
 import shutil
+from input_configuration import *
 
 # Load external and special generator trips into dataframe
 trip_table = pd.read_csv(trip_table_loc, index_col="index")
@@ -15,75 +16,20 @@ trip_table = pd.DataFrame(trip_table,dtype="float32")
 gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")
 gq_trip_table = pd.DataFrame(gq_trip_table,dtype="float32")
 
-# Iterations for fratar process in trip distribution
-bal_iters = 5
+def json_to_dictionary(dict_name):
+    ''' Loads input files as dictionary '''
+    input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    my_dictionary = json.load(open(input_filename))
 
-# Load in JSON inputs
+    return(my_dictionary)
 
-# Define gravity model coefficients
-autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
-avotda = 0.0303    # VOT
-
-coeff = {'col': -0.1382, 'hbo': -0.1423, 'sch': -0.2290,
-         'hsp': -0.2223, 'hw1': -0.0858, 'hw2': -0.0775,
-         'hw3': -0.0740, 'hw4': -0.0629, 'oto': -0.1493, 'wko': -0.0910}
-
-mode_dict = {'svtl': {'hbw': 0.2733, 'col': 0.0104, 'sch': 0.0084, 'hsp': 0.1071, 
-                     'hbo': 0.2999, 'wko': 0.1463, 'oto': 0.1546},
-             'h2tl': {'hbw': 0.0506,'col': 0.0028, 'sch': 0.0683, 'hsp': 0.0973,
-                     'hbo': 0.4721, 'wko': 0.0465, 'oto': 0.2625},
-             'h3tl': {'hbw': 0.0150, 'col': 0.0016, 'sch': 0.1197, 'hsp': 0.0405,
-                     'hbo': 0.5147, 'wko': 0.0241, 'oto': 0.2711},
-             'trnst': {'hbw': 0.5410,'col': 0.0488, 'sch': 0.0433, 'hsp': 0.0405,
-                     'hbo': 0.1543, 'wko': 0.1040, 'oto': 0.0681},
-             'walk': {'hbw': 0.0601,'col': 0.0039, 'sch': 0.1006, 'hsp': 0.0752,
-                     'hbo': 0.4157, 'wko': 0.1686, 'oto': 0.1759},
-             'bike': {'hbw': 0.3756,'col': 0.0199, 'sch': 0.1169, 'hsp': 0.0510,
-                     'hbo': 0.2799, 'wko': 0.0808, 'oto': 0.0759}}
-
-time_dict = {'svtl': {'5to6': 0.720, '6to7': 0.596, '7to8': 0.506, '8to9': 0.445,
-                     '9to10': 0.510, '10to14': 0.513, '14to15': 0.487, '15to16': 0.426,
-                     '16to17': 0.476, '17to18': 0.453, '18to20': 0.397, '20to5': 0.444},
-             'h2tl': {'5to6': 0.101, '6to7': 0.141, '7to8': 0.191, '8to9': 0.183,
-                     '9to10': 0.195, '10to14': 0.216, '14to15': 0.224, '15to16': 0.201,
-                     '16to17': 0.202, '17to18': 0.200, '18to20': 0.238, '20to5': 0.252},
-             'h3tl': {'5to6': 0.062, '6to7': 0.075, '7to8': 0.142, '8to9': 0.208,
-                     '9to10': 0.150, '10to14': 0.140, '14to15': 0.146, '15to16': 0.224,
-                     '16to17': 0.179, '17to18': 0.206, '18to20': 0.243, '20to5': 0.202},
-             'trnst': {'5to6': 0.070, '6to7': 0.129, '7to8': 0.083, '8to9': 0.053,
-                     '9to10': 0.038, '10to14': 0.026, '14to15': 0.027, '15to16': 0.034,
-                     '16to17': 0.059, '17to18': 0.067, '18to20': 0.029, '20to5': 0.022},
-             'walk': {'5to6': 0.035, '6to7': 0.047, '7to8': 0.064, '8to9': 0.094,
-                     '9to10': 0.093, '10to14': 0.099, '14to15': 0.106, '15to16': 0.103,
-                     '16to17': 0.073, '17to18': 0.061, '18to20': 0.077, '20to5': 0.072},
-             'bike': {'5to6': 0.011, '6to7': 0.012, '7to8': 0.014, '8to9': 0.018,
-                     '9to10': 0.012, '10to14': 0.006, '14to15': 0.010, '15to16': 0.012,
-                     '16to17': 0.010, '17to18': 0.014, '18to20': 0.014, '20to5': 0.008},
-             }
-
+# Import JSON inputs
+coeff = json_to_dictionary('gravity_model')
+mode_dict = json_to_dictionary('mode_dict')
+time_dict = json_to_dictionary('time_dict')
+purp_tod_dict = json_to_dictionary('purp_tod_dict')
 mode_list = ['svtl2', 'h2tl2', 'h3tl2', 'trnst', 'walk', 'bike']
-
-
-             
-# Trip purpose shares by time of day, from 2006 PSRC HH Survey
-purp_tod_dict = {'col' : {'5to6': 0.0, '6to7': 0.044, '7to8': 0.092, '8to9': 0.119,
-                          '9to10': 0.106, '10to14': 0.224, '14to15': 0.060, '15to16': 0.049,
-                          '16to17': 0.065, '17to18':0.073, '18to20': 0.073, '20to5': 0.094},
-                 'sch' : {'5to6': 0.003, '6to7': 0.040, '7to8': 0.196, '8to9': 0.231,
-                          '9to10': 0.039, '10to14': 0.070, '14to15': 0.126, '15to16': 0.201,
-                          '16to17': 0.033, '17to18':0.039, '18to20': 0.017, '20to5': 0.006},
-                 'hsp' : {'5to6': 0.002, '6to7': 0.009, '7to8': 0.017, '8to9': 0.021,
-                          '9to10': 0.043, '10to14': 0.298, '14to15': 0.086, '15to16': 0.086,
-                          '16to17': 0.095, '17to18':0.095, '18to20': 0.154, '20to5': 0.095},
-                 'hbo' : {'5to6': 0.009, '6to7': 0.024, '7to8': 0.050, '8to9': 0.071,
-                          '9to10': 0.060, '10to14': 0.199, '14to15': 0.058, '15to16': 0.079,
-                          '16to17': 0.076, '17to18':0.091, '18to20': 0.158, '20to5': 0.125},
-                 'wko' : {'5to6': 0.008, '6to7': 0.029, '7to8': 0.066, '8to9': 0.067,
-                          '9to10': 0.062, '10to14': 0.330, '14to15': 0.078, '15to16': 0.090,
-                          '16to17': 0.105, '17to18':0.091, '18to20': 0.055, '20to5': 0.019},
-                 'oto' : {'5to6': 0.001, '6to7': 0.006, '7to8': 0.027, '8to9': 0.038,
-                          '9to10': 0.054, '10to14': 0.355, '14to15': 0.094, '15to16': 0.102,
-                          '16to17': 0.082, '17to18':0.074, '18to20': 0.106, '20to5': 0.060}}
+time_periods = time_dict['svtl'].keys()
 
 def create_empty_tod_dict():
     ''' Create an empty dataset matching structure of purp_tod_dict '''
@@ -144,13 +90,6 @@ def emme_error(df1,df2):
     error1 = pd.DataFrame(alpha_error) ; error2 = pd.DataFrame(beta_error)
     error = error1.join(error2)
     return error
-
-def json_to_dictionary(dict_name):
-    ''' Loads input files as dictionary '''
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
-    my_dictionary = json.load(open(input_filename))
-
-    return(my_dictionary)
 
 def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
     ''' Multiply trip-type-TOD shares by original productions and attractions.
@@ -374,10 +313,14 @@ def load_skims(trip_table, skim_file_loc, mode_name):
     del skim_file
 
 def crunch_the_numbers(trip_table, results_dir):
-    time_periods = time_dict['svtl'].keys()
     # load skims
     cost_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1c')
     dist_skim = load_skims(trip_table, base_skim_file_loc, mode_name='svtl1d')
+
+
+    
+
+
     ## Allocate productions and attractions to times of day
     pro_dict = create_empty_tod_dict()    # Hold all the TOD productions here for general trips
     att_dict = create_empty_tod_dict()    # all TOD attractions here
@@ -399,7 +342,9 @@ def crunch_the_numbers(trip_table, results_dir):
     export_to_hdf(reformatted, results_dir)
     del reformatted
 
+
 def main():
+
     # Initialize directory for storing HDF5 output
     for dir in [output_dir, ext_spg_dir, gq_directory]:
         init_dir(dir)
