@@ -250,9 +250,9 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
         returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
         if returncode != 0:
            sys.exit(1)
-        #returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
-        #if returncode != 0:
-        #   sys.exit(1)
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+        if returncode != 0:
+           sys.exit(1)
      
      ### RUN DAYSIM ################################################################
     if run_daysim == True:
