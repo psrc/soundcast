@@ -151,6 +151,7 @@ def copy_large_inputs():
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
+    shcopy(base_inputs+'/supplemental/trips','outputs/supplemental')
     if run_parcel_buffering == False:
         shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
 
