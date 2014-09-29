@@ -233,15 +233,15 @@ def clean_up():
             print file
 
 def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_template):
-    print "We're on iteration %d" % (iteration)
-    logfile.write("We're on iteration %d\r\n" % (iteration))
-    time_start = datetime.datetime.now()
-    logfile.write("starting run %s" %str((time_start)))
+     print "We're on iteration %d" % (iteration)
+     logfile.write("We're on iteration %d\r\n" % (iteration))
+     time_start = datetime.datetime.now()
+     logfile.write("starting run %s" %str((time_start)))
 
       ### RUN Truck Model ################################################################
-    if run_truck_model == True:
-        returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-        if returncode != 0:
+     if run_truck_model == True:
+         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+         if returncode != 0:
             sys.exit(1)
 
       ### RUN Supplemental Trips ################################################################
@@ -255,42 +255,35 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
         #   sys.exit(1)
      
      ### RUN DAYSIM ################################################################
-    if run_daysim == True:
-        if copy_shadow:
-            copy_shadow_price_file()
+     if run_daysim == True:
+         if copy_shadow:
+             copy_shadow_price_file()
 
-        daysim_sample(recipr_sample, configuration_template)
-        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-        if returncode != 0:
-            sys.exit(1)
+         daysim_sample(recipr_sample, configuration_template)
+         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         if returncode != 0:
+             sys.exit(1)
 
-        time_daysim = datetime.datetime.now()
-        print time_daysim
-        logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
+         time_daysim = datetime.datetime.now()
+         print time_daysim
+         logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
 
      #### ASSIGNMENTS ###############################################################
-    if run_skims_and_paths == True:
-        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-        print 'return code from skims and paths is ' + str(returncode)
-        if returncode != 0:
-            returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-            if returncode != 0: 
-                 sys.exit(1)
-                 print 'EMME problems! Why?'
-
-    if iteration > 0 & recipr_sample == 1:
-       con_file = open('inputs/converge.txt', 'r')
-       converge = json.load(con_file)
-       if converge == 'stop':
-           print "done"
-           con_file.close()
-       print 'keep going'
-       con_file.close()
+     if run_skims_and_paths == True:
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         print 'return code from skims and paths is ' + str(returncode)
+         if returncode != 0:
+             returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+             if returncode != 0: 
+                  sys.exit(1)
+                  print 'EMME problems! Why?'
 
      
-    time_assign = datetime.datetime.now()
-    print time_assign
-    logfile.write("ending assignment %s\r\n" %str((time_assign)))
+
+     
+     time_assign = datetime.datetime.now()
+     print time_assign
+     logfile.write("ending assignment %s\r\n" %str((time_assign)))
 
      ##print '###### Finished running assignments:',time_assign - time_daysim
 
@@ -368,22 +361,36 @@ if run_skims_and_paths_seed_trips == True:
         sys.exit(1)
 
 
-### BUILDING SHADOW PRICE FILE ########################################################
-if should_build_shadow_price == True:
 
-    ### RUN DAYSIM AND ASSIGNMENT TO GET INITIAL SKIMS #######################################
-    for preshad_iter in range(0, len(pre_shadow_sample)):
-        #Shadow price file might exist in working dir. We want to remove it in order to start fresh. 
-        if os.path.isfile('working/shadow_prices.txt'):
-                os.remove('working/shadow_prices.txt')
+
+### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
+
+# We are building good initial skims.
+if should_build_shadow_price:
+      #We are building shadow prices, do not copy and delete if file exists
+      for iteration in range(0,len(pop_sample)):
+        if pop_sample[iteration] <= 2 and os.path.isfile('working/shadow_prices.txt'):
+            os.remove('working/shadow_prices.txt')
         copy_shadow = False
-        daysim_assignment(preshad_iter, pre_shadow_sample[preshad_iter], copy_shadow, 'configuration_template_nosp.properties')
+        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
 
+        if iteration > 0 & recipr_sample == 1:
+            con_file = open('inputs/converge.txt', 'r')
+            converge = json.load(con_file)
+        if converge == 'stop':
+            print "done"
+            con_file.close()
+            break
+        print 'keep going'
+        con_file.close()
+### BUILDING SHADOW PRICE FILE ########################################################
+
+    #Done some full iterations, now do some shadow prices
     ### BUILD SHADOW PRICE FILES FOR WORK ###################################################
-    for shad_iter in range(0, len(shadow_work)):
-         if shad_iter== 0: #Checks if the file exists on the first iteration and deletes it
-            if os.path.isfile('inputs/shadow_rmse.txt'):
-                os.remove('inputs/shadow_rmse.txt')
+      for shad_iter in range(0, len(shadow_work)):
+         #if shad_iter== 0: #Checks if the file exists on the first iteration and deletes it
+            #if os.path.isfile('inputs/shadow_rmse.txt'):
+            #    os.remove('inputs/shadow_rmse.txt')
          if run_daysim == True:
             daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
@@ -401,29 +408,33 @@ if should_build_shadow_price == True:
 
          time_daysim = datetime.datetime.now()
          print time_daysim
-         logfile.write("ending daysim %s\r\n" %str((time_daysim)))              
+         logfile.write("ending daysim %s\r\n" %str((time_daysim)))     
+         
+### Shadow prices converged, need to run full daysim/assignents one more time. Daysim cannot see updated skims again- because it will throw off workplace location/
+### shadow pricing. If we could turn off Daysim workplace location and use workplace location from the previous(converged) run, we  could do more full iterations 
+### here to get skims converged, knowing that our employee targets would mactch job availability. 
+      daysim_assignment(len(pop_sample) + 1, 1, False, 'configuration_template.properties') 
+      returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
 
 
-### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
-
-# We are not building shadow pricing, so use the existing shadow prices.
-# So copy the shadow prices from an existing file.
-if should_build_shadow_price == False:
-    # on the first iteration, start with an old shadow price file, then build new sps each round
+else:
+    # we are always using the old shadow price file (for testing)
     copy_shadow = True
 
     for iteration in range(0,len(pop_sample)):
         #copy_shadow = False
         daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
-        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
-        copy_shadow = False
+        if iteration > 0 & recipr_sample == 1:
+            con_file = open('inputs/converge.txt', 'r')
+            converge = json.load(con_file)
+        if converge == 'stop':
+            print "done"
+            con_file.close()
+            break
+        print 'keep going'
+        con_file.close()
+        #copy_shadow = False
 
-# We built some shadow prices, so file exists, and continue building.
-else:
-      for iteration in range(0,len(pop_sample)):
-        copy_shadow = False
-        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
-        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
 
 ### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:
