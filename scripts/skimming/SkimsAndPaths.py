@@ -786,7 +786,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['svtl2', 'svtl3', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk']:
+    for matrix_name in ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
