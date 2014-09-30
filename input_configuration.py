@@ -56,10 +56,7 @@ LOW_PNR = 3751
 HIGH_PNR = 4000
 
 # this is the zone -1 one because numpy is zone based
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437, 
-                      "Military": 3625, "Military2": 2254, "Military3": 3517, "Military4": 3352, 
-                      "Military5": 3069, "Military6": 3495, "Military7": 389, "Military8": 3347, 
-                      "Military9": 3353}
+SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 project_list = ['Projects/5to6/5to6.emp',
                       'Projects/6to7/6to7.emp',
@@ -139,7 +136,7 @@ hdf_auto_filename = 'inputs/4k/auto.h5'
 hdf_transit_filename = 'inputs/4k/transit.h5' 
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
 ext_spg_trips = 'outputs/supplemental/ext_spg/'
-supplemental_modes = ['svtl2', 'svtl3', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
+supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
 hh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/hh_triprates.in'
 nonhh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/nonhh_triprates.in'
 puma_taz_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/ensembles/puma00.ens'
