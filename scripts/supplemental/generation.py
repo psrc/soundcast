@@ -41,7 +41,7 @@ bal_to_attractions = ["colpro"]
 
 def json_to_dictionary(dict_name):
     ''' loads JSON input as dictionary '''
-    input_filename = os.path.join('D:/soundcast/soundcat/inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
 
@@ -150,13 +150,14 @@ def add_special_gen(trip_table):
 # Balance Trips
 def balance_trips(trip_table, bal_to_attractions, include_ext):
     for key, value in trip_purp_col.iteritems():
-        if include_ext == True:
-            ext = trip_table[value].iloc[HIGH_TAZ:3749].sum()
-        else:
-            ext = 0
+        
         # Balance attractions to productions for most trip purposes
         if key not in bal_to_attractions:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
+            if include_ext:
+                ext = trip_table[value].iloc[HIGH_TAZ:3749].sum()
+            else:
+                ext = 0
             ext = trip_table[value].iloc[HIGH_TAZ:3749].sum()
             bal_factor = (prod - ext)/(att - ext)
             trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
@@ -164,7 +165,10 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         # Balance productions to attractions for college trips
         else:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
-            ext = trip_table[key].iloc[HIGH_TAZ:3749].sum()
+            if include_ext:
+                ext = trip_table[key].iloc[HIGH_TAZ:3749].sum()
+            else:
+                ext = 0
             bal_factor = (att - ext)/(prod - ext)
             trip_table[key].loc[0:HIGH_TAZ-1] *= bal_factor
             print "value " + value + ", " +key + ' ' + str(bal_factor)
@@ -184,11 +188,11 @@ def main():
 
     # Load household and attractors trip rates
     hh_trip = process_inputs(hh_trip_loc, 7, rate_cols, "purpose", 
-                             pivot_fields, reorder = [1,24])
+                                pivot_fields, reorder = [1,24])
     nonhh_trip = process_inputs(nonhh_trip_loc, 7, rate_cols, "purpose", 
                                 pivot_fields, reorder = [1,24])
     puma_taz = process_inputs(puma_taz_loc, 0, ['scrap', 'puma'], "puma",
-                              pivot_fields=False, reorder=False)
+                                pivot_fields=False, reorder=False)
     puma_taz = pd.DataFrame(puma_taz["puma"])
 
     # Join PUMA data to TAZ data
@@ -258,15 +262,15 @@ def main():
 
     # Add attractions into group quarters trip table to balance trips
     gq_prod = pd.DataFrame(gq_trips[['hbwpro','colpro','hsppro','hbopro','schpro','wkopro',
-                                         'otopro','empty1','hw1pro','hw2pro','hw3pro','hw4pro']])
+                                            'otopro','empty1','hw1pro','hw2pro','hw3pro','hw4pro']])
     all_trips_att = pd.DataFrame(trip_table[['hbwatt','colatt','hspatt','hboatt','schatt',
-                                                              'wkoatt','otoatt','empty2','hw1att','hw2att',
-                                                              'hw3att','hw4att']])
+                                                                'wkoatt','otoatt','empty2','hw1att','hw2att',
+                                                                'hw3att','hw4att']])
     gq_append = pd.DataFrame(gq_prod.join(all_trips_att))
 
     trip_table = add_special_gen(trip_table)
 
-    balance_trips(trip_table, bal_to_attractions = ['col'], include_ext=True)
+    balance_trips(trip_table, bal_to_attractions = ['colpro'], include_ext=True)
     balance_trips(gq_append, bal_to_attractions = [], include_ext=False)
 
     # set zonal nhb work-other productions equal to zonal nhb work-other attractions
