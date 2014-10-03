@@ -3,21 +3,7 @@ import sys
 import get_skims
 import xlautofit
 from input_configuration import *
-
-def get_differences(df,colname1,colname2,roundto):
-    df['Difference']=df[colname1]-df[colname2]
-    df['Percent Difference']=(df['Difference']/df[colname2]*100).astype('float').round(2)
-    if type(roundto)==list:
-        for i in range(len(df['Difference'])):
-            df[colname1][i]=round(df[colname1][i],roundto[i])
-            df[colname2][i]=round(df[colname2][i],roundto[i])
-            df['Difference'][i]=round(df['Difference'][i],roundto[i])
-    else:
-        for i in range(len(df['Difference'])):
-            df[colname1][i]=round(df[colname1][i],roundto)
-            df[colname2][i]=round(df[colname2][i],roundto)
-            df['Difference'][i]=round(df['Difference'][i],roundto)
-    return(df)
+from sc_functions import get_differences
 
 skim_location = 'inputs'
 
