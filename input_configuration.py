@@ -25,6 +25,7 @@ run_truck_model = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
+run_soundcast_summary = False
 # Only update parking for future-year analysis!
 run_update_parking = False
 
@@ -151,7 +152,7 @@ trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/gc_prod_att.csv'
+gq_trips_loc = 'outputs/gq_prod_att.csv'
 
 # Iterations for fratar process in trip distribution
 bal_iters = 5
