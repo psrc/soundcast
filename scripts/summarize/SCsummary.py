@@ -6,109 +6,7 @@ import h5toDF
 import xlautofit
 import math
 from input_configuration import *
-
-def get_total(exp_fac):
-    total = exp_fac.sum()
-    if total < 1:
-        total = exp_fac.count()
-    return(total)
-
-def weighted_average(df_in, col, weights, grouper):
-    if grouper == None:
-        df_in[col + '_sp'] = df_in[col].multiply(df_in[weights])
-        n_out = df_in[col + '_sp'].sum() / df_in[weights].sum()
-        return(n_out)
-    else:
-        df_in[col + '_sp'] = df_in[col].multiply(df_in[weights])
-        df_out = df_in.groupby(grouper).sum()
-        df_out[col + '_wa'] = df_out[col + '_sp'].divide(df_out[weights])
-        return(df_out)
-    
-def recode_index(df, old_name, new_name): #Changes the index label from something like "pdpurp" to "Primary Destination Purpose"
-    df[new_name] = df.index
-    df = df.reset_index()
-    del df[old_name]
-    df = df.set_index(new_name)
-    return df
-
-def get_districts(file):
-    zone_district = pd.DataFrame.from_csv(file, index_col = None)
-    return(zone_district)
-
-
-def add_index_name(df, index_name):
-    df[index_name] = df.index
-    df = df.set_index(index_name)
-    return df
-
-
-def to_percent(number): #Might be used later
-    number = '{:.2%}'.format(number)
-    return(number)
-
-def get_differences(df, colname1, colname2, roundto): #Computes the difference and percent difference for two specified columns in a data frame
-    df['Difference'] = df[colname1] - df[colname2]
-    df['% Difference'] = (df['Difference'] / df[colname2] * 100).round(2)
-    if type(roundto) == list:
-        for i in range(len(df['Difference'])):
-            df[colname1][i] = round(df[colname1][i], roundto[i])
-            df[colname2][i] = round(df[colname2][i], roundto[i])
-            df['Difference'][i] = round(df['Difference'][i], roundto[i])
-    else:
-        for i in range(len(df['Difference'])):
-            df[colname1][i] = round(df[colname1][i], roundto)
-            df[colname2][i] = round(df[colname2][i], roundto)
-            df['Difference'][i] = round(df['Difference'][i], roundto)
-    return(df)
-
-def share_compare(df, colname1, colname2):
-    df[colname1] = df[colname1].apply(to_percent)
-    df[colname2] = df[colname2].apply(to_percent)
-    df['Difference'] = df['Difference'].apply(to_percent)
-
-
-def hhmm_to_min(input): #Function that converts time in an hhmm format to a minutes since the day started format
-    minmap = {}
-    for i in range(0, 24):
-        for j in range(0, 60):
-            minmap.update({i * 100 + j: i * 60 + j})
-    if input['Trip']['deptm'].max() >= 1440:
-        input['Trip']['deptm'] = input['Trip']['deptm'].map(minmap)
-    if input['Trip']['arrtm'].max() >= 1440:
-        input['Trip']['arrtm'] = input['Trip']['arrtm'].map(minmap)
-    if input['Trip']['endacttm'].max() >= 1440:
-        input['Trip']['endacttm'] = input['Trip']['endacttm'].map(minmap)
-    if input['Tour']['tlvorig'].max() >= 1440:
-        input['Tour']['tlvorig'] = input['Tour']['tlvorig'].map(minmap)
-    if input['Tour']['tardest'].max() >= 1440:
-        input['Tour']['tardest'] = input['Tour']['tardest'].map(minmap)
-    if input['Tour']['tlvdest'].max() >= 1440:
-        input['Tour']['tlvdest'] = input['Tour']['tlvdest'].map(minmap)
-    if input['Tour']['tarorig'].max() >= 1440:
-        input['Tour']['tarorig'] = input['Tour']['tarorig'].map(minmap)
-    return(input)
-
-def min_to_hour(input, base): #Converts minutes since a certain time of the day to hour of the day
-    timemap = {}
-    for i in range(0, 24):
-        if i + base < 24:
-            for j in range(0, 60):
-                if i + base < 9:
-                    timemap.update({i * 60 + j: '0' + str(i + base) + ' - 0' + str(i + base + 1)})
-                elif i + base == 9:
-                    timemap.update({i * 60 + j: '0' + str(i + base) + ' - ' + str(i + base + 1)})
-                else:
-                    timemap.update({i * 60 + j: str(i + base) + ' - ' + str(i + base + 1)})
-        else:
-            for j in range(0, 60):
-                if i + base - 24 < 9:
-                    timemap.update({i * 60 + j: '0' + str(i + base - 24) + ' - 0' + str(i + base - 23)})
-                elif i + base - 24 == 9:
-                    timemap.update({i * 60 + j: '0' + str(i + base - 24) + ' - ' + str(i + base - 23)})
-                else:
-                    timemap.update({i * 60 + j:str(i + base - 24) + ' - ' + str(i + base - 23)})
-    output = input.map(timemap)
-    return output
+from sc_functions import *
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     print('---Begin District to District Summary compilation---')
@@ -251,8 +149,8 @@ def DayPattern(data1, data2, name1, name2, location):
         #Add a column to PersonsDay for the current purpose
         PersonsDay1[tc] = data1['PersonDay'][tc]
         PersonsDay2[tc] = data2['PersonDay'][tc]
-        toursPersPurp1 = weighted_average(PersonsDay1, tc, 'psexpfac', 'pptyp')[tc + '_wa']
-        toursPersPurp2 = weighted_average(PersonsDay2, tc, 'psexpfac', 'pptyp')[tc + '_wa']
+        toursPersPurp1 = weighted_average(PersonsDay1, tc, 'psexpfac', 'pptyp')
+        toursPersPurp2 = weighted_average(PersonsDay2, tc, 'psexpfac', 'pptyp')
         #Delete added column to make future iterations faster
         del PersonsDay1[tc]
         del PersonsDay2[tc]
@@ -285,8 +183,8 @@ def DayPattern(data1, data2, name1, name2, location):
     #Total trips per person
     atp1 = get_total(data1['Trip']['trexpfac']) / Person_1_total
     atp2 = get_total(data2['Trip']['trexpfac']) / Person_2_total
-    atl1 = weighted_average(data1['Trip'].query('travdist > 0 and travdist < 200'), 'travdist', 'trexpfac', None)
-    atl2 = weighted_average(data2['Trip'].query('travdist > 0 and travdist < 200'), 'travdist', 'trexpfac', None)
+    atl1 = weighted_average(data1['Trip'].query('travdist > 0 and travdist < 200'), 'travdist', 'trexpfac')
+    atl2 = weighted_average(data2['Trip'].query('travdist > 0 and travdist < 200'), 'travdist', 'trexpfac')
     ttp1 = [atp1, atl1]
     ttp2 = [atp2, atl2]
     label = ['Average Trips Per Person', 'Average Trip Length']
@@ -433,8 +331,8 @@ def DaysimReport(data1, data2, name1, name2, location, districtfile):
     ahhs2 = tp2 / th2
     ntr1 = ttr1 / tp1
     ntr2 = ttr2 / tp2
-    atl1 = weighted_average(trip_ok_1, 'travdist', 'trexpfac', None)
-    atl2 = weighted_average(trip_ok_2, 'travdist', 'trexpfac', None)
+    atl1 = weighted_average(trip_ok_1, 'travdist', 'trexpfac')
+    atl2 = weighted_average(trip_ok_2, 'travdist', 'trexpfac')
     driver_trips1 = trip_ok_1[['dorp', 'travdist', 'trexpfac']].query('dorp == "Driver"')
     driver_trips2 = trip_ok_2[['dorp', 'travdist', 'trexpfac']].query('dorp == "Driver"')
     vmpp1sp = (driver_trips1['travdist'].multiply(driver_trips1['trexpfac'])).sum()
@@ -453,8 +351,8 @@ def DaysimReport(data1, data2, name1, name2, location, districtfile):
     workers_2 = wrkr_2_hzone.query('pwpcl != hhparcel and pwaudist > 0 and pwaudist < 200')
     workers_1['Share (%)'] = workers_1['psexpfac'] / workers_1['psexpfac'].sum()
     workers_2['Share (%)'] = workers_2['psexpfac'] / workers_2['psexpfac'].sum()
-    workers1_avg_dist = weighted_average(workers_1, 'pwaudist', 'psexpfac', None)
-    workers2_avg_dist = weighted_average(workers_2, 'pwaudist', 'psexpfac', None)
+    workers1_avg_dist = weighted_average(workers_1, 'pwaudist', 'psexpfac')
+    workers2_avg_dist = weighted_average(workers_2, 'pwaudist', 'psexpfac')
 
     #School Location
     st1 = merge_per_hh_1[['pstyp', 'hhtaz', 'psexpfac', 'pspcl', 'psaudist', 'hhparcel']].query('pstyp == "Full-Time Student" or pstyp == "Part-Time Student"')
@@ -467,8 +365,8 @@ def DaysimReport(data1, data2, name1, name2, location, districtfile):
     students_2 = st_2_hzone.query('pspcl != hhparcel and psaudist > 0 and psaudist < 200')
     students_1['Share (%)'] = students_1['psexpfac'] / students_1['psexpfac'].sum()
     students_2['Share (%)'] = students_2['psexpfac'] / students_2['psexpfac'].sum()
-    students1_avg_dist = weighted_average(students_1, 'psaudist', 'psexpfac', None)
-    students2_avg_dist = weighted_average(students_2, 'psaudist', 'psexpfac', None)
+    students1_avg_dist = weighted_average(students_1, 'psaudist', 'psexpfac')
+    students2_avg_dist = weighted_average(students_2, 'psaudist', 'psexpfac')
 
     #Glue DataFrame Together
     thp = pd.DataFrame(index = ['Total Persons', 'Total Households', 'Average Household Size', 'Average Trips Per Person', 'Average Trip Length', 'Vehicle Miles per Person', 'Average Distance to Work (Non-Home)', 'Average Distance to School (Non-Home)'])
@@ -624,8 +522,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
                        on = ['hhno', 'pno', 'tour', 'day'])
 
     #Compute weighted average of trip length grouped by purpose
-    triptotal1 = weighted_average(tourtrip1[['tautodist', 'toexpfac', 'pdpurp']], 'tautodist', 'toexpfac', 'pdpurp')['tautodist_wa']
-    triptotal2 = weighted_average(tourtrip2[['tautodist', 'toexpfac', 'pdpurp']], 'tautodist', 'toexpfac', 'pdpurp')['tautodist_wa']
+    triptotal1 = weighted_average(tourtrip1[['tautodist', 'toexpfac', 'pdpurp']], 'tautodist', 'toexpfac', 'pdpurp')
+    triptotal2 = weighted_average(tourtrip2[['tautodist', 'toexpfac', 'pdpurp']], 'tautodist', 'toexpfac', 'pdpurp')
 
     #Create data frame
     atl1 = pd.DataFrame.from_items([('Average Tour Length (' + name1 + ')', triptotal1)])
@@ -652,8 +550,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     toursnotrips2 = pd.merge(tour_ok_2[['toexpfac', 'pdpurp', 'hhno', 'pno', 'tour', 'tmodetp']], notrips2, on = ['hhno', 'pno', 'tour'])
 
     #Get the average number of trips per tour
-    tourtotal1 = weighted_average(toursnotrips1, 'notrips', 'toexpfac', 'pdpurp')['notrips_wa']
-    tourtotal2 = weighted_average(toursnotrips2, 'notrips', 'toexpfac', 'pdpurp')['notrips_wa']
+    tourtotal1 = weighted_average(toursnotrips1, 'notrips', 'toexpfac', 'pdpurp')
+    tourtotal2 = weighted_average(toursnotrips2, 'notrips', 'toexpfac', 'pdpurp')
 
     #Create data frame
     nttp1 = pd.DataFrame.from_items([('Avg # Trips/Tour (' + name1 + ')', tourtotal1)])
@@ -669,8 +567,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     atripdist1 = weighted_average(trip_ok_1, 'travdist', 'trexpfac', 'dpurp')
     atripdist2 = weighted_average(trip_ok_2, 'travdist', 'trexpfac', 'dpurp')
     atripdist = pd.DataFrame()
-    atripdist['Average Distance (' + name1 + ')'] = atripdist1['travdist_wa'].round(2)
-    atripdist['Average Distance (' + name2 + ')'] = atripdist2['travdist_wa'].round(2)
+    atripdist['Average Distance (' + name1 + ')'] = atripdist1.round(2)
+    atripdist['Average Distance (' + name2 + ')'] = atripdist2.round(2)
     atripdist = get_differences(atripdist, 'Average Distance (' + name1 + ')', 'Average Distance (' + name2 + ')', 2)
     atripdist = recode_index(atripdist, 'dpurp', 'Trip Purpose')
 
@@ -678,8 +576,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     print('Average Distance by Trip Purpose data frame created in ' + str(round(cp4 - cp3, 1)) + ' seconds')
 
     #Average Distance by Tour Mode
-    triptotalm1 = weighted_average(tourtrip1, 'tautodist', 'trexpfac', 'tmodetp')['tautodist_wa']
-    triptotalm2 = weighted_average(tourtrip2, 'tautodist', 'trexpfac', 'tmodetp')['tautodist_wa']
+    triptotalm1 = weighted_average(tourtrip1, 'tautodist', 'trexpfac', 'tmodetp')
+    triptotalm2 = weighted_average(tourtrip2, 'tautodist', 'trexpfac', 'tmodetp')
     atlm1 = pd.DataFrame.from_items([('Average Trip Length (' + name1 + ')', triptotalm1)])
     atlm2 = pd.DataFrame.from_items([('Average Trip Length (' + name2 + ')', triptotalm2)])
     atlm = pd.merge(atlm1, atlm2, 'outer', left_index = True, right_index = True)
@@ -692,8 +590,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     #Number of Trips by Tour Mode
     tourtotalm1 = weighted_average(toursnotrips1, 'notrips', 'toexpfac', 'tmodetp')
     tourtotalm2 = weighted_average(toursnotrips2, 'notrips', 'toexpfac', 'tmodetp')
-    nttpm1 = pd.DataFrame.from_items([('Avg # Trips/Tour (' + name1 + ')', tourtotalm1['notrips_wa'].round(2))])
-    nttpm2 = pd.DataFrame.from_items([('Avg # Trips/Tour (' + name2 + ')', tourtotalm2['notrips_wa'].round(2))])
+    nttpm1 = pd.DataFrame.from_items([('Avg # Trips/Tour (' + name1 + ')', tourtotalm1.round(2))])
+    nttpm2 = pd.DataFrame.from_items([('Avg # Trips/Tour (' + name2 + ')', tourtotalm2.round(2))])
     nttpm = pd.merge(nttpm1, nttpm2, 'outer', left_index = True, right_index = True)
     nttpm = get_differences(nttpm, 'Avg # Trips/Tour (' + name1 + ')', 'Avg # Trips/Tour (' + name2 + ')', 2)
     nttpm = recode_index(nttpm, 'tmodetp', 'Tour Mode')
@@ -702,8 +600,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     print('Number of Trips by Tour Mode data frame created in ' + str(round(cp6 - cp5, 1)) + ' seconds')
 
     #Average Distance by Trip Mode
-    atripdist1m = weighted_average(trip_ok_1, 'travdist', 'trexpfac', 'mode')['travdist_wa']
-    atripdist2m = weighted_average(trip_ok_2, 'travdist', 'trexpfac', 'mode')['travdist_wa']
+    atripdist1m = weighted_average(trip_ok_1, 'travdist', 'trexpfac', 'mode')
+    atripdist2m = weighted_average(trip_ok_2, 'travdist', 'trexpfac', 'mode')
     atripdistm = pd.DataFrame()
     atripdistm['Average Distance (' + name1 + ')'] = atripdist1m
     atripdistm['Average Distance (' + name2 + ')'] = atripdist2m
@@ -1043,12 +941,12 @@ def ModeChoice(data1, data2, name1, name2, location):
     df1 = tour_ok_1[['tautotime', 'tautocost', 'tautodist', 'toexpfac', 'tmodetp']]
     df2 = tour_ok_2[['tautotime', 'tautocost', 'tautodist', 'toexpfac', 'tmodetp']]
     toursmtt = pd.DataFrame()
-    toursmtt['Mean Auto Time (' + name1 + ')'] = weighted_average(df1, 'tautotime', 'toexpfac', 'tmodetp')['tautotime_wa'].round(2)
-    toursmtt['Mean Auto Distance (' + name1 + ')'] = weighted_average(df1, 'tautodist', 'toexpfac', 'tmodetp')['tautodist_wa'].round(2)
-    toursmtt['Mean Auto Cost (' + name1 + ')'] = weighted_average(df1, 'tautocost', 'toexpfac', 'tmodetp')['tautocost_wa'].round(2)
-    toursmtt['Mean Auto Time (' + name2 + ')'] = weighted_average(df2, 'tautotime', 'toexpfac', 'tmodetp')['tautotime_wa'].round(2)
-    toursmtt['Mean Auto Distance (' + name2 + ')'] = weighted_average(df2, 'tautodist', 'toexpfac', 'tmodetp')['tautodist_wa'].round(2)
-    toursmtt['Mean Auto Cost (' + name2 + ')'] = weighted_average(df2, 'tautocost', 'toexpfac', 'tmodetp')['tautocost_wa'].round(2)
+    toursmtt['Mean Auto Time (' + name1 + ')'] = weighted_average(df1, 'tautotime', 'toexpfac', 'tmodetp').round(2)
+    toursmtt['Mean Auto Distance (' + name1 + ')'] = weighted_average(df1, 'tautodist', 'toexpfac', 'tmodetp').round(2)
+    toursmtt['Mean Auto Cost (' + name1 + ')'] = weighted_average(df1, 'tautocost', 'toexpfac', 'tmodetp').round(2)
+    toursmtt['Mean Auto Time (' + name2 + ')'] = weighted_average(df2, 'tautotime', 'toexpfac', 'tmodetp').round(2)
+    toursmtt['Mean Auto Distance (' + name2 + ')'] = weighted_average(df2, 'tautodist', 'toexpfac', 'tmodetp').round(2)
+    toursmtt['Mean Auto Cost (' + name2 + ')'] = weighted_average(df2, 'tautocost', 'toexpfac', 'tmodetp').round(2)
     toursmtt = recode_index(toursmtt,'tmodetp','Mode')
 
     cp5 = time.time()
@@ -1322,24 +1220,24 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
 
     workers_1['Share (%)'] = workers_1['psexpfac'] / workers_1['psexpfac'].sum()
     workers_2['Share (%)'] = workers_2['psexpfac'] / workers_2['psexpfac'].sum()
-    workers_1_avg_dist = weighted_average(workers_1, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist = weighted_average(workers_2, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_ft = weighted_average(workers_1_ft, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_ft = weighted_average(workers_2_ft, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_pt = weighted_average(workers_1_pt, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_pt = weighted_average(workers_2_pt, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_f = weighted_average(workers_1_female, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_f = weighted_average(workers_2_female, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_m = weighted_average(workers_1_male, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_m = weighted_average(workers_2_male, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_ageund30 = weighted_average(workers_1_ageund30, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_ageund30 = weighted_average(workers_2_ageund30, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_age30to49 = weighted_average(workers_1_age30to49, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_age30to49 = weighted_average(workers_2_age30to49, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_age50to64 = weighted_average(workers_1_age50to64, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_age50to64 = weighted_average(workers_2_age50to64, 'pwaudist', 'psexpfac', None)
-    workers_1_avg_dist_age65up = weighted_average(workers_1_age65up, 'pwaudist', 'psexpfac', None)
-    workers_2_avg_dist_age65up = weighted_average(workers_2_age65up, 'pwaudist', 'psexpfac', None)
+    workers_1_avg_dist = weighted_average(workers_1, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist = weighted_average(workers_2, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_ft = weighted_average(workers_1_ft, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_ft = weighted_average(workers_2_ft, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_pt = weighted_average(workers_1_pt, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_pt = weighted_average(workers_2_pt, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_f = weighted_average(workers_1_female, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_f = weighted_average(workers_2_female, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_m = weighted_average(workers_1_male, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_m = weighted_average(workers_2_male, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_ageund30 = weighted_average(workers_1_ageund30, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_ageund30 = weighted_average(workers_2_ageund30, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_age30to49 = weighted_average(workers_1_age30to49, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_age30to49 = weighted_average(workers_2_age30to49, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_age50to64 = weighted_average(workers_1_age50to64, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_age50to64 = weighted_average(workers_2_age50to64, 'pwaudist', 'psexpfac')
+    workers_1_avg_dist_age65up = weighted_average(workers_1_age65up, 'pwaudist', 'psexpfac')
+    workers_2_avg_dist_age65up = weighted_average(workers_2_age65up, 'pwaudist', 'psexpfac')
     adw = pd.DataFrame(index = ['Total', 'Full-Time', 'Part-Time', 'Female', 'Male', 'Age Under 30', 'Age 30-49', 'Age 50-64', 'Age Over 65'])
     adw[name1]=[workers_1_avg_dist, workers_1_avg_dist_ft, workers_1_avg_dist_pt, workers_1_avg_dist_f, workers_1_avg_dist_m, workers_1_avg_dist_ageund30, workers_1_avg_dist_age30to49, workers_1_avg_dist_age50to64, workers_1_avg_dist_age65up]
     adw[name2]=[workers_2_avg_dist, workers_2_avg_dist_ft, workers_2_avg_dist_pt, workers_2_avg_dist_f, workers_2_avg_dist_m, workers_2_avg_dist_ageund30, workers_2_avg_dist_age30to49, workers_2_avg_dist_age50to64, workers_2_avg_dist_age65up]
@@ -1376,16 +1274,16 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
     students_1_19p = students_1.query('pagey >= 19')
     students_2_19p = students_2.query('pagey >= 19')
 
-    students_1_avg_dist = weighted_average(students_1, 'psaudist', 'psexpfac', None)
-    students_2_avg_dist = weighted_average(students_2, 'psaudist', 'psexpfac', None)
-    students_1_dist_und5 = weighted_average(students_1_und5, 'psaudist', 'psexpfac', None)
-    students_2_dist_und5 = weighted_average(students_2_und5, 'psaudist', 'psexpfac', None)
-    students_1_dist_512 = weighted_average(students_1_512, 'psaudist', 'psexpfac', None)
-    students_2_dist_512 = weighted_average(students_2_512, 'psaudist', 'psexpfac', None)
-    students_1_dist_1318 = weighted_average(students_1_1318, 'psaudist', 'psexpfac', None)
-    students_2_dist_1318 = weighted_average(students_2_1318, 'psaudist', 'psexpfac', None)
-    students_1_dist_19p = weighted_average(students_1_19p, 'psaudist', 'psexpfac', None)
-    students_2_dist_19p = weighted_average(students_2_19p, 'psaudist', 'psexpfac', None)
+    students_1_avg_dist = weighted_average(students_1, 'psaudist', 'psexpfac')
+    students_2_avg_dist = weighted_average(students_2, 'psaudist', 'psexpfac')
+    students_1_dist_und5 = weighted_average(students_1_und5, 'psaudist', 'psexpfac')
+    students_2_dist_und5 = weighted_average(students_2_und5, 'psaudist', 'psexpfac')
+    students_1_dist_512 = weighted_average(students_1_512, 'psaudist', 'psexpfac')
+    students_2_dist_512 = weighted_average(students_2_512, 'psaudist', 'psexpfac')
+    students_1_dist_1318 = weighted_average(students_1_1318, 'psaudist', 'psexpfac')
+    students_2_dist_1318 = weighted_average(students_2_1318, 'psaudist', 'psexpfac')
+    students_1_dist_19p = weighted_average(students_1_19p, 'psaudist', 'psexpfac')
+    students_2_dist_19p = weighted_average(students_2_19p, 'psaudist', 'psexpfac')
 
     ads = pd.DataFrame(index = ['All', 'Under 5', '5 to 12', '13 to 18', 'Over 19'])
     ads[name1] = [students_1_avg_dist, students_1_dist_und5, students_1_dist_512, students_1_dist_1318, students_1_dist_19p]
