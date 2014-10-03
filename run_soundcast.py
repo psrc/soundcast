@@ -449,6 +449,10 @@ logfile.close()
 if run_soundcast_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
 
+##### TRAVEL TIME SUMMARY ##########################################################
+if run_travel_time_summary == True:
+    returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+
 #### ALL DONE ##################################################################
 clean_up()
 print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
