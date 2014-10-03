@@ -91,20 +91,20 @@ def emme_error(df1,df2):
     error = error1.join(error2)
     return error
 
-def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
-    ''' Multiply trip-type-TOD shares by original productions and attractions.
-        Returns dictionary of attractions by TOD and trip purpose. '''
-    for key, value in purp_tod_dict.items():
-        # Calculate productions by time of day
-        for tod in time_periods:
-            pro_dict_results[key][tod] = trip_table[key + 'pro'] * purp_tod_dict[key][tod]
-        gc.collect()
-    # Returns dictionary of productions by TOD and trip purpose
-    for key, value in purp_tod_dict.items():
-        # Calculate productions by time of day
-        for tod in time_periods:
-            att_dict_results[key][tod] = trip_table[key + 'att'] * purp_tod_dict[key][tod]
-        #gc.collect()
+#def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
+#    ''' Multiply trip-type-TOD shares by original productions and attractions.
+#        Returns dictionary of attractions by TOD and trip purpose. '''
+#    for key, value in purp_tod_dict.items():
+#        # Calculate productions by time of day
+#        for tod in time_periods:
+#            pro_dict_results[key][tod] = trip_table[key + 'pro'] * purp_tod_dict[key][tod]
+#        gc.collect()
+#    # Returns dictionary of productions by TOD and trip purpose
+#    for key, value in purp_tod_dict.items():
+#        # Calculate productions by time of day
+#        for tod in time_periods:
+#            att_dict_results[key][tod] = trip_table[key + 'att'] * purp_tod_dict[key][tod]
+#        #gc.collect()
 
 def calc_fric_fac(trip_table, cost_skim, dist_skim):
     ''' Calculate friction factors for all trip purposes '''
@@ -194,23 +194,21 @@ def dist_by_mode(results):
     #final = {}
     for key, value in mode_dict.iteritems():
         print key
-        for purpose in ['hbo', 'sch', 'wko', 'oto', 'col']:
+        for purpose in ['hbo', 'sch', 'wko', 'oto', 'col', 'hbw', 'hsp']:
             print purpose
             # Use the same shares for HBW trips (for all income groups)
-            if purpose == 'hbw':
+            if purpose is 'hbw':
                 for incomeclass in ['hw1', 'hw2', 'hw3', 'hw4']:
-                    init_results[purpose] = mode_dict[key]['hbw'] * results[incomeclass]['trips']
-                    #print str(incomeclass) + ' final results = ' + str(final_results[key][0]) 
+                    init_results[incomeclass] = mode_dict[key]['hbw'] * results[incomeclass]['trips']
             # all other trip types
             else:
                 init_results[purpose] = mode_dict[key][purpose] * results[purpose]['trips']
-            print init_results[purpose][0]
         # sum purposes across modes
         trips_by_mode[key] = pd.DataFrame(sum([init_results[x] for x in init_results]))
         gc.collect()
     return trips_by_mode 
     del init_results ; del results
- 
+
 def dist_by_tod(trips_by_mode):
     ''' Distribute trips across times of day '''
     tod_df = {} ; trips_by_tod = {}
@@ -316,22 +314,18 @@ def crunch_the_numbers(trip_table, results_dir):
     # load skims
     cost_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1c')
     dist_skim = load_skims(trip_table, base_skim_file_loc, mode_name='svtl1d')
-
-
-    
-
-
-    ## Allocate productions and attractions to times of day
     pro_dict = create_empty_tod_dict()    # Hold all the TOD productions here for general trips
     att_dict = create_empty_tod_dict()    # all TOD attractions here
     trip_purps = purp_tod_dict.keys()
     tods = purp_tod_dict['col'].keys()
-    trips_by_tod(pro_dict, att_dict, trip_table)
     friction_fac_dic = calc_fric_fac(trip_table, cost_skim, dist_skim)
     trip_table_dic = {}
     dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic)
     del trip_table ; del friction_fac_dic
     dist_trips = fratar(trip_table_dic)
+    # fill NA values with zero. This happens for some trip purposes that don't exist in group quarters
+    for purp in dist_trips.keys():
+        dist_trips[purp] = dist_trips[purp].fillna(0)        
     del trip_table_dic
     by_mode_results = dist_by_mode(dist_trips)
     del dist_trips
@@ -359,8 +353,9 @@ def main():
     combine_trips(output_dir = 'outputs/supplemental/')
 
     # Clean up separate H5 files
-    # Delete all but combined H5 files?
+    for dir in [ext_spg_dir, gq_directory]:
+        if os.path.exists(dir):
+            shutil.rmtree(directory)
 
 if __name__ == "__main__":
     main()
-
