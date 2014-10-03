@@ -355,7 +355,7 @@ def main():
     # Clean up separate H5 files
     for dir in [ext_spg_dir, gq_directory]:
         if os.path.exists(dir):
-            shutil.rmtree(directory)
+            shutil.rmtree(dir)
 
 if __name__ == "__main__":
     main()
