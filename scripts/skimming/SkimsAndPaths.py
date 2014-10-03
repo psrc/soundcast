@@ -790,6 +790,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
+    # Create empty demand matrices for other modes without supplemental trips
+    for matrix in list(uniqueMatrices):
+        if matrix not in demand_matrices.keys():
+            demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
+            demand_matrices.update({matrix : demand_matrix})
+
     #Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
     #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
 
@@ -816,8 +822,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                         trips = round(trips, 2)
                         print trips
                         #print trips
-                        if mode in supplemental_modes:
-                            demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+                        #if mode in supplemental_modes:
+                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
                    
             
         else:
@@ -843,14 +849,14 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
                     trips = np.asscalar(np.float32(trexpfac[x]))
                     trips = round(trips, 2)
-                    if mode in supplemental_modes:
-                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+                    #if mode in supplemental_modes:
+                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
     if survey_seed_trips:
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
-    for mat_name in supplemental_modes:
+    for mat_name in uniqueMatrices:
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
