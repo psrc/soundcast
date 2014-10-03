@@ -25,7 +25,7 @@ run_truck_model = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
-run_soundcast_summary = False
+run_supplemental_trips = True
 run_travel_time_summary = True
 # Only update parking for future-year analysis!
 run_update_parking = False
