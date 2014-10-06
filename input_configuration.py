@@ -22,6 +22,7 @@ run_skims_and_paths_seed_trips = True
 should_build_shadow_price = True
 run_skims_and_paths = True
 run_truck_model = True
+run_supplemental_trips = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
