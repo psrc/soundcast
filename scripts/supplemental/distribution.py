@@ -301,6 +301,8 @@ def combine_trips(output_dir):
             my_store.create_dataset(str(mode), data=mode_result[mode])
         #combined[tod] = mode_result
         my_store.close()
+        ext_spg.close()
+        group_quarters.close()
         
 def load_skims(trip_table, skim_file_loc, mode_name):
     #define_fric_factors
