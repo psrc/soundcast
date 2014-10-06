@@ -12,21 +12,19 @@ network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buf
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 # Script and subprocess controls 
-run_parcel_buffering = False
-run_copy_daysim_code = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
-run_copy_inputs = False
-run_import_networks = False
-run_skims_and_paths_seed_trips = False
-should_build_shadow_price = False
-run_skims_and_paths = False
-run_truck_model = False
-run_daysim = False
-run_network_summary = False
-run_soundcast_summary = False
-run_supplemental_trips = True
-run_travel_time_summary = False
+run_parcel_buffering = True
+run_copy_daysim_code = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
+run_copy_inputs = True
+run_import_networks = True
+run_skims_and_paths_seed_trips = True
+should_build_shadow_price = True
+run_skims_and_paths = True
+run_truck_model = True
+run_daysim = True
+run_network_summary = True
+run_soundcast_summary = True
 # Only update parking for future-year analysis!
 run_update_parking = False
 
@@ -153,7 +151,7 @@ trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/gq_prod_att.csv'
+gq_trips_loc = 'outputs/gc_prod_att.csv'
 
 # Iterations for fratar process in trip distribution
 bal_iters = 5
@@ -263,7 +261,7 @@ districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
 parcel_decay_file = 'inputs/buffered_parcels.dat'
-travel_time_file = 'inputs/Taz2010.xlsx'
+
 
 # Specific reports to run
 run_daysim_report = True

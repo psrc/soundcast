@@ -70,6 +70,9 @@ def copy_parcel_buffering_files():
     print 'Copying UrbanSim parcel file'
     shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
 
+    print 'Copying Military parcel file'
+    shcopy(base_inputs+'/landuse/parcels_military.csv','Inputs/parcel_buffer')
+
     print 'Copying Parcel Buffering Code'
     dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
 
@@ -147,7 +150,6 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
     dir_util.copy_tree (base_inputs+'/supplemental/trips','outputs/supplemental')
-    shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
@@ -291,10 +293,14 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
 ## RUN PARCEL BUFFERING ON URBANSIM OUTPUTS ##########################################################
 if run_parcel_buffering == True:
     copy_parcel_buffering_files()
+    print 'adding military jobs to regular jobs'
+    returncode = subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    print 'military jobs loaded'
     create_buffer_xml()
     print 'running buffer tool'
     main_dir = os.path.abspath('')
     returncode = subprocess.call(main_dir+'/scripts/parcel_buffer/DSBuffTool.exe')
+
     os.remove(main_dir+ '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
     
@@ -448,10 +454,6 @@ logfile.close()
 ##### SUMMARIZE SOUNDCAST ##########################################################
 if run_soundcast_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
-
-##### TRAVEL TIME SUMMARY ##########################################################
-if run_travel_time_summary == True:
-    returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
 
 #### ALL DONE ##################################################################
 clean_up()
