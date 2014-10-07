@@ -378,7 +378,7 @@ if should_build_shadow_price:
         copy_shadow = False
         daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
 
-        if iteration > 0 & recipr_sample == 1:
+        if iteration > 0 & pop_sample[iteration] == 1:
             con_file = open('inputs/converge.txt', 'r')
             converge = json.load(con_file)
         if converge == 'stop':
@@ -428,7 +428,7 @@ else:
     for iteration in range(0,len(pop_sample)):
         #copy_shadow = False
         daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
-        if iteration > 0 & recipr_sample == 1:
+        if iteration > 0 & pop_sample[iteration] == 1:
             con_file = open('inputs/converge.txt', 'r')
             converge = json.load(con_file)
         if converge == 'stop':
