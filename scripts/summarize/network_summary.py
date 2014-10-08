@@ -12,7 +12,9 @@ import h5py
 import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
-import csv 
+import csv
+import xlsxwriter
+import xlautofit 
 from multiprocessing import Pool
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
@@ -221,6 +223,7 @@ def main():
     transit_summary_dict = {}
     my_project = EmmeProject(project)
     
+    writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
     #create extra attributes:
     
        
@@ -266,27 +269,44 @@ def main():
 
    #write out transit:
     print uc_vmt_dict
+    col = 0
+    transit_df = pd.DataFrame()
     for tod, df in transit_summary_dict.iteritems():
        #if transit_tod[tod] == 'am':
        #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
        #keys=None, levels=None, names=None, verify_integrity=False)
 
-       with open('outputs/' + tod + '_transit.csv', 'wb') as f:
-                  df.to_csv(f)
+       workbook = writer.book
+       index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
+       transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
+       #transit_df[tod + '_board'] = df[tod + '_board']
+       #transit_df[tod + '_time'] = df[tod + '_time']
+    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time']]
+    transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
+       
+       #if col == 0:
+       #    worksheet = writer.sheets['Transit Summaries']
+       #    routes = df.index.tolist()
+       #    for route_no in range(len(routes)):
+       #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
+       #    col = col + 1
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
+       #else:
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
+
 
     #*******write out counts:
     for value in counts_dict.itervalues():
         df_counts = df_counts.merge(value, right_index = True, left_index = True)
         df_counts = df_counts.drop_duplicates()
     
-    #write counts out to csv:
-    with open('outputs/' + counts_output_file, 'wb') as f:
-        df_counts.to_csv(f)
-    f.close
+    #write counts out to xlsx:
 
+    df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
 
     #*******write out network summaries
-    #will rewrite using pandas
     soundcast_tods = sound_cast_net_dict.keys
     list_of_measures = ['vmt', 'vht', 'delay']
     list_of_FTs = fac_type_dict.keys()
@@ -299,49 +319,51 @@ def main():
         for factype in list_of_FTs:
             header.append(factype + '_' + measure)
     list_of_rows.append(header)
-    
-    #write out the rows and columns
+
+    net_summary_df = pd.DataFrame(columns = header)
+    net_summary_df['tod'] = ft_summary_dict.keys()    
+    net_summary_df['TP_4k'] = net_summary_df['tod'].map(sound_cast_net_dict)
+    net_summary_df = net_summary_df.set_index('tod')
     for key, value in ft_summary_dict.iteritems():
-        #tod
-        row_list.append(key)
-        #4k time period:
-        row_list.append(sound_cast_net_dict[key])
         for measure in list_of_measures:
             for factype in list_of_FTs:
-                #print measure, factype
-                row_list.append(value[measure][factype])
-        list_of_rows.append(row_list)
-        row_list = []
-    
-    writeCSV('outputs/' + net_summary_file, list_of_rows)
+                net_summary_df[factype + '_' + measure][key] = value[measure][factype]
+    net_summary_df.to_excel(excel_writer = writer, sheet_name = 'Network Summary')
 
     #*******write out screenlines
-    with open('outputs/' + screenlines_file, 'wb') as f:
-        writer = csv.writer(f)
-        for key, value in screenline_dict.iteritems():
-           #print key, value
-           writer.writerow([key, value])
-    f.close
+    screenline_df = pd.DataFrame()
+    screenline_df['Screenline'] = screenline_dict.keys()
+    screenline_df['Volumes'] = screenline_dict.values()
+    screenline_df.to_excel(excel_writer = writer, sheet_name = 'Screenline Volumes')
 
-    
-    
+    uc_vmt_df = pd.DataFrame(columns = uc_list, index = uc_vmt_dict.keys())
+    for colnum in range(len(uc_list)):
+        for index in uc_vmt_dict.keys():
+            uc_vmt_df[uc_list[colnum]][index] = uc_vmt_dict[index][colnum]
+    uc_vmt_df = uc_vmt_df.sort_index()
+    uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
 
-    a = 0
-    with open('outputs/' + 'uc_vmt.csv', 'wb') as f:
-        writer = csv.writer(f)
-        #write header:
-        for tod, uv_vmt_list in uc_vmt_dict.iteritems():
-            if a == 0:
-                #header
-                writer.writerow(uc_list)
-                uv_vmt_list.append(tod)
-                writer.writerow(uv_vmt_list)
-            else: 
-                uv_vmt_list.append(tod)
-                writer.writerow(uv_vmt_list)
-            a = a + 1
-    f.close
-    
+    writer.save()
+
+    #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
+    import imp
+    try:
+        imp.find_module('openpyxl')
+        found_openpyxl = True
+    except ImportError:
+        found_openpyxl = False
+    if found_openpyxl == True:
+        xlautofit.run('outputs/network_summary.xlsx')
+    else:
+        try:
+            imp.find_module('pip')
+            found_pip = True
+        except ImportError:
+            found_pip = False
+        if found_pip == True:
+            pip.main(['install','openpyxl'])
+        else:
+            print('Library openpyxl needed to autofit columns')
     
     #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
     #for key, value in screenline_dict.iteritems():

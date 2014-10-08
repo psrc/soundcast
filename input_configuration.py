@@ -11,6 +11,8 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
+recipients = ['FillThisIn@psrc.org']
+
 # Script and subprocess controls 
 run_parcel_buffering = True
 run_copy_daysim_code = True
@@ -26,6 +28,8 @@ run_supplemental_trips = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
+run_supplemental_trips = True
+run_travel_time_summary = True
 # Only update parking for future-year analysis!
 run_update_parking = False
 
@@ -152,7 +156,7 @@ trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/gc_prod_att.csv'
+gq_trips_loc = 'outputs/gq_prod_att.csv'
 
 # Iterations for fratar process in trip distribution
 bal_iters = 5
@@ -262,7 +266,9 @@ districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
 parcel_decay_file = 'inputs/buffered_parcels.dat'
+travel_time_file = 'inputs/Taz2010.xlsx'
 
+topsheet = 'outputs/Topsheet.xlsx'
 
 # Specific reports to run
 run_daysim_report = True

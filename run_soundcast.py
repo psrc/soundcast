@@ -13,6 +13,7 @@ import inro.emme.database.emmebank as _eb
 import random
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
+from sc_email import *
 
 
 # Create text file to log model performance
@@ -245,6 +246,7 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
      if run_truck_model == True:
          returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
          if returncode != 0:
+            send_error_email(recipients, returncode)
             sys.exit(1)
 
       ### RUN Supplemental Trips ################################################################
@@ -252,9 +254,11 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
      if run_supplemental_trips:
         returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
         if returncode != 0:
+           send_error_email(recipients, returncode)
            sys.exit(1)
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
         if returncode != 0:
+           send_error_email(recipients, returncode)
            sys.exit(1)
      
      ### RUN DAYSIM ################################################################
@@ -265,6 +269,7 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
          daysim_sample(recipr_sample, configuration_template)
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
          if returncode != 0:
+             send_error_email(recipients, returncode)
              sys.exit(1)
 
          time_daysim = datetime.datetime.now()
@@ -278,6 +283,7 @@ def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_templ
          if returncode != 0:
              returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
              if returncode != 0: 
+                  send_error_email(recipients, returncode)
                   sys.exit(1)
                   print 'EMME problems! Why?'
      
@@ -300,7 +306,6 @@ if run_parcel_buffering == True:
     print 'running buffer tool'
     main_dir = os.path.abspath('')
     returncode = subprocess.call(main_dir+'/scripts/parcel_buffer/DSBuffTool.exe')
-
     os.remove(main_dir+ '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
     
@@ -333,6 +338,7 @@ if run_update_parking == True:
         returncode = subprocess.call([sys.executable,
                                       'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
     #if returncode != 0:
+    #    send_error_email(recipients, returncode)
     #    sys.exit(1)
 ### IMPORT NETWORKS ###############################################################\
 if run_import_networks == True:
@@ -343,6 +349,7 @@ if run_import_networks == True:
     print '###### Finished Importing Networks:', str(time_network - time_copy)
 
     if returncode != 0:
+        send_error_email(recipients, returncode)
         sys.exit(1)
 
 ### BUILD SKIMS ###############################################################
@@ -356,12 +363,14 @@ if run_skims_and_paths_seed_trips == True:
              returncode = subprocess.call([sys.executable,
                            'scripts/skimming/SkimsAndPaths.py',
                             '-use_daysim_output_seed_trips'])
-             if returncode != 0: 
+             if returncode != 0:
+                  send_error_email(recipients, returncode) 
                   sys.exit(1)
                   print 'EMME problems! Why?'
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
     if returncode != 0:
+        send_error_email(recipients, returncode)
         sys.exit(1)
 
 
@@ -399,6 +408,7 @@ if should_build_shadow_price:
             daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
             if returncode != 0:
+               send_error_email(recipients, returncode)
                sys.exit(1)
             returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
             shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
@@ -446,6 +456,7 @@ if run_network_summary == True:
    #returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
    time_assign_summ = datetime.datetime.now()
    if returncode != 0:
+      send_error_email(recipients)
       sys.exit(1)
 #print '###### Finished running assignment summary:',time_assign_summ - time_assign
 
@@ -455,8 +466,13 @@ logfile.close()
 if run_soundcast_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
 
+##### TRAVEL TIME SUMMARY ##########################################################
+if run_travel_time_summary == True:
+    returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+
 #### ALL DONE ##################################################################
 clean_up()
+send_completion_email(recipients)
 print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 
