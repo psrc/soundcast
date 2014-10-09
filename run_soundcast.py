@@ -453,7 +453,11 @@ else:
 ### ASSIGNMENT SUMMARY ###############################################################
 if run_network_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-   #returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+   time_assign_summ = datetime.datetime.now()
+   if returncode != 0:
+      send_error_email(recipients)
+      sys.exit(1)
+   returncode = subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
    time_assign_summ = datetime.datetime.now()
    if returncode != 0:
       send_error_email(recipients)
@@ -465,10 +469,24 @@ logfile.close()
 ##### SUMMARIZE SOUNDCAST ##########################################################
 if run_soundcast_summary == True:
    returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
+   if returncode != 0:
+      send_error_email(recipients)
+      sys.exit(1)
+
 
 ##### TRAVEL TIME SUMMARY ##########################################################
 if run_travel_time_summary == True:
-    returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+   returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+   if returncode != 0:
+      send_error_email(recipients)
+      sys.exit(1)
+
+##### TOPSHEET ######################################################################
+if run_network_summary == True and run_soundcast_summary == True and run_travel_time_summary == True:
+    returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+    if returncode != 0:
+      send_error_email(recipients)
+      sys.exit(1)
 
 #### ALL DONE ##################################################################
 clean_up()

@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import os.path
+from input_configuration import *
 
 server = smtplib.SMTP('smtp.gmail.com', 587) #Gmail server
 server.ehlo()
@@ -13,7 +14,7 @@ server.login('soundcastpsrc', 'Multinomial') #Log in to Gmail account
 
 def send_completion_email(recipient_list): #Sends email when model run is complete
 
-    topsheet = 'R:/JOE/summarize/reports/Topsheet.xlsx'
+    topsheet = report_output_location + '/Topsheet.xlsx'
     
     #Text part of the email
     msg = MIMEMultipart()
