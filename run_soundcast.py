@@ -102,6 +102,7 @@ def setup_emme_bank_folders():
 
     #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
     time_periods = list(set(tod_dict.values()))
+    time_periods.append('TruckModel')
     
     for period in time_periods:
         print period
@@ -123,11 +124,24 @@ def setup_emme_project_folders():
 
     tod_dict = json_to_dictionary('time_of_day')
     tod_list = list(set(tod_dict.values()))
-    
+
     if os.path.exists(os.path.join('projects')):
         print 'Delete Project Folder'
         shutil.rmtree('projects')
-        # Create time of day projects, associate with emmebank
+
+    # Create master project, associate with all tod emmebanks
+    project = app.create_project('projects', master_project)
+    desktop = app.start_dedicated(True, "cth", project)
+    data_explorer = desktop.data_explorer()   
+    for tod in tod_list:
+        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
+    #open the last database added so that there is an active one
+    database.open()
+    desktop.project.save()
+    desktop.close()
+
+    # Create time of day projects, associate with emmebank
+    tod_list.append('TruckModel')
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)
@@ -137,16 +151,7 @@ def setup_emme_project_folders():
         desktop.project.save()
         desktop.close()
         
-    # Create master project, associate with all tod emmebanks
-    project = app.create_project('projects', master_project)
-    desktop = app.start_dedicated(True, "cth", project)
-    data_explorer = desktop.data_explorer()
-    for tod in tod_list:
-        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
-    #open the last database added so that there is an active one
-    database.open()
-    desktop.project.save()
-    desktop.close()
+   
     
 def copy_large_inputs():
     print 'Copying large inputs...' 
