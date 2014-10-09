@@ -3,7 +3,7 @@ import sys
 import get_skims
 import xlautofit
 from input_configuration import *
-from sc_functions import get_differences
+from summary_functions import get_differences
 
 skim_location = 'inputs'
 

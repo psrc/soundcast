@@ -6,7 +6,7 @@ import h5toDF
 import xlautofit
 import math
 from input_configuration import *
-from sc_functions import *
+from summary_functions import *
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     print('---Begin District to District Summary compilation---')

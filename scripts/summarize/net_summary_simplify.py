@@ -4,7 +4,7 @@ import sys
 import xlsxwriter
 import xlrd
 import time
-import sc_functions as scf
+import summary_functions as scf
 from input_configuration import *
 
 #Define dictionary to map from screenline number to name
