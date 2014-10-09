@@ -266,7 +266,7 @@ districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
 parcel_decay_file = 'inputs/buffered_parcels.dat'
-travel_time_file = 'inputs/Taz2010.xlsx'
+travel_time_file = 'inputs/ObservedTravelTimes.xlsx'
 
 topsheet = 'outputs/Topsheet.xlsx'
 
