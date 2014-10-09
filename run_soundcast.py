@@ -5,12 +5,14 @@
 
 import os,sys,datetime,re
 import subprocess
+import inro.emme.desktop.app as app
 import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
 import inro.emme.database.emmebank as _eb
 import random
+import shutil 
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
@@ -78,72 +80,74 @@ def copy_parcel_buffering_files():
     dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
 
 
+def json_to_dictionary(dict_name):
 
+    #Determine the Path to the input files and load them
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    my_dictionary = json.load(open(input_filename))
+
+    return(my_dictionary)
     
     
 def setup_emme_bank_folders():
-    emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
+    tod_dict = json_to_dictionary('time_of_day')
+    emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
     
     if not os.path.exists('Banks'):
         os.makedirs('Banks')
+    else:
+        # remove it
+        print 'deleting Banks folder'
+        shutil.rmtree('Banks')
+
     #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
-    time_periods = os.listdir('projects')
+    time_periods = list(set(tod_dict.values()))
     
     for period in time_periods:
-        if period == master_project:
-            pass
-        
-        else:
-            print period
-            print "creating bank for time period %s" % period
-            if not os.path.exists(os.path.join('Banks', period)):
-                os.makedirs(os.path.join('Banks', period))
-                path = os.path.join('Banks', period, 'emmebank')
-                emmebank = _eb.create(path, emmebank_dimensions_dict)
-                emmebank.title = period
-                scenario = emmebank.create_scenario(1002)
-                network = scenario.get_network()
-                #need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
-                network.create_mode('AUTO', 'a')
-                scenario.publish_network(network)
-                emmebank.dispose()
+        print period
+        print "creating bank for time period %s" % period
+        os.makedirs(os.path.join('Banks', period))
+        path = os.path.join('Banks', period, 'emmebank')
+        emmebank = _eb.create(path, emmebank_dimensions_dict)
+        emmebank.title = period
+        scenario = emmebank.create_scenario(1002)
+        network = scenario.get_network()
+        #need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
+        network.create_mode('AUTO', 'a')
+        scenario.publish_network(network)
+        emmebank.dispose()
 
 
 def setup_emme_project_folders():
-    'Copy, unzip, and prepare the Projects/ and Banks/ emme folders'
+    #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
 
-    # Unzip Projects/ templates using 7-zip (must be in path)
-    unzip_cmd = '7z.exe x -y '+base_inputs+'/etc/emme_projects.7z'
-    subprocess.call(unzip_cmd)
-
-    # get timeperiod subfolders from os
-    project_list = os.listdir('projects')
-    print project_list
-
-    # Subst current workdir into project files:
-    only_time_periods = os.listdir('projects')
-    only_time_periods.remove(master_project)
-    print only_time_periods
-    tod_bank_path_dict = {}
+    tod_dict = json_to_dictionary('time_of_day')
+    tod_list = list(set(tod_dict.values()))
     
-    for period in only_time_periods:
-        print "munging",period
-        emmebank = os.path.join(os.getcwd(),'Banks',period)
-        emmebank = emmebank.replace('\\','/')
-        tod_bank_path_dict.update({period : emmebank})
-    print project_list
-    for proj_name in project_list:
-        template = os.path.join('projects',proj_name,proj_name+'.tmpl')
-        project  = os.path.join('projects',proj_name,proj_name+'.emp')
-        with open(template,'r') as source:
-            lines = source.readlines()
-        with open(project,'w') as source:
-            for line in lines:
-                line = str(line)
-                line = multipleReplace(line, tod_bank_path_dict)
-                source.write(line)
-            source.close()
-
+    if os.path.exists(os.path.join('projects')):
+        print 'Delete Project Folder'
+        shutil.rmtree('projects')
+        # Create time of day projects, associate with emmebank
+    for tod in tod_list:
+        project = app.create_project('projects', tod)
+        desktop = app.start_dedicated(False, "cth", project)
+        data_explorer = desktop.data_explorer()
+        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
+        database.open()
+        desktop.project.save()
+        desktop.close()
+        
+    # Create master project, associate with all tod emmebanks
+    project = app.create_project('projects', master_project)
+    desktop = app.start_dedicated(True, "cth", project)
+    data_explorer = desktop.data_explorer()
+    for tod in tod_list:
+        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
+    #open the last database added so that there is an active one
+    database.open()
+    desktop.project.save()
+    desktop.close()
+    
 def copy_large_inputs():
     print 'Copying large inputs...' 
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
@@ -312,9 +316,9 @@ if run_parcel_buffering == True:
 ### SET UP OTHER INPUTS ###############################################################################
 
 run_list = [("copy_daysim_code" , run_copy_daysim_code), 
-             ("setup_emme_project_folders", run_setup_emme_project_folders),
-             ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
-             ("copy_large_inputs" , run_copy_inputs)]
+            ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
+            ("setup_emme_project_folders", run_setup_emme_project_folders),
+            ("copy_large_inputs" , run_copy_inputs)]
 
 if not os.path.exists('outputs'):
         os.makedirs('outputs')
@@ -324,9 +328,9 @@ for i in range(0,len(run_list)):
     function = run_list[i][0]
     locals()[function]()
 
-svn_file =open('daysim/svn_stamp_out.txt','r')
-svn_info=svn_file.read()
-logfile.write(svn_info)
+#svn_file =open('daysim/svn_stamp_out.txt','r')
+#svn_info=svn_file.read()
+#logfile.write(svn_info)
 
 
 
