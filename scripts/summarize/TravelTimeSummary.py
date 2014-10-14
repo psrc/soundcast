@@ -4,12 +4,25 @@ import get_skims
 import xlautofit
 from input_configuration import *
 from summary_functions import get_differences
+import time
+import json
+
+timerstart = time.time()
 
 skim_location = 'inputs'
 
 travel_time_data = pd.io.excel.read_excel(travel_time_file) #Get origin-destination pairs
 
 output_file = report_output_location + '/Travel_Time_Summary.xlsx'
+
+observed_travel_times_file = 'inputs/observed_travel_times.json' #Read in observed travel times
+with open(observed_travel_times_file, 'rb') as ottf:
+    ott = json.load(ottf)
+    observed_travel_times = {'am': {}, 'pm': {}}
+    for od_pair in ott['am']:
+        observed_travel_times['am'].update({tuple(od_pair.split(',')): int(ott['am'][od_pair])})
+    for od_pair in ott['pm']:
+        observed_travel_times['pm'].update({tuple(od_pair.split(',')): int(ott['pm'][od_pair])})
 
 taz_pairs = []
 taz_map = {}
@@ -46,13 +59,9 @@ am_times['Modeled SOV Times'] = am_sov_times['Skim']
 n = am_times['Modeled SOV Times'].count()
 am_times['Modeled Transit Times'] = am_transit_times['Skim']
 am_times['Modeled Transit/SOV Ratio'] = am_transit_sov_ratio['Skim']
-am_times.loc['Federal Way', 'Seattle']['Observed SOV Times'] = 34 #Observed times are currently hardcoded
-am_times.loc['Everett', 'Seattle']['Observed SOV Times'] = 37
-am_times.loc['Everett', 'Bellevue']['Observed SOV Times'] = 40
-am_times.loc['Tukwila', 'Bellevue']['Observed SOV Times'] = 22
-am_times.loc['Auburn', 'Renton']['Observed SOV Times'] = 15
-am_times.loc['Bellevue', 'Seattle']['Observed SOV Times'] = 12
-am_times.loc['Seattle', 'Bellevue']['Observed SOV Times'] = 13
+for od_pair in am_times.index:
+    if od_pair in observed_travel_times['am']:
+        am_times.loc[od_pair]['Observed SOV Times'] = observed_travel_times['am'][od_pair]
 am_times = get_differences(am_times, 'Modeled SOV Times', 'Observed SOV Times', 0)
 am_times['Chart Key'] = [i + 1 for i in range(n)]
 
@@ -60,13 +69,9 @@ pm_times['Modeled SOV Times'] = pm_sov_times['Skim']
 n = pm_times['Modeled SOV Times'].count()
 pm_times['Modeled Transit Times'] = pm_transit_times['Skim']
 pm_times['Modeled Transit/SOV Ratio'] = pm_transit_sov_ratio['Skim']
-pm_times.loc['Seattle', 'Federal Way']['Observed SOV Times'] = 27
-pm_times.loc['Seattle', 'Everett']['Observed SOV Times'] = 36
-pm_times.loc['Bellevue', 'Everett']['Observed SOV Times'] = 33
-pm_times.loc['Bellevue', 'Tukwila']['Observed SOV Times'] = 25
-pm_times.loc['Renton', 'Auburn']['Observed SOV Times'] = 15
-pm_times.loc['Seattle', 'Bellevue']['Observed SOV Times'] = 15
-pm_times.loc['Bellevue', 'Seattle']['Observed SOV Times'] = 18
+for od_pair in pm_times.index:
+    if od_pair in observed_travel_times['pm']:
+        pm_times.loc[od_pair]['Observed SOV Times'] = observed_travel_times['pm'][od_pair]
 pm_times = get_differences(pm_times, 'Modeled SOV Times', 'Observed SOV Times', 0)
 pm_times['Chart Key'] = [i + 1 for i in range(n)]
 
@@ -128,6 +133,4 @@ for format in range(2): #Run twice, once without and once with resizing columns
             worksheet.freeze_panes(0, 3)
     writer.save()
 
-print(output_file)
-
-print('Done')
+print('Travel Time Summary created in ' + str(round(time.time() - timerstart, 1)) + ' seconds')
