@@ -37,39 +37,35 @@ def DistrictSummary(data1, data2, name1, name2, location, districtfile):
 
     print('District to District data frames created in ' + str(round(time.time() - start, 1)) + ' seconds')
 
-    writer = pd.ExcelWriter(location + '/DistrictReport.xlsx', engine = 'xlsxwriter')
-    tripod1.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 1)
-    tripod2.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 16)
-    tripoddiff.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 31)
-    tripodpd.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 46)
-    writer.save()
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/DistrictReport.xlsx')
 
-    colwidths = xlautofit.getmaxwidths(location + '/DistrictReport.xlsx')
-
-    writer = pd.ExcelWriter(location + '/DistrictReport.xlsx', engine = 'xlsxwriter')
-    workbook = writer.book
-    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
-    cond_format = workbook.add_format({'font_color': '#880000', 'bold': 'True'})
-    tripod1.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 1)
-    tripod2.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 16)
-    tripoddiff.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 31)
-    tripodpd.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 46)
-    sheet = 'Number of Trips by District'
-    worksheet = writer.sheets[sheet]
-    worksheet.merge_range(0, 0, 0, 11, name1, merge_format)
-    worksheet.merge_range(15, 0, 15, 11, name2, merge_format)
-    worksheet.merge_range(30, 0, 30, 11, 'Difference', merge_format)
-    worksheet.merge_range(45, 0, 45, 11, '% Difference', merge_format)
-    worksheet.write(1, 0, 'Destination ->', merge_format)
-    worksheet.write(16, 0, 'Destination ->', merge_format)
-    worksheet.write(31, 0, 'Destination ->', merge_format)
-    worksheet.write(46, 0, 'Destination ->', merge_format)
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': cond_format})
-    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': cond_format})
-    worksheet.freeze_panes(0, 1)
-    writer.save()
+        writer = pd.ExcelWriter(location + '/DistrictReport.xlsx', engine = 'xlsxwriter')
+        workbook = writer.book
+        merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
+        cond_format = workbook.add_format({'font_color': '#880000', 'bold': 'True'})
+        tripod1.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 1)
+        tripod2.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 16)
+        tripoddiff.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 31)
+        tripodpd.to_excel(excel_writer = writer, sheet_name = 'Number of Trips by District', na_rep = 0, startrow = 46)
+        sheet = 'Number of Trips by District'
+        worksheet = writer.sheets[sheet]
+        worksheet.merge_range(0, 0, 0, 11, name1, merge_format)
+        worksheet.merge_range(15, 0, 15, 11, name2, merge_format)
+        worksheet.merge_range(30, 0, 30, 11, 'Difference', merge_format)
+        worksheet.merge_range(45, 0, 45, 11, '% Difference', merge_format)
+        worksheet.write(1, 0, 'Destination ->', merge_format)
+        worksheet.write(16, 0, 'Destination ->', merge_format)
+        worksheet.write(31, 0, 'Destination ->', merge_format)
+        worksheet.write(46, 0, 'Destination ->', merge_format)
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': cond_format})
+        worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': cond_format})
+        worksheet.freeze_panes(0, 1)
+        writer.save()
     print('---District to District Summary compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
 
 def DayPattern(data1, data2, name1, name2, location):
@@ -208,79 +204,64 @@ def DayPattern(data1, data2, name1, name2, location):
     print('Trip Rates by Purpose data frame created in ' + str(round(cp7 - cp6, 1)) + ' seconds')
 
     #Compile file
-    writer = pd.ExcelWriter(location + '/DayPatternReport.xlsx', engine='xlsxwriter') #Defines the name of the file and that xlsxwriter will be used to write it
-    tpp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 1) #Put the first data frame into excel
-    workbook = writer.book
-    worksheet = writer.sheets['Daily Activity Pattern']
-    ptbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 5)
-    tpbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 15)
-    purposes = data2['Tour']['pdpurp'].value_counts().index
-    for i in range(len(purposes)): #There are two data frames for each tour purpose, so this loops over them
-        tpd[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 1, startcol = 6 * i)
-        worksheet = writer.sheets['Tours by Purpose']
-        stops[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 13, startcol = 6 * i)
-        if i != len(purposes):
-            worksheet.write(0, 6 * i + 5, ' ') #This puts a filler column between each data frame, which is needed when getting the column widths
-    ttp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 1)
-    worksheet = writer.sheets['Work-Based Subtour Generation']
-    trp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 6)
-    writer.save() #save the file
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/DayPatternReport.xlsx') #Gets the column widths
+        colors = ['#004488', '#00C0C0']
 
-    colwidths = xlautofit.getmaxwidths(location + '/DayPatternReport.xlsx') #Gets the column widths
-    colors = ['#004488', '#00C0C0']
+        writer = pd.ExcelWriter(location + '/DayPatternReport.xlsx', engine='xlsxwriter') #The file is deleted and recreated, this time with formatting
+        tpp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 1)
+        workbook = writer.book
+        worksheet = writer.sheets['Daily Activity Pattern']
+        merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1}) #Defines formatting
+        worksheet.merge_range(0, 0, 0, 4, 'Tours Per Person', merge_format) #Merges some cells, writes something, and applies formating
+        worksheet.merge_range(4, 0, 4, 4, 'Percent of Tours by Purpose', merge_format)
+        ptbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 5)
+        worksheet.merge_range(15, 0, 15, 4, 'Tours per Person by Purpose', merge_format)
+        tpbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 16)
+        purposes = data1['Tour']['pdpurp'].value_counts().index
+        for i in range(len(purposes)):
+            tpd[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 1, startcol = 6 * i)
+            worksheet = writer.sheets['Tours by Purpose']
+            worksheet.merge_range(0, 6 * i , 0, 6 * i + 4, purposes[i] + ' Tours by Person Type', merge_format)
+            worksheet.merge_range(12, 6 * i, 12, 6 * i + 4, 'Number of Stops', merge_format)
+            stops[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 13, startcol = 6 * i)
+            if i != len(purposes):
+                worksheet.write(0, 6 * i + 5, ' ')
+        ttp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 1)
+        worksheet = writer.sheets['Work-Based Subtour Generation']
+        worksheet.merge_range(0, 0, 0, 4, 'Total Trips', merge_format)
+        worksheet.merge_range(5, 0, 5, 4,'Trip Rates by Purpose', merge_format)
+        trp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 6)
 
-    writer = pd.ExcelWriter(location + '/DayPatternReport.xlsx', engine='xlsxwriter') #The file is deleted and recreated, this time with formatting
-    tpp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 1)
-    workbook = writer.book
-    worksheet = writer.sheets['Daily Activity Pattern']
-    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1}) #Defines formatting
-    worksheet.merge_range(0, 0, 0, 4, 'Tours Per Person', merge_format) #Merges some cells, writes something, and applies formating
-    worksheet.merge_range(4, 0, 4, 4, 'Percent of Tours by Purpose', merge_format)
-    ptbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 5)
-    worksheet.merge_range(15, 0, 15, 4, 'Tours per Person by Purpose', merge_format)
-    tpbp.to_excel(excel_writer = writer, sheet_name = 'Daily Activity Pattern', na_rep = 'NA', startrow = 16)
-    purposes = data1['Tour']['pdpurp'].value_counts().index
-    for i in range(len(purposes)):
-        tpd[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 1, startcol = 6 * i)
-        worksheet = writer.sheets['Tours by Purpose']
-        worksheet.merge_range(0, 6 * i , 0, 6 * i + 4, purposes[i] + ' Tours by Person Type', merge_format)
-        worksheet.merge_range(12, 6 * i, 12, 6 * i + 4, 'Number of Stops', merge_format)
-        stops[purposes[i]].to_excel(excel_writer = writer, sheet_name = 'Tours by Purpose', na_rep = 'NA', startrow = 13, startcol = 6 * i)
-        if i != len(purposes):
-            worksheet.write(0, 6 * i + 5, ' ')
-    ttp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 1)
-    worksheet = writer.sheets['Work-Based Subtour Generation']
-    worksheet.merge_range(0, 0, 0, 4, 'Total Trips', merge_format)
-    worksheet.merge_range(5, 0, 5, 4,'Trip Rates by Purpose', merge_format)
-    trp.to_excel(excel_writer = writer, sheet_name = 'Work-Based Subtour Generation', na_rep = 'NA', startrow = 6)
-
-    #Add charts
-    for sheet in writer.sheets:
-        worksheet = writer.sheets[sheet]
-        for colnum in range(worksheet.dim_colmax + 1):
-            worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-        if sheet == 'Tours by Purpose':
-            for i in range(len(purposes)):
+        #Add charts
+        for sheet in writer.sheets:
+            worksheet = writer.sheets[sheet]
+            if format:
+                for colnum in range(worksheet.dim_colmax + 1):
+                    worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+            if sheet == 'Tours by Purpose':
+                for i in range(len(purposes)):
+                    chart = workbook.add_chart({'type': 'column'})
+                    for col_num in range(6 * i + 1, 6 * i + 3):
+                        chart.add_series({'name': [sheet, 1, col_num],
+                                            'categories': [sheet, 3, 6 * i, 10, 6 * i],
+                                            'values': [sheet, 3, col_num, 10, col_num],
+                                            'fill': {'color': colors[col_num % 6 - 1]}})
+                        chart.set_legend({'position': 'top'})
+                        chart.set_size({'x_scale': 1.4, 'y_scale': 1.25})
+                    worksheet.insert_chart(18, 6 * i, chart)
+            if sheet == 'Work-Based Subtour Generation':
                 chart = workbook.add_chart({'type': 'column'})
-                for col_num in range(6 * i + 1, 6 * i + 3):
-                    chart.add_series({'name': [sheet, 1, col_num],
-                                        'categories': [sheet, 3, 6 * i, 10, 6 * i],
-                                        'values': [sheet, 3, col_num, 10, col_num],
-                                        'fill': {'color': colors[col_num % 6 - 1]}})
-                    chart.set_legend({'position': 'top'})
-                    chart.set_size({'x_scale': 1.4, 'y_scale': 1.25})
-                worksheet.insert_chart(18, 6 * i, chart)
-        if sheet == 'Work-Based Subtour Generation':
-            chart = workbook.add_chart({'type': 'column'})
-            for col_num in range(1, 3):
-                chart.add_series({'name': [sheet, 6, col_num],
-                                    'categories': [sheet, 8, 0, 16, 0],
-                                    'values': [sheet, 8, col_num, 16, col_num],
-                                    'fill': {'color': colors[col_num - 1]}})
-            chart.set_legend({'position': 'top'})
-            chart.set_size({'x_scale': 2, 'y_scale': 1.25})
-            worksheet.insert_chart(18, 0, chart)
-    writer.save()
+                for col_num in range(1, 3):
+                    chart.add_series({'name': [sheet, 6, col_num],
+                                        'categories': [sheet, 8, 0, 16, 0],
+                                        'values': [sheet, 8, col_num, 16, col_num],
+                                        'fill': {'color': colors[col_num - 1]}})
+                chart.set_legend({'position': 'top'})
+                chart.set_size({'x_scale': 2, 'y_scale': 1.25})
+                worksheet.insert_chart(18, 0, chart)
+        writer.save()
 
     end = time.time()
 
@@ -422,71 +403,70 @@ def DaysimReport(data1, data2, name1, name2, location, districtfile):
     print('Transit Boardings data frame created in ' + str(round(cp5 - cp4, 1)) + ' seconds')
 
     #File Compile
-    writer = pd.ExcelWriter(location + '/DaysimReport.xlsx', engine = 'xlsxwriter')
-    thp.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA')
-    tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass Ownership', na_rep = 'NA')
-    ao.to_excel(excel_writer = writer, sheet_name = 'Automobile Ownership', na_rep = 'NA')
-    board.to_excel(excel_writer = writer, sheet_name = 'Transit Boardings', na_rep = 'NA')
-    writer.save()
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/DaysimReport.xlsx')
+        colors = ['#004488', '#00C0C0']
 
-    colwidths = xlautofit.getmaxwidths(location + '/DaysimReport.xlsx')
-    colors = ['#004488', '#00C0C0']
-
-    writer = pd.ExcelWriter(location + '/DaysimReport.xlsx', engine = 'xlsxwriter')
-    thp.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA')
-    tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass Ownership', na_rep = 'NA')
-    ao.to_excel(excel_writer = writer, sheet_name = 'Automobile Ownership', na_rep = 'NA')
-    board.to_excel(excel_writer = writer, sheet_name = 'Transit Boardings', na_rep = 'NA')
-    workbook = writer.book    
-    sheet = 'Basic Summaries'
-    worksheet = writer.sheets[sheet]
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    worksheet.freeze_panes(0, 1)
-    chart = workbook.add_chart({'type':'column'})
-    for col_num in range(1, 3):
-        chart.add_series({'name': [sheet, 0, col_num],
-                            'categories': [sheet, 3, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 3, col_num, worksheet.dim_rowmax, col_num],
-                            'fill': {'color': colors[col_num - 1]}})
-    chart.set_legend({'position': 'top'})
-    chart.set_size({'x_scale': 2, 'y_scale': 1.75})
-    worksheet.insert_chart('B11', chart)
-    sheet = 'Transit Pass Ownership'
-    worksheet = writer.sheets[sheet]
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    worksheet.freeze_panes(0, 1)
-    chart = workbook.add_chart({'type': 'column'})
-    for col_num in range(1, 3):
-        chart.add_series({'name': [sheet, 0, col_num],
-                            'categories': [sheet, 1, 0, 1, 0],
-                            'values': [sheet, 1, col_num, 1, col_num],
-                            'fill': {'color': colors[col_num - 1]}})
-    chart.set_legend({'position': 'top'})
-    chart.set_size({'x_scale': 2, 'y_scale': 2.25})
-    worksheet.insert_chart('B5', chart)
-    sheet = 'Automobile Ownership'
-    worksheet = writer.sheets[sheet]
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    worksheet.freeze_panes(0, 1)
-    chart = workbook.add_chart({'type': 'column'})
-    for col_num in range(1, 3):
-        chart.add_series({'name':[sheet, 0, col_num],
-                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 2, col_num, worksheet.dim_rowmax, col_num],
-                            'fill': {'color': colors[col_num - 1]}})
-    chart.set_title({'name': 'Percentage of Households with Number of Automobiles'})
-    chart.set_legend({'position': 'top'})
-    chart.set_size({'x_scale': 2, 'y_scale': 2})
-    chart.set_x_axis({'name': 'Number of Cars'})
-    worksheet.insert_chart('B9', chart)
-    sheet = 'Transit Boardings'
-    worksheet = writer.sheets[sheet]
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    writer.save()
+        writer = pd.ExcelWriter(location + '/DaysimReport.xlsx', engine = 'xlsxwriter')
+        thp.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA')
+        tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass Ownership', na_rep = 'NA')
+        ao.to_excel(excel_writer = writer, sheet_name = 'Automobile Ownership', na_rep = 'NA')
+        board.to_excel(excel_writer = writer, sheet_name = 'Transit Boardings', na_rep = 'NA')
+        workbook = writer.book    
+        sheet = 'Basic Summaries'
+        worksheet = writer.sheets[sheet]
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        worksheet.freeze_panes(0, 1)
+        chart = workbook.add_chart({'type':'column'})
+        for col_num in range(1, 3):
+            chart.add_series({'name': [sheet, 0, col_num],
+                                'categories': [sheet, 3, 0, worksheet.dim_rowmax, 0],
+                                'values': [sheet, 3, col_num, worksheet.dim_rowmax, col_num],
+                                'fill': {'color': colors[col_num - 1]}})
+        chart.set_legend({'position': 'top'})
+        chart.set_size({'x_scale': 2, 'y_scale': 1.75})
+        worksheet.insert_chart('B11', chart)
+        sheet = 'Transit Pass Ownership'
+        worksheet = writer.sheets[sheet]
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        worksheet.freeze_panes(0, 1)
+        chart = workbook.add_chart({'type': 'column'})
+        for col_num in range(1, 3):
+            chart.add_series({'name': [sheet, 0, col_num],
+                                'categories': [sheet, 1, 0, 1, 0],
+                                'values': [sheet, 1, col_num, 1, col_num],
+                                'fill': {'color': colors[col_num - 1]}})
+        chart.set_legend({'position': 'top'})
+        chart.set_size({'x_scale': 2, 'y_scale': 2.25})
+        worksheet.insert_chart('B5', chart)
+        sheet = 'Automobile Ownership'
+        worksheet = writer.sheets[sheet]
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        worksheet.freeze_panes(0, 1)
+        chart = workbook.add_chart({'type': 'column'})
+        for col_num in range(1, 3):
+            chart.add_series({'name':[sheet, 0, col_num],
+                                'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                                'values': [sheet, 2, col_num, worksheet.dim_rowmax, col_num],
+                                'fill': {'color': colors[col_num - 1]}})
+        chart.set_title({'name': 'Percentage of Households with Number of Automobiles'})
+        chart.set_legend({'position': 'top'})
+        chart.set_size({'x_scale': 2, 'y_scale': 2})
+        chart.set_x_axis({'name': 'Number of Cars'})
+        worksheet.insert_chart('B9', chart)
+        sheet = 'Transit Boardings'
+        worksheet = writer.sheets[sheet]
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        writer.save()
 
     end = time.time()
 
@@ -697,71 +677,62 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     print('Number of People, Workers, and Students by District data frame created in ' + str(round(cp10-cp9,1)) + ' seconds')
 
     #Compile the file
-    writer = pd.ExcelWriter(location + '/DaysimDestChoiceReport.xlsx', engine = 'xlsxwriter')
-    atl.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Purpose', na_rep = 'NA')
-    atlm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Mode', na_rep = 'NA')
-    nttp.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Purpose', na_rep = 'NA')
-    nttpm.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Mode', na_rep = 'NA')
-    atripdist.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Purpose', na_rep = 'NA')
-    atripdistm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Mode', na_rep = 'NA')
-    tourdest.to_excel(excel_writer = writer, sheet_name = '% Tours by Destination District', na_rep = 'NA')
-    tripdest.to_excel(excel_writer = writer, sheet_name = '% Trips by Destination District', na_rep = 'NA')
-    people_workers_students_district.to_excel(excel_writer=writer,sheet_name='#People by District',na_rep='NA')
-    writer.save()
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/DaysimDestChoiceReport.xlsx')
+        colors = ['#004488', '#00C0C0']
 
-    colwidths = xlautofit.getmaxwidths(location + '/DaysimDestChoiceReport.xlsx')
-    colors = ['#004488', '#00C0C0']
-
-    writer = pd.ExcelWriter(location + '/DaysimDestChoiceReport.xlsx', engine = 'xlsxwriter')
-    atl.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Purpose', na_rep = 'NA')
-    atlm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Mode', na_rep = 'NA')
-    nttp.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Purpose', na_rep = 'NA')
-    nttpm.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Mode', na_rep = 'NA')
-    atripdist.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Purpose', na_rep = 'NA')
-    atripdistm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Mode', na_rep = 'NA')
-    tourdest.to_excel(excel_writer = writer, sheet_name = '% Tours by Destination District', na_rep = 'NA')
-    tripdest.to_excel(excel_writer = writer, sheet_name = '% Trips by Destination District', na_rep = 'NA')
-    people_workers_students_district.to_excel(excel_writer=writer,sheet_name='#People by District',na_rep='NA')
-    workbook = writer.book
-    for sheet in writer.sheets:
-        worksheet = writer.sheets[sheet]
-        for colnum in range(worksheet.dim_colmax + 1):
-            worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-        worksheet.freeze_panes(0, 1)
-        chart = workbook.add_chart({'type': 'column'})
-        for col_num in range(1, 3):
-            chart.add_series({'name': [sheet, 0, col_num],
+        writer = pd.ExcelWriter(location + '/DaysimDestChoiceReport.xlsx', engine = 'xlsxwriter')
+        atl.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Purpose', na_rep = 'NA')
+        atlm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Tour Mode', na_rep = 'NA')
+        nttp.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Purpose', na_rep = 'NA')
+        nttpm.to_excel(excel_writer = writer, sheet_name = 'Trips per Tour by Tour Mode', na_rep = 'NA')
+        atripdist.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Purpose', na_rep = 'NA')
+        atripdistm.to_excel(excel_writer = writer, sheet_name = 'Average Dist by Trip Mode', na_rep = 'NA')
+        tourdest.to_excel(excel_writer = writer, sheet_name = '% Tours by Destination District', na_rep = 'NA')
+        tripdest.to_excel(excel_writer = writer, sheet_name = '% Trips by Destination District', na_rep = 'NA')
+        people_workers_students_district.to_excel(excel_writer=writer,sheet_name='#People by District',na_rep='NA')
+        workbook = writer.book
+        for sheet in writer.sheets:
+            worksheet = writer.sheets[sheet]
+            if format:
+                for colnum in range(worksheet.dim_colmax + 1):
+                    worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+            worksheet.freeze_panes(0, 1)
+            chart = workbook.add_chart({'type': 'column'})
+            for col_num in range(1, 3):
+                chart.add_series({'name': [sheet, 0, col_num],
+                                    'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                                    'values': [sheet, 2, col_num, worksheet.dim_rowmax, col_num],
+                                    'fill': {'color': colors[col_num - 1]}})
+            chart.set_legend({'position': 'top'})
+            chart.set_size({'x_scale': 2, 'y_scale': 1.5})
+            worksheet.insert_chart('B15', chart)
+        num_workers = workbook.add_chart({'type': 'column'})
+        num_workers.add_series({'name': [sheet, 0, 5],
                                 'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                                'values': [sheet, 2, col_num, worksheet.dim_rowmax, col_num],
-                                'fill': {'color': colors[col_num - 1]}})
-        chart.set_legend({'position': 'top'})
-        chart.set_size({'x_scale': 2, 'y_scale': 1.5})
-        worksheet.insert_chart('B15', chart)
-    num_workers = workbook.add_chart({'type': 'column'})
-    num_workers.add_series({'name': [sheet, 0, 5],
-                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 2, 5, worksheet.dim_rowmax, 5],
-                            'fill': {'color': colors[0]}})
-    num_workers.add_series({'name': [sheet, 0, 6],
-                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 2, 6, worksheet.dim_rowmax, 6],
-                            'fill': {'color': colors[1]}})
-    num_workers.set_legend({'position': 'top'})
-    num_workers.set_size({'x_scale':2,'y_scale':1.5})
-    worksheet.insert_chart('F15', num_workers)
-    num_students = workbook.add_chart({'type': 'column'})
-    num_students.add_series({'name': [sheet, 0, 9],
-                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 2, 9, worksheet.dim_rowmax, 9],
-                            'fill': {'color': colors[0]}})
-    num_students.add_series({'name': [sheet, 0, 10],
-                            'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
-                            'values': [sheet, 2, 10, worksheet.dim_rowmax, 10],
-                            'fill': {'color': colors[1]}})
-    num_students.set_legend({'position': 'top'})
-    num_students.set_size({'x_scale':2,'y_scale':1.5})
-    worksheet.insert_chart('J15', num_students)
-    writer.save()
+                                'values': [sheet, 2, 5, worksheet.dim_rowmax, 5],
+                                'fill': {'color': colors[0]}})
+        num_workers.add_series({'name': [sheet, 0, 6],
+                                'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                                'values': [sheet, 2, 6, worksheet.dim_rowmax, 6],
+                                'fill': {'color': colors[1]}})
+        num_workers.set_legend({'position': 'top'})
+        num_workers.set_size({'x_scale':2,'y_scale':1.5})
+        worksheet.insert_chart('F15', num_workers)
+        num_students = workbook.add_chart({'type': 'column'})
+        num_students.add_series({'name': [sheet, 0, 9],
+                                'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                                'values': [sheet, 2, 9, worksheet.dim_rowmax, 9],
+                                'fill': {'color': colors[0]}})
+        num_students.add_series({'name': [sheet, 0, 10],
+                                'categories': [sheet, 2, 0, worksheet.dim_rowmax, 0],
+                                'values': [sheet, 2, 10, worksheet.dim_rowmax, 10],
+                                'fill': {'color': colors[1]}})
+        num_students.set_legend({'position': 'top'})
+        num_students.set_size({'x_scale':2,'y_scale':1.5})
+        worksheet.insert_chart('J15', num_students)
+        writer.save()
 
     print('---Destination Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
 
@@ -1022,120 +993,96 @@ def ModeChoice(data1, data2, name1, name2, location):
     print('Trips by Purpose and Travel Time data frame created in '+str(round(cp7 - cp6, 1))+' seconds')
 
     #Write DataFrames to Excel File
-    writer = pd.ExcelWriter(location + '/ModeChoiceReport.xlsx', engine = 'xlsxwriter')
-    vmpp.to_excel(excel_writer = writer, sheet_name = '# People, Trips, and Tours', na_rep = 'NA')
-    msdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share', na_rep = 'NA')
-    mbpcdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share by Purpose', na_rep = 'NA')
-    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1)
-    percent1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1, startcol = 10)
-    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13)
-    percent2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13, startcol = 10)
-    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25)
-    share_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25, startcol = 10)
-    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37)
-    share_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37, startcol = 10)
-    worksheet = writer.sheets['Trip Mode by Tour Mode']
-    worksheet.write(1, 0, 'Tour Mode ->')
-    worksheet.write(1, 10, 'Tour Mode ->')
-    worksheet.write(13, 0, 'Tour Mode ->')
-    worksheet.write(13, 10, 'Tour Mode ->')
-    worksheet.write(25, 0, 'Tour Mode ->')
-    worksheet.write(25, 10, 'Tour Mode ->')
-    worksheet.write(37, 0, 'Tour Mode ->')
-    worksheet.write(37, 10, 'Tour Mode ->')
-    worksheet.write(0, 9, ' ')
-    toursmtt.to_excel(excel_writer = writer, sheet_name = 'Tours by Mode & Travel Time', na_rep = 'NA')
-    tripsmtt.to_excel(excel_writer = writer, sheet_name = 'Trips by Mode & Travel Time', na_rep = 'NA')
-    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time',na_rep = 'NA')
+    for format in range(2):
+        if format:
+            colwidths=xlautofit.getmaxwidths(location+'/ModeChoiceReport.xlsx')
 
-    writer.save()
-    colwidths=xlautofit.getmaxwidths(location+'/ModeChoiceReport.xlsx')
-
-    writer=pd.ExcelWriter(location+'/ModeChoiceReport.xlsx',engine='xlsxwriter')
-    workbook=writer.book
-    merge_format = workbook.add_format({'bold': True, 'align': 'center', 'border': True})
-    value_format = workbook.add_format({'bold': True, 'font_color': '#0000CC'})
-    pd_format = workbook.add_format({'bold': True, 'font_color': '#880000'})
-    vmpp.to_excel(excel_writer = writer, sheet_name = '# People, Trips, and Tours', na_rep = 'NA')
-    msdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share', na_rep = 'NA')
-    mbpcdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share by Purpose', na_rep = 'NA')
-    counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1)
-    percent1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1, startcol = 10)
-    counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13)
-    percent2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13, startcol = 10)
-    counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25)
-    share_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25, startcol = 10)
-    counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37)
-    share_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37, startcol = 10)
-    worksheet = writer.sheets['Trip Mode by Tour Mode']
-    worksheet.merge_range(0, 0, 0, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name1 + ')', merge_format)
-    worksheet.merge_range(0, 10, 0, 18, 'Mode Share by Tour Mode (' + name1 + ') (%)', merge_format)
-    worksheet.merge_range(12, 0, 12, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name2 + ')', merge_format)
-    worksheet.merge_range(12, 10, 12, 18, 'Mode Share by Tour Mode (' + name2 + ') (%)', merge_format)
-    worksheet.merge_range(24, 0, 24, 8, 'Difference in Number of Trips', merge_format)
-    worksheet.merge_range(24, 10, 24, 18, 'Difference in Mode Share', merge_format)
-    worksheet.merge_range(36, 0, 36, 8, 'Percent Difference in Number of Trips', merge_format)
-    worksheet.merge_range(36, 10, 36, 18, 'Percent Difference in Mode Share', merge_format)
-    worksheet.write(1, 0, 'Tour Mode ->', merge_format)
-    worksheet.write(1, 10, 'Tour Mode ->', merge_format)
-    worksheet.write(13, 0, 'Tour Mode ->', merge_format)
-    worksheet.write(13, 10, 'Tour Mode ->', merge_format)
-    worksheet.write(25, 0, 'Tour Mode ->', merge_format)
-    worksheet.write(25, 10, 'Tour Mode ->', merge_format)
-    worksheet.write(37, 0, 'Tour Mode ->', merge_format)
-    worksheet.write(37, 10, 'Tour Mode ->', merge_format)
-    worksheet.write(0, 9, ' ')
-    worksheet.conditional_format('L4:S11', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
-    worksheet.conditional_format('L16:S23', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
-    worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
-    worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
-    worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
-    worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
-    toursmtt.to_excel(excel_writer = writer, sheet_name = 'Tours by Mode & Travel Time', na_rep = 'NA')
-    tripsmtt.to_excel(excel_writer = writer, sheet_name = 'Trips by Mode & Travel Time', na_rep = 'NA')
-    tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time',na_rep = 'NA') 
-    colors=['#0c2c56','#005c5c']
-    for sheet in writer.sheets:
-        worksheet=writer.sheets[sheet]
-        for col_num in range(worksheet.dim_colmax+1):
-            worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
-        if sheet != 'Trip Mode by Tour Mode':
-            worksheet.freeze_panes(0,1)
-        if sheet in ['# People, Trips, and Tours','Mode Share']:
-            chart=workbook.add_chart({'type':'column'})
-            for col_num in range(1,3):
-                if sheet=='# People, Trips, and Tours':
-                    chart.add_series({'name':[sheet, 0, col_num],
-                                        'categories':[sheet,1,0,worksheet.dim_rowmax,0],
-                                        'values':[sheet,1,col_num,worksheet.dim_rowmax,col_num],
-                                        'fill':{'color':colors[col_num-1]}})
-                    chart.set_legend({'position':'top'})
-                    chart.set_size({'x_scale':2,'y_scale':1.75})
-                else:
-                    chart.add_series({'name':[sheet, 0, col_num],
-                                        'categories':[sheet,2,0,worksheet.dim_rowmax,0],
-                                        'values':[sheet,2,col_num,worksheet.dim_rowmax,col_num],
-                                        'fill':{'color':colors[col_num-1]}})
-                    chart.set_legend({'position':'top'})
-                    chart.set_size({'x_scale':2,'y_scale':1.75})
-            worksheet.insert_chart('B12',chart)
-        elif sheet == 'Mode Share by Purpose':
-            for i in range(1,8):
+        writer=pd.ExcelWriter(location+'/ModeChoiceReport.xlsx',engine='xlsxwriter')
+        workbook=writer.book
+        merge_format = workbook.add_format({'bold': True, 'align': 'center', 'border': True})
+        value_format = workbook.add_format({'bold': True, 'font_color': '#0000CC'})
+        pd_format = workbook.add_format({'bold': True, 'font_color': '#880000'})
+        vmpp.to_excel(excel_writer = writer, sheet_name = '# People, Trips, and Tours', na_rep = 'NA')
+        msdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share', na_rep = 'NA')
+        mbpcdf.to_excel(excel_writer = writer, sheet_name = 'Tour Mode Share by Purpose', na_rep = 'NA')
+        counts1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1)
+        percent1pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 1, startcol = 10)
+        counts2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13)
+        percent2pivot.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 13, startcol = 10)
+        counts_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25)
+        share_difference.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 25, startcol = 10)
+        counts_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37)
+        share_pd.to_excel(excel_writer = writer, sheet_name = 'Trip Mode by Tour Mode', na_rep = 'NA', startrow = 37, startcol = 10)
+        worksheet = writer.sheets['Trip Mode by Tour Mode']
+        worksheet.merge_range(0, 0, 0, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name1 + ')', merge_format)
+        worksheet.merge_range(0, 10, 0, 18, 'Mode Share by Tour Mode (' + name1 + ') (%)', merge_format)
+        worksheet.merge_range(12, 0, 12, 8, 'Number of Trips by Trip Mode and Tour Mode (' + name2 + ')', merge_format)
+        worksheet.merge_range(12, 10, 12, 18, 'Mode Share by Tour Mode (' + name2 + ') (%)', merge_format)
+        worksheet.merge_range(24, 0, 24, 8, 'Difference in Number of Trips', merge_format)
+        worksheet.merge_range(24, 10, 24, 18, 'Difference in Mode Share', merge_format)
+        worksheet.merge_range(36, 0, 36, 8, 'Percent Difference in Number of Trips', merge_format)
+        worksheet.merge_range(36, 10, 36, 18, 'Percent Difference in Mode Share', merge_format)
+        worksheet.write(1, 0, 'Tour Mode ->', merge_format)
+        worksheet.write(1, 10, 'Tour Mode ->', merge_format)
+        worksheet.write(13, 0, 'Tour Mode ->', merge_format)
+        worksheet.write(13, 10, 'Tour Mode ->', merge_format)
+        worksheet.write(25, 0, 'Tour Mode ->', merge_format)
+        worksheet.write(25, 10, 'Tour Mode ->', merge_format)
+        worksheet.write(37, 0, 'Tour Mode ->', merge_format)
+        worksheet.write(37, 10, 'Tour Mode ->', merge_format)
+        worksheet.write(0, 9, ' ')
+        worksheet.conditional_format('L4:S11', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
+        worksheet.conditional_format('L16:S23', {'type': 'cell', 'criteria': '>=', 'value': 20, 'format': value_format})
+        worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
+        worksheet.conditional_format('B40:I47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
+        worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': pd_format})
+        worksheet.conditional_format('L40:S47', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': pd_format})
+        toursmtt.to_excel(excel_writer = writer, sheet_name = 'Tours by Mode & Travel Time', na_rep = 'NA')
+        tripsmtt.to_excel(excel_writer = writer, sheet_name = 'Trips by Mode & Travel Time', na_rep = 'NA')
+        tptt.to_excel(excel_writer = writer, sheet_name = 'Trips by Purpose & Travel Time',na_rep = 'NA') 
+        colors=['#0c2c56','#005c5c']
+        for sheet in writer.sheets:
+            worksheet=writer.sheets[sheet]
+            if format:
+                for col_num in range(worksheet.dim_colmax+1):
+                    worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
+            if sheet != 'Trip Mode by Tour Mode':
+                worksheet.freeze_panes(0,1)
+            if sheet in ['# People, Trips, and Tours','Mode Share']:
                 chart=workbook.add_chart({'type':'column'})
                 for col_num in range(1,3):
-                    c=2*(i-1)+col_num
-                    chart.add_series({'name':[sheet,0,c],
-                                        'categories':[sheet,1,0,8,0],
-                                        'values':[sheet,1,c,8,c],
-                                        'fill':{'color':colors[col_num-1]}})
-                chart.set_legend({'position':'top'})
-                chart.set_size({'x_scale':0.8,'y_scale':0.9})
-                chart.set_y_axis({'name':'Mode Share'})
-                if i%2==1:
-                    worksheet.insert_chart(10,2*i-1,chart)
-                else:
-                    worksheet.insert_chart(24,2*i-3,chart)
-    writer.save()
+                    if sheet=='# People, Trips, and Tours':
+                        chart.add_series({'name':[sheet, 0, col_num],
+                                            'categories':[sheet,1,0,worksheet.dim_rowmax,0],
+                                            'values':[sheet,1,col_num,worksheet.dim_rowmax,col_num],
+                                            'fill':{'color':colors[col_num-1]}})
+                        chart.set_legend({'position':'top'})
+                        chart.set_size({'x_scale':2,'y_scale':1.75})
+                    else:
+                        chart.add_series({'name':[sheet, 0, col_num],
+                                            'categories':[sheet,2,0,worksheet.dim_rowmax,0],
+                                            'values':[sheet,2,col_num,worksheet.dim_rowmax,col_num],
+                                            'fill':{'color':colors[col_num-1]}})
+                        chart.set_legend({'position':'top'})
+                        chart.set_size({'x_scale':2,'y_scale':1.75})
+                worksheet.insert_chart('B12',chart)
+            elif sheet == 'Mode Share by Purpose':
+                for i in range(1,8):
+                    chart=workbook.add_chart({'type':'column'})
+                    for col_num in range(1,3):
+                        c=2*(i-1)+col_num
+                        chart.add_series({'name':[sheet,0,c],
+                                            'categories':[sheet,1,0,8,0],
+                                            'values':[sheet,1,c,8,c],
+                                            'fill':{'color':colors[col_num-1]}})
+                    chart.set_legend({'position':'top'})
+                    chart.set_size({'x_scale':0.8,'y_scale':0.9})
+                    chart.set_y_axis({'name':'Mode Share'})
+                    if i%2==1:
+                        worksheet.insert_chart(10,2*i-1,chart)
+                    else:
+                        worksheet.insert_chart(24,2*i-3,chart)
+        writer.save()
 
     print('---Mode Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
 
@@ -1419,95 +1366,77 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
 
 
     #Compile file
-    writer = pd.ExcelWriter(location + '/LongTermReport.xlsx', engine = 'xlsxwriter')
-    ph.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA', startrow = 1)
-    workbook = writer.book
-    worksheet = writer.sheets['Basic Summaries']
-    wh.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA')
-    worksheet = writer.sheets['Workers at Home']
-    whbc.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA', startrow = 6)
-    adw.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1)
-    worksheet = writer.sheets['Avg Dist to Work and School']
-    xcl.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 12)
-    worksheet.write(0, 5, ' ')
-    ads.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1, startcol = 6)
-    tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA')
-    worksheet = writer.sheets['Transit Pass and Auto Ownership']
-    ao.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 4)
-    aoc.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 12)
-    worksheet.write(12, 0, 'County')
-    aoi.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 18)
-    worksheet.write(18, 0, 'Household Income')
-    writer.save()
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/LongTermReport.xlsx')
+        colors = ['#004488', '#00C0C0']
 
-    colwidths = xlautofit.getmaxwidths(location + '/LongTermReport.xlsx')
-    colors = ['#004488', '#00C0C0']
-
-    writer = pd.ExcelWriter(location + '/LongTermReport.xlsx', engine = 'xlsxwriter')
-    ph.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA', startrow = 1)
-    workbook = writer.book
-    worksheet = writer.sheets['Basic Summaries']
-    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
-    worksheet.merge_range(0, 0, 0, 5, 'Total Households and Persons', merge_format)
-    wh.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA')
-    worksheet = writer.sheets['Workers at Home']
-    worksheet.merge_range(5, 0, 5, 5,' ', merge_format)
-    whbc.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA', startrow = 6)
-    chart = workbook.add_chart({'type': 'column'})
-    sheet = 'Workers at Home'
-    for col_num in range(1, 3):
-        chart.add_series({'name': [sheet, 6, col_num],
+        writer = pd.ExcelWriter(location + '/LongTermReport.xlsx', engine = 'xlsxwriter')
+        ph.to_excel(excel_writer = writer, sheet_name = 'Basic Summaries', na_rep = 'NA', startrow = 1)
+        workbook = writer.book
+        worksheet = writer.sheets['Basic Summaries']
+        merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
+        worksheet.merge_range(0, 0, 0, 5, 'Total Households and Persons', merge_format)
+        wh.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA')
+        worksheet = writer.sheets['Workers at Home']
+        worksheet.merge_range(5, 0, 5, 5,' ', merge_format)
+        whbc.to_excel(excel_writer = writer, sheet_name = 'Workers at Home', na_rep = 'NA', startrow = 6)
+        chart = workbook.add_chart({'type': 'column'})
+        sheet = 'Workers at Home'
+        for col_num in range(1, 3):
+            chart.add_series({'name': [sheet, 6, col_num],
+                                'categories': [sheet, 8, 0, 11, 0],
+                                'values': [sheet, 8, col_num, 11, col_num],
+                                'fill': {'color': colors[col_num - 1]}})
+        chart.add_series({'name': [sheet, 6, 5],
                             'categories': [sheet, 8, 0, 11, 0],
-                            'values': [sheet, 8, col_num, 11, col_num],
-                            'fill': {'color': colors[col_num - 1]}})
-    chart.add_series({'name': [sheet, 6, 5],
-                        'categories': [sheet, 8, 0, 11, 0],
-                        'values':[sheet, 8, 5, 11, 5],
-                        'fill': {'color': '#000000'}})
-    chart.set_legend({'position': 'top'})
-    chart.set_x_axis({'name': 'County'})
-    chart.set_y_axis({'name':' Number of Home Workers'})
-    worksheet.insert_chart('A14', chart)
-    adw.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1)
-    worksheet = writer.sheets['Avg Dist to Work and School']
-    worksheet.merge_range(0, 0, 0, 4, 'Average Distance to Work', merge_format)
-    xcl.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 12)
-    worksheet.merge_range(0, 6, 0, 10, 'Average Distance to School', merge_format)
-    worksheet.write(0, 5, ' ')
-    ads.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1, startcol = 6)
-    sheet = 'Avg Dist to Work and School'
-    chart = workbook.add_chart({'type':'column'})
-    for col_num in range(1, 3):
-        chart.add_series({'name': [sheet, 1, col_num],
-                            'categories': [sheet, 2, 0, 10, 0],
-                            'values': [sheet, 2, col_num, 10, col_num],
-                            'fill': {'color': colors[col_num - 1]}})
-    chart.set_legend({'position': 'top'})
-    chart.set_y_axis({'name': 'Average Distance to Work'})
-    worksheet.insert_chart('A17', chart)
-    chart = workbook.add_chart({'type': 'column'})
-    for col_num in range(7, 9):
-        chart.add_series({'name': [sheet, 1, col_num],
-                            'categories': [sheet, 2, 6, 6, 6],
-                            'values': [sheet, 2, col_num, 6, col_num],
-                            'fill': {'color': colors[col_num - 7]}})
-    chart.set_legend({'position': 'top'})
-    chart.set_x_axis({'name': 'Age'})
-    chart.set_y_axis({'name': 'Average Distance to School'})
-    worksheet.insert_chart('G17', chart)
-    tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA')
-    worksheet = writer.sheets['Transit Pass and Auto Ownership']
-    ao.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 4)
-    aoc.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 12)
-    worksheet.write(12, 0, 'County', merge_format)
-    aoi.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 18)
-    worksheet.write(18, 0, 'Household Income', merge_format)
-    worksheet.freeze_panes(0, 1)
-    for sheet in writer.sheets:
-        worksheet = writer.sheets[sheet]
-        for colnum in range(worksheet.dim_colmax + 1):
-            worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    writer.save()
+                            'values':[sheet, 8, 5, 11, 5],
+                            'fill': {'color': '#000000'}})
+        chart.set_legend({'position': 'top'})
+        chart.set_x_axis({'name': 'County'})
+        chart.set_y_axis({'name':' Number of Home Workers'})
+        worksheet.insert_chart('A14', chart)
+        adw.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1)
+        worksheet = writer.sheets['Avg Dist to Work and School']
+        worksheet.merge_range(0, 0, 0, 4, 'Average Distance to Work', merge_format)
+        xcl.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 12)
+        worksheet.merge_range(0, 6, 0, 10, 'Average Distance to School', merge_format)
+        worksheet.write(0, 5, ' ')
+        ads.to_excel(excel_writer = writer, sheet_name = 'Avg Dist to Work and School', na_rep = 'NA', startrow = 1, startcol = 6)
+        sheet = 'Avg Dist to Work and School'
+        chart = workbook.add_chart({'type':'column'})
+        for col_num in range(1, 3):
+            chart.add_series({'name': [sheet, 1, col_num],
+                                'categories': [sheet, 2, 0, 10, 0],
+                                'values': [sheet, 2, col_num, 10, col_num],
+                                'fill': {'color': colors[col_num - 1]}})
+        chart.set_legend({'position': 'top'})
+        chart.set_y_axis({'name': 'Average Distance to Work'})
+        worksheet.insert_chart('A17', chart)
+        chart = workbook.add_chart({'type': 'column'})
+        for col_num in range(7, 9):
+            chart.add_series({'name': [sheet, 1, col_num],
+                                'categories': [sheet, 2, 6, 6, 6],
+                                'values': [sheet, 2, col_num, 6, col_num],
+                                'fill': {'color': colors[col_num - 7]}})
+        chart.set_legend({'position': 'top'})
+        chart.set_x_axis({'name': 'Age'})
+        chart.set_y_axis({'name': 'Average Distance to School'})
+        worksheet.insert_chart('G17', chart)
+        tpass.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA')
+        worksheet = writer.sheets['Transit Pass and Auto Ownership']
+        ao.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 4)
+        aoc.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 12)
+        worksheet.write(12, 0, 'County', merge_format)
+        aoi.to_excel(excel_writer = writer, sheet_name = 'Transit Pass and Auto Ownership', na_rep = 'NA', startrow = 18)
+        worksheet.write(18, 0, 'Household Income', merge_format)
+        worksheet.freeze_panes(0, 1)
+        for sheet in writer.sheets:
+            worksheet = writer.sheets[sheet]
+            if format:
+                for colnum in range(worksheet.dim_colmax + 1):
+                    worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        writer.save()
 
     print('---Long Term Report succesfuly compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
 
@@ -1576,68 +1505,66 @@ def TimeChoice(data1, data2, name1, name2, location, districtfile):
     print('Tour Primary Destination Departure Time by Hour data frame created in ' + str(round(cp4 - cp3, 1)) + ' seconds')
 
     #Compile the file
-    writer = pd.ExcelWriter(location + '/TimeChoiceReport.xlsx', engine = 'xlsxwriter')
-    trip_time.to_excel(excel_writer = writer, sheet_name = 'Trip Arrival Times by Hour', na_rep = 'NA')
-    tour_time_apd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 1)
-    tour_time_lpd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 29)
-    writer.save()
+    for format in range(2):
+        if format:
+            colwidths = xlautofit.getmaxwidths(location + '/TimeChoiceReport.xlsx')
+        colors = ['#004488', '#00C0C0']
 
-    colwidths = xlautofit.getmaxwidths(location + '/TimeChoiceReport.xlsx')
-    colors = ['#004488', '#00C0C0']
-
-    writer = pd.ExcelWriter(location + '/TimeChoiceReport.xlsx', engine = 'xlsxwriter')
-    workbook = writer.book
-    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
-    trip_time.to_excel(excel_writer = writer, sheet_name = 'Trip Arrival Times by Hour', na_rep = 'NA')
-    tour_time_apd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 1)
-    tour_time_lpd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 29)
-    sheet = 'Trip Arrival Times by Hour'
-    worksheet = writer.sheets[sheet]
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    chart = workbook.add_chart({'type': 'column'})
-    for colnum in range(1, 3):
-        chart.add_series({'name': [sheet, 0, colnum],
-                            'categories': [sheet, 2, 0, 25, 0],
-                            'values': [sheet, 2, colnum, 25, colnum],
-                            'fill': {'color': colors[colnum - 1]}})
-    chart.set_title({'name': 'Trip Arrival Time by Hour of Day'})
-    chart.set_size({'width': 704, 'height': 520})
-    chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
-    chart.set_y_axis({'name': 'Percent of Trips'})
-    chart.set_legend({'position': 'top'})
-    worksheet.insert_chart('G1', chart)
-    sheet = 'Tour PD Arr & Dep Times by Hour'
-    worksheet = writer.sheets[sheet]
-    worksheet.merge_range(0, 0, 0, 4, 'Tour Share by Primary Destination Arrival Hour', merge_format)
-    worksheet.merge_range(28, 0, 28, 4, 'Tour Share by Primary Destination Departure Hour', merge_format)
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    chart = workbook.add_chart({'type': 'column'})
-    for colnum in range(1, 3):
-        chart.add_series({'name': [sheet, 1, colnum],
-                            'categories': [sheet, 3, 0, 26, 0],
-                            'values': [sheet, 3, colnum, 26, colnum],
-                            'fill': {'color': colors[colnum - 1]}})
-    chart.set_title({'name': [sheet, 0, 0]})
-    chart.set_size({'width': 640, 'height': 540})
-    chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
-    chart.set_y_axis({'name': 'Percent of Tours'})
-    chart.set_legend({'position': 'top'})
-    worksheet.insert_chart('F1', chart)
-    chart = workbook.add_chart({'type': 'column'})
-    for colnum in range(1, 3):
-        chart.add_series({'name': [sheet, 29, colnum],
-                            'categories': [sheet, 31, 0, 54, 0],
-                            'values': [sheet, 31, colnum, 54, colnum],
-                            'fill': {'color': colors[colnum - 1]},})
-    chart.set_title({'name': [sheet, 28, 0]})
-    chart.set_size({'width': 640, 'height': 540})
-    chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
-    chart.set_y_axis({'name': 'Percent of Tours'})
-    chart.set_legend({'position': 'top'})
-    worksheet.insert_chart('F29', chart)
-    writer.save()
+        writer = pd.ExcelWriter(location + '/TimeChoiceReport.xlsx', engine = 'xlsxwriter')
+        workbook = writer.book
+        merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
+        trip_time.to_excel(excel_writer = writer, sheet_name = 'Trip Arrival Times by Hour', na_rep = 'NA')
+        tour_time_apd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 1)
+        tour_time_lpd.to_excel(excel_writer = writer, sheet_name = 'Tour PD Arr & Dep Times by Hour', na_rep = 'NA', startrow = 29)
+        sheet = 'Trip Arrival Times by Hour'
+        worksheet = writer.sheets[sheet]
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        chart = workbook.add_chart({'type': 'column'})
+        for colnum in range(1, 3):
+            chart.add_series({'name': [sheet, 0, colnum],
+                                'categories': [sheet, 2, 0, 25, 0],
+                                'values': [sheet, 2, colnum, 25, colnum],
+                                'fill': {'color': colors[colnum - 1]}})
+        chart.set_title({'name': 'Trip Arrival Time by Hour of Day'})
+        chart.set_size({'width': 704, 'height': 520})
+        chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
+        chart.set_y_axis({'name': 'Percent of Trips'})
+        chart.set_legend({'position': 'top'})
+        worksheet.insert_chart('G1', chart)
+        sheet = 'Tour PD Arr & Dep Times by Hour'
+        worksheet = writer.sheets[sheet]
+        worksheet.merge_range(0, 0, 0, 4, 'Tour Share by Primary Destination Arrival Hour', merge_format)
+        worksheet.merge_range(28, 0, 28, 4, 'Tour Share by Primary Destination Departure Hour', merge_format)
+        if format:
+            for colnum in range(worksheet.dim_colmax + 1):
+                worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+        chart = workbook.add_chart({'type': 'column'})
+        for colnum in range(1, 3):
+            chart.add_series({'name': [sheet, 1, colnum],
+                                'categories': [sheet, 3, 0, 26, 0],
+                                'values': [sheet, 3, colnum, 26, colnum],
+                                'fill': {'color': colors[colnum - 1]}})
+        chart.set_title({'name': [sheet, 0, 0]})
+        chart.set_size({'width': 640, 'height': 540})
+        chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
+        chart.set_y_axis({'name': 'Percent of Tours'})
+        chart.set_legend({'position': 'top'})
+        worksheet.insert_chart('F1', chart)
+        chart = workbook.add_chart({'type': 'column'})
+        for colnum in range(1, 3):
+            chart.add_series({'name': [sheet, 29, colnum],
+                                'categories': [sheet, 31, 0, 54, 0],
+                                'values': [sheet, 31, colnum, 54, colnum],
+                                'fill': {'color': colors[colnum - 1]},})
+        chart.set_title({'name': [sheet, 28, 0]})
+        chart.set_size({'width': 640, 'height': 540})
+        chart.set_x_axis({'name': 'Hour of Day', 'num_font': {'rotation': -60}})
+        chart.set_y_axis({'name': 'Percent of Tours'})
+        chart.set_legend({'position': 'top'})
+        worksheet.insert_chart('F29', chart)
+        writer.save()
 
     print('---Time Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
     
