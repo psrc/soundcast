@@ -6,22 +6,63 @@ import xlrd
 import time
 import summary_functions as scf
 from input_configuration import *
-import json
 
-screenline_dict_file = 'inputs/screenline_dict.json'
-observed_screenline_volumes_file = 'inputs/observed_screenline_volumes.json'
-transit_agency_dict_file = 'inputs/transit_agency_dict.json'
-
-#Dictionary to map from screenline number to name
-with open(screenline_dict_file, 'rb') as sdf:
-    screenline_dict = json.load(sdf)
-    for type in screenline_dict.keys():
-        for screenline in screenline_dict[type].keys():
-            screenline_dict[type].update({int(screenline): screenline_dict[type][screenline]})
+#Define dictionary to map from screenline number to name
+screenline_dict = {'Primary': {
+                                4: 'Tacoma - East of CBD',
+                                14: 'Auburn',
+                                15: 'Auburn',
+                                22: 'Tukwila',
+                                23: 'Renton',
+                                29: 'Seattle - South of CBD',
+                                30: 'Bellevue/Redmond',
+                                32: 'TransLake',
+                                35: 'Ship Canal',
+                                37: 'Kirkland/Redmond',
+                                41: 'Seattle - North',
+                                43: 'Lynnwood/Bothell',
+                                44: 'Bothell',
+                                46: 'Mill Creek'},
+                    'Secondary': {
+                                    2: 'Parkland',
+                                    3: 'Puyallup',
+                                    7: 'Tacoma Narrows',
+                                    18: 'Maple Valley',
+                                    19: 'SeaTac',
+                                    20: 'Kent',
+                                    54: 'Gig Harbor',
+                                    57: 'Kitsap - North',
+                                    58: 'Agate Pass',
+                                    60: 'Cross-Sound',
+                                    66: 'Preston, Issaquah',
+                                    71: 'Woodinville'}}
 
 #Create a dictionary to map from screenline names to the observed daily volumes
-with open(observed_screenline_volumes_file, 'rb') as osv:
-    observed_screenline_volumes = json.load(osv)
+observed_screenline_volumes = {'Tacoma - East of CBD': 297693,
+                                'Auburn': 509582,
+                                'Tukwila': 223871,
+                                'Renton': 65723,
+                                'Seattle - South of CBD': 489382,
+                                'Bellevue/Redmond': 370010,
+                                'TransLake': 265618,
+                                'Ship Canal': 537910,
+                                'Kirkland/Redmond': 451152,
+                                'Seattle - North': 368812,
+                                'Lynnwood/Bothell': 265934,
+                                'Bothell': 265982,
+                                'Mill Creek': 360206,
+                                'Parkland': 261062,
+                                'Puyallup': 130529,
+                                'Tacoma Narrows': 87846,
+                                'Maple Valley': 58970,
+                                'SeaTac': 66983,
+                                'Kent': 504607,
+                                'Gig Harbor': 60135,
+                                'Kitsap - North': 106798,
+                                'Agate Pass': 20000,
+                                'Cross-Sound': 25219,
+                                'Preston, Issaquah': 84674,
+                                'Woodinville': 99360}
 
 #Function to write a table for screenlines
 def write_screenline_tables(workbook, worksheet, screenline_type, header_format, index_format, number_format, percent_format, decimal_format, cond_format):
@@ -155,9 +196,16 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
     comparison_scenario_file = xlrd.open_workbook('output_templates/NetworkSummaryTemplate.xlsx')
     comparison_scenario_sheet = comparison_scenario_file.sheet_by_name('Network')
 
-    with open(transit_agency_dict_file) as tadf:
-        transit_agency_dict = json.load(tadf)
-
+    transit_agency_dict = {'ET': 'Everett Transit',
+                           'KT': 'Kitsap Transit',
+                           'CT': 'Community Transit',
+                           'PT': 'Pierce Transit',
+                           'MK': 'King County Metro',
+                           'ST': 'Sound Transit Express',
+                           'RL': 'Commuter Rail',
+                           'LR': 'Light Rail',
+                           'SC': 'Monorail',
+                           'WF': 'Ferry'}
 
     am_transit_key_df = pd.io.excel.read_excel('inputs/TransitRouteKey.xlsx', 'AM').dropna()
     md_transit_key_df = pd.io.excel.read_excel('inputs/TransitRouteKey.xlsx', 'MD').dropna()

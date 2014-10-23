@@ -337,13 +337,13 @@ def import_skims():
             #gc
             skim_name = item['gc_name']
             h5_skim = hdf_file['Skims'][skim_name]
-            np_skim = np.matrix(h5_skim, dtype = 'float16')
+            np_skim = np.matrix(h5_skim)
             np_gc_skims[skim_name + '_' + truck_generalized_cost_tod[tod]] = np_skim
         
             #distance
             skim_name = item['dist_name']
             h5_skim = hdf_file['Skims'][skim_name]
-            np_skim = np.matrix(h5_skim, dtype='float16')
+            np_skim = np.matrix(h5_skim)
             np_gc_skims[skim_name + '_' + truck_generalized_cost_tod[tod]] = np_skim
 
     zones = my_project.current_scenario.zone_numbers
@@ -367,8 +367,7 @@ def import_skims():
         bidir_skim_name = truck_type['dist_bidir_name']
         #distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
         bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100
-        bi_dir_skim = np.asarray(bi_dir_skim, dtype = 'float16')
-        print bi_dir_skim.dtype
+        bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
         bi_dir_skim = bi_dir_skim[0:zonesDim, 0:zonesDim]

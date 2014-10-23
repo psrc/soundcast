@@ -11,14 +11,14 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
-recipients = ['FillThisIn@psrc.org']
+recipients = ['SChildress@psrc.org']
 
 # Script and subprocess controls 
 run_parcel_buffering = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
-run_copy_inputs = True
+run_copy_large_inputs = True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
 should_build_shadow_price = True
@@ -28,15 +28,14 @@ run_supplemental_trips = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
-run_supplemental_trips = True
 run_travel_time_summary = True
 # Only update parking for future-year analysis!
 run_update_parking = False
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 1, 1, 1, 1, 1, 1, 1]
+pop_sample = [10, 5, 1, 1, 1]
 # start building shadow prices - only run work locations
-shadow_work = [1, 1, 1, 1, 1, 1, 1, 1]
+shadow_work = [1, 1, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence

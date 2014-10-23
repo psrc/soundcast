@@ -1,9 +1,10 @@
 #!python.exe
-# Beta One
 # PSRC SoundCast Model Runner
 # ===========================
-
-import os,sys,datetime,re
+import os
+import sys
+import datetime
+import re
 import subprocess
 import inro.emme.desktop.app as app
 import json
@@ -16,7 +17,7 @@ import shutil
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
-
+from data_wrangling import *
 
 # Create text file to log model performance
 logfile = open(main_log_file, 'wb')
@@ -24,345 +25,21 @@ logfile = open(main_log_file, 'wb')
 time_start = datetime.datetime.now()
 print "\nSoundCast run: start time:", time_start
 
-def multipleReplace(text, wordDict):
-    for key in wordDict:
-        text = text.replace(key, wordDict[key])
-    return text
-
-def copy_daysim_code():
-    print 'Copying Daysim executables...'
-    if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
-       os.makedirs(os.path.join(os.getcwd(), 'daysim'))
-    shcopy(daysim_code +'/Daysim.exe', 'daysim')
-    shcopy(daysim_code +'/Daysim.Attributes.dll', 'daysim')
-    shcopy(daysim_code +'/Daysim.Framework.dll', 'daysim')
-    shcopy(daysim_code +'/Daysim.Interfaces.dll', 'daysim')
-    shcopy(daysim_code +'/HDF5DotNet.dll', 'daysim')
-    shcopy(daysim_code +'/NDesk.Options.dll', 'daysim')
-    shcopy(daysim_code +'/Ninject.dll', 'daysim')
-    shcopy(daysim_code +'/Ninject.xml', 'daysim')
-    shcopy(daysim_code +'/msvcr100.dll', 'daysim')
-    shcopy(daysim_code +'/szip.dll', 'daysim')
-    shcopy(daysim_code +'/zlib.dll', 'daysim')
-    shcopy(daysim_code +'/hdf5_hldll.dll', 'daysim')
-    shcopy(daysim_code +'/hdf5dll.dll', 'daysim')
-    shcopy(daysim_code +'/Ionic.Zip.dll', 'daysim')
-    shcopy(daysim_code +'/msvcp100.dll', 'daysim')
-    shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
-
-def copy_parcel_buffering_files():
-    if not os.path.exists('Inputs/parcel_buffer'):
-        os.makedirs('Inputs/parcel_buffer')
-    if not os.path.exists('scripts/parcel_buffer'):
-        os.makedirs('scripts/parcel_buffer')
-
-    print 'Copying Parcel Buffering Network Inputs.  The file is about 2 GB so it could take a couple of minutes.'
-    try: 
-        shcopy(network_buffer_inputs, 'Inputs/parcel_buffer')
-    except:
-        print 'error copying network_buffer inputs at ' + network_buffer_inputs
-        
- 
-    main_dir = os.path.abspath('')
-    unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
-    returncode= subprocess.call(unzip_net_ins)
-    if returncode!=0:
-        print 'Could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
-        sys.exit(0)
-    
-    print 'Copying UrbanSim parcel file'
-    shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
-
-    print 'Copying Military parcel file'
-    shcopy(base_inputs+'/landuse/parcels_military.csv','Inputs/parcel_buffer')
-
-    print 'Copying Parcel Buffering Code'
-    dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
-
-
-def json_to_dictionary(dict_name):
-
-    #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
-    my_dictionary = json.load(open(input_filename))
-
-    return(my_dictionary)
-    
-    
-def setup_emme_bank_folders():
-    tod_dict = json_to_dictionary('time_of_day')
-    emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
-    
-    if not os.path.exists('Banks'):
-        os.makedirs('Banks')
-    else:
-        # remove it
-        print 'deleting Banks folder'
-        shutil.rmtree('Banks')
-
-    #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
-    time_periods = list(set(tod_dict.values()))
-    time_periods.append('TruckModel')
-    
-    for period in time_periods:
-        print period
-        print "creating bank for time period %s" % period
-        os.makedirs(os.path.join('Banks', period))
-        path = os.path.join('Banks', period, 'emmebank')
-        emmebank = _eb.create(path, emmebank_dimensions_dict)
-        emmebank.title = period
-        scenario = emmebank.create_scenario(1002)
-        network = scenario.get_network()
-        #need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
-        network.create_mode('AUTO', 'a')
-        scenario.publish_network(network)
-        emmebank.dispose()
-
-
-def setup_emme_project_folders():
-    #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
-
-    tod_dict = json_to_dictionary('time_of_day')
-    tod_list = list(set(tod_dict.values()))
-
-    if os.path.exists(os.path.join('projects')):
-        print 'Delete Project Folder'
-        shutil.rmtree('projects')
-
-    # Create master project, associate with all tod emmebanks
-    project = app.create_project('projects', master_project)
-    desktop = app.start_dedicated(True, "cth", project)
-    data_explorer = desktop.data_explorer()   
-    for tod in tod_list:
-        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
-    #open the last database added so that there is an active one
-    database.open()
-    desktop.project.save()
-    desktop.close()
-
-    # Create time of day projects, associate with emmebank
-    tod_list.append('TruckModel')
-    for tod in tod_list:
-        project = app.create_project('projects', tod)
-        desktop = app.start_dedicated(False, "cth", project)
-        data_explorer = desktop.data_explorer()
-        database = data_explorer.add_database('Banks/' + tod + '/emmebank')
-        database.open()
-        desktop.project.save()
-        desktop.close()
-        
-   
-    
-def copy_large_inputs():
-    print 'Copying large inputs...' 
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
-    dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
-    dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
-    dir_util.copy_tree (base_inputs+'/supplemental/trips','outputs/supplemental')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
-    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
-    shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
-    if run_parcel_buffering == False:
-        shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
-
-def copy_shadow_price_file():
-    print 'Copying shadow price file.' 
-    if not os.path.exists('working'):
-       os.makedirs('working')
-    shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
-
-
-
-def rename_network_outs(iter):
-    for summary_name in network_summary_files:
-        csv_output = os.path.join(os.getcwd(), 'outputs',summary_name+'.csv')
-        if os.path.isfile(csv_output):
-            shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
-            os.remove(csv_output)
-
-def create_buffer_xml():
-    try:
-     'Creating xml file for the parcel buffering script pointing to your inputs'
-     buffer_template= open('scripts\parcel_buffer\parc_buff_template.xml','r')
-     buffer_config = open('parc_buffer.xml', 'w+')
-     
-     main_dir = os.path.abspath('')
-     
-     in_dir = '\inputs\parcel_buffer'
-     out_dir = '\inputs'
-     code_dir = '\scripts\parcel_buffer'
-
-     replace_dirs = {"$INDIR": main_dir+in_dir,
-                     "$OUTDIR" : main_dir+out_dir,
-                     "$CODEDIR": main_dir+code_dir}
-
-     for line in buffer_template:
-         print line
-         for key in replace_dirs.keys():
-            if key in line:
-                line = line.replace(key, replace_dirs[key])
-         buffer_config.write(line)
-   
-     buffer_template.close()
-     buffer_config.close()
-
-    except:
-     print 'Error in Creating Parcel Buffer xml'
-     buffer_template.close()
-     buffer_config.close()
-       
-def daysim_sample(recipr_sample, config_name):
-    try:
-     config_template= open(config_name,'r')
-     config= open('configuration.properties','w')
-
-     for line in config_template:
-         config.write(line.replace("$REPLACEME", str(recipr_sample)))
-
-     config_template.close()
-     config.close()
-
-    except:
-     config_template.close()
-     config.close()
-
-def clean_up():
-    delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
-                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
-                   'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
-                   'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
-                   'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
-                   'working\\zone.pk', 'inputs\\parcel_buffer\\intersection_node_correspondence.txt', 'inputs\\parcel_buffer\\open_spaces_correspondence.txt',
-                   'inputs\\parcel_buffer\\parcels_urbansim.txt','inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt',
-                   'inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt.bin', 'psrc_node_node_shortest_path_out.txt.index',
-                   'inputs\\parcel_buffer\\stop_node_correspondence']
-
-    for file in delete_files: 
-        if(os.path.isfile(os.path.join(os.getcwd(), file))):
-            os.remove(os.path.join(os.getcwd(), file))
-        else:
-            print file
-
-def daysim_assignment(iteration, recipr_sample, copy_shadow, configuration_template):
-     print "We're on iteration %d" % (iteration)
-     logfile.write("We're on iteration %d\r\n" % (iteration))
-     time_start = datetime.datetime.now()
-     logfile.write("starting run %s" %str((time_start)))
-
-      ### RUN Truck Model ################################################################
-     if run_truck_model == True:
-         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-         if returncode != 0:
-            send_error_email(recipients, returncode)
-            sys.exit(1)
-
-      ### RUN Supplemental Trips ################################################################
-    #''' Adds external, special generator, and group quarters trips to DaySim outputs.'''
-     if run_supplemental_trips:
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-        if returncode != 0:
-           send_error_email(recipients, returncode)
-           sys.exit(1)
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
-        if returncode != 0:
-           send_error_email(recipients, returncode)
-           sys.exit(1)
-     
-     ### RUN DAYSIM ################################################################
-     if run_daysim == True:
-         if copy_shadow:
-             copy_shadow_price_file()
-
-         daysim_sample(recipr_sample, configuration_template)
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-         if returncode != 0:
-             send_error_email(recipients, returncode)
-             sys.exit(1)
-
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
-
-     #### ASSIGNMENTS ###############################################################
-     if run_skims_and_paths == True:
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-         print 'return code from skims and paths is ' + str(returncode)
-         if returncode != 0:
-             returncode=subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-             if returncode != 0: 
-                  send_error_email(recipients, returncode)
-                  sys.exit(1)
-                  print 'EMME problems! Why?'
-     
-     time_assign = datetime.datetime.now()
-     print time_assign
-     logfile.write("ending assignment %s\r\n" %str((time_assign)))
-
-     ##print '###### Finished running assignments:',time_assign - time_daysim
-
-#####################################################################################################
-######################################################################################################
-# Main Script:
-## RUN PARCEL BUFFERING ON URBANSIM OUTPUTS ##########################################################
-if run_parcel_buffering == True:
+def parcel_buffering():
     copy_parcel_buffering_files()
     print 'adding military jobs to regular jobs'
-    returncode = subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    if returncode != 0:
+        print 'Military Job loading failed'
+        sys.exit(1)
     print 'military jobs loaded'
     create_buffer_xml()
     print 'running buffer tool'
     main_dir = os.path.abspath('')
-    returncode = subprocess.call(main_dir+'/scripts/parcel_buffer/DSBuffTool.exe')
-    os.remove(main_dir+ '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
+    returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
+    os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
-    
-### SET UP OTHER INPUTS ###############################################################################
-
-run_list = [("copy_daysim_code" , run_copy_daysim_code), 
-            ("setup_emme_bank_folders" , run_setup_emme_bank_folders),
-            ("setup_emme_project_folders", run_setup_emme_project_folders),
-            ("copy_large_inputs" , run_copy_inputs)]
-
-if not os.path.exists('outputs'):
-        os.makedirs('outputs')
-
-for i in range(0,len(run_list)):
-  if run_list[i][1]==True:
-    function = run_list[i][0]
-    locals()[function]()
-
-#svn_file =open('daysim/svn_stamp_out.txt','r')
-#svn_info=svn_file.read()
-#logfile.write(svn_info)
-
-
-
-### UPDATE PARCEL PARKING #############################################
-if run_update_parking == True:
-    if base_year == scenario_name:
-        print("----- This is a base-year analysis. Parking parcles are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
-    else:
-        returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
-    #if returncode != 0:
-    #    send_error_email(recipients, returncode)
-    #    sys.exit(1)
-### IMPORT NETWORKS ###############################################################\
-if run_import_networks == True:
-    time_copy = datetime.datetime.now()
-    returncode = subprocess.call([sys.executable,
-        'scripts/network/network_importer.py', base_inputs])
-    time_network = datetime.datetime.now()
-    print '###### Finished Importing Networks:', str(time_network - time_copy)
-
-    if returncode != 0:
-        send_error_email(recipients, returncode)
-        sys.exit(1)
-
-### BUILD SKIMS ###############################################################
-if run_skims_and_paths_seed_trips == True:
+def build_seed_skims():
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
@@ -372,49 +49,37 @@ if run_skims_and_paths_seed_trips == True:
              returncode = subprocess.call([sys.executable,
                            'scripts/skimming/SkimsAndPaths.py',
                             '-use_daysim_output_seed_trips'])
-             if returncode != 0:
-                  send_error_email(recipients, returncode) 
-                  sys.exit(1)
-                  print 'EMME problems! Why?'
+                  
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
     if returncode != 0:
-        send_error_email(recipients, returncode)
         sys.exit(1)
 
+def modify_config(config_vals):
+    config_template = open('configuration_template.properties','r')
+    config = open('configuration.properties','w')
+  
+    try:
+        for line in config_template:
+            for config_temp, config_update in config_vals:
+                if config_temp in line:
+                    line = line.replace(config_temp, str(config_update))
+            config.write(line)
+               
+        config_template.close()
+        config.close()
 
+    except:
+     config_template.close()
+     config.close()
+     print ' Error creating configuration template file'
+     sys.exit(1)
+    
 
-
-### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE ##########################################
-
-# We are building good initial skims.
-if should_build_shadow_price:
-      #We are building shadow prices, do not copy and delete if file exists
-      for iteration in range(0,len(pop_sample)):
-        if pop_sample[iteration] <= 2 and os.path.isfile('working/shadow_prices.txt'):
-            os.remove('working/shadow_prices.txt')
-        copy_shadow = False
-        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
-
-        if iteration > 0 & pop_sample[iteration] == 1:
-            con_file = open('inputs/converge.txt', 'r')
-            converge = json.load(con_file)
-            if converge == 'stop':
-                print "done"
-            con_file.close()
-            break
-        print 'keep going'
-        con_file.close()
-### BUILDING SHADOW PRICE FILE ########################################################
-
-    #Done some full iterations, now do some shadow prices
-    ### BUILD SHADOW PRICE FILES FOR WORK ###################################################
-      for shad_iter in range(0, len(shadow_work)):
-         #if shad_iter== 0: #Checks if the file exists on the first iteration and deletes it
-            #if os.path.isfile('inputs/shadow_rmse.txt'):
-            #    os.remove('inputs/shadow_rmse.txt')
-         if run_daysim == True:
-            daysim_sample(shadow_work[shad_iter], 'configuration_template_work.properties')
+def build_shadow_only():
+     for shad_iter in range(0, len(shadow_work)):
+         if run_daysim:
+            modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
             if returncode != 0:
                send_error_email(recipients, returncode)
@@ -431,78 +96,175 @@ if should_build_shadow_price:
 
          time_daysim = datetime.datetime.now()
          print time_daysim
-         logfile.write("ending daysim %s\r\n" %str((time_daysim)))     
-         
-### Shadow prices converged, need to run full daysim/assignents one more time. Daysim cannot see updated skims again- because it will throw off workplace location/
-### shadow pricing. If we could turn off Daysim workplace location and use workplace location from the previous(converged) run, we  could do more full iterations 
-### here to get skims converged, knowing that our employee targets would mactch job availability. 
-      daysim_assignment(len(pop_sample) + 1, 1, False, 'configuration_template.properties') 
-      returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+         logfile.write("ending daysim %s\r\n" % str((time_daysim)))
 
 
-else:
-    # we are always using the old shadow price file (for testing)
-    copy_shadow = True
+def run_truck_supplemental():
+      ### RUN Truck Model ################################################################
+     if run_truck_model:
+         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+         if returncode != 0:
+            send_error_email(recipients, returncode)
+            sys.exit(1)
 
-    for iteration in range(0,len(pop_sample)):
-        #copy_shadow = False
-        daysim_assignment(iteration, pop_sample[iteration], copy_shadow, 'configuration_template.properties')
-        if iteration > 0 & pop_sample[iteration] == 1:
+      ### RUN Supplemental Trips
+      ### ################################################################
+    ###Adds external, special generator, and group quarters trips to DaySim
+    ###outputs.'''
+     if run_supplemental_trips:
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+        if returncode != 0:
+           sys.exit(1)
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+        if returncode != 0:
+           sys.exit(1)
+
+def daysim_assignment():
+     
+     ### RUN DAYSIM ################################################################
+     if run_daysim:
+         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         if returncode != 0:
+             #send_error_email(recipients, returncode)
+             sys.exit(1)
+
+         time_daysim = datetime.datetime.now()
+         print time_daysim
+         logfile.write("ending daysim %s\r\n" % str((time_daysim)))   
+     
+     ### ADD SUPPLEMENTAL TRIPS
+     ### ####################################################
+     run_truck_supplemental()
+     #### ASSIGNMENTS
+     #### ###############################################################
+     if run_skims_and_paths:
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         print 'return code from skims and paths is ' + str(returncode)
+         if returncode != 0:
+             returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+             if returncode != 0: 
+                  #send_error_email(recipients, returncode)
+                  sys.exit(1)
+                  
+     
+     time_assign = datetime.datetime.now()
+     print time_assign
+     logfile.write("ending assignment %s\r\n" % str((time_assign)))
+
+
+def check_convergence(iteration, recipr_sample):
+    converge = "not yet"
+    if iteration > 0 & recipr_sample == 1:
             con_file = open('inputs/converge.txt', 'r')
-            converge = json.load(con_file)
-            if converge == 'stop':
-                print "done"
-                con_file.close()
-                break
-        print 'keep going'
-        con_file.close()
-        #copy_shadow = False
+            converge = json.load(con_file)   
+            con_file.close()
+    return converge
+
+def run_all_summaries():
+
+   #if run_network_summary:
+   #   subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+   #   subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
+
+   #if run_soundcast_summary:
+   #   subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
+
+   #if run_travel_time_summary:
+   #   subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+
+   #if run_network_summary and run_soundcast_summary and run_travel_time_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
 
 
-### ASSIGNMENT SUMMARY ###############################################################
-if run_network_summary == True:
-   returncode = subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-   time_assign_summ = datetime.datetime.now()
-   if returncode != 0:
-      send_error_email(recipients)
-      sys.exit(1)
-   returncode = subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
-   time_assign_summ = datetime.datetime.now()
-   if returncode != 0:
-      send_error_email(recipients)
-      sys.exit(1)
-#print '###### Finished running assignment summary:',time_assign_summ - time_assign
+##################################################################################################### ###################################################################################################### 
+# Main Script:
+def main():
+## SET UP INPUTS ##########################################################
 
-logfile.close()
+    if run_parcel_buffering:
+        parcel_buffering()
 
-##### SUMMARIZE SOUNDCAST ##########################################################
-if run_soundcast_summary == True:
-   returncode = subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
-   if returncode != 0:
-      send_error_email(recipients)
-      sys.exit(1)
+    if not os.path.exists('outputs'):
+        os.makedirs('outputs')
 
+    if run_copy_daysim_code:
+        copy_daysim_code()
 
-##### TRAVEL TIME SUMMARY ##########################################################
-if run_travel_time_summary == True:
-   returncode = subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
-   if returncode != 0:
-      send_error_email(recipients)
-      sys.exit(1)
+    if run_setup_emme_bank_folders:
+        setup_emme_bank_folders()
 
-##### TOPSHEET ######################################################################
-if run_network_summary == True and run_soundcast_summary == True and run_travel_time_summary == True:
-    returncode = subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
-    if returncode != 0:
-      send_error_email(recipients)
-      sys.exit(1)
+    if run_setup_emme_project_folders:
+        setup_emme_project_folders()
 
-#### ALL DONE ##################################################################
-clean_up()
-send_completion_email(recipients)
-print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
+    if run_copy_large_inputs:
+        copy_large_inputs()
+
+    if run_update_parking:
+        if base_year == scenario_name:
+            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
+        else:
+            returncode = subprocess.call([sys.executable,
+                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+
+### IMPORT NETWORKS
+### ###############################################################
+    if run_import_networks:
+        time_copy = datetime.datetime.now()
+        returncode = subprocess.call([sys.executable,
+        'scripts/network/network_importer.py', base_inputs])
+        time_network = datetime.datetime.now()
+        print '###### Finished Importing Networks:', str(time_network - time_copy)
+        if returncode != 0:
+           sys.exit(1)
+
+### BUILD SKIMS ###############################################################
+    if run_skims_and_paths_seed_trips == True:
+        build_seed_skims()
+    
+### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
+### ##########################################
+
+    for iteration in range(len(pop_sample)):
+        print "We're on iteration %d" % (iteration)
+        logfile.write("We're on iteration %d\r\n" % (iteration))
+        time_start = datetime.datetime.now()
+        logfile.write("starting run %s" % str((time_start)))
+  
+  # set up your Daysim configuration depending on if you are building shadow
+  # prices or not
+        if not should_build_shadow_price or pop_sample[iteration] > 2:
+            copy_shadow_price_file()
+            modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+        else:
+         modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+        
+        # RUN THE MODEL finally
+        daysim_assignment()
+
+        converge=check_convergence(iteration, pop_sample[iteration])
+        if converge == 'stop':
+            print "System converged! The universe is in equilbrium for just one moment."
+            con_file.close()
+            break
+        print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+
+    # when building shadow prices we get the skims to convergence and then we run work and school models only
+    # then we run one round of daysim -final assignment.
+    if should_build_shadow_price:
+        build_shadow_only()
+        modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
+        daysim_assignment()
+
+### SUMMARIZE
+### ##################################################################
+    run_all_summaries()
+
+#### ALL DONE
+#### ##################################################################
+    clean_up()
+    send_completion_email(recipients)
+    print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 
-
-
-
+if __name__ == "__main__":
+    main()

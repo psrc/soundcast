@@ -17,8 +17,8 @@ max_id =int(all_parcels['PARCELID'].max())
 new_max = max_id + 1
 max_index = all_parcels.index.max()
 
+
 all_parcels.fillna(0, inplace =True)
-all_parcels[all_parcels['Parcel_ID'] == - 1]
 
 # add the new imaginary parcels to the dataset
 for index, row in all_parcels.iterrows():

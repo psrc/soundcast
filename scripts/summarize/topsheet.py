@@ -7,19 +7,12 @@ import math
 import time
 from input_configuration import *
 
-def copy_sheet(from_book, from_sheet_name, to_book, to_sheet_name, font, index_width): #Copies data from one sheet to another (does not preserve formatting)
-    top_format = to_book.add_format({'bold': True, 'font_name': font, 'bottom': True, 'align': 'center'})
-    left_format = to_book.add_format({'bold': True, 'font_name': font, 'align': 'left'})
-    general_format = to_book.add_format({'font_name': font, 'align': 'right'})
+def copy_sheet(from_book, from_sheet_name, to_book, to_sheet_name): #Copies data from one sheet to another (does not preserve formatting)
     from_sheet = from_book.sheet_by_name(from_sheet_name)
     to_sheet = to_book.add_worksheet(to_sheet_name)
-    for colnum in range(from_sheet.ncols):
-        to_sheet.write(0, colnum, from_sheet.cell(0, colnum).value, top_format)
-    for rownum in range(1, from_sheet.nrows):
-        for colnum in range(index_width):
-            to_sheet.write(rownum, colnum, from_sheet.cell(rownum, colnum).value, left_format)
-        for colnum in range(index_width, from_sheet.ncols):
-            to_sheet.write(rownum, colnum, from_sheet.cell(rownum, colnum).value, general_format)
+    for rownum in range(from_sheet.nrows):
+        for colnum in range(from_sheet.ncols):
+            to_sheet.write(rownum, colnum, from_sheet.cell(rownum, colnum).value)
 
 timer_start = time.time()
 
@@ -30,7 +23,6 @@ for format_sheet in range(2): #Loop through the code twice, once without and onc
     mode_share_summary = report_output_location + '/ModeChoiceReport.xlsx'
     dest_choice_summary = report_output_location + '/DaysimDestChoiceReport.xlsx'
     network_summary = report_output_location + '/network_summary.xlsx'
-    travel_time_summary = report_output_location + '/Travel_Time_Summary.xlsx'
     output_file = report_output_location + '/Topsheet.xlsx' #File to output
     table_font = 'Times New Roman'
     
@@ -213,15 +205,11 @@ for format_sheet in range(2): #Loop through the code twice, once without and onc
     transit.conditional_format('E17:E27', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
     transit.conditional_format('E17:E27', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
 
-    travel_time_book = xlrd.open_workbook(travel_time_summary)
-
     #Copy sheets from network summary to create charts
-    copy_sheet(travel_time_book, 'AM Travel Times', outbook, 'AM Travel Times', table_font, 2)
-    copy_sheet(travel_time_book, 'PM Travel Times', outbook, 'PM Travel Times', table_font, 2)
-    copy_sheet(network_summary_book, 'CountsAll', outbook, 'CountsAll', table_font, 2)
-    copy_sheet(network_summary_book, 'CountsTime', outbook, 'CountsTime', table_font, 1)
-    copy_sheet(network_summary_book, 'AMTransitAll', outbook, 'AMTransitAll', table_font, 1)
-    copy_sheet(network_summary_book, 'MDTransitAll', outbook, 'MDTransitAll', table_font, 1)
+    copy_sheet(network_summary_book, 'CountsAll', outbook, 'CountsAll')
+    copy_sheet(network_summary_book, 'CountsTime', outbook, 'CountsTime')
+    copy_sheet(network_summary_book, 'AMTransitAll', outbook, 'AMTransitAll')
+    copy_sheet(network_summary_book, 'MDTransitAll', outbook, 'MDTransitAll')
 
     #Create data frames to calculate slopes, intercepts, and R-squared values for scatterplots and insert charts
     traffic_counts_df = pd.io.excel.read_excel(network_summary, sheetname = 'CountsAll')
@@ -347,64 +335,11 @@ for format_sheet in range(2): #Loop through the code twice, once without and onc
     metro_am_boardings_chart.set_y_axis({'name': 'Modeled Boardings'})
     transit.insert_chart('F15', metro_am_boardings_chart)
 
-    #Create charts for travel time summaries
-    worksheet = outbook.worksheets()[3]
-    worksheet.write(0, 0, 'Origin', header_format)
-
-    am_chart = outbook.add_chart({'type': 'column'})
-    am_chart.add_series({'name': ['AM Travel Times', 0, 3],
-                         'values': ['AM Travel Times', 1, 3, 50, 3],
-                         'fill': {'color': colors[0]}})
-    am_chart.add_series({'name': ['AM Travel Times', 0, 4],
-                         'values': ['AM Travel Times', 1, 4, 50, 4],
-                         'fill': {'color': colors[1]}})
-    am_chart.add_series({'name': ['AM Travel Times', 0, 7],
-                         'values': ['AM Travel Times', 1, 7, 50, 7],
-                         'fill': {'color': '#000000'}})
-    am_chart.set_title({'name': 'AM Travel Times'})
-    am_chart.set_legend({'position': 'top'})
-    am_chart.set_y_axis({'name': 'Time (Minutes)'})
-    am_chart.set_size({'width': 1080, 'height': 400})
-    worksheet.insert_chart('D54', am_chart)
-
-    worksheet = outbook.worksheets()[4]
-    worksheet.write(0, 0, 'Origin', header_format)
-
-    pm_chart = outbook.add_chart({'type': 'column'})
-    pm_chart.add_series({'name': ['PM Travel Times', 0, 3],
-                         'values': ['PM Travel Times', 1, 3, 50, 3],
-                         'fill': {'color': colors[0]}})
-    pm_chart.add_series({'name': ['PM Travel Times', 0, 4],
-                         'values': ['PM Travel Times', 1, 4, 50, 4],
-                         'fill': {'color': colors[1]}})
-    pm_chart.add_series({'name': ['PM Travel Times', 0, 7],
-                         'values': ['PM Travel Times', 1, 7, 50, 7],
-                         'fill': {'color': '#000000'}})
-    pm_chart.set_title({'name': 'PM Travel Times'})
-    pm_chart.set_legend({'position': 'top'})
-    pm_chart.set_y_axis({'name': 'Time (Minutes)'})
-    pm_chart.set_size({'width': 1080, 'height': 400})
-    worksheet.insert_chart('D54', pm_chart)
-
     #Adjust the column width if it's the second time running through the code
     if format_sheet:
         for sheet in outbook.worksheets():
             for colnum in range(sheet.dim_colmax + 1):
                 sheet.set_column(colnum, colnum, colwidths[sheet.name][colnum])
-            if sheet.name in ['AM Travel Times', 'PM Travel Times']:
-                sheet.set_column(1, 1, 13)
-                sheet.set_column(2, 2, 9)
-                sheet.freeze_panes(0, 3)
-
-    #Adjust the column width if it's the second time running through the code
-    if format_sheet:
-        for sheet in outbook.worksheets():
-            for colnum in range(sheet.dim_colmax + 1):
-                sheet.set_column(colnum, colnum, colwidths[sheet.name][colnum])
-            if sheet.name in ['AM Travel Times', 'PM Travel Times']:
-                sheet.set_column(1, 1, 13)
-                sheet.set_column(2, 2, 9)
-                sheet.freeze_panes(0, 3)
 
     outbook.close()
 

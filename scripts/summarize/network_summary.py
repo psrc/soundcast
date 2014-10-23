@@ -281,7 +281,7 @@ def main():
        transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
        #transit_df[tod + '_board'] = df[tod + '_board']
        #transit_df[tod + '_time'] = df[tod + '_time']
-    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time']]
+    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
     transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
        
        #if col == 0:
@@ -353,7 +353,7 @@ def main():
     except ImportError:
         found_openpyxl = False
     if found_openpyxl == True:
-        xlautofit.run('outputs/network_summary.xlsx')
+        xlautofit.run('outputs/network_summary_detailed.xlsx')
     else:
         try:
             imp.find_module('pip')
