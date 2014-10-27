@@ -3,7 +3,9 @@
    "classes":[
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -17,7 +19,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -31,7 +35,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -45,7 +51,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -59,7 +67,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -73,7 +83,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -87,7 +99,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -101,7 +115,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -115,7 +131,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -129,7 +147,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -143,7 +163,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },
@@ -157,7 +179,9 @@
       },
       {
          "results":{
-            "od_travel_times":null,
+            "od_travel_times":{
+               "shortest_paths":null
+            },
             "link_volumes":null,
             "turn_volumes":null
          },

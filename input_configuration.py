@@ -94,7 +94,7 @@ skim_matrix_designation_limited = ['d']
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
-gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk'}
+gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'svtl2'}
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
