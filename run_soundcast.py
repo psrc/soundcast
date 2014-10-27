@@ -162,17 +162,17 @@ def check_convergence(iteration, recipr_sample):
 
 def run_all_summaries():
 
-   #if run_network_summary:
-   #   subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-   #   subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
+   if run_network_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
 
-   #if run_soundcast_summary:
-   #   subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
+   if run_soundcast_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
 
-   #if run_travel_time_summary:
-   #   subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+   if run_travel_time_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
 
-   #if run_network_summary and run_soundcast_summary and run_travel_time_summary:
+   if run_network_summary and run_soundcast_summary and run_travel_time_summary:
       subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
 
 
