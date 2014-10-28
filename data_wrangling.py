@@ -80,6 +80,18 @@ def copy_parcel_buffering_files():
         print 'error copying parcel buffering code at ' + network_buffer_code
         sys.exit(2)
 
+def text_to_dictionary(dict_name):
+
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    my_file=open(input_filename)
+    my_dictionary = {}
+
+    for line in my_file:
+        k, v = line.split(':')
+        my_dictionary[eval(k)] = v.strip()
+
+    return(my_dictionary)
+
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
@@ -90,7 +102,7 @@ def json_to_dictionary(dict_name):
     
     
 def setup_emme_bank_folders():
-    tod_dict = json_to_dictionary('time_of_day')
+    tod_dict = text_to_dictionary('time_of_day')
     emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
     
     if not os.path.exists('Banks'):
@@ -122,7 +134,7 @@ def setup_emme_bank_folders():
 def setup_emme_project_folders():
     #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
 
-    tod_dict = json_to_dictionary('time_of_day')
+    tod_dict = text_to_dictionary('time_of_day')
     tod_list = list(set(tod_dict.values()))
 
     if os.path.exists(os.path.join('projects')):
