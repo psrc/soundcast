@@ -940,7 +940,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
 
 def create_trip_tod_indices(tod):
      #creates an index for those trips that belong to tod (time of day)
-     tod_dict = json_to_dictionary('time_of_day')
+     tod_dict = text_to_dictionary('time_of_day')
      uniqueTOD = set(tod_dict.values())
      todIDListdict = {}
      
@@ -1134,7 +1134,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
     #to distance in Daysim.
     #Assignment is run for all time periods (at least it should be for the final iteration). Only need to
     #skim for one TOD. Skim is an optional output of the assignment.
-    tod_dict = json_to_dictionary('time_of_day')
+    tod_dict = text_to_dictionary('time_of_day')
     uniqueTOD = set(tod_dict.values())
     uniqueTOD = list(uniqueTOD)
 
