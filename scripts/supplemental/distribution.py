@@ -37,6 +37,18 @@ def init_dir(directory):
         shutil.rmtree(directory)
     os.mkdir(directory)
 
+def network_importer(EmmeProject):
+    for scenario in list(EmmeProject.bank.scenarios()):
+            my_project.bank.delete_scenario(scenario)
+        #create scenario
+    EmmeProject.bank.create_scenario(1002)
+    EmmeProject.change_scenario()
+        #print key
+    EmmeProject.delete_links()
+    EmmeProject.delete_nodes()
+    EmmeProject.process_modes('inputs/networks/' + mode_file)
+    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)  
+
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
     with h5py.File(skim_file_loc, "r") as f:
