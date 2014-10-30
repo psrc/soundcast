@@ -1,29 +1,26 @@
-import numpy as np
+import array as _array
+import os
+import shutil
+import json
+import csv
 import pandas as pd
 import h5py
-import time
-import gc
-import os
-import json
-import shutil
+import numpy as np
 from input_configuration import *
-
-# Load external and special generator trips into dataframe
-trip_table = pd.read_csv(trip_table_loc, index_col="index")
-trip_table = pd.DataFrame(trip_table,dtype="float32")
-
-# Load group quarters trips into dataframe
-gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")
-gq_trip_table = pd.DataFrame(gq_trip_table,dtype="float32")
+from EmmeProject import *
 
 def json_to_dictionary(dict_name):
-    ''' Loads input files as dictionary '''
+    ''' Load supplemental input files as dictionary '''
     input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
 
-# Import JSON inputs
+# Load the trip productions and attractions
+trip_table = pd.read_csv(trip_table_loc, index_col="index")  # total 4K Ps and As by trip purpose
+gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")  # only group quarter Ps and As
+
+# Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
 mode_dict = json_to_dictionary('mode_dict')
 time_dict = json_to_dictionary('time_dict')
@@ -31,333 +28,279 @@ purp_tod_dict = json_to_dictionary('purp_tod_dict')
 mode_list = ['svtl2', 'h2tl2', 'h3tl2', 'trnst', 'walk', 'bike']
 time_periods = time_dict['svtl'].keys()
 
-def create_empty_tod_dict():
-    ''' Create an empty dataset matching structure of purp_tod_dict '''
-    key_dict = dict.fromkeys(purp_tod_dict.iterkeys(), 0 )
-    value_dict = purp_tod_dict.fromkeys(purp_tod_dict['hbo'], 0)
-    for key, value in key_dict.iteritems():
-        key_dict[key] = value_dict
-    return key_dict
-
-def calc_beta(df):
-    ''' Calculate beta balancing term. '''
-    df = pd.DataFrame(df[['origin', 'destination', 'friction', 'alpha', 'beta', 'trips', 'prod', 'attr']])
-    df['beta'] = df['alpha'] * df['prod'] * df['friction']
-    sum_beta = df.groupby('destination')
-    result = sum_beta.sum()['beta']
-    result.name = 'betasum'
-    df = df.join(result,'destination')
-    df['beta'] = 1/df['betasum']
-    # Calculate total trips
-    df['trips'] = df['alpha']*df['prod']*df['beta']*df['attr']*df['friction']
-    return df
-
-def calc_alpha(df):
-    ''' Calculate alpha balancing term. '''
-    df = pd.DataFrame(df[['origin', 'destination', 'friction', 'alpha', 'beta', 'trips', 'prod', 'attr']])
-    df['alpha'] = df['beta'] * df['attr'] * df['friction']
-    sum_alpha = df.groupby('origin')
-    result = sum_alpha.sum()['alpha']
-    result.name = 'alphasum'
-    df = df.join(result,'origin')
-    df['alpha'] = 1/df['alphasum']
-    # Calculate total trips
-    df['trips'] = df['alpha']*df['prod']*df['beta']*df['attr']*df['friction']
-    return df
-
-def error_check(df):
-    ''' General test for differences between total and distributed productions and attractions. '''
-    balpro = df[['origin', 'trips']].groupby('origin')
-    balpro = balpro.sum()['trips']
-    balatt = df[['destination', 'trips']].groupby('destination')
-    balatt = balatt.sum()['trips']
-    # Calculate error
-    prodiff = np.abs(balpro - prod)
-    attdiff = np.abs(balatt[0:len(trip_table)] - attr)
-    error = prodiff.sum() + attdiff.sum()
-    return error
-
-def emme_error(df1,df2):
-    ''' Reports relative change in alpha and beta between iterations.'''
-    alpha1 = df1['alpha']
-    alpha2 = df2['alpha']
-    beta1 = df1['beta']
-    beta2 = df2['beta']
-
-    # Calculate error
-    alpha_error = np.abs(alpha2-alpha1)/alpha2
-    beta_error = np.abs(beta2-beta1)/beta2
-    error1 = pd.DataFrame(alpha_error) ; error2 = pd.DataFrame(beta_error)
-    error = error1.join(error2)
-    return error
-
-#def trips_by_tod(pro_dict_results, att_dict_results, trip_table_input):
-#    ''' Multiply trip-type-TOD shares by original productions and attractions.
-#        Returns dictionary of attractions by TOD and trip purpose. '''
-#    for key, value in purp_tod_dict.items():
-#        # Calculate productions by time of day
-#        for tod in time_periods:
-#            pro_dict_results[key][tod] = trip_table[key + 'pro'] * purp_tod_dict[key][tod]
-#        gc.collect()
-#    # Returns dictionary of productions by TOD and trip purpose
-#    for key, value in purp_tod_dict.items():
-#        # Calculate productions by time of day
-#        for tod in time_periods:
-#            att_dict_results[key][tod] = trip_table[key + 'att'] * purp_tod_dict[key][tod]
-#        #gc.collect()
-
-def calc_fric_fac(trip_table, cost_skim, dist_skim):
-    ''' Calculate friction factors for all trip purposes '''
-    friction_fac_dic = {}
-    for key, value in coeff.iteritems():
-        friction_fac_dic[key] = np.exp((coeff[key])*(cost_skim[0:len(trip_table)][0:len(trip_table)] \
-                                             + (dist_skim[0:len(trip_table)][0:len(trip_table)]*autoop*avotda)))
-        gc.collect()
-    return friction_fac_dic
-
-def dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic):
-    ''' Distribute trips across each trip purpose and each time of day '''
-    trip_dict = {}
-    for key, value in friction_fac_dic.iteritems():
-        trip_table_dic[key] = pd.DataFrame(value.unstack())    # Convert to long form
-        trip_table_dic[key] = trip_table_dic[key].reset_index()
-        trip_table_dic[key].columns = ['origin', 'destination','friction']
-        trip_table_dic[key]['origin'] += 1 
-        trip_table_dic[key]['destination'] += 1
-        gc.collect()
-
-    # Store index for converting back to matrix form 
-    global origin_dest_index
-    origin_dest_index = pd.DataFrame(trip_table_dic['hbo'][['origin','destination']])
-
-    # Create empty columns for processing and add to each trip table
-    df = pd.DataFrame(np.ones([len(trip_table_dic['hbo']),3]))
-    df = df.reset_index()    # Reindex
-    df.columns = ["index", "alpha", "beta", 'trips']
-    df = df[["alpha", "beta", 'trips']]
-
-    # Define productions and attractions
-    pro_dict = {} ; att_dict = {}
-    for key, value in friction_fac_dic.iteritems():
-        pro_dict[key] = pd.DataFrame(trip_table[key + 'pro'])
-        pro_dict[key].index = [i for i in xrange(1, len(trip_table) + 1)]
-        att_dict[key] = pd.DataFrame(trip_table[key + 'att'])
-        att_dict[key].index = pro_dict[key].index
-        gc.collect()
-    # Join productions, attractions, and friction factors by trip purpose
-    for key, value in trip_table_dic.iteritems():
-        print 'Processing trip purpose: ' + str(key)
-        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(df))
-        print 'Joining productions for ' + str(key)
-        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(pro_dict[key],'origin'))
-        print 'Joining attractions for ' + str(key)
-        trip_table_dic[key] = pd.DataFrame(trip_table_dic[key].join(att_dict[key],'destination'))
-        # Rename columns 
-        trip_table_dic[key].columns = ['origin', 'destination', 'friction', 'alpha', 'beta', 'trips', 'prod', 'attr']
-        gc.collect()
-
-    # Clean up some dataframes...
-    del pro_dict ; del att_dict ; del df 
-
-
-# Fratar
-def fratar(trip_dict):
-    iter = 0
-    df_0 = {} ; df1 = {}; df2 = {}
-    results = {}
-    for key, value in trip_dict.iteritems():
-        print 'Balancing trip purpose: ' + str(key)
-        df_0[key] = pd.DataFrame(trip_dict[key], dtype="float32")
-        df1[key] = pd.DataFrame(calc_alpha(df_0[key]), dtype="float32")
-        df2[key] = pd.DataFrame(calc_beta(df1[key]), dtype="float32")
-        for x in xrange(0,bal_iters):
-            print "iteration " + str(x)
-            df1[key] = pd.DataFrame(calc_beta(df2[key]), dtype="float32")
-            #error = emme_error(df1[key],df2[key])
-            #print error
-            df2[key] = pd.DataFrame(calc_alpha(df1[key]), dtype="float32")
-            #error = emme_error(df1[key],df2[key])
-            #print error
-            gc.collect()
-        # Export the data and delete old DFs?
-        results[key] = pd.DataFrame(df2[key],dtype="float32")
-
-        del df2[key] ; del df1[key];
-    return results
-    # Clean up unused variables from memory
-    del df_0; del df1; del df2; del trip_dict
-    gc.collect()
-
-def dist_by_mode(results):
-    ''' Distribute trips across modes '''
-    init_results = {} ; trips_by_mode = {}
-    #final = {}
-    for key, value in mode_dict.iteritems():
-        print key
-        for purpose in ['hbo', 'sch', 'wko', 'oto', 'col', 'hbw', 'hsp']:
-            print purpose
-            # Use the same shares for HBW trips (for all income groups)
-            if purpose is 'hbw':
-                for incomeclass in ['hw1', 'hw2', 'hw3', 'hw4']:
-                    init_results[incomeclass] = mode_dict[key]['hbw'] * results[incomeclass]['trips']
-            # all other trip types
-            else:
-                init_results[purpose] = mode_dict[key][purpose] * results[purpose]['trips']
-        # sum purposes across modes
-        trips_by_mode[key] = pd.DataFrame(sum([init_results[x] for x in init_results]))
-        gc.collect()
-    return trips_by_mode 
-    del init_results ; del results
-
-def dist_by_tod(trips_by_mode):
-    ''' Distribute trips across times of day '''
-    tod_df = {} ; trips_by_tod = {}
-    for key, value in time_dict.iteritems():
-        for tod in time_periods:
-            tod_df[tod] = trips_by_mode[key] * time_dict[key][tod]
-            print tod
-        trips_by_tod[key] = tod_df
-        tod_df = {}
-        print key
-    return trips_by_tod
-    del trips_by_mode
-
-
-# Reformat as matrix
-def reformat_to_matrix(trips_by_tod):
-    matrix_trips = {}; matrix_trips_inner = {}
-    for key, value in trips_by_tod.iteritems():
-        print key
-        for tod in time_periods:
-            print tod
-            join_od_index = trips_by_tod[key][tod].join(origin_dest_index)
-            matrix_trips_inner[tod] = join_od_index.pivot(index='origin', columns='destination', values='trips')
-        matrix_trips[key] = matrix_trips_inner
-        matrix_trips_inner = {}
-    return matrix_trips
-    del _matrix_trips_inner ; del trips_by_tod
+# Trip purposes lists - group quarters trips are only given for home-based inc class 1 (hw1)
+trip_purp_full = ["hsp", "hbo", "sch", "wko", "col", "oto", "hw1", "hw2", "hw3", "hw4"]
+trip_purp_gq = ["hsp", "hbo", "sch", "wko", "col", "oto", "hw1"]
 
 def init_dir(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.mkdir(directory)
 
-# Sort files with modes in TOD H5 containers
-def export_to_hdf(matrix_trips, output_dir):
-    tod_matrices = {} ; tod_matrices_inner = {}
-    for tod in time_periods:
-        print tod
-        for key, value in matrix_trips.iteritems():
-            print key
-            tod_matrices_inner[key] = matrix_trips[key][tod]
-        tod_matrices[tod] = tod_matrices_inner
-        tod_matrices_inner = {}
-        # Save result to H5 format
-        my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
-        for key, value in matrix_trips.iteritems():
-            my_store.create_dataset(str(key), data=tod_matrices[tod][key])
-        my_store.close()
-    gc.collect()
-    del tod_matrices ; del tod_matrices_inner; del matrix_trips
+def load_skims(skim_file_loc, mode_name, divide_by_100=False):
+    ''' Loads H5 skim matrix for specified mode. '''
+    with h5py.File(skim_file_loc, "r") as f:
+        skim_file = f['Skims'][mode_name][:]
+    # Divide by 100 since decimals were removed in H5 source file through multiplication
+    if divide_by_100:
+        return skim_file.astype(float)/100
+    else:
+        return skim_file
 
-# Combine group quarters and special generators into single trip table
-def combine_trips(output_dir):
-    combined = {}
-    # import H5 files
-    for tod in purp_tod_dict['col'].keys():
-        mode_result = {}
-        # 
+def calc_fric_fac(cost_skim, dist_skim):
+    ''' Calculate friction factors for all trip purposes '''
+    friction_fac_dic = {}
+    # Need to fix this magic number
+    magic_num = 33 # deal with holes in Emme matrices by subtracting this from numpy index
+    for purpose, coeff_val in coeff.iteritems():
+        friction_fac_dic[purpose] = np.exp((coeff[purpose])*(cost_skim + (dist_skim * autoop * avotda)))
+        ## Set external zones to zero to prevent external-external trips
+        friction_fac_dic[purpose][3750-magic_num:] = 0
+        friction_fac_dic[purpose][:,[x for x in range(HIGH_STATION-magic_num, len(cost_skim))]] = 0
+
+    return friction_fac_dic
+
+def delete_matrices(my_project, matrix_type):
+    ''' Deletes all Emme matrices of specified type in emmebank '''
+    for matrix in my_project.bank.matrices():
+        if matrix.type == matrix_type:
+            my_project.delete_matrix(matrix)
+
+def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
+    ''' Loads data to Emme matrices: Ps and As and friction factor by trip purpose.
+        Also initializes empty trip distribution and O-D result tables. '''
+
+    # list of matrix names
+    matrix_name_list = [matrix.name for matrix in my_project.bank.matrices()]
+    zonesDim = len(my_project.current_scenario.zone_numbers)
+    zones = my_project.current_scenario.zone_numbers
+
+    # Create Emme matrices if they don't already exist
+    for purpose in trip_purps:
+        print purpose
+        if purpose + 'pro' not in matrix_name_list:
+            my_project.create_matrix(str(purpose)+ "pro" , str(purpose) + " productions", "ORIGIN")
+        if purpose + 'att' not in matrix_name_list:
+            my_project.create_matrix(str(purpose) + "att", str(purpose) + " attractions", "DESTINATION")
+        if purpose + 'fri' not in matrix_name_list:
+            my_project.create_matrix(str(purpose) + "fri" , str(purpose) + "friction factors", "FULL")
+        if purpose + 'dis' not in matrix_name_list:
+            my_project.create_matrix(str(purpose) + "dis" , str(purpose) + "distributed trips", "FULL")
+        if purpose + 'od' not in matrix_name_list:
+            my_project.create_matrix(str(purpose) + "od" , str(purpose) + "O-D tables", "FULL")
+
+        for p_a in ['pro', 'att']:
+            # Load zonal production and attractions from CSV (output from trip generation)
+            trips = np.array(trip_table_in.loc[0:zonesDim - 1][purpose + p_a])    # Less 1 because NumPy is 0-based\
+            matrix_id = my_project.bank.matrix(purpose + p_a).id    
+            emme_matrix = my_project.bank.matrix(matrix_id)  
+            emme_matrix = ematrix.MatrixData(indices=[zones],type='f')    # Access Matrix API
+
+             # Update Emme matrix data
+            emme_matrix.raw_data = _array.array('f', trips)    # set raw matrix data equal to prod/attr data
+            my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
+
+        # Load friction factors by trip purpose
+        fri_fac = fric_facs[purpose][0:zonesDim,0:zonesDim]
+        emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')    # Access Matrix API
+        emme_matrix.raw_data = [_array.array('f',row) for row in fri_fac]
+        matrix_id = my_project.bank.matrix(purpose + "fri").id    
+        my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
+                  
+def balance_matrices(trip_purps, my_project):
+    ''' Balances productions and attractions by purpose for all internal zones '''
+    for purpose in trip_purps:
+        print "Balancing trips for purpose: " + str(purpose)
+        my_project.matrix_balancing(results_od_balanced_values = 'mf' + purpose + 'dis', 
+                                    od_values_to_balance = 'mf' + purpose + 'fri', 
+                                    origin_totals = 'mo' + purpose + 'pro', 
+                                    destination_totals = 'md' + purpose + 'att', 
+                                    constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+                                    constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+
+def calculate_daily_trips(trip_purps, my_project):
+    # Accounting for out- and in-bound trips.
+    # The distribution matrices (e.g. 'mfcoldis') are in PA format. Need to convert to OD format by transposing
+    for purpose in trip_purps:
+        my_project.matrix_calculator(result = 'mf' + purpose + 'od', 
+                                     expression = '0.5*mf' + purpose + 'dis + 0.5*mf' + purpose + 'dis'+ "'")
+
+def combine_trips(ext_spg, group_quarters, output_dir):
+    ''' Combine group quarters and special generators into single trip table and export as H5 '''
+    combined = {}    # initialize dictionary for combined trip results
+    # Loop through each TOD
+    for tod in time_periods:
+        print "Finalizing supplemental trips for time period: " + str(tod)
+        mode_result = {}    # initialize temp dictionary to sum trips by mode
         my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
-        # Loop through each TOD
-        ext_spg = h5py.File('outputs/supplemental/ext_spg/' + str(tod) + '.h5', 'r')
-        group_quarters = h5py.File('outputs/supplemental/group_quarters/' + str(tod) + '.h5', 'r')
-        # Loop through each mode
         filtered = []
+        # Loop through each mode
         for mode in mode_dict.keys():
             # Add placeholders to group quarters to make sure array sizes match
-            empty_rows = len(ext_spg[mode]) - len(group_quarters[mode])
+            empty_rows = len(ext_spg[mode][tod]) - len(group_quarters[mode][tod])
             # Append rows
-            gq = np.array(np.append(group_quarters[mode][:],
-                                    np.zeros([empty_rows,len(group_quarters[mode])]),
+            gq = np.array(np.append(group_quarters[mode][tod],
+                                    np.zeros([empty_rows,len(group_quarters[mode][tod])]),
                                     axis=0))
             # Append columns
             gq = np.array(np.append(gq,
-                                    np.zeros([len(ext_spg[mode]), empty_rows]),
+                                    np.zeros([len(ext_spg[mode][tod]), empty_rows]),
                                     axis=1))
-            filtered = np.empty_like(ext_spg[mode])
+            filtered = np.empty_like(ext_spg[mode][tod])
             # Add only special generator rows
-            for key, value in SPECIAL_GENERATORS.iteritems():
-                # Add rows
-                filtered[value,:] = ext_spg[mode][value,:]
-                # Add columns
-                filtered[:,value] = ext_spg[mode][:,value]
+            for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
+                # Add rows (minus 1 for zero-based NumPy index)
+                filtered[[loc_zone - 1],:] = ext_spg[mode][tod][[loc_zone - 1],:]
+                # Add columns (minus 1 for zero-based NumPy index)
+                filtered[:,[loc_zone]] = ext_spg[mode][tod][:,[loc_zone]]
                 # Combine with group quarters array
                 filtered += gq
             # Add only external rows and columns
-            filtered[3700:][:] = ext_spg[mode][3700:][:]
-            filtered[:][3700:] = ext_spg[mode][:][3700:]
+            filtered[3700:,:] = ext_spg[mode][tod][3700:,:]
+            filtered[:,3700:] = ext_spg[mode][tod][:,3700:]
             # Save mode result
             mode_result[mode] = filtered
             my_store.create_dataset(str(mode), data=mode_result[mode])
-        #combined[tod] = mode_result
+        # Save a dictionary for checking results
+        combined[tod] = mode_result
         my_store.close()
-        ext_spg.close()
-        group_quarters.close()
-        
-def load_skims(trip_table, skim_file_loc, mode_name):
-    #define_fric_factors
-    skim_file = h5py.File(skim_file_loc, "r")
-    skim = pd.DataFrame(skim_file['Skims'][mode_name][:len(trip_table)])/100
-    skim = skim[[x for x in xrange(0,len(trip_table))]]
-    return skim
-    del skim_file
+    return combined
 
-def crunch_the_numbers(trip_table, results_dir):
-    # load skims
-    cost_skim = load_skims(trip_table, skim_file_loc, mode_name='svtl1c')
-    dist_skim = load_skims(trip_table, base_skim_file_loc, mode_name='svtl1d')
-    pro_dict = create_empty_tod_dict()    # Hold all the TOD productions here for general trips
-    att_dict = create_empty_tod_dict()    # all TOD attractions here
-    trip_purps = purp_tod_dict.keys()
-    tods = purp_tod_dict['col'].keys()
-    friction_fac_dic = calc_fric_fac(trip_table, cost_skim, dist_skim)
-    trip_table_dic = {}
-    dist_tod_purp(trip_table_dic, trip_table, friction_fac_dic)
-    del trip_table ; del friction_fac_dic
-    dist_trips = fratar(trip_table_dic)
-    # fill NA values with zero. This happens for some trip purposes that don't exist in group quarters
-    for purp in dist_trips.keys():
-        dist_trips[purp] = dist_trips[purp].fillna(0)        
-    del trip_table_dic
-    by_mode_results = dist_by_mode(dist_trips)
-    del dist_trips
-    by_tod_results = dist_by_tod(by_mode_results)
-    del by_mode_results
-    reformatted = reformat_to_matrix(by_tod_results)
-    del by_tod_results
-    export_to_hdf(reformatted, results_dir)
-    del reformatted
+def trips_by_mode(trip_purps, my_project):
+    ''' Distribute total daily O-D trips across Soundcast modes.  '''
+    trips_by_mode = {}
+    init_results = {}
+    
+    for mode, mode_values in mode_dict.iteritems():
+        print "Splitting trips by mode for trip purpose: " + str(mode)
+        for purpose in trip_purps:
+            print purpose
+             # Load Emme O-D total trip data by purpose
+            matrix_id = my_project.bank.matrix(purpose + 'od').id    
+            emme_matrix = my_project.bank.matrix(matrix_id)  
+            emme_data = emme_matrix.get_data() # Access emme data as numpy matrix
+            emme_data = np.array(emme_data.raw_data, dtype='float64')
+            # Use the same shares for HBW trips (for all income groups)
+            #print mode
+            if purpose in ['hw1', 'hw2', 'hw3', 'hw4']:
+                init_results[purpose] = mode_dict[mode]['hbw'] * emme_data
+            else:
+                init_results[purpose] = mode_dict[mode][purpose] * emme_data
 
+        trips_by_mode[mode] = np.sum([init_results[purpose] for purpose in trip_purps],axis=0)
+
+    return trips_by_mode
+
+def trips_by_tod(trips_by_mode, trip_purps):
+    ''' Distribute modal trips across times of day '''
+    tod_df = {}
+    trips_by_tod = {}
+    for mode, tod_shares in time_dict.iteritems():
+        for tod in time_periods:
+            tod_df[tod] = trips_by_mode[mode] * time_dict[mode][tod]
+            print tod
+        trips_by_tod[mode] = tod_df
+        tod_df = {}
+        print mode
+    return trips_by_tod
+
+def distribute_trips(trip_table_in, results_dir, trip_purps, fric_facs, my_project):
+    ''' Load data in Emme, balance trips by purpose, and produce O-D trip tables '''
+
+    # Clear al existing matrices
+    delete_matrices(my_project, "ORIGIN")
+    delete_matrices(my_project, "DESTINATION")
+    delete_matrices(my_project, "FULL")
+
+    # Load data into fresh Emme matrices
+    load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project)
+
+    # Balance matrices
+    balance_matrices(trip_purps, my_project)
+
+    # Calculate daily trips
+    calculate_daily_trips(trip_purps, my_project)
+
+
+def split_trips(trip_purps, my_project):
+    ''' Distribute trips by Soundcast user classes and TOD, using 2006 Survey shares '''
+    by_mode = trips_by_mode(trip_purps, my_project)  # Distribute by mode
+    by_tod = trips_by_tod(by_mode, trip_purps)  # Distribute by time of day
+
+    return by_tod
+
+def sum_by_purp(trip_purps, my_project):
+    ''' For error checking, sum trips by trip purpose '''
+    total_sum_by_purp = {}
+    for purpose in trip_purps:
+        print purpose
+        # Load Emme O-D total trip data by purpose
+        matrix_id = my_project.bank.matrix(purpose + 'od').id    
+        emme_matrix = my_project.bank.matrix(matrix_id)  
+        emme_data = emme_matrix.get_data() # Access emme data as numpy matrix
+        emme_data = np.array(emme_data.raw_data, dtype='float64')
+        total_sum_by_purp[purpose] = emme_data
+    return total_sum_by_purp
+
+def summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purps):
+    ''' For error checking, sum external, special generator, and group quarters tirps by purpose '''
+    total_sum_by_purp = {}
+    for purpose in trip_purps:   
+    # Select only externals and special generators
+        filtered = np.empty_like(ext_spg_summary[purpose])
+        # Add only special generator rows
+        for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
+            # Add rows (minus 1 for zero-based NumPy index)
+            filtered[[loc_zone - 1],:] = ext_spg_summary[purpose][[loc_zone - 1],:]
+            # Add columns (minus 1 for zero-based NumPy index)
+            filtered[:,[loc_zone]] = ext_spg_summary[purpose][:,[loc_zone]]
+            # Combine with group quarters array
+            if purpose not in ['hw2', 'hw3', 'hw4']:
+                filtered += gq_summary[purpose]
+        # Add only external rows and columns
+        filtered[3700:,:] = ext_spg_summary[purpose][3700:,:]
+        filtered[:,3700:] = ext_spg_summary[purpose][:,3700:]
+        total_sum_by_purp[purpose] = filtered
+    return total_sum_by_purp
 
 def main():
 
-    # Initialize directory for storing HDF5 output
     for dir in [output_dir, ext_spg_dir, gq_directory]:
         init_dir(dir)
 
+    # Load skim data
+    cost_skim = load_skims(skim_file_loc, mode_name='svtl2g')
+    dist_skim = load_skims(skim_file_loc, mode_name='svtl1d', divide_by_100=True)
+    
+    # Compute friction factors by trip purpose
+    fric_facs = calc_fric_fac(cost_skim, dist_skim)
+
+    # Access Emme
+    # Should probably create a whole new project to save this
+    #temp_filepath = r'projects\7to8\7to8.emp'
+    #my_project = EmmeProject(temp_filepath)
+    my_project = EmmeProject(supplemental_project)
+
     # Create trip table for externals and special generators
-    crunch_the_numbers(trip_table, results_dir = ext_spg_dir)
+    distribute_trips(trip_table, ext_spg_dir, trip_purp_full, fric_facs, my_project)
+
+    # Summarize trips by purpose before splitting to Soundcast modes and TODs
+    ext_spg_summary = sum_by_purp(trip_purp_full, my_project)
+    ext_spg = split_trips(trip_purp_full, my_project) # problems here
 
     # Create trip table for group quarters
-    crunch_the_numbers(gq_trip_table, results_dir = gq_directory)
+    distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
 
-    # Combine external, special gen., and group quarters trips
-    combine_trips(output_dir = 'outputs/supplemental/')
+    # Summarize trips before splitting to Soundcast modes and TODs
+    gq_summary = sum_by_purp(trip_purp_gq, my_project)
+    group_quarters = split_trips(trip_purp_gq, my_project) # problems here
 
-    # Clean up separate H5 files
-    for dir in [ext_spg_dir, gq_directory]:
-        if os.path.exists(dir):
-            shutil.rmtree(dir)
+    # Summarize all trips by purpose (combines external, special gen and group quarters)
+    tot_by_purp = summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purp_full)
 
+    # Combine external, special gen., and group quarters trips for export
+    # Save results to H5 for now, probably send this in through memory later 
+    combined_check = combine_trips(ext_spg, group_quarters, output_dir = 'outputs/supplemental/')
+    
 if __name__ == "__main__":
     main()
