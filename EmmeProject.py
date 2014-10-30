@@ -186,6 +186,23 @@ class EmmeProject:
         process = self.m.tool(NAMESPACE)
         process(file_name ,throw_on_error = True)
 
+    def matrix_balancing(self, **kwargs):
+        spec = json_to_dictionary('matrix_balancing_spec')
+        for name, value in kwargs.items():
+            if name == 'results_od_balanced_values':
+                spec['results']['od_balanced_values'] = value
+            elif name == 'constraint_by_value':
+                spec['constraint']['by_value'] = value
+            elif name == 'constraint_by_zone_origins':
+                spec['constraint']['by_zone']['origins'] = value
+            elif name == 'constraint_by_zone_destinations':
+                spec['constraint']['by_zone']['destinations'] = value
+            else:
+                spec[name] = value
+        NAMESPACE = "inro.emme.matrix_calculation.matrix_balancing"
+        compute_matrix = self.m.tool(NAMESPACE)
+        report = compute_matrix(spec) 
+
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
