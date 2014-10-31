@@ -103,7 +103,10 @@ def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
 
         for p_a in ['pro', 'att']:
             # Load zonal production and attractions from CSV (output from trip generation)
-            trips = np.array(trip_table_in.loc[0:zonesDim - 1][purpose + p_a])    # Less 1 because NumPy is 0-based\
+            trips = np.array(trip_table_in[purpose + p_a])
+            trips.resize(zonesDim)
+            #code below does not work for GQs because there are only 3700 records in the csv file. Not sure if code above is ideal.
+            #trips = np.array(trip_table_in.loc[0:zonesDim - 1][purpose + p_a])    # Less 1 because NumPy is 0-based\
             matrix_id = my_project.bank.matrix(purpose + p_a).id    
             emme_matrix = my_project.bank.matrix(matrix_id)  
             emme_matrix = ematrix.MatrixData(indices=[zones],type='f')    # Access Matrix API
@@ -284,6 +287,11 @@ def main():
     cost_skim = load_skims(skim_file_loc, mode_name='svtl2g')
     dist_skim = load_skims(skim_file_loc, mode_name='svtl1d', divide_by_100=True)
     
+    
+
+    # Import a network
+    network_importer(my_project)
+
     # Compute friction factors by trip purpose
     fric_facs = calc_fric_fac(cost_skim, dist_skim)
 
@@ -291,7 +299,7 @@ def main():
     # Should probably create a whole new project to save this
     #temp_filepath = r'projects\7to8\7to8.emp'
     #my_project = EmmeProject(temp_filepath)
-    my_project = EmmeProject(supplemental_project)
+    
 
     # Create trip table for externals and special generators
     distribute_trips(trip_table, ext_spg_dir, trip_purp_full, fric_facs, my_project)
@@ -313,6 +321,8 @@ def main():
     # Combine external, special gen., and group quarters trips for export
     # Save results to H5 for now, probably send this in through memory later 
     combined_check = combine_trips(ext_spg, group_quarters, output_dir = 'outputs/supplemental/')
+
+my_project = EmmeProject(supplemental_project)
     
 if __name__ == "__main__":
     main()
