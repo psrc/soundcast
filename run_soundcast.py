@@ -154,7 +154,7 @@ def daysim_assignment():
 
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
-    if iteration > 0 & recipr_sample == 1:
+    if iteration > 0 and recipr_sample == 1:
             con_file = open('inputs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
