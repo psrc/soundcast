@@ -115,7 +115,7 @@ def setup_emme_bank_folders():
     #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
     time_periods = list(set(tod_dict.values()))
     time_periods.append('TruckModel')
-    
+    time_periods.append('Supplementals')
     for period in time_periods:
         print period
         print "creating bank for time period %s" % period
@@ -153,7 +153,8 @@ def setup_emme_project_folders():
     desktop.close()
 
     # Create time of day projects, associate with emmebank
-    tod_list.append('TruckModel')
+    tod_list.append('TruckModel') 
+    tod_list.append('Supplementals')
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)

@@ -149,14 +149,14 @@ pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/'
 externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
 
 # Assuming AM skims (8 to 9 AM)
-skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/8to9.h5'
+skim_file_loc = 'inputs/7to8.h5'
 base_skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/7to8.h5'
 trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
 gq_trips_loc = 'outputs/gq_prod_att.csv'
-
+supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5
 # Define gravity model coefficients
