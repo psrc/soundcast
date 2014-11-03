@@ -140,48 +140,17 @@ def calculate_daily_trips(trip_purps, my_project):
         my_project.matrix_calculator(result = 'mf' + purpose + 'od', 
                                      expression = '0.5*mf' + purpose + 'dis + 0.5*mf' + purpose + 'dis'+ "'")
 
-def combine_trips(ext_spg, group_quarters, output_dir):
-    ''' Combine group quarters and special generators into single trip table and export as H5 '''
-    combined = {}    # initialize dictionary for combined trip results
-    # Loop through each TOD
-    for tod in time_periods:
-        print "Finalizing supplemental trips for time period: " + str(tod)
-        mode_result = {}    # initialize temp dictionary to sum trips by mode
-        my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
-        filtered = []
-        # Loop through each mode
-        for mode in mode_dict.keys():
-            # Add placeholders to group quarters to make sure array sizes match
-            empty_rows = len(ext_spg[mode][tod]) - len(group_quarters[mode][tod])
-            # Append rows
-            gq = np.array(np.append(group_quarters[mode][tod],
-                                    np.zeros([empty_rows,len(group_quarters[mode][tod])]),
-                                    axis=0))
-            # Append columns
-            gq = np.array(np.append(gq,
-                                    np.zeros([len(ext_spg[mode][tod]), empty_rows]),
-                                    axis=1))
-            filtered = np.empty_like(ext_spg[mode][tod])
-            # Add only special generator rows
-            for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
-                # Add rows (minus 1 for zero-based NumPy index)
-                filtered[[loc_zone - 1],:] = ext_spg[mode][tod][[loc_zone - 1],:]
-                # Add columns (minus 1 for zero-based NumPy index)
-                filtered[:,[loc_zone]] = ext_spg[mode][tod][:,[loc_zone]]
-                # Combine with group quarters array
-                filtered += gq
-            # Add only external rows and columns
-            filtered[3700:,:] = ext_spg[mode][tod][3700:,:]
-            filtered[:,3700:] = ext_spg[mode][tod][:,3700:]
-            # Save mode result
-            mode_result[mode] = filtered
-            my_store.create_dataset(str(mode), data=mode_result[mode])
-        # Save a dictionary for checking results
-        combined[tod] = mode_result
-        my_store.close()
-    return combined
+def export_trips(split_by_mode_tod, output_dir):
+    ''' Export combined trips to H5 '''
 
-def trips_by_mode(trip_purps, my_project):
+    for tod in time_periods:
+        print "Exporting supplemental trips for time period: " + str(tod)
+        my_store = h5py.File(output_dir + '/' + str(tod) + '.h5', "w-")
+        for mode in mode_dict.keys(): 
+            my_store.create_dataset(str(mode), data=split_by_mode_tod[mode][tod])
+        my_store.close()
+
+def trips_by_mode(trip_dict, trip_purps, my_project):
     ''' Distribute total daily O-D trips across Soundcast modes.  '''
     trips_by_mode = {}
     init_results = {}
@@ -189,20 +158,17 @@ def trips_by_mode(trip_purps, my_project):
     for mode, mode_values in mode_dict.iteritems():
         print "Splitting trips by mode for trip purpose: " + str(mode)
         for purpose in trip_purps:
-            print purpose
-             # Load Emme O-D total trip data by purpose
-            matrix_id = my_project.bank.matrix(purpose + 'od').id    
-            emme_matrix = my_project.bank.matrix(matrix_id)  
-            emme_data = emme_matrix.get_data() # Access emme data as numpy matrix
-            emme_data = np.array(emme_data.raw_data, dtype='float64')
-            # Use the same shares for HBW trips (for all income groups)
-            #print mode
             if purpose in ['hw1', 'hw2', 'hw3', 'hw4']:
-                init_results[purpose] = mode_dict[mode]['hbw'] * emme_data
+                init_results[purpose] = mode_dict[mode]['hbw'] * trip_dict[purpose]
             else:
-                init_results[purpose] = mode_dict[mode][purpose] * emme_data
-
+                init_results[purpose] = mode_dict[mode][purpose] * trip_dict[purpose]
         trips_by_mode[mode] = np.sum([init_results[purpose] for purpose in trip_purps],axis=0)
+
+        # Divide HOV trips by average occupancy rates
+        if mode == 'h2tl':
+            trips_by_mode[mode] = trips_by_mode[mode]/2
+        elif mode == 'h3tl':
+            trips_by_mode[mode] = trips_by_mode[mode]/3.5
 
     return trips_by_mode
 
@@ -222,7 +188,7 @@ def trips_by_tod(trips_by_mode, trip_purps):
 def distribute_trips(trip_table_in, results_dir, trip_purps, fric_facs, my_project):
     ''' Load data in Emme, balance trips by purpose, and produce O-D trip tables '''
 
-    # Clear al existing matrices
+    # Clear all existing matrices
     delete_matrices(my_project, "ORIGIN")
     delete_matrices(my_project, "DESTINATION")
     delete_matrices(my_project, "FULL")
@@ -237,9 +203,9 @@ def distribute_trips(trip_table_in, results_dir, trip_purps, fric_facs, my_proje
     calculate_daily_trips(trip_purps, my_project)
 
 
-def split_trips(trip_purps, my_project):
+def split_trips(trip_dict, trip_purps, my_project):
     ''' Distribute trips by Soundcast user classes and TOD, using 2006 Survey shares '''
-    by_mode = trips_by_mode(trip_purps, my_project)  # Distribute by mode
+    by_mode = trips_by_mode(trip_dict, trip_purps, my_project)  # Distribute by mode
     by_tod = trips_by_tod(by_mode, trip_purps)  # Distribute by time of day
 
     return by_tod
@@ -262,7 +228,7 @@ def summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purps):
     total_sum_by_purp = {}
     for purpose in trip_purps:   
     # Select only externals and special generators
-        filtered = np.empty_like(ext_spg_summary[purpose])
+        filtered = np.zeros_like(ext_spg_summary[purpose])
         # Add only special generator rows
         for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
             # Add rows (minus 1 for zero-based NumPy index)
@@ -278,49 +244,98 @@ def summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purps):
         total_sum_by_purp[purpose] = filtered
     return total_sum_by_purp
 
+def write_csv(data, file_name):
+    with open(supplemental_loc + 'supplemental_summary.csv', 'wb') as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerows(data)
+
+def ext_spg_selected(trip_purps):
+    ''' Select only external and special generator zones '''
+    total_sum_by_purp = {}
+    for purpose in trip_purps:
+        print purpose
+        # Load Emme O-D total trip data by purpose
+        matrix_id = my_project.bank.matrix(purpose + 'od').id    
+        emme_matrix = my_project.bank.matrix(matrix_id)  
+        emme_data = emme_matrix.get_data() # Access emme data as numpy matrix
+        emme_data = np.array(emme_data.raw_data, dtype='float64')
+        filtered = np.zeros_like(emme_data)
+        # Add only special generator rows
+        for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
+            # Add rows (minus 1 for zero-based NumPy index)
+            filtered[[loc_zone - 1],:] = emme_data[[loc_zone - 1],:]
+            # Add columns (minus 1 for zero-based NumPy index)
+            filtered[:,[loc_zone]] = emme_data[:,[loc_zone]]
+            print loc_zone
+        # Add only external rows and columns
+        filtered[3700:,:] = emme_data[3700:,:]
+        filtered[:,3700:] = emme_data[:,3700:]
+
+        total_sum_by_purp[purpose] = filtered
+    return total_sum_by_purp
+
+def supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod):
+
+    # Create an array to hold summary trips by purpose 
+    sum_p = []
+    sum_p.append([purp for purp in ext_spg_trimmed.keys()])
+    sum_p[len(sum_p)-1].insert(0,"")
+    sum_p.append([ext_spg_trimmed[purp].sum() for purp in ext_spg_trimmed.keys()])
+    sum_p[len(sum_p)-1].insert(0,'Externals, Special Generators')
+    sum_p.append([gq_summary[purp].sum() for purp in gq_summary.keys()])
+    sum_p[len(sum_p)-1].insert(0,'Group Quarters')
+    sum_p.append([combined[purp].sum() for purp in combined.keys()])
+    sum_p[len(sum_p)-1].insert(0,'Totals')
+
+    # Create array to hold summary trips by tod and mode
+    sum_tm = []
+    sum_tm.append([mode for mode in split_by_mode_tod.keys()])
+    sum_tm[len(sum_tm)-1].insert(0,"")
+    for tod in split_by_mode_tod['svtl'].keys():
+        sum_tm.append([split_by_mode_tod[mode][tod].sum() for mode in split_by_mode_tod.keys()])
+        sum_tm[len(sum_tm)-1].insert(0, tod)    # Insert TOD row heading
+
+    write_csv(sum_p + [[]] + sum_tm, file_name='supplemental_summary.csv')
+
 def main():
 
-    for dir in [output_dir, ext_spg_dir, gq_directory]:
-        init_dir(dir)
+    # Overwrite previous trip tables 
+    init_dir(supplemental_loc)
 
     # Load skim data
     cost_skim = load_skims(skim_file_loc, mode_name='svtl2g')
     dist_skim = load_skims(skim_file_loc, mode_name='svtl1d', divide_by_100=True)
     
-    
-
     # Import a network
     network_importer(my_project)
 
     # Compute friction factors by trip purpose
     fric_facs = calc_fric_fac(cost_skim, dist_skim)
 
-    # Access Emme
-    # Should probably create a whole new project to save this
-    #temp_filepath = r'projects\7to8\7to8.emp'
-    #my_project = EmmeProject(temp_filepath)
-    
-
-    # Create trip table for externals and special generators
+    # Create trip table for externals and special generators by purpose and summarize
     distribute_trips(trip_table, ext_spg_dir, trip_purp_full, fric_facs, my_project)
+    ext_spg_trimmed = ext_spg_selected(trip_purp_full)    # Include only external and special gen. zones
 
-    # Summarize trips by purpose before splitting to Soundcast modes and TODs
-    ext_spg_summary = sum_by_purp(trip_purp_full, my_project)
-    ext_spg = split_trips(trip_purp_full, my_project) # problems here
-
-    # Create trip table for group quarters
+    # Distribute group quarters trips by purpose and summarize results
     distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
-
-    # Summarize trips before splitting to Soundcast modes and TODs
     gq_summary = sum_by_purp(trip_purp_gq, my_project)
-    group_quarters = split_trips(trip_purp_gq, my_project) # problems here
 
-    # Summarize all trips by purpose (combines external, special gen and group quarters)
-    tot_by_purp = summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purp_full)
+    # Combine external, special gen., and group quarters trips
+    combined = {}
+    for purp in trip_purp_full:
+        if purp not in ['hw2', 'hw3', 'hw4']:   # These purposes don't exist for GQ trips, use only for ext_spg
+            combined[purp] = ext_spg_trimmed[purp] + gq_summary[purp]
+        else:
+            combined[purp] = ext_spg_trimmed[purp]
 
-    # Combine external, special gen., and group quarters trips for export
-    # Save results to H5 for now, probably send this in through memory later 
-    combined_check = combine_trips(ext_spg, group_quarters, output_dir = 'outputs/supplemental/')
+     # Split by mode and TOD
+    split_by_mode_tod = split_trips(combined, trip_purp_full, my_project)
+
+    # Export results to H5
+    export_trips(split_by_mode_tod, output_dir = 'outputs/supplemental')
+
+    # Report results in CSV summary
+    supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)
 
 my_project = EmmeProject(supplemental_project)
     
