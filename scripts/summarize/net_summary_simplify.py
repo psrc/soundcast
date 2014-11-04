@@ -312,10 +312,15 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
         time_df = summary_by_tp_4k[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]].transpose().sum() #Add up vmt, vht, and delay for times
         time_df.set_value('Total', time_df.sum()) #Defines total
         time_df = pd.DataFrame.from_items([(model_run_name, time_df)])
-        comparison_list = []
+        comparison_dict = {}
         for i in range(len(times)):
-            comparison_list.append(comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value) #Get values to compare to
-        time_df[comparison_name] = comparison_list
+            if times[i] == 'Total':
+                comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value})
+            else:
+                comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value.lower(): comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value}) #Get values to compare to
+        time_df[comparison_name] = np.nan
+        for tod in comparison_dict:
+            time_df.loc[tod, comparison_name] = comparison_dict[tod]
         time_df = scf.get_differences(time_df, model_run_name, comparison_name, -2)
         facility_df = summary_by_tp_4k.sum()[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]] #Do the same thing by facility type
         facility_df['Freeways'] = facility_df['highway_' + variable]
@@ -327,10 +332,12 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
         facility_df = facility_df.transpose()
         facility_df.set_value('Total', facility_df.sum())
         facility_df = pd.DataFrame.from_items([(model_run_name, facility_df)])
-        comparison_list = []
+        comparison_dict = {}
         for i in range(len(facilities)):
-            comparison_list.append(comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 1).value)
-        facility_df[comparison_name] = comparison_list
+            comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 1).value})
+        facility_df[comparison_name] = np.nan
+        for tod in comparison_dict:
+            facility_df.loc[tod, comparison_name] = comparison_dict[tod]
         facility_df = scf.get_differences(facility_df, model_run_name, comparison_name, -2)
         tables.update({variable: {'time': time_df, 'facility': facility_df}})
         write_net_sum_tables(variable) #Write the tables to the excel file
