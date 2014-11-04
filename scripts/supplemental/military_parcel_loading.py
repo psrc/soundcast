@@ -1,10 +1,12 @@
 import pandas as pd
 
-parcels_urbansim = pd.read_csv("inputs\parcel_buffer\parcels_urbansim.txt", delim_whitespace=True)
+parcels_urbansim = pd.read_csv("inputs\\parcel_buffer\\parcels_urbansim.txt", delim_whitespace=True)
 
-parcels_military = pd.read_csv("inputs\parcel_buffer\parcels_military.csv")
+parcels_military = pd.read_csv("inputs\\parcel_buffer\\parcels_military.csv")
 
 all_parcels =parcels_urbansim.merge(parcels_military, how='outer', left_on='PARCELID', right_on="Parcel_ID")
+
+all_parcels.fillna(0, inplace =True)
 
 all_parcels['EMPGOV_P'] = all_parcels['EMPGOV_P'] + all_parcels['Emp']
 all_parcels['EMPTOT_P'] = all_parcels['EMPTOT_P'] + all_parcels['Emp']
