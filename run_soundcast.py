@@ -233,10 +233,12 @@ def main():
   # set up your Daysim configuration depending on if you are building shadow
   # prices or not
         if not should_build_shadow_price or pop_sample[iteration] > 2:
-            copy_shadow_price_file()
+            ####we are not using shadow pricing during initial skim building for now. Shadow prices are built 
+            #from scratch below if should_build_shadow_price = true. Keeping old code in case we want to switch back. 
+            #copy_shadow_price_file()####
             modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
         else:
-         modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+         modify_config([("$SHADOW_PRICE", "false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
         
         # RUN THE MODEL finally
         daysim_assignment()

@@ -12,7 +12,7 @@ def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     workers_jobs_by_taz = pd.merge(jobs_by_taz, workers_by_taz, left_index = True, right_index = True) #Merge them
     workers_jobs_by_taz['DaySim'] = workers_jobs_by_taz['psexpfac'] #Rename columns...
     workers_jobs_by_taz['UrbanSim'] = workers_jobs_by_taz['emptot_p']
-    f = open("c:/workers_jobs.csv", 'w')
+    f = open("inputs/workers_jobs.csv", 'w')
     workers_jobs_by_taz.to_csv(f)
     f.close()
     del workers_jobs_by_taz['emptot_p']
