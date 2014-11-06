@@ -39,6 +39,13 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 
 bal_to_attractions = ["colpro"]
 
+# Define column values for household and employment data
+hh_cols = [1, 101]    # Begin and end column numbers for all household-related cross classification data in HHEMP
+emp_cols = [109, 125]    # Begin and end columns for all employement-related cross class data in HHEMP
+
+# Trip purpose columns
+purp_cols = [1, 24] # Begin and end column numbers for 12 trip purposes (including productions and attractions)
+
 def json_to_dictionary(dict_name):
     ''' loads JSON input as dictionary '''
     input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
@@ -63,33 +70,31 @@ def process_inputs(file_loc, start_row, col_names, clean_column, pivot_fields, r
         df = pd.DataFrame(df, index = [str(i) for i in xrange(reorder[0], reorder[1] + 1)])
     return df
 
-    # Create PUMS-TAZ lookup table
 def puma_taz_lookup(puma_taz):
-    
-
+    ''' Create PUMS-TAZ lookup table '''
     # Correct PUMS formatting to match cross-class data (add extra '0' in field name)
     for x in xrange(1,3701):
         puma_taz["puma"].loc[x] = puma_taz["puma"].loc[x].replace('gp', 'gp0')
 
     # Import TAZ household and employment data
     rate_cols = ["taz","purpose", "value"]
-    taz_data = process_inputs(taz_data_loc, 5, rate_cols, "purpose",
-                   pivot_fields=['taz', 'purpose'], reorder=False)
+    taz_data = process_inputs(taz_data_loc, start_row=5, col_names=rate_cols, 
+                              clean_column="purpose", pivot_fields=['taz', 'purpose'], 
+                              reorder=False)
     # Convert column names to string to join with PUMA data
     taz_data.columns = [str(i) for i in xrange(101,125)]
 
     return taz_data
 
-
-#Load PUMS data
 def load_pums():
+    ''' Loads demographic PUMS data to dataframe '''
     pums_df = pd.DataFrame()
     list = []
     pums_cols = ['puma', 'hhtype', 'num_hhs']
 
     for file in pums_list:
-        df = process_inputs(pums_data_loc + file, 6, pums_cols, 
-                            'hhtype', pivot_fields=False, reorder=False)
+        df = process_inputs(pums_data_loc + file, start_row=6, col_names=pums_cols, 
+                            clean_column='hhtype', pivot_fields=False, reorder=False)
         list.append(df)
     pums_df = pd.concat(list)
 
@@ -99,8 +104,8 @@ def load_pums():
 
     return pums_df
 
-#Calculate total number of households per PUMA
 def calc_hhs(master_taz):
+    ''' Calculates total number of households per PUMA '''
     for key, value in hhs_by_income.iteritems():
         value['hhs'] = pd.DataFrame(master_taz[value['column']])
 
@@ -123,11 +128,9 @@ def calc_hhs(master_taz):
 
     return master_taz
 
-# Add in special generators
 def add_special_gen(trip_table):
-    # Note: This assumes 75% of airport trips are home-based and 25% are work-based trips
-    spg_airport = {983: 101838}
-    spg_general = {3110: 1682, 631: 7567, 438: 14013}
+    ''' Loads additional productions and attraction values for special generator zones. '''
+    # Note: Airport trips are assumed 75% home-based and 25% work-based
     airport_hb_share = 0.75
     airport_wb_share = 1 - airport_hb_share
 
@@ -155,10 +158,10 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         if key not in bal_to_attractions:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[value].iloc[HIGH_TAZ:3749].sum()
+                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
             else:
                 ext = 0
-            ext = trip_table[value].iloc[HIGH_TAZ:3749].sum()
+            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
             bal_factor = (prod - ext)/(att - ext)
             trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
             print "key " + key + ", " + value + ' ' + str(bal_factor)
@@ -166,7 +169,7 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         else:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[key].iloc[HIGH_TAZ:3749].sum()
+                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
             else:
                 ext = 0
             bal_factor = (att - ext)/(prod - ext)
@@ -187,12 +190,12 @@ def main():
         init_dir(file)
 
     # Load household and attractors trip rates
-    hh_trip = process_inputs(hh_trip_loc, 7, rate_cols, "purpose", 
-                                pivot_fields, reorder = [1,24])
-    nonhh_trip = process_inputs(nonhh_trip_loc, 7, rate_cols, "purpose", 
-                                pivot_fields, reorder = [1,24])
-    puma_taz = process_inputs(puma_taz_loc, 0, ['scrap', 'puma'], "puma",
-                                pivot_fields=False, reorder=False)
+    hh_trip = process_inputs(hh_trip_loc, start_row=7, col_names=rate_cols, 
+                             clean_column="purpose", pivot_fields=pivot_fields, reorder = [1,24])
+    nonhh_trip = process_inputs(nonhh_trip_loc, start_row=7, col_names=rate_cols, 
+                                clean_column="purpose", pivot_fields=pivot_fields, reorder = [1,24])
+    puma_taz = process_inputs(puma_taz_loc, start_row=0, col_names=['scrap', 'puma'], 
+                              clean_column="puma", pivot_fields=False, reorder=False)
     puma_taz = pd.DataFrame(puma_taz["puma"])
 
     # Join PUMA data to TAZ data
@@ -207,9 +210,9 @@ def main():
     # Compute household trip rates by TAZ and by purpose
 
     # Create a dataframe that includes only the household cross-classes
-    hhs = master_taz[[str(i) for i in xrange(1, 101)]]
+    hhs = master_taz[[str(i) for i in xrange(hh_cols[0], hh_cols[1])]]
     # Create a dataframe that includes only the employment cross-classes
-    nonhhs = taz_data[[str(i) for i in xrange(109, 125)]]
+    nonhhs = taz_data[[str(i) for i in xrange(emp_cols[0], emp_cols[1])]]
     # Create dataframe for only group quarter zones (columns 122 - 124, for dorm, military an other quarters)
     gq = nonhhs[['122','123','124']]
 
@@ -222,24 +225,24 @@ def main():
                                     columns = [str(i) for i in xrange(1, 24 + 1)])
 
     # Compute household trip rates by TAZ and by purpose
-    for purpose in xrange(1, 24 + 1):
+    for purpose in xrange(purp_cols[0], purp_cols[1] + 1):
         print 'Computing trip rates by purpose (of 24): ' + str(purpose)
         trip_rate = pd.DataFrame(hh_trip['rate'].loc[str(purpose)])
-        trip_rate.index = [str(i) for i in xrange(1, 100 + 1)]
+        trip_rate.index = [str(i) for i in xrange(hh_cols[0], hh_cols[1])]
         trip_rate.columns = ['col']
         nh_trip_rate = pd.DataFrame(nonhh_trip.loc[str(purpose)])
-        nh_trip_rate.index = [str(i) for i in xrange(109, 124 + 1)]
+        nh_trip_rate.index = [str(i) for i in xrange(emp_cols[0], emp_cols[1])]
         nh_trip_rate.columns = ['col']
         gq_trip_rate = pd.DataFrame(nh_trip_rate.loc[['122','123','124']])
         gq_trip_rate.index = [str(i) for i in xrange(122, 124 + 1)]
         gq_trip_rate.columns = ['col']
-        for zone in xrange(1,3700 + 1):
+        for zone in xrange(1,HIGH_TAZ + 1):
             #print 'zone ' + str(zone)
             hhs1 = pd.DataFrame(hhs.iloc[zone-1])
             nonhhs1 = pd.DataFrame(nonhhs.iloc[zone-1])
             gq1 = pd.DataFrame(gq.iloc[zone-1])
-            hhs1.index = [str(i) for i in xrange(1, 100 + 1)]
-            nonhhs1.index = [str(i) for i in xrange(109, 124 + 1)]
+            hhs1.index = [str(i) for i in xrange(hh_cols[0], hh_cols[1])]
+            nonhhs1.index = [str(i) for i in xrange(emp_cols[0], emp_cols[1])]
             gq1.index = [str(i) for i in xrange(122, 124 + 1)]
             hhs1.columns = ['col']
             nonhhs1.columns = ['col']
@@ -252,8 +255,6 @@ def main():
             nonhh_trips_by_purp[str(purpose)].loc[zone-1] = dot2
             gq_trips[str(purpose)].loc[zone-1] = dot3
             trip_table = trips_by_purpose + nonhh_trips_by_purp
-            #print "Trip purpose: " + str(purpose)
-            #print "Zone number: " + str(zone)
 
     # Rename columns
     trip_table.columns = trip_col
