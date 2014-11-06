@@ -303,9 +303,12 @@ def main():
     init_dir(supplemental_loc)
 
     # Load skim data
-    cost_skim = load_skims(skim_file_loc, mode_name='svtl2g')
-    dist_skim = load_skims(skim_file_loc, mode_name='svtl1d', divide_by_100=True)
-    
+    am_cost_skim = load_skims(am_skim_file_loc, mode_name='svtl2g')
+    am_dist_skim = load_skims(am_skim_file_loc, mode_name='svtl1d', divide_by_100=True)
+    pm_cost_skim = load_skims(pm_skim_file_loc, mode_name='svtl2g')
+    pm_dist_skim = load_skims(pm_skim_file_loc, mode_name='svtl1d', divide_by_100=True)
+    cost_skim = (am_cost_skim + pm_cost_skim) * .5
+    dist_skim = (am_cost_skim + pm_dist_skim) * .5
     # Import a network
     network_importer(my_project)
 

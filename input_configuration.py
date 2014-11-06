@@ -149,7 +149,8 @@ pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/'
 externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
 
 # Assuming AM skims (8 to 9 AM)
-skim_file_loc = 'inputs/7to8.h5'
+am_skim_file_loc = 'inputs/7to8.h5'
+pm_skim_file_loc = 'inputs/17to18.h5'
 base_skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/7to8.h5'
 trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
