@@ -99,7 +99,7 @@ def build_shadow_only():
          logfile.write("ending daysim %s\r\n" % str((time_daysim)))
 
 
-def run_truck_supplemental():
+def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
      if run_truck_model:
          returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
@@ -112,14 +112,16 @@ def run_truck_supplemental():
     ###Adds external, special generator, and group quarters trips to DaySim
     ###outputs.'''
      if run_supplemental_trips:
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-        if returncode != 0:
-           sys.exit(1)
+         # Only run generation script once - does not change with feedback
+        if iteration == 0:
+            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+            if returncode != 0:
+                sys.exit(1)
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
         if returncode != 0:
            sys.exit(1)
 
-def daysim_assignment():
+def daysim_assignment(iteration):
      
      ### RUN DAYSIM ################################################################
      if run_daysim:
@@ -134,7 +136,7 @@ def daysim_assignment():
      
      ### ADD SUPPLEMENTAL TRIPS
      ### ####################################################
-     run_truck_supplemental()
+     run_truck_supplemental(iteration)
      #### ASSIGNMENTS
      #### ###############################################################
      if run_skims_and_paths:
@@ -241,7 +243,7 @@ def main():
          modify_config([("$SHADOW_PRICE", "false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
         
         # RUN THE MODEL finally
-        daysim_assignment()
+        daysim_assignment(iteration)
 
         converge=check_convergence(iteration, pop_sample[iteration])
         if converge == 'stop':
