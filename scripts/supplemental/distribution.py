@@ -67,7 +67,7 @@ def calc_fric_fac(cost_skim, dist_skim):
     for purpose, coeff_val in coeff.iteritems():
         friction_fac_dic[purpose] = np.exp((coeff[purpose])*(cost_skim + (dist_skim * autoop * avotda)))
         ## Set external zones to zero to prevent external-external trips
-        friction_fac_dic[purpose][3750-magic_num:] = 0
+        friction_fac_dic[purpose][HIGH_STATION-magic_num:] = 0
         friction_fac_dic[purpose][:,[x for x in range(HIGH_STATION-magic_num, len(cost_skim))]] = 0
 
     return friction_fac_dic
@@ -266,7 +266,6 @@ def ext_spg_selected(trip_purps):
             filtered[[loc_zone - 1],:] = emme_data[[loc_zone - 1],:]
             # Add columns (minus 1 for zero-based NumPy index)
             filtered[:,[loc_zone]] = emme_data[:,[loc_zone]]
-            print loc_zone
         # Add only external rows and columns
         filtered[3700:,:] = emme_data[3700:,:]
         filtered[:,3700:] = emme_data[:,3700:]
