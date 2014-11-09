@@ -248,7 +248,6 @@ def main():
         converge=check_convergence(iteration, pop_sample[iteration])
         if converge == 'stop':
             print "System converged! The universe is in equilbrium for just one moment."
-            con_file.close()
             break
         print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
