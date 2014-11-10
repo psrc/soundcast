@@ -113,7 +113,7 @@ def write_screenline_tables(workbook, worksheet, screenline_type, header_format,
     worksheet.write_string(total_row, 1, 'Total', index_format)
     worksheet.write_number(total_row, 2, screenline_df['Modeled Volume'].sum(), number_format_bold)
     worksheet.write_number(total_row, 3, screenline_df['Observed Volume'].sum(), number_format_bold)
-    worksheet.write_number(total_row, 4, screenline_df['Observed Volume'].sum() / screenline_df['Modeled Volume'].sum(), decimal_format_bold)
+    worksheet.write_number(total_row, 4, screenline_df['Modeled Volume'].sum() / screenline_df['Observed Volume'].sum(), decimal_format_bold)
     worksheet.write_number(total_row, 5, screenline_df['Modeled Volume'].sum() - screenline_df['Observed Volume'].sum(), number_format_bold)
     worksheet.write_number(total_row, 6, screenline_df['Difference'].sum() / screenline_df['Observed Volume'].sum(), percent_format_bold)
 
@@ -236,10 +236,10 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
         colwidths = xlautofit.even_widths_single_index(output_file)
     
     #Create lists to iterate over
-    variables = ['vmt', 'vht', 'delay']
+    variables = ['vmt', 'vht', 'delay', 'Average Speed']
     times = ['am', 'md', 'pm', 'ev', 'ni', 'Total']
     facilities = ['Freeways', 'Arterials', 'Connectors', 'Total']
-    title_rows = {'vmt': 0, 'vht': 14, 'delay': 28} #Says which row to start at for each variable
+    title_rows = {'vmt': 0, 'vht': 16, 'delay': 32, 'Average Speed': 48} #Says which row to start at for each variable
 
     net_summary = xlsxwriter.Workbook(output_file)
     network = net_summary.add_worksheet('Network')
@@ -265,7 +265,8 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
         global tables
         time_df = tables[variable]['time']
         headers = time_df.columns.tolist()
-        network.write_string(start_row, 0, variable.upper(), title_format)
+        if format_sheet:
+            network.merge_range(start_row, 0, start_row, 13, variable.upper(), title_format)
         network.write_string(start_row + 1, 0, 'Time Period', header_format)
         for i in range(4):
             network.write_string(start_row + 1, i + 1, headers[i], header_format) #Writes headers
@@ -273,7 +274,10 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
             network.write_string(start_row + 2 + i, 0, times[i].upper(), index_format)
             for j in range(len(headers)):
                 if headers[j] != '% Difference':
-                    network.write_number(start_row + 2 + i, j + 1, time_df.loc[times[i], headers[j]], number_format) #Writes values and difference
+                    if variable != 'Average Speed':
+                        network.write_number(start_row + 2 + i, j + 1, time_df.loc[times[i], headers[j]], number_format) #Writes values and difference
+                    else:
+                        network.write_number(start_row + 2 + i, j + 1, time_df.loc[times[i], headers[j]], decimal_format)
                 else:
                     try:
                         network.write_number(start_row + 2 + i, j + 1, time_df.loc[times[i], headers[j]] / 100, percent_format) #Writes percent difference
@@ -284,7 +288,10 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
             network.write_string(start_row + 9 + i, 0, facilities[i], index_format)
             for j in range(len(headers)):
                 if headers[j] != '% Difference':
-                    network.write_number(start_row + 9 + i, j + 1, facility_df.loc[facilities[i], headers[j]], number_format)
+                    if variable != 'Average Speed':
+                        network.write_number(start_row + 9 + i, j + 1, facility_df.loc[facilities[i], headers[j]], number_format)
+                    else:
+                        network.write_number(start_row + 9 + i, j + 1, facility_df.loc[facilities[i], headers[j]], decimal_format)
                 else:
                     try:
                         network.write_number(start_row + 9 + i, j + 1, facility_df.loc[facilities[i], headers[j]] / 100, percent_format)
@@ -309,45 +316,58 @@ for format_sheet in range(2): #runs through the code twice: once without and onc
         network.insert_chart(start_row + 8, 6, facility_chart)
 
     for variable in variables:
-        time_df = summary_by_tp_4k[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]].transpose().sum() #Add up vmt, vht, and delay for times
-        time_df.set_value('Total', time_df.sum()) #Defines total
-        time_df = pd.DataFrame.from_items([(model_run_name, time_df)])
-        comparison_dict = {}
-        for i in range(len(times)):
-            if times[i] == 'Total':
-                comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value})
-            else:
-                comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value.lower(): comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value}) #Get values to compare to
-        time_df[comparison_name] = np.nan
-        for tod in comparison_dict:
-            time_df.loc[tod, comparison_name] = comparison_dict[tod]
-        time_df = scf.get_differences(time_df, model_run_name, comparison_name, -2)
-        facility_df = summary_by_tp_4k.sum()[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]] #Do the same thing by facility type
-        facility_df['Freeways'] = facility_df['highway_' + variable]
-        del facility_df['highway_' + variable]
-        facility_df['Arterials'] = facility_df['arterial_' + variable]
-        del facility_df['arterial_' + variable]
-        facility_df['Connectors'] = facility_df['connectors_' + variable]
-        del facility_df['connectors_' + variable]
-        facility_df = facility_df.transpose()
-        facility_df.set_value('Total', facility_df.sum())
-        facility_df = pd.DataFrame.from_items([(model_run_name, facility_df)])
-        comparison_dict = {}
-        for i in range(len(facilities)):
-            comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 1).value})
-        facility_df[comparison_name] = np.nan
-        for tod in comparison_dict:
-            facility_df.loc[tod, comparison_name] = comparison_dict[tod]
-        facility_df = scf.get_differences(facility_df, model_run_name, comparison_name, -2)
+        if variable != 'Average Speed':
+            time_df = summary_by_tp_4k[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]].transpose().sum() #Add up vmt, vht, and delay for times
+            time_df.loc['Total'] = time_df.sum()
+            time_df = pd.DataFrame.from_items([(model_run_name, time_df)])
+            time_df[comparison_name] = np.nan
+            comparison_dict = {}
+            for i in range(len(times)):
+                if times[i] == 'Total':
+                    comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value})
+                else:
+                    comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 0).value.lower(): comparison_scenario_sheet.cell(title_rows[variable] + 2 + i, 1).value}) #Get values to compare to
+            for tod in comparison_dict:
+                time_df.loc[tod, comparison_name] = comparison_dict[tod]
+            time_df = scf.get_differences(time_df, model_run_name, comparison_name, -2)
+        else:
+            time_df = tables['vmt']['time'][['Model Run', 'Comparison Scenario']] / tables['vht']['time'][['Model Run', 'Comparison Scenario']]
+            time_df = scf.get_differences(time_df, model_run_name, comparison_name, 2)        
+
+        if variable != 'Average Speed':
+            facility_df = summary_by_tp_4k.sum()[['highway_' + variable, 'arterial_' + variable, 'connectors_' + variable]] #Do the same thing by facility type
+            facility_df['Freeways'] = facility_df['highway_' + variable]
+            del facility_df['highway_' + variable]
+            facility_df['Arterials'] = facility_df['arterial_' + variable]
+            del facility_df['arterial_' + variable]
+            facility_df['Connectors'] = facility_df['connectors_' + variable]
+            del facility_df['connectors_' + variable]
+            facility_df = facility_df.transpose()
+            facility_df.loc['Total'] = facility_df.sum()
+            facility_df = pd.DataFrame.from_items([(model_run_name, facility_df)])
+            comparison_dict = {}
+            for i in range(len(facilities)):
+                comparison_dict.update({comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 0).value: comparison_scenario_sheet.cell(title_rows[variable] + 9 + i, 1).value})
+            facility_df[comparison_name] = np.nan
+            for tod in comparison_dict:
+                facility_df.loc[tod, comparison_name] = comparison_dict[tod]
+            facility_df = scf.get_differences(facility_df, model_run_name, comparison_name, -2)
+        else:
+            facility_df = tables['vmt']['facility'][['Model Run', 'Comparison Scenario']] / tables['vht']['facility'][['Model Run', 'Comparison Scenario']]
+            facility_df = scf.get_differences(facility_df, model_run_name, comparison_name, 2)
+        
+
         tables.update({variable: {'time': time_df, 'facility': facility_df}})
         write_net_sum_tables(variable) #Write the tables to the excel file
 
     network.conditional_format('E3:E13', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format}) #Defines conditional format
     network.conditional_format('E3:E13', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
-    network.conditional_format('E17:E28', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
-    network.conditional_format('E17:E28', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
-    network.conditional_format('E31:E41', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
-    network.conditional_format('E31:E41', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+    network.conditional_format('E19:E29', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    network.conditional_format('E19:E29', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+    network.conditional_format('E35:E45', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    network.conditional_format('E35:E45', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+    network.conditional_format('E51:E61', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    network.conditional_format('E51:E61', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
 
     screenlines = net_summary.add_worksheet('Screenlines')
     write_screenline_tables(net_summary, screenlines, 'Primary', header_format, index_format, number_format, percent_format, decimal_format, cond_format)
