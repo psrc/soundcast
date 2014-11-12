@@ -60,36 +60,24 @@ LOW_PNR = 3751
 HIGH_PNR = 4000
 
 # this is the zone -1 one because numpy is zone based
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437}
+SPECIAL_GENERATORS = {"SeaTac":983-1,"Tacoma Dome":3110-1,"exhibition center":631-1, "Seattle Center":438-1}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
-project_list = ['Projects/5to6/5to6.emp',
-                      'Projects/6to7/6to7.emp',
-                      'Projects/7to8/7to8.emp',
-                      'Projects/8to9/8to9.emp',
-                      'Projects/9to10/9to10.emp',
-                      'Projects/10to14/10to14.emp',
-                      'Projects/14to15/14to15.emp',
-                      'Projects/15to16/15to16.emp',
-                      'projects/16to17/16to17.emp',
-                      'Projects/17to18/17to18.emp',
-                      'Projects/18to20/18to20.emp',
-                      'Projects/20to5/20to5.emp' ]
 
-## Alternate creation for project_list
-#tods = sound_cast_net_dict.keys()
-#proj_list = b = ['Projects/' + tod + '/' + tod + '.emp.' for tod in tods]
+# Time of day periods
+tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
+project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
 ## HDF5 Groups and Subgroups
 hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
-hdf5_emme_subgroups = ["5to6","6to7","7to8","8to9","9to10","10to14","14to15","15to16","16to17","17to18","18to20","20to5"]
+hdf5_emme_subgroups = tods
 emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit"]
 hdf5_urbansim_subgroups = ["Households","Parcels","Persons"]
 hdf5_freight_subgroups = ["Inputs","Outputs","Rates"]
 hdf5_daysim_subgroups = ["Household","Person","Trip","Tour"]
 
 # Skim for time, cost
-skim_matrix_designation_all_tods = ['t','c']
-skim_matrix_designation_limited = ['d']
+skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
+skim_matrix_designation_limited = ['d']    # Distance skim
 
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
@@ -98,12 +86,6 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
-bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
-                                 'demand' : 'walk', 'modes' : ["w", "x"],
-                                 'intrazonal_time' : 'izwtim'},
-                         'bike':{'time' : 'biket', 'description' : 'bike time',
-                                 'demand' : 'bike', 'modes' : ["k", "l", "q"],
-                                 'intrazonal_time' : 'izbtim'}}
 
 # Transit Inputs:
 transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
@@ -242,24 +224,6 @@ tod_list = ['am','md', 'pm', 'ev', 'ni']
 LOW_STATION = 3733
 HIGH_STATION = 3750
 EXTERNAL_DISTRICT = 'ga20'
-truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
-                             'special_gen_light_trucks','special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                             'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-
-truck_tod_factor_dict = {'lttrk' : {'daily_trips' : 'mflgtod', 
-                                    'am' : '.194', 'md' : '.346', 'pm' : '.240', 'ev' : '.126', 'ni' : '.094'}, 
-                         'mdtrk' : {'daily_trips' : 'mfmedod', 
-                                    'am' : '.208', 'md' : '.417', 'pm' : '.204', 'ev' : '.095', 'ni' : '.076'}, 
-                         'hvtrk' : {'daily_trips' : 'mfhvyod', 
-                                    'am' : '.209', 'md' : '.417', 'pm' : '.189', 'ev' : '.071', 'ni' : '.063'}}
-
-truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup" : "prodsh*manu", 
-                  "manue" : "eqshar * manu", "tcu" : "tcushr * wtcu", "whls" : "whlssh * wtcu", 
-                  "retail" : "ret1 + ret2 + ret3", "fires" : "fires1 + fires2 + fires3", 
-                  "govedu" : "gov1 + gov2 + gov3 + edu"}
-
-origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
-                   'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
 					
 #################################### SOUNDCAST SUMMARY ####################################
 h5_results_file = 'outputs/daysim_outputs.h5'
