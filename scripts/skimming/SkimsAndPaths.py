@@ -130,7 +130,7 @@ def define_matrices(my_project):
     start_define_matrices = time.time()
     ##Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
-    
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
 
     for x in range (0, len(emme_matrix_subgroups)):
         for y in range (0, len(matrix_dict[emme_matrix_subgroups[x]])):
