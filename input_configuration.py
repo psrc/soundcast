@@ -59,8 +59,7 @@ HIGH_TAZ = 3700
 LOW_PNR = 3751
 HIGH_PNR = 4000
 
-# this is the zone -1 one because numpy is zone based
-SPECIAL_GENERATORS = {"SeaTac":983-1,"Tacoma Dome":3110-1,"exhibition center":631-1, "Seattle Center":438-1}
+SPECIAL_GENERATORS = {"SeaTac":983,"Tacoma Dome":3110,"exhibition center":631, "Seattle Center":438}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
 # Time of day periods
