@@ -39,6 +39,14 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 
 bal_to_attractions = ["colpro"]
 
+# Input locations
+hh_trip_loc = base_inputs + '/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = base_inputs + '/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = base_inputs + '/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = base_inputs + '/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = base_inputs + '/supplemental/generation/pums/' 
+externals_loc = base_inputs + '/supplemental/generation/externals.csv'
+
 # Define column values for household and employment data
 hh_cols = [1, 101]    # Begin and end column numbers for all household-related cross classification data in HHEMP
 emp_cols = [109, 125]    # Begin and end columns for all employement-related cross class data in HHEMP

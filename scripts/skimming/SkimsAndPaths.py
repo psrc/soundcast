@@ -53,6 +53,34 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
+# Input values
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
+transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
+                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
+                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
+                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
+                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
+                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
+
+# Transit Fare:
+zone_file = 'inputs/Fares/transit_fare_zones.grt'
+peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
+peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
+offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
+offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+fare_matrices_tod = ['6to7', '9to10']
+
+# Intrazonals
+intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
+taz_area_file = 'inputs/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/intrazonals/destination_tt.in'
+
+# Zone Index
+tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
