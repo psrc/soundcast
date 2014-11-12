@@ -62,13 +62,11 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
 def calc_fric_fac(cost_skim, dist_skim):
     ''' Calculate friction factors for all trip purposes '''
     friction_fac_dic = {}
-    # Need to fix this magic number
-    magic_num = 33 # deal with holes in Emme matrices by subtracting this from numpy index
     for purpose, coeff_val in coeff.iteritems():
         friction_fac_dic[purpose] = np.exp((coeff[purpose])*(cost_skim + (dist_skim * autoop * avotda)))
         ## Set external zones to zero to prevent external-external trips
-        friction_fac_dic[purpose][HIGH_STATION-magic_num:] = 0
-        friction_fac_dic[purpose][:,[x for x in range(HIGH_STATION-magic_num, len(cost_skim))]] = 0
+        friction_fac_dic[purpose][LOW_STATION:] = 0
+        friction_fac_dic[purpose][:,[x for x in range(LOW_STATION, len(cost_skim))]] = 0
 
     return friction_fac_dic
 

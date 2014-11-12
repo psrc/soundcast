@@ -158,10 +158,10 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         if key not in bal_to_attractions:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             else:
                 ext = 0
-            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             bal_factor = (prod - ext)/(att - ext)
             trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
             print "key " + key + ", " + value + ' ' + str(bal_factor)
@@ -169,7 +169,7 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         else:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             else:
                 ext = 0
             bal_factor = (att - ext)/(prod - ext)
