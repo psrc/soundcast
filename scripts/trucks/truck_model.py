@@ -260,7 +260,12 @@ def create_full_matrices():
 
 #import matrices(employment shares):
 def import_emp_matrices():
-    for i in range(0, len(truck_matrix_import_list)):
+    truck_emp_dict = json_to_dictionary('truck_emp_dict')
+    truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 
+                                 'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
+                                 'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
+                                 'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
+    for i in range(0, len(truck_emp_dict)):
         print 'inputs/' + truck_matrix_import_list[i] + '.in'
         my_project.import_matrices('inputs/trucks/' + truck_matrix_import_list[i] + '.in')
 
@@ -276,6 +281,8 @@ def calc_total_households():
 #Populating origin matrices from household/employment matrix (10_copy_matrices.mac)
 #Copying each colunn into the appropriate Origin Matrix
 def truck_productions():
+    origin_emp_dict = json_to_dictionary('origin_emp_dict')
+    truck_emp_dict = json_to_dictionary('truck_emp_dict')
     for key, value in origin_emp_dict.iteritems():
         my_project.matrix_calculator(result = key, aggregation_destinations = '+',
                                      constraint_by_zone_origins = '*',
@@ -471,6 +478,7 @@ def calculate_daily_trips():
     
     #apply time of day factors:
     
+    truck_tod_factor_dict = json_to_dictionary('truck_tod_factor_dict')
     for tod in tod_list:
         for key, value in truck_tod_factor_dict.iteritems():
             my_project.matrix_calculator(result = 'mf' + tod[0] + key, 
@@ -499,7 +507,8 @@ origin_destination_dict = json_to_dictionary('truck_matrices_dict')
 truck_generation_dict = json_to_dictionary('truck_gen_calc_dict')
 my_project = EmmeProject(truck_model_project)
 
-main()
+if __name__ == "__main__":
+    main()
 
 
 
