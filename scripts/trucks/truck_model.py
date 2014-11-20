@@ -15,174 +15,10 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
+from EmmeProject import *
 
 # Temp log file for de-bugging
 logfile = open("truck_log.txt", 'wb')
-
-class EmmeProject:
-
-    def __init__(self, filepath):
-        self.desktop = app.start_dedicated(True, "cth", filepath)
-        self.m = _m.Modeller(self.desktop)
-        pathlist = filepath.split("/")
-        self.fullpath = filepath
-        self.filename = pathlist.pop()
-        self.dir = "/".join(pathlist) + "/"
-        self.bank = self.m.emmebank
-        self.tod = self.bank.title
-        self.current_scenario = list(self.bank.scenarios())[0]
-        self.data_explorer = self.desktop.data_explorer()
-    
-    def network_counts_by_element(self, element):
-        network = self.current_scenario.get_network()
-        d = network.element_totals
-        count = d[element]
-        return count
-    
-    def change_active_database(self, database_name):
-        for database in self.data_explorer.databases():
-            #print database.title()
-            if database.title() == database_name:
-                database.open()
-                print 'changed'
-                self.bank = self.m.emmebank
-                self.tod = self.bank.title
-                print self.tod
-                self.current_scenario = list(self.bank.scenarios())[0]
-                
-    def create_matrix(self, matrix_type, name, description, default_value, overwrite, scenario):
-        NAMESPACE = "inro.emme.data.matrix.create_matrix"
-        process = self.m.tool(NAMESPACE)
-        process(matrix_id= self.bank.available_matrix_identifier(matrix_type),
-                          matrix_name= name,
-                          matrix_description= description,
-                          default_value= default_value,
-                          overwrite=overwrite,
-                          scenario=scenario) 
-    
-    def delete_matrices(self, matrix_type):
-        NAMESPACE = "inro.emme.data.matrix.delete_matrix"
-        process = self.m.tool(NAMESPACE)
-        for matrix in self.bank.matrices():
-            if matrix_type == "ALL":
-                process(matrix, self.bank)
-            elif matrix.type == matrix_type:
-                process(matrix, self.bank)
-    
-    def import_matrices(self, matrix_name):
-        NAMESPACE = "inro.emme.data.matrix.matrix_transaction"
-        process = self.m.tool(NAMESPACE)
-        process(transaction_file = matrix_name,
-            throw_on_error = False,
-            scenario = self.current_scenario)
-    
-    def import_matrices_from_database(self, src_db_file, matrix_name):
-        src_emmebank = _eb.Emmebank(src_db_file)
-        matrix_id = src_emmebank.matrix(matrix_name).id
-        print matrix_id
-        list_of_ids = []
-        list_of_ids.append(matrix_id)
-        NAMESPACE = "inro.emme.data.database.import_from_database"
-        import_db = self.m.tool(NAMESPACE)
-        import_db(src_database=src_emmebank,
-        src_matrix_ids=list_of_ids)
-
-    def matrix_calculator(self, **kwargs):
-        spec = json_to_dictionary('matrix_calc_spec')
-        for name, value in kwargs.items():
-            print name
-           
-            if name == 'aggregation_origins':
-                spec['aggregation']['origins'] = value
-            elif name == 'aggregation_destinations':
-                spec['aggregation']['destinations'] = value
-            elif name == 'constraint_by_value':
-                spec['constraint']['by_value'] = value
-            elif name == 'constraint_by_zone_origins':
-                spec['constraint']['by_zone']['origins'] = value
-            elif name == 'constraint_by_zone_destinations':
-                spec['constraint']['by_zone']['destinations'] = value
-            else:
-                spec[name] = value
-        #print spec
-        NAMESPACE = "inro.emme.matrix_calculation.matrix_calculator"
-        compute_matrix = self.m.tool(NAMESPACE)
-        report = compute_matrix(spec) 
-    
-    def matrix_balancing(self, **kwargs):
-        spec = json_to_dictionary('matrix_balancing_spec')
-        for name, value in kwargs.items():
-            if name == 'results_od_balanced_values':
-                spec['results']['od_balanced_values'] = value
-            elif name == 'constraint_by_value':
-                spec['constraint']['by_value'] = value
-            elif name == 'constraint_by_zone_origins':
-                spec['constraint']['by_zone']['origins'] = value
-            elif name == 'constraint_by_zone_destinations':
-                spec['constraint']['by_zone']['destinations'] = value
-            else:
-                spec[name] = value
-        NAMESPACE = "inro.emme.matrix_calculation.matrix_balancing"
-        compute_matrix = self.m.tool(NAMESPACE)
-        report = compute_matrix(spec) 
-    
-    def initialize_partition(self, partition_initials):
-        init_partition = self.m.tool("inro.emme.data.zone_partition.init_partition")
-        gt = self.bank.partition(partition_initials)
-        init_partition(partition=gt)
-    
-    def process_zone_partition(self, partition_file):
-        process_zone_partition = self.m.tool("inro.emme.data.zone_partition.partition_transaction")
-        process_zone_partition(transaction_file = partition_file,
-                           throw_on_error = True,
-                           scenario = self.current_scenario)        
-    def delete_links(self):
-        if self.network_counts_by_element('links') > 0:
-            NAMESPACE = "inro.emme.data.network.base.delete_links"
-            delete_links = self.m.tool(NAMESPACE)
-            #delete_links(selection="@dist=9", condition="cascade")
-            delete_links(condition="cascade")
-
-    def delete_nodes(self):
-        if self.network_counts_by_element('regular_nodes') > 0:
-            NAMESPACE = "inro.emme.data.network.base.delete_nodes"
-            delete_nodes = self.m.tool(NAMESPACE)
-            delete_nodes(condition="cascade")
-    def process_vehicles(self,vehicle_file):
-          NAMESPACE = "inro.emme.data.network.transit.vehicle_transaction"
-          process = self.m.tool(NAMESPACE)
-          process(transaction_file = vehicle_file,
-            revert_on_error = True,
-            scenario = self.current_scenario)
-
-    def process_base_network(self, basenet_file):
-        NAMESPACE = "inro.emme.data.network.base.base_network_transaction"
-        process = self.m.tool(NAMESPACE)
-        process(transaction_file = basenet_file,
-              revert_on_error = True,
-              scenario = self.current_scenario)
-
-    def process_turn(self, turn_file):
-        NAMESPACE = "inro.emme.data.network.turn.turn_transaction"
-        process = self.m.tool(NAMESPACE)
-        process(transaction_file = turn_file,
-            revert_on_error = False,
-            scenario = self.current_scenario) 
-
-    def create_scenario(self, scenario_number, scenario_title = 'test'):
-        NAMESPACE = "inro.emme.data.scenario.create_scenario"
-        create_scenario = self.m.tool(NAMESPACE)
-        create_scenario(scenario_id=scenario_number,
-                        scenario_title= scenario_title)
-    def change_scenario(self):
-        self.current_scenario = list(self.bank.scenarios())[0]
-
-    def process_modes(self, mode_file):
-        NAMESPACE = "inro.emme.data.network.mode.mode_transaction"
-        process_modes = self.m.tool(NAMESPACE)
-        process_modes(transaction_file = mode_file,
-              revert_on_error = True,
-              scenario = self.current_scenario)
           
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
@@ -231,32 +67,32 @@ def skims_to_hdf5(EmmeProject):
 
 #create a place holder scalar matrix
 def place_holder_scalar_matrix():
-    my_project.create_matrix('SCALAR', 'place', 'place holder', 0, True, my_project.current_scenario)
+    my_project.create_matrix('place', 'place holder', 'SCALAR')
 
 #create origin and destination matrices
 def create_origin_destination_matrices():
     for y in range (0, len(origin_destination_dict["Origin_Matrices"])):
-        my_project.create_matrix('ORIGIN', origin_destination_dict['Origin_Matrices'][y]['Name'],
+        my_project.create_matrix(origin_destination_dict['Origin_Matrices'][y]['Name'],
                                  origin_destination_dict['Origin_Matrices'][y]['Description'], 
-                                 0, True, my_project.current_scenario)
+                                 'ORIGIN')
     for y in range (0, len(origin_destination_dict["Destination_Matrices"])):
-        my_project.create_matrix('DESTINATION', origin_destination_dict['Destination_Matrices'][y]['Name'],
+        my_project.create_matrix(origin_destination_dict['Destination_Matrices'][y]['Name'],
                                  origin_destination_dict['Destination_Matrices'][y]['Description'], 
-                                 0, True,my_project.current_scenario)
+                                 'DESTINATION')
 
 #create scalar matrices:
 def create_scalar_matrices():
     for y in range(0, len(origin_destination_dict["Scalar_Matrices"])):
-        my_project.create_matrix('SCALAR', origin_destination_dict['Scalar_Matrices'][y]['Name'], 
+        my_project.create_matrix(origin_destination_dict['Scalar_Matrices'][y]['Name'], 
                                  origin_destination_dict['Scalar_Matrices'][y]['Description'], 
-                                 0, True, my_project.current_scenario)
+                                 'SCALAR')
 
 #create full matrices
 def create_full_matrices():
     for y in range(0, len(origin_destination_dict["Full_Matrices"])):
-        my_project.create_matrix('FULL', origin_destination_dict['Full_Matrices'][y]['Name'],
+        my_project.create_matrix(origin_destination_dict['Full_Matrices'][y]['Name'],
                                  origin_destination_dict['Full_Matrices'][y]['Description'], 
-                                 0, True, my_project.current_scenario)
+                                 'FULL')
 
 #import matrices(employment shares):
 def import_emp_matrices():
@@ -330,7 +166,7 @@ def truck_attractions():
 
 def import_skims():
     # Import districts
-    my_project.initialize_partition('ga')
+    my_project.initialize_zone_partition('ga')
     my_project.process_zone_partition('inputs/trucks/' + districts_file)
     # Import truck operating costs
     my_project.import_matrices('inputs/trucks/truck_operating_costs.in')

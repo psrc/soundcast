@@ -601,7 +601,7 @@ def average_matrices(old_matrix, new_matrix):
 def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     start_export_hdf5 = time.time()
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     my_user_classes = json_to_dictionary("user_classes")
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
@@ -697,6 +697,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             print matrix_name+' was transferred to the HDF5 container.'
 
     #bike/walk
+    
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -977,6 +978,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
+     print hdf5_file_path
      my_store = h5py.File(hdf5_file_path, "r+")
      daysim_set = my_store["Trip"]
      #open departure time array
@@ -1165,7 +1167,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
     tod_dict = text_to_dictionary('time_of_day')
     uniqueTOD = set(tod_dict.values())
     uniqueTOD = list(uniqueTOD)
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     #populate a dictionary of with key=bank name, value = emmebank object
     data_explorer = project_name.desktop.data_explorer()
     all_emmebanks = {}
@@ -1379,7 +1381,7 @@ def main():
             start_pool(l)
         
         #want pooled processes finished before executing more code in main:
-
+        #run_assignments_parallel('projects/7to8/7to8.emp')
         
         start_transit_pool(project_list)
        

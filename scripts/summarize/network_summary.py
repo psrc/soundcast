@@ -53,65 +53,65 @@ screenlines_file = 'screenline_volumes.csv'
 uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
            '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
-class EmmeProject:
-    def __init__(self, filepath):
-        self.desktop = app.start_dedicated(True, "cth", filepath)
-        self.m = _m.Modeller(self.desktop)
-        pathlist = filepath.split("/")
-        self.fullpath = filepath
-        self.filename = pathlist.pop()
-        self.dir = "/".join(pathlist) + "/"
-        self.bank = self.m.emmebank
-        self.tod = self.bank.title
-        self.current_scenario = list(self.bank.scenarios())[0]
-        self.data_explorer = self.desktop.data_explorer()
+#class EmmeProject:
+#    def __init__(self, filepath):
+#        self.desktop = app.start_dedicated(True, "cth", filepath)
+#        self.m = _m.Modeller(self.desktop)
+#        pathlist = filepath.split("/")
+#        self.fullpath = filepath
+#        self.filename = pathlist.pop()
+#        self.dir = "/".join(pathlist) + "/"
+#        self.bank = self.m.emmebank
+#        self.tod = self.bank.title
+#        self.current_scenario = list(self.bank.scenarios())[0]
+#        self.data_explorer = self.desktop.data_explorer()
     
-    def change_active_database(self, database_name):
-        for database in self.data_explorer.databases():
-            #print database.title()
-            if database.title() == database_name:
+#    def change_active_database(self, database_name):
+#        for database in self.data_explorer.databases():
+#            #print database.title()
+#            if database.title() == database_name:
                 
-                database.open()
-                print 'changed'
-                self.bank = self.m.emmebank
-                self.tod = self.bank.title
-                print self.tod
-                self.current_scenario = list(self.bank.scenarios())[0]
-    def create_extras(self, type, name, description):
-        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
-        create_extras = self.m.tool(NAMESPACE)
-        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
+#                database.open()
+#                print 'changed'
+#                self.bank = self.m.emmebank
+#                self.tod = self.bank.title
+#                print self.tod
+#                self.current_scenario = list(self.bank.scenarios())[0]
+#    def create_extras(self, type, name, description):
+#        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
+#        create_extras = self.m.tool(NAMESPACE)
+#        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
     
-    def link_calculator(self, **kwargs):
-        spec = json_to_dictionary("link_calculation")
-        for name, value in kwargs.items():
-            print name
-            if name == 'selections':
-                spec[name]['link'] = value
-            else:
-                spec[name] = value
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#    def link_calculator(self, **kwargs):
+#        spec = json_to_dictionary("link_calculation")
+#        for name, value in kwargs.items():
+#            print name
+#            if name == 'selections':
+#                spec[name]['link'] = value
+#            else:
+#                spec[name] = value
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
        
      
-    def transit_line_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_line_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_line_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_line_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
     
-    def transit_segment_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_segment_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_segment_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_segment_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
 
 
 
