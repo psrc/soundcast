@@ -45,10 +45,6 @@ def build_seed_skims():
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
         '-use_daysim_output_seed_trips'])
-    if returncode != 0:
-             returncode = subprocess.call([sys.executable,
-                           'scripts/skimming/SkimsAndPaths.py',
-                            '-use_daysim_output_seed_trips'])
                   
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
@@ -143,10 +139,7 @@ def daysim_assignment(iteration):
          returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
-             returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-             if returncode != 0: 
-                  #send_error_email(recipients, returncode)
-                  sys.exit(1)
+            sys.exit(1)
                   
      
      time_assign = datetime.datetime.now()
