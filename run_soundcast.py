@@ -11,20 +11,20 @@ import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
+import logging
+import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
+import datetime
 import shutil 
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
 from data_wrangling import *
 
-# Create text file to log model performance
-logfile = open(main_log_file, 'wb')
 
-time_start = datetime.datetime.now()
-print "\nSoundCast run: start time:", time_start
 
+@timed
 def parcel_buffering():
     copy_parcel_buffering_files()
     print 'adding military jobs to regular jobs'
@@ -39,18 +39,23 @@ def parcel_buffering():
     returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
     os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
+@timed    
 def build_seed_skims():
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
         '-use_daysim_output_seed_trips'])
+    if returncode != 0:
+             returncode = subprocess.call([sys.executable,
+                           'scripts/skimming/SkimsAndPaths.py',
+                            '-use_daysim_output_seed_trips'])
                   
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
     if returncode != 0:
         sys.exit(1)
-
+@timed   
 def modify_config(config_vals):
     config_template = open('configuration_template.properties','r')
     config = open('configuration.properties','w')
@@ -71,12 +76,14 @@ def modify_config(config_vals):
      print ' Error creating configuration template file'
      sys.exit(1)
     
-
+@timed
 def build_shadow_only():
      for shad_iter in range(0, len(shadow_work)):
          if run_daysim:
             modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
+            logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+            logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
             if returncode != 0:
                send_error_email(recipients, returncode)
                sys.exit(1)
@@ -88,13 +95,9 @@ def build_shadow_only():
          if current_rmse < shadow_con:
             print "done with shadow prices"
             shadow_con_file.close()
-            break
-
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" % str((time_daysim)))
 
 
+@timed
 def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
      if run_truck_model:
@@ -116,19 +119,17 @@ def run_truck_supplemental(iteration):
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
         if returncode != 0:
            sys.exit(1)
-
+@timed
 def daysim_assignment(iteration):
      
      ### RUN DAYSIM ################################################################
      if run_daysim:
+         logger.info("Start of %s iteration of Daysim", str(iteration))
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)
              sys.exit(1)
-
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" % str((time_daysim)))   
      
      ### ADD SUPPLEMENTAL TRIPS
      ### ####################################################
@@ -136,17 +137,18 @@ def daysim_assignment(iteration):
      #### ASSIGNMENTS
      #### ###############################################################
      if run_skims_and_paths:
+         logger.info("Start of %s iteration of Skims and Paths", str(iteration))
          returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
-            sys.exit(1)
-                  
-     
-     time_assign = datetime.datetime.now()
-     print time_assign
-     logfile.write("ending assignment %s\r\n" % str((time_assign)))
+             returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+             if returncode != 0: 
+                  #send_error_email(recipients, returncode)
+                  sys.exit(1)
 
 
+@timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
     if iteration > 0 and recipr_sample == 1:
@@ -155,6 +157,7 @@ def check_convergence(iteration, recipr_sample):
             con_file.close()
     return converge
 
+@timed
 def run_all_summaries():
 
    if run_network_summary:
@@ -178,6 +181,7 @@ def main():
 
     if run_parcel_buffering:
         parcel_buffering()
+
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
@@ -205,10 +209,11 @@ def main():
 ### ###############################################################
     if run_import_networks:
         time_copy = datetime.datetime.now()
+        logger.info("Start of network importer")
         returncode = subprocess.call([sys.executable,
         'scripts/network/network_importer.py', base_inputs])
+        logger.info("End of network importer")
         time_network = datetime.datetime.now()
-        print '###### Finished Importing Networks:', str(time_network - time_copy)
         if returncode != 0:
            sys.exit(1)
 
@@ -221,9 +226,9 @@ def main():
 
     for iteration in range(len(pop_sample)):
         print "We're on iteration %d" % (iteration)
-        logfile.write("We're on iteration %d\r\n" % (iteration))
+        logger.info(("We're on iteration %d\r\n" % (iteration)))
         time_start = datetime.datetime.now()
-        logfile.write("starting run %s" % str((time_start)))
+        logger.info("starting run %s" % str((time_start)))
   
   # set up your Daysim configuration depending on if you are building shadow
   # prices or not
@@ -264,4 +269,14 @@ def main():
 ##print '    Total run time:',time_assign_summ - time_start
 
 if __name__ == "__main__":
+    logger = logcontroller.setup_custom_logger('main_logger')
+    logger.info('------------------------NEW RUN STARTING----------------------------------------------')
+    start_time = datetime.datetime.now()
+
+
     main()
+
+    end_time = datetime.datetime.now()
+    elapsed_total = end_time - start_time
+    logger.info('------------------------RUN ENDING_----------------------------------------------')
+    logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
