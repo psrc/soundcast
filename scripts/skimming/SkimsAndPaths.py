@@ -1126,6 +1126,7 @@ def bike_walk_assignment(my_project, assign_for_all_tods):
     assignment_specification = json_to_dictionary("bike_walk_assignment")
     #get demand matrix name from here:
     user_classes = json_to_dictionary("user_classes")
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     mod_assign = assignment_specification
     #only skim for time for certain tod
     #Also fill in intrazonals
@@ -1379,6 +1380,7 @@ def main():
         for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
+
         
         #want pooled processes finished before executing more code in main:
         #run_assignments_parallel('projects/7to8/7to8.emp')
