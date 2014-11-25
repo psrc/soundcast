@@ -258,6 +258,8 @@ def find_inputs(base_directory, save_list):
 def check_inputs():
     ''' Warn user if any inputs are missing '''
 
+    logger = logging.getLogger('main_logger')
+
     # Get a list of input files from input_configuration.py
     config_list = []
     a = globals()
@@ -279,10 +281,8 @@ def check_inputs():
 
     # Save missing file list to soundcast log and print to console
     if len(missing_list) > 0:
-        with open(main_log_file, 'a+') as f:
-            f.write('\nWarning: the following files are missing and may be needed to complete the model run:\n')
-            print 'Warning: the following files are missing and may be needed to complete the model run:'
-            for file in missing_list:
-                f.write(file + '\n')
-                print file
-            f.write('\n')
+        logger.info('Warning: the following files are missing and may be needed to complete the model run:')
+        print 'Warning: the following files are missing and may be needed to complete the model run:'
+        for file in missing_list:
+            logger.info('- ' + file)
+            print file
