@@ -220,6 +220,9 @@ def main():
 ### BUILD SKIMS ###############################################################
     if run_skims_and_paths_seed_trips == True:
         build_seed_skims()
+
+    # Check all inputs have been created or copied
+    check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
