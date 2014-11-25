@@ -12,7 +12,8 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
 from logcontroller import *
-
+from input_configuration import *
+import input_configuration # Import as a module to access inputs as a dictionary
 
 
 def multipleReplace(text, wordDict):
@@ -248,5 +249,40 @@ def clean_up():
         else:
             print file
 
+def find_inputs(base_directory, save_list):
+    for root, dirs, files in os.walk(base_directory):
+        for file in files:
+            if '.' in file:
+                save_list.append(file)
 
+def check_inputs():
+    ''' Warn user if any inputs are missing '''
 
+    # Get a list of input files from input_configuration.py
+    config_list = []
+    a = globals()
+    for key, value in a.iteritems():
+        if value not in output_list:    # Ignore outputs file names
+            if type(value) is str and '.' in value:
+                config_list.append(value.split('/')[-1])    # Save file name only, strip local directory
+
+    # Build list of existing inputs from base_inputs (on shared network drive) and local inputs
+    input_list = []
+    find_inputs(base_inputs, input_list)    # shared network drive
+    find_inputs(os.getcwd(), input_list)    # local inputs
+
+    # Compare lists and report inconsistenies
+    missing_list = []
+    for f in config_list:
+        if not any(f in input for input in input_list):
+            missing_list.append(f)
+
+    # Save missing file list to soundcast log and print to console
+    if len(missing_list) > 0:
+        with open(main_log_file, 'a+') as f:
+            f.write('\nWarning: the following files are missing and may be needed to complete the model run:\n')
+            print 'Warning: the following files are missing and may be needed to complete the model run:'
+            for file in missing_list:
+                f.write(file + '\n')
+                print file
+            f.write('\n')
