@@ -246,3 +246,6 @@ run_dest_choice_report = True
 run_long_term_report = True
 run_time_choice_report = True
 run_district_summary_report = True
+
+output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
+               'screenline_volumes', 'Topsheet.xlsx']
