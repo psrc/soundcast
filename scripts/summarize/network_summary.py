@@ -15,6 +15,7 @@ import subprocess
 import csv
 import xlsxwriter
 import xlautofit 
+from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
@@ -131,13 +132,13 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
     #for that facility type
   
      #medium trucks
-     EmmeProject.link_calculator(result = '@mveh', expression = '@metrk/1.5')
+     EmmeProject.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
      
      #heavy trucks:
-     EmmeProject.link_calculator(result = '@hveh', expression = '@hvtrk/2')
+     EmmeProject.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2')
      
      #busses:
-     EmmeProject.link_calculator(result = '@bveh', expression = '@trnv/2')
+     EmmeProject.network_calculator("link_calculation", result = '@bveh', expression = '@trnv/2')
      ####################still need to do*****************************
      #hdw- number of buses:
      #mod_spec = network_calc_spec
@@ -148,31 +149,31 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      #calc total vehicles, store in @tveh 
      str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 +  @svnt2 + @svnt3 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
                        + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk + @mveh + @hveh + @bveh'
-     EmmeProject.link_calculator(result = '@tveh', expression = str_expression)
+     EmmeProject.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
      #a dictionary to hold vmt/vht/delay values:
      results_dict = {}
      #dictionary to hold vmts:
      vmt_dict = {}
      #calc vmt for all links by factilty type and get sum by ft. 
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vmt", expression = "@tveh * length", selections = value)
+        EmmeProject.network_calculator("link_calculation", result = "@vmt", expression = "@tveh * length", selections_by_link = value)
         #total vmt by ft: 
-        vmt_dict[key] = EmmeProject.link_calc_result['sum']
+        vmt_dict[key] = EmmeProject.network_calc_result['sum']
      #add to results dictionary
      results_dict['vmt'] = vmt_dict
     
      #Now do the same for VHT:
      vht_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vht", expression = "@tveh * timau / 60", selections = value)
-        vht_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation", result = "@vht", expression = "@tveh * timau / 60", selections_by_link = value)
+        vht_dict[key] = EmmeProject.network_calc_result['sum']
      results_dict['vht'] = vht_dict
 
      #Delay:
      delay_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections = value)
-        delay_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections_by_link = value)
+        delay_dict[key] = EmmeProject.network_calc_result['sum']
      
      results_dict['delay'] = delay_dict
      return results_dict
@@ -180,9 +181,9 @@ def vmt_by_user_class(EmmeProject):
     #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
     uc_vmt_list = []
     for item in uc_list:
-        EmmeProject.link_calculator(result = None, expression = item + ' * length')
+        EmmeProject.network_calculator("link_calculation", result = None, expression = item + ' * length')
         #total vmt by ft: 
-        uc_vmt_list.append(EmmeProject.link_calc_result['sum'])
+        uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
 def get_link_counts(EmmeProject, df_counts, tod):
     #get the network for the active scenario
@@ -214,8 +215,8 @@ def get_unique_screenlines(EmmeProject):
 def get_screenline_volumes(screenline_dict, EmmeProject):
 
     for screen_line in screenline_dict.iterkeys():
-        EmmeProject.link_calculator(result = None, expression = "@tveh", selections = screen_line)
-        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression = "@tveh", selections_by_link = screen_line)
+        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.network_calc_result['sum']
 
 def calc_transit_line_atts(EmmeProject):
     #calc boardings and transit line time
@@ -276,11 +277,11 @@ def main():
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for name, desc in extra_attributes_dict.iteritems():
-            my_project.create_extras('LINK', name, desc)
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
-                my_project.create_extras('TRANSIT_LINE', name, desc)
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
             calc_transit_link_volumes(my_project)
             calc_transit_line_atts(my_project)
   

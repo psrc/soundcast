@@ -192,7 +192,7 @@ class EmmeProject:
                 spec[name] = value
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+        self.network_calc_result = network_calc(spec)
 
     def process_function_file(self, file_name):
         NAMESPACE=("inro.emme.data.function.function_transaction" )
@@ -230,7 +230,7 @@ class EmmeProject:
         
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+        self.transit_line_calc_result = network_calc(spec)
 
     def transit_segment_calculator(self, **kwargs):
         spec = json_to_dictionary("transit_segment_calculation")
@@ -239,7 +239,7 @@ class EmmeProject:
         
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+        self.transit_segment_calc_result = network_calc(spec)
 
 
 def json_to_dictionary(dict_name):
