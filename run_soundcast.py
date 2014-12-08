@@ -76,20 +76,19 @@ def modify_config(config_vals):
 @timed
 def build_shadow_only():
      for shad_iter in range(0, len(shadow_work)):
-         if run_daysim:
-            modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
-            logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
-            returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-            logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
-            if returncode != 0:
-               #send_error_email(recipients, returncode)
-               sys.exit(1)
-            returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
-            shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
-            rmse_list = shadow_con_file.readlines()
-            iteration_number = len(rmse_list)
-            current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
-         if current_rmse < shadow_con:
+        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
+        logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
+        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
+        if returncode != 0:
+            #send_error_email(recipients, returncode)
+            sys.exit(1)
+        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
+        rmse_list = shadow_con_file.readlines()
+        iteration_number = len(rmse_list)
+        current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
+        if current_rmse < shadow_con:
             print "done with shadow prices"
             shadow_con_file.close()
 
