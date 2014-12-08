@@ -47,14 +47,11 @@ def build_seed_skims():
         'scripts/skimming/SkimsAndPaths.py',
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
-             returncode = subprocess.call([sys.executable,
-                           'scripts/skimming/SkimsAndPaths.py',
-                            '-use_daysim_output_seed_trips'])
+        sys.exit(1)
                   
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
-    if returncode != 0:
-        sys.exit(1)
+ 
 @timed   
 def modify_config(config_vals):
     config_template = open('configuration_template.properties','r')
@@ -85,7 +82,7 @@ def build_shadow_only():
             returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
             logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
             if returncode != 0:
-               send_error_email(recipients, returncode)
+               #send_error_email(recipients, returncode)
                sys.exit(1)
             returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
             shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
@@ -103,7 +100,7 @@ def run_truck_supplemental(iteration):
      if run_truck_model:
          returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
          if returncode != 0:
-            send_error_email(recipients, returncode)
+            #send_error_email(recipients, returncode)
             sys.exit(1)
 
       ### RUN Supplemental Trips
@@ -142,10 +139,7 @@ def daysim_assignment(iteration):
          logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
-             returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-             if returncode != 0: 
-                  #send_error_email(recipients, returncode)
-                  sys.exit(1)
+            sys.exit(1)
 
 
 @timed
