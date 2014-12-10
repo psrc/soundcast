@@ -1,232 +1,346 @@
-import pandas as pd
-import numpy as np
-import os
+import xlrd
 import xlsxwriter
+import xlautofit
+import sys
+import pandas as pd
+import math
+import time
+from input_configuration import *
 
-# Load transit agency operator by transit line
-operator = pd.read_csv('inputs/route_id.csv')[["id","Code"]]
+def copy_sheet(from_book, from_sheet_name, to_book, to_sheet_name): #Copies data from one sheet to another (does not preserve formatting)
+    from_sheet = from_book.sheet_by_name(from_sheet_name)
+    to_sheet = to_book.add_worksheet(to_sheet_name)
+    for rownum in range(from_sheet.nrows):
+        for colnum in range(from_sheet.ncols):
+            to_sheet.write(rownum, colnum, from_sheet.cell(rownum, colnum).value)
 
-# Define model time periods for AM period
-transit_am = ['6to7', '7to8', '8to9']
+timer_start = time.time()
 
-# Set source for model boarding estimates
-model_board = 'outputs/am_transit.csv'
+for format_sheet in range(2): #Loop through the code twice, once without and once with formatting
 
-# Set source for network summary, by TOD
-network_summary_loc = 'outputs/network_summary.csv'
-
-# Set source for VMT bu user class
-uc_vmt_loc = 'outputs/uc_vmt.csv'
-
-# Define a dictionary to order TODs by logical order
-tod_list = ['am', 'md', 'pm', 'ev', 'ni']
-
-def process_transit_boardings():
-    boards_and_counts = []
-    # Import modelled hourly boardings for AM periods
-    board_merge = pd.merge(operator[["id","Code"]],
-                       pd.read_csv(model_board)[[tod + '_board' for tod in transit_am] + ["id"]],
-                       on = "id")
-    # Sum all AM periods by transit line
-    board_merge['sum'] = board_merge[[tod + '_board' for tod in transit_am]].sum(axis=1)
+    #Excel files to read in
+    daysim_summary = report_output_location + '/DaysimReport.xlsx'
+    mode_share_summary = report_output_location + '/ModeChoiceReport.xlsx'
+    dest_choice_summary = report_output_location + '/DaysimDestChoiceReport.xlsx'
+    network_summary = report_output_location + '/network_summary.xlsx'
+    output_file = report_output_location + '/Topsheet.xlsx' #File to output
+    table_font = 'Times New Roman'
     
-    # Group line boardings by transit operator
-    sum_board = board_merge["sum"].groupby(board_merge['Code']).sum().reset_index()
-    return sum_board
+    if format_sheet:
+        colwidths = xlautofit.getmaxwidths(output_file)
+    else:
+        pass
+    colors = ['#004488', '#00C0C0']
 
-def process_observed_boardings(sum_board):
-    # Import observed AM boardings by transit operator
-    transit_counts = pd.read_csv('inputs/transit_counts.csv')
-    sum_counts = transit_counts[["Description","Code","AM Observed", "MD Observed"]].groupby('Code').sum().reset_index()
+    outbook = xlsxwriter.Workbook(output_file) #Output workbook
+    number_format = outbook.add_format({'align': 'right', 'num_format': '#,##0', 'font_name': table_font}) #Define formats
+    decimal_format = outbook.add_format({'align': 'right', 'num_format': '0.00', 'font_name': table_font})
+    decimal_format_bold = outbook.add_format({'align': 'right', 'num_format': '0.00', 'font_name': table_font, 'bold': True})
+    decimal_format_3 = outbook.add_format({'align': 'right', 'num_format': '0.000', 'font_name': table_font})
+    percent_format = outbook.add_format({'align': 'right', 'num_format': '0.00%', 'font_name': table_font})
+    index_format = outbook.add_format({'align': 'left', 'font_name': table_font, 'bold': True})
+    header_format = outbook.add_format({'align': 'center', 'font_name': table_font, 'bold': True, 'bottom': True})
+    title_format = outbook.add_format({'bold': True, 'font_name': table_font, 'font_size': 14})
+    str_num_format = outbook.add_format({'align': 'right'})
+    cond_format = outbook.add_format({'bold': True, 'font_color': '#800000'})
+
+    dsbook = xlrd.open_workbook(daysim_summary) #Read in book
+    basic_summaries = dsbook.sheet_by_name('Basic Summaries')
+    daysim = outbook.add_worksheet('DaySim') #Add worksheet for DaySim summaries
+    daysim.write(0, 0, 'Basic Summaries', header_format) #Write chart title
+    for colnum in range(1, basic_summaries.ncols):
+        daysim.write_string(0, colnum, basic_summaries.cell(0, colnum).value, cell_format = header_format) #Write headers
+    for rownum in range(1, 3):
+        daysim.write_string(rownum, 0, basic_summaries.cell(rownum, 0).value, cell_format = index_format) #Write index
+        for colnum in range(1, 4):
+            daysim.write_number(rownum, colnum, basic_summaries.cell(rownum, colnum).value, number_format) #Write values
+        daysim.write_number(rownum, 4, basic_summaries.cell(rownum, 4).value / 100, percent_format)
+    for rownum in range(3, basic_summaries.nrows):
+        daysim.write_string(rownum, 0, basic_summaries.cell(rownum, 0).value, cell_format = index_format)
+        for colnum in range(1, 4):
+            daysim.write_number(rownum, colnum, basic_summaries.cell(rownum, colnum).value, decimal_format)
+        try:
+            daysim.write_number(rownum, 4, basic_summaries.cell(rownum, 4).value / 100, percent_format)
+        except TypeError:
+            daysim.write(rownum, 4, 'NA')
+
+    #Write table for mode share
+    daysim.write(11, 0, 'Tour Mode Share', header_format)
+
+    mcbook = xlrd.open_workbook(mode_share_summary)
+    mode_share = mcbook.sheet_by_name('Tour Mode Share')
+
+    for colnum in range(1, mode_share.ncols):
+        daysim.write_string(11, colnum, mode_share.cell(0, colnum).value, cell_format = header_format)
+    for rownum in range(2, mode_share.nrows):
+        daysim.write_string(rownum + 10, 0, mode_share.cell(rownum, 0).value, cell_format = index_format)
+        for colnum in range(1, 5):
+            daysim.write_number(rownum + 10, colnum, mode_share.cell(rownum, colnum).value / 100, percent_format)
+
+    dcbook = xlrd.open_workbook(dest_choice_summary)
+    dest_choice = dcbook.sheet_by_name('% Trips by Destination District')
+
+    #Write table for trip destination share
+    daysim.write(22, 0, 'Trip Destination Share', header_format)
+
+    for colnum in range(1, dest_choice.ncols):
+        daysim.write_string(22, colnum, dest_choice.cell(0, colnum).value, cell_format = header_format)
+    for rownum in range(2, dest_choice.nrows):
+        daysim.write_string(rownum + 21, 0, dest_choice.cell(rownum, 0).value, cell_format = index_format)
+        for colnum in range(1, 5):
+            daysim.write_number(rownum + 21, colnum, dest_choice.cell(rownum, colnum).value / 100, percent_format)
+
     
-    #Rename column header
-    sum_board.rename(columns={'Code' : 'Code', 0 : 'AM Modeled'}, inplace=True)
-    board_and_counts = [sum_board, sum_counts]
-    return board_and_counts
+    else:
+        pass
 
-def process_merged_boardings(sum_board, sum_counts):
-    # merge counts and estimates
-    merged_am = pd.merge(sum_board, sum_counts, on="Code")
-    # find differences between observed and modelled
-    merged_am["Difference"] = merged_am["AM Modeled"] - merged_am["AM Observed"]
-    merged_am["% Difference"] = merged_am["Difference"]/merged_am["AM Modeled"]
-    return merged_am
+    #Add charts for basic summaries
+    basic_summaries_chart = outbook.add_chart({'type': 'column'})
+    for colnum in range(1, 3):
+        basic_summaries_chart.add_series({'name': [daysim.name, 0, colnum],
+                          'categories': [daysim.name, 3, 0, 8, 0],
+                          'values': [daysim.name, 3, colnum, 8, colnum],
+                          'fill': {'color': colors[colnum - 1]}})
+    basic_summaries_chart.set_legend({'position': 'top'})
+    basic_summaries_chart.set_size({'width': 6 * 64, 'height': 10 * 21})
+    daysim.insert_chart('F1', basic_summaries_chart)
 
-def transit_summary():
-    sum_boards = process_transit_boardings()
-    boards_and_counts = process_observed_boardings(sum_boards)
-    transit_summary = process_merged_boardings(boards_and_counts[0], boards_and_counts[1])
-    return transit_summary #remove this later, just testing
+    mode_share_chart = outbook.add_chart({'type': 'column'})
+    for colnum in range(1, 3):
+        mode_share_chart.add_series({'name': [daysim.name, 11, colnum],
+                          'categories': [daysim.name, 12, 0, 19, 0],
+                          'values': [daysim.name, 12, colnum, 19, colnum],
+                          'fill': {'color': colors[colnum - 1]}})
+    mode_share_chart.set_legend({'position': 'top'})
+    mode_share_chart.set_size({'width': 6 * 64, 'height': 10 * 21})
+    daysim.insert_chart('F12', mode_share_chart)
 
-def import_network_summary(network_summary_loc):
-    network_summary = pd.read_csv(network_summary_loc)
-    return network_summary
+    destination_share_chart = outbook.add_chart({'type': 'column'})
+    for colnum in range(1, 3):
+        destination_share_chart.add_series({'name': [daysim.name, 22, colnum],
+                          'categories': [daysim.name, 23, 0, 33, 0],
+                          'values': [daysim.name, 23, colnum, 33, colnum],
+                          'fill': {'color': colors[colnum - 1]}})
+    destination_share_chart.set_legend({'position': 'top'})
+    destination_share_chart.set_size({'width': 6 * 64, 'height': 10 * 21})
+    daysim.insert_chart('F23', destination_share_chart)
 
-def tod_summary(network_summary, tod_list):
-    # sum for all facility types and group by TOD
-    network_summary["VMT"] = network_summary["arterial_vmt"] + network_summary["connectors_vmt"] + network_summary["highway_vmt"]
-    network_summary["VHT"] = network_summary["arterial_vht"] + network_summary["connectors_vht"] + network_summary["highway_vht"]
-    network_summary["Delay"] = network_summary["arterial_delay"] + network_summary["connectors_delay"] + network_summary["highway_delay"]
-    tod_summary = network_summary[["TP_4k","VMT","VHT","Delay"]].groupby("TP_4k").sum().reset_index()
-    tod_list_df = pd.DataFrame(tod_list)       #create dataframe of TOD list
-    tod_list_df["order"] = tod_list_df.index   #add order of TOD periods
-    tod_list_df.columns = ["TP_4k","order"]    #Change column headers
-    tod_summary = pd.merge(tod_summary, tod_list_df,on="TP_4k").sort(["order"])
-    tod_summary.columns = ["TOD", "VMT", "VHT", "Delay", "order"]
-    return tod_summary
+    #Add conditional formatting so that a percent difference cell is red and bold if it's greater than 100% or less than -50%
+    daysim.conditional_format('E2:E9', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    daysim.conditional_format('E2:E9', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+    daysim.conditional_format('E13:E20', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    daysim.conditional_format('E13:E20', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+    daysim.conditional_format('E24:E34', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    daysim.conditional_format('E24:E34', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
 
-def facility_summary(network_summary):
-    facility_type = ['arterial', 'connectors', 'highway']
-    data_type = ['vmt', 'vht', 'delay']
-    facility_columns = []
-    x = 0; y = 0
-    for type in facility_type:
-        for data in data_type:
-            facility_columns.append(facility_type[x] + '_' + data_type[y])
-            y += 1
-        y = 0; x += 1
-    facility_summary = network_summary[facility_columns].sum()
+    highway = outbook.add_worksheet('Highway') #Create summaries for the highway network
+    counts_all = pd.io.excel.read_excel(network_summary, 'CountsAll')
+    counts = pd.DataFrame()
+    counts['Modeled'] = counts_all['Total']
+    counts['Observed'] = counts_all['Vol_Daily']
+    counts = counts.dropna()
+    total_modeled = str(round(float(counts['Modeled'].sum() / 1000000), 1)) + ' million'
+    total_observed = str(round(float(counts['Observed'].sum() / 1000000), 1)) + ' million'
+    r2 = (counts.corr().loc['Modeled', 'Observed'])**2
+    rmse = math.sqrt(((counts['Modeled'] - counts['Observed'])**2).mean())
+    prmse = rmse / counts['Observed'].mean()
     
-    # Group data by facility type
-    # Create column for data type
-    grouped_facility = pd.DataFrame(facility_summary)
-    grouped_facility["data_type"] = "NaN"
-    grouped_facility["Facility Type"] = "NaN"
-    for s in xrange(len(facility_summary)):
-        grouped_facility["data_type"][s] = facility_summary.index[s].split("_")[-1]
-        grouped_facility["Facility Type"][s] = facility_summary.index[s].split("_")[0]
+    #Write in initial table
+    highway.write_string(0, 0, 'Total Observed Volumes', index_format)
+    highway.write_string(1, 0, 'Total Modeled Volumes', index_format)
+    highway.write_string(2, 0, 'R-squared', index_format)
+    highway.write_string(3, 0, '% RMSE', index_format)
+    highway.write_string(0, 1, total_modeled, number_format)
+    highway.write_string(1, 1, total_observed, number_format)
+    highway.write_number(2, 1, r2, decimal_format_3)
+    highway.write_number(3, 1, prmse, percent_format)
 
-    #Create a new table 
-    reordered_facility = pd.DataFrame(index=facility_type)
-    reordered_facility["Facility Type"] = "NaN"
-    reordered_facility["VMT"] = "NaN"
-    reordered_facility["VHT"] = "NaN"
-    reordered_facility["Delay"] = "NaN"
-    z = 0
-    for facility in facility_type:
-        reordered_facility.loc[facility, "Facility Type"] = facility
-        reordered_facility.loc[facility, "VMT"] = grouped_facility.loc[facility + "_vmt"][0]
-        reordered_facility.loc[facility, "VHT"] = grouped_facility.loc[facility + "_vht"][0]
-        reordered_facility.loc[facility, "Delay"] = grouped_facility.loc[facility + "_delay"][0]
-    return reordered_facility
- 
+    #Read in/Write screenline volumes
+    network_summary_book = xlrd.open_workbook(network_summary)
+    screenline_sheet = network_summary_book.sheet_by_name('Screenlines')
+    for rownum in range(screenline_sheet.nrows):
+        if rownum in [0, 16]:
+            highway.write_string(rownum + 7, 0, screenline_sheet.cell(rownum, 0).value, header_format)
+            highway.write_string(rownum + 7, 1, screenline_sheet.cell(rownum, 4).value, header_format)
+        elif rownum in [14, 29]:
+            highway.write_string(rownum + 7, 0, screenline_sheet.cell(rownum, 1).value, index_format)
+            highway.write_number(rownum + 7, 1, screenline_sheet.cell(rownum, 4).value, decimal_format_bold)
+        else:
+            highway.write_string(rownum + 7, 0, screenline_sheet.cell(rownum, 0).value, index_format)
+            try:
+                highway.write_number(rownum + 7, 1, screenline_sheet.cell(rownum, 4).value, decimal_format)
+                highway.write_number(rownum + 7, 3, screenline_sheet.cell(rownum, 4).value - 1, decimal_format)
+            except TypeError:
+                highway.write(rownum + 7, 1, screenline_sheet.cell(rownum, 4).value)
 
-def vmt_mode_tod(uc_vmt_loc):
-    uc_vmt = pd.read_csv(uc_vmt_loc)
-    print "finished vmt by mode and tod"
-    return uc_vmt
+    highway.conditional_format('B9:B22', {'type': 'cell', 'criteria': '>=', 'value': 2, 'format': cond_format})
+    highway.conditional_format('B9:B22', {'type': 'cell', 'criteria': '<=', 'value': 0.5, 'format': cond_format})
+    highway.conditional_format('B25:B37', {'type': 'cell', 'criteria': '>=', 'value': 2, 'format': cond_format})
+    highway.conditional_format('B25:B37', {'type': 'cell', 'criteria': '<=', 'value': 0.5, 'format': cond_format})
 
-def trips_mode_tod():
-    print "finished trops by mode by tod"
+    #Read in/write transit boardings
+    transit = outbook.add_worksheet('Transit')
+    transit_summary_sheet = network_summary_book.sheet_by_name('Transit')
+    for rownum in range(transit_summary_sheet.nrows):
+        for colnum in range(transit_summary_sheet.ncols):
+            if rownum in [0, 14]:
+                transit.write_string(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value, title_format)
+            elif rownum in [1, 15]:
+                transit.write_string(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value, header_format)
+            else:
+                if colnum == 0:
+                    transit.write_string(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value, index_format)
+                elif colnum ==4:
+                    try:
+                        transit.write_number(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value, percent_format)
+                    except TypeError:
+                        transit.write_string(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value)
+                else:
+                    try:
+                        transit.write_number(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value, number_format)
+                    except TypeError:
+                        transit.write_string(rownum, colnum, transit_summary_sheet.cell(rownum, colnum).value)
+    transit.conditional_format('E3:E13', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    transit.conditional_format('E3:E13', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
+    transit.conditional_format('E17:E27', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    transit.conditional_format('E17:E27', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
 
+    #Copy sheets from network summary to create charts
+    copy_sheet(network_summary_book, 'CountsAll', outbook, 'CountsAll')
+    copy_sheet(network_summary_book, 'CountsTime', outbook, 'CountsTime')
+    copy_sheet(network_summary_book, 'AMTransitAll', outbook, 'AMTransitAll')
+    copy_sheet(network_summary_book, 'MDTransitAll', outbook, 'MDTransitAll')
 
-def write_transit_table(worksheet,data,title_format,header_format,cell_format):
-    header = list(data.columns.values)                              # Get table header list
-    standard_col_width = 12                                         # Set standard column width
-    worksheet.merge_range("A1:F1","Transit Boarding",title_format)  # Write table title
-    # initialize row and column counts
-    row = 1
-    col = 0
-    # print header
-    for i in xrange(0,len(header)):
-        worksheet.write(row,col,data.columns.values[i],header_format)
-        col += 1
-    # reset column and row numbers
-    col = 0
-    row = 2
-    for index in data.index.values:                               #cycle through rows after cycling through columns
-        for column_name in header:
-            worksheet.write(row,col,data[column_name][index],cell_format)
-            worksheet.set_column(col, col, standard_col_width)
-            col += 1      # iterate through each column
-        col = 0           # reset column number to 1 to align rows
-        row += 1          # iterate through each row of data
-    return row
+    #Create data frames to calculate slopes, intercepts, and R-squared values for scatterplots and insert charts
+    traffic_counts_df = pd.io.excel.read_excel(network_summary, sheetname = 'CountsAll')
+    traffic_counts_r2 = (traffic_counts_df[['Vol_Daily', 'Total']].corr()**2).loc['Vol_Daily', 'Total']
+    traffic_counts_slope = (traffic_counts_df[['Vol_Daily', 'Total']].cov()).loc['Vol_Daily', 'Total'] / traffic_counts_df['Vol_Daily'].var()
+    traffic_counts_intercept = traffic_counts_df['Total'].mean() - traffic_counts_slope * traffic_counts_df['Vol_Daily'].mean()
+    #Modeled vs observed traffic counts
+    traffic_counts_chart = outbook.add_chart({'type': 'scatter'})
+    traffic_counts_chart.add_series({'name': 'Total',
+                      'categories': ['CountsAll', 2, 38, 297, 38],
+                      'values': ['CountsAll', 2, 59, 297, 59],
+                      'marker': {
+                                 'type': 'diamond',
+                                 'border': {'color': colors[0]},
+                                 'fill': {'color': colors[1]}},
+                      'trendline': {
+                                    'type': 'linear'}
+                      })
+    traffic_counts_chart.set_size({'width': 7 * 64, 'height': 19 * 20})
+    traffic_counts_chart.set_title({'name': 'Modeled vs. Observed Counts\nModeled Counts = ' + str(round(traffic_counts_slope, 3)) + u' \u00d7 Observed Counts + ' + str(round(traffic_counts_intercept, 3)) + '\n' + u'R\u00b2 = ' + str(round(traffic_counts_r2, 3)),
+                                    'name_font': {'size': 11}})
+    traffic_counts_chart.set_legend({'position': 'none'})
+    traffic_counts_chart.set_x_axis({'name': 'Observed Counts'})
+    traffic_counts_chart.set_y_axis({'name': 'Modeled Counts'})
+    highway.insert_chart('D1', traffic_counts_chart)
 
-def write_tod_summary(worksheet,data,title_format,header_format,cell_format,start_row):
-    # Add buffer space
-    start_row += 2
-    #title = "Transit Boarding"
-    #title_row = "A" + str(start_row + 2) + ":F" + str(start_row + 2)
-    header = list(data.columns.values)                              # Get table header list
-    standard_col_width = 12                                         # Set standard column width
-    #worksheet.merge_range(title_row,title,title_format)  # Write table title
-    # initialize row and column counts
-    row = start_row
-    col = 1
-    # print header
-    for i in xrange(0,len(header)-1):
-        worksheet.write(row,col,data.columns.values[i],header_format)
-        col += 1
-    # reset column and row numbers
-    col = 1
-    row = start_row + 1
-    for index in data.index.values:                               #cycle through rows after cycling through columns
-        for column_name in header[:-1]:
-            worksheet.write(row,col,data[column_name][index],cell_format)
-            worksheet.set_column(col, col, standard_col_width)
-            col += 1      # iterate through each column
-        col = 1           # reset column number to 1 to align rows
-        row += 1          # iterate through each row of data
-    return row
+    #Primary screenline volumes
+    primary_screenline_chart = outbook.add_chart({'type': 'column'})
+    primary_screenline_chart.add_series({'name': 'Primary Screenlines',
+                                 'categories': ['Highway', 8, 0, 21, 0],
+                                 'values': ['Highway', 8, 1, 21, 1],
+                                 'fill': {'color': colors[0]}})
+    primary_screenline_chart.set_title({'name': 'Estimated Volumes/Observed Volumes\nPrimary Screenlines',
+                                        'name_font': {'size': 12}})
+    primary_screenline_chart.set_size({'width': 7 * 64, 'height': 18 * 20})
+    primary_screenline_chart.set_legend({'position': 'none'})
+    primary_screenline_chart.set_x_axis({'num_font': {'rotation': -90, 'bold': True}})
+    primary_screenline_chart.set_y_axis({'crossing': 1})
+    highway.insert_chart('D20', primary_screenline_chart)
 
-def write_facility_summary(worksheet,data,title_format,header_format,cell_format,start_row):
-    # Add buffer space
-    start_row += 2
-    header = list(data.columns.values)                              # Get table header list
-    standard_col_width = 12                                         # Set standard column width
-    #worksheet.merge_range(title_row,title,title_format)  # Write table title
-    # initialize row and column counts
-    row = start_row
-    col = 1
-    # print header
-    for i in xrange(0,len(header)):
-        worksheet.write(row,col,data.columns.values[i],header_format)
-        col += 1
-    # reset column and row numbers
-    col = 1
-    row = row + 1
-    for index in data.index.values:                               #cycle through rows after cycling through columns
-        for column_name in header[:]:
-            worksheet.write(row,col,data[column_name][index],cell_format)
-            worksheet.set_column(col, col, standard_col_width)
-            col += 1      # iterate through each column
-        col = 1           # reset column number to 0 to align rows
-        row += 1          # iterate through each row of data
+    #Secondary screenline volumes
+    secondary_screenline_chart = outbook.add_chart({'type': 'column'})
+    secondary_screenline_chart.add_series({'name': 'Primary Screenlines',
+                                 'categories': ['Highway', 24, 0, 36, 0],
+                                 'values': ['Highway', 24, 1, 36, 1],
+                                 'fill': {'color': colors[1]}})
+    secondary_screenline_chart.set_title({'name': 'Estimated Volumes/Observed Volumes\nSecondary Screenlines',
+                                        'name_font': {'size': 12}})
+    secondary_screenline_chart.set_size({'width': 7 * 64, 'height': 18 * 20})
+    secondary_screenline_chart.set_legend({'position': 'none'})
+    secondary_screenline_chart.set_x_axis({'num_font': {'rotation': -90, 'bold': True}})
+    secondary_screenline_chart.set_y_axis({'crossing': 1})
+    highway.insert_chart('K20', secondary_screenline_chart)
 
+    #Traffic counts by time of day
+    counts_time_chart = outbook.add_chart({'type': 'line'})
+    counts_time_chart.add_series({'name': ['CountsTime', 0, 1],
+                     'categories': ['CountsTime', 2, 0, 12, 0],
+                     'values': ['CountsTime', 2, 1, 12, 1],
+                     'line': {'color': colors[0]}})
+    counts_time_chart.add_series({'name': ['CountsTime', 0, 2],
+                     'categories': ['CountsTime', 2, 0, 12, 0],
+                     'values': ['CountsTime', 2, 2, 12, 2],
+                     'line': {'color': colors[1]}})
+    counts_time_chart.set_legend({'position': 'top'})
+    counts_time_chart.set_x_axis({'name': 'Time of Day', 'name_font': {'size': 12}, 'num_font': {'rotation': -75}})
+    counts_time_chart.set_y_axis({'name': 'Number of Vehicles', 'name_font': {'size': 12}, 'major_gridlines': {'visible': False}})
+    counts_time_chart.set_size({'width': 7 * 64, 'height': 19 * 20})
+    counts_time_chart.set_high_low_lines()
+    highway.insert_chart('K1', counts_time_chart)
 
-# Move this to a function later ###
-workbook = xlsxwriter.Workbook('topsheet.xlsx')
-worksheet1 = workbook.add_worksheet()
+    am_boardings_df = pd.io.excel.read_excel(network_summary, sheetname = 'AMTransitAll')
+    am_boardings_n = am_boardings_df['AM Route'].count()
+    am_boardings_r2 = (am_boardings_df[['Modeled AM Boardings', 'Observed AM Boardings']].corr()**2).loc['Modeled AM Boardings', 'Observed AM Boardings']
+    am_boardings_slope = (am_boardings_df[['Modeled AM Boardings', 'Observed AM Boardings']].cov()).loc['Modeled AM Boardings', 'Observed AM Boardings'] / am_boardings_df['Observed AM Boardings'].var()
+    am_boardings_intercept = am_boardings_df['Modeled AM Boardings'].mean() - am_boardings_slope * am_boardings_df['Observed AM Boardings'].mean()
 
-cell_format = workbook.add_format({
-        'align':'center',
-        'num_format': '#,##0'})
-title_format = workbook.add_format({
-        'bold': 1,
-        'align': 'center'})
-header_format = workbook.add_format({
-        'align': 'center',
-        'italic': True})
+    metro_am_boardings_df = am_boardings_df.query('Code == "MK"')
+    metro_am_boardings_n = metro_am_boardings_df['AM Route'].count()
+    metro_am_boardings_min = min(metro_am_boardings_df.index.tolist())
+    metro_am_boardings_max = max(metro_am_boardings_df.index.tolist())
+    metro_am_boardings_r2 = (metro_am_boardings_df[['Modeled AM Boardings', 'Observed AM Boardings']].corr()**2).loc['Modeled AM Boardings', 'Observed AM Boardings']
+    metro_am_boardings_slope = (metro_am_boardings_df[['Modeled AM Boardings', 'Observed AM Boardings']].cov()).loc['Modeled AM Boardings', 'Observed AM Boardings'] / metro_am_boardings_df['Observed AM Boardings'].var()
+    metro_am_boardings_intercept = metro_am_boardings_df['Modeled AM Boardings'].mean() - metro_am_boardings_slope * metro_am_boardings_df['Observed AM Boardings'].mean()
 
-# Process summary data
-transit_summary = transit_summary() 
+    #AM Boardings
+    am_boardings_chart = outbook.add_chart({'type': 'scatter'})
+    am_boardings_chart.add_series({'name': 'Total',
+                      'categories': ['AMTransitAll', 2, 3, am_boardings_n + 1, 3],
+                      'values': ['AMTransitAll', 2, 2, am_boardings_n + 1, 2],
+                      'marker': {
+                                 'type': 'diamond',
+                                 'border': {'color': colors[0]},
+                                 'fill': {'color': colors[1]}},
+                      'trendline': {
+                                    'type': 'linear'}
+                      })
+    am_boardings_chart.set_size({'width': 7 * 64, 'height': 14 * 20})
+    am_boardings_chart.set_title({'name': 'AM Boardings\nModeled Boardings = ' + str(round(am_boardings_slope, 3)) + u' \u00d7 Observed Boardings + ' + str(round(am_boardings_intercept, 3)) + '\n' + u'R\u00b2 = ' + str(round(am_boardings_r2, 3)),
+                                    'name_font': {'size': 11}})
+    am_boardings_chart.set_legend({'position': 'none'})
+    am_boardings_chart.set_x_axis({'name': 'Observed Boardings'})
+    am_boardings_chart.set_y_axis({'name': 'Modeled Boardings'})
+    transit.insert_chart('F1', am_boardings_chart)
 
-# Write out results to excel
-start_row = write_transit_table(worksheet1,transit_summary,title_format,header_format,cell_format)
+    #AM Boardings on King County Metro
+    metro_am_boardings_chart = outbook.add_chart({'type': 'scatter'})
+    metro_am_boardings_chart.add_series({'name': 'Total',
+                      'categories': ['AMTransitAll', metro_am_boardings_min + 1, 3, metro_am_boardings_max + 1, 3],
+                      'values': ['AMTransitAll', metro_am_boardings_min + 1, 2, metro_am_boardings_max + 1, 2],
+                      'marker': {
+                                 'type': 'diamond',
+                                 'border': {'color': colors[0]},
+                                 'fill': {'color': colors[1]}},
+                      'trendline': {
+                                    'type': 'linear'}
+                      })
+    metro_am_boardings_chart.set_size({'width': 7 * 64, 'height': 14 * 20})
+    metro_am_boardings_chart.set_title({'name': 'King County Metro AM Boardings\nModeled Boardings = ' + str(round(metro_am_boardings_slope, 3)) + u' \u00d7 Observed Boardings + ' + str(round(metro_am_boardings_intercept, 3)) + '\n' + u'R\u00b2 = ' + str(round(metro_am_boardings_r2, 3)),
+                                    'name_font': {'size': 11}})
+    metro_am_boardings_chart.set_legend({'position': 'none'})
+    metro_am_boardings_chart.set_x_axis({'name': 'Observed Boardings'})
+    metro_am_boardings_chart.set_y_axis({'name': 'Modeled Boardings'})
+    transit.insert_chart('F15', metro_am_boardings_chart)
 
-network_summary = import_network_summary(network_summary_loc)
-tod_summary = tod_summary(network_summary, tod_list)
+    #Adjust the column width if it's the second time running through the code
+    if format_sheet:
+        for sheet in outbook.worksheets():
+            for colnum in range(sheet.dim_colmax + 1):
+                sheet.set_column(colnum, colnum, colwidths[sheet.name][colnum])
 
-start_row = write_tod_summary(worksheet1,tod_summary,title_format,header_format,cell_format, start_row)
+    outbook.close()
 
-# Report facility-based results
-facility_summary = facility_summary(network_summary)
-write_facility_summary = write_facility_summary(worksheet1, facility_summary,title_format,header_format,cell_format, start_row)
-
-# Report VMT by mode and by TOD
-vmt_mode_tod = vmt_mode_tod(uc_vmt_loc)
-workbook.close()
-
-
-print "script ended"
+print('Topsheet created in ' + str(round(time.time() - timer_start, 1)) + ' seconds')

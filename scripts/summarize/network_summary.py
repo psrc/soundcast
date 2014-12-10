@@ -12,85 +12,107 @@ import h5py
 import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
-import csv 
+import csv
+import xlsxwriter
+import xlautofit 
+from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
 
-project = 'Projects/LoadTripTables/LoadTripTables.emp'
-fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2', 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6', 'connectors' : 'ul3 = 5'}
-extra_attributes_dict = {'@tveh' : 'total vehicles', '@mveh' : 'medium trucks', '@hveh' : 'heavy trucks', '@vmt' : 'vmt',\
-                         '@vht' : 'vht', '@trnv' : 'buses in auto equivalents', '@bveh' : 'number of buses'}
+network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
+                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
+                 'connectors' : 'ul3 = 5'}
+
+extra_attributes_dict = {'@tveh' : 'total vehicles', 
+                         '@mveh' : 'medium trucks', 
+                         '@hveh' : 'heavy trucks', 
+                         '@vmt' : 'vmt',\
+                         '@vht' : 'vht', 
+                         '@trnv' : 'buses in auto equivalents',
+                         '@ovol' : 'observed volume', 
+                         '@bveh' : 'number of buses'}
+
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
-sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', '9to10' : 'md',\
-                     '10to14' : 'md', '14to15' : 'md', '15to16' : 'pm', '16to17' : 'pm',\
-                      '17to18' : 'pm', '18to20' : 'ev', '20to5' : 'ni'}
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
-#input files:
+
+transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
+               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+# Input Files:
 counts_file = 'TrafficCounts_Mid.txt'
-#output_files: 
+
+# Output Files: 
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
 screenlines_file = 'screenline_volumes.csv'
-uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
-class EmmeProject:
-    def __init__(self, filepath):
-        self.desktop = app.start_dedicated(True, "cth", filepath)
-        self.m = _m.Modeller(self.desktop)
-        pathlist = filepath.split("/")
-        self.fullpath = filepath
-        self.filename = pathlist.pop()
-        self.dir = "/".join(pathlist) + "/"
-        self.bank = self.m.emmebank
-        self.tod = self.bank.title
-        self.current_scenario = list(self.bank.scenarios())[0]
-        self.data_explorer = self.desktop.data_explorer()
+
+uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
+           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
+
+#class EmmeProject:
+#    def __init__(self, filepath):
+#        self.desktop = app.start_dedicated(True, "cth", filepath)
+#        self.m = _m.Modeller(self.desktop)
+#        pathlist = filepath.split("/")
+#        self.fullpath = filepath
+#        self.filename = pathlist.pop()
+#        self.dir = "/".join(pathlist) + "/"
+#        self.bank = self.m.emmebank
+#        self.tod = self.bank.title
+#        self.current_scenario = list(self.bank.scenarios())[0]
+#        self.data_explorer = self.desktop.data_explorer()
     
-    def change_active_database(self, database_name):
-        for database in self.data_explorer.databases():
-            #print database.title()
-            if database.title() == database_name:
+#    def change_active_database(self, database_name):
+#        for database in self.data_explorer.databases():
+#            #print database.title()
+#            if database.title() == database_name:
                 
-                database.open()
-                print 'changed'
-                self.bank = self.m.emmebank
-                self.tod = self.bank.title
-                print self.tod
-                self.current_scenario = list(self.bank.scenarios())[0]
-    def create_extras(self, type, name, description):
-        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
-        create_extras = self.m.tool(NAMESPACE)
-        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
+#                database.open()
+#                print 'changed'
+#                self.bank = self.m.emmebank
+#                self.tod = self.bank.title
+#                print self.tod
+#                self.current_scenario = list(self.bank.scenarios())[0]
+#    def create_extras(self, type, name, description):
+#        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
+#        create_extras = self.m.tool(NAMESPACE)
+#        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
     
-    def link_calculator(self, **kwargs):
-        spec = json_to_dictionary("link_calculation")
-        for name, value in kwargs.items():
-            print name
-            if name == 'selections':
-                spec[name]['link'] = value
-            else:
-                spec[name] = value
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#    def link_calculator(self, **kwargs):
+#        spec = json_to_dictionary("link_calculation")
+#        for name, value in kwargs.items():
+#            print name
+#            if name == 'selections':
+#                spec[name]['link'] = value
+#            else:
+#                spec[name] = value
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
        
      
-    def transit_line_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_line_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_line_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_line_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
     
-    def transit_segment_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_segment_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_segment_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_segment_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
 
 
 
@@ -110,13 +132,13 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
     #for that facility type
   
      #medium trucks
-     EmmeProject.link_calculator(result = '@mveh', expression = '@metrk/1.5')
+     EmmeProject.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
      
      #heavy trucks:
-     EmmeProject.link_calculator(result = '@hveh', expression = '@hvtrk/2')
+     EmmeProject.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2')
      
      #busses:
-     EmmeProject.link_calculator(result = '@bveh', expression = '@trnv/2')
+     EmmeProject.network_calculator("link_calculation", result = '@bveh', expression = '@trnv/2')
      ####################still need to do*****************************
      #hdw- number of buses:
      #mod_spec = network_calc_spec
@@ -125,33 +147,33 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      #network_calc(mod_spec)
      
      #calc total vehicles, store in @tveh 
-     str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h3tl1\
-                       + @h3tl2 + @h3tl3 + @h3nt1 + @lttrk + @mveh + @hveh + @bveh'
-     EmmeProject.link_calculator(result = '@tveh', expression = str_expression)
+     str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 +  @svnt2 + @svnt3 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
+                       + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk + @mveh + @hveh + @bveh'
+     EmmeProject.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
      #a dictionary to hold vmt/vht/delay values:
      results_dict = {}
      #dictionary to hold vmts:
      vmt_dict = {}
      #calc vmt for all links by factilty type and get sum by ft. 
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vmt", expression = "@tveh * length", selections = value)
+        EmmeProject.network_calculator("link_calculation", result = "@vmt", expression = "@tveh * length", selections_by_link = value)
         #total vmt by ft: 
-        vmt_dict[key] = EmmeProject.link_calc_result['sum']
+        vmt_dict[key] = EmmeProject.network_calc_result['sum']
      #add to results dictionary
      results_dict['vmt'] = vmt_dict
     
      #Now do the same for VHT:
      vht_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vht", expression = "@tveh * timau / 60", selections = value)
-        vht_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation", result = "@vht", expression = "@tveh * timau / 60", selections_by_link = value)
+        vht_dict[key] = EmmeProject.network_calc_result['sum']
      results_dict['vht'] = vht_dict
 
      #Delay:
      delay_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections = value)
-        delay_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections_by_link = value)
+        delay_dict[key] = EmmeProject.network_calc_result['sum']
      
      results_dict['delay'] = delay_dict
      return results_dict
@@ -159,9 +181,9 @@ def vmt_by_user_class(EmmeProject):
     #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
     uc_vmt_list = []
     for item in uc_list:
-        EmmeProject.link_calculator(result = None, expression = item + ' * length')
+        EmmeProject.network_calculator("link_calculation", result = None, expression = item + ' * length')
         #total vmt by ft: 
-        uc_vmt_list.append(EmmeProject.link_calc_result['sum'])
+        uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
 def get_link_counts(EmmeProject, df_counts, tod):
     #get the network for the active scenario
@@ -193,8 +215,8 @@ def get_unique_screenlines(EmmeProject):
 def get_screenline_volumes(screenline_dict, EmmeProject):
 
     for screen_line in screenline_dict.iterkeys():
-        EmmeProject.link_calculator(result = None, expression = "@tveh", selections = screen_line)
-        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression = "@tveh", selections_by_link = screen_line)
+        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.network_calc_result['sum']
 
 def calc_transit_line_atts(EmmeProject):
     #calc boardings and transit line time
@@ -234,6 +256,7 @@ def main():
     transit_summary_dict = {}
     my_project = EmmeProject(project)
     
+    writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
     #create extra attributes:
     
        
@@ -254,11 +277,11 @@ def main():
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for name, desc in extra_attributes_dict.iteritems():
-            my_project.create_extras('LINK', name, desc)
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
-                my_project.create_extras('TRANSIT_LINE', name, desc)
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
             calc_transit_link_volumes(my_project)
             calc_transit_line_atts(my_project)
   
@@ -279,27 +302,44 @@ def main():
 
    #write out transit:
     print uc_vmt_dict
+    col = 0
+    transit_df = pd.DataFrame()
     for tod, df in transit_summary_dict.iteritems():
        #if transit_tod[tod] == 'am':
        #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
        #keys=None, levels=None, names=None, verify_integrity=False)
 
-       with open('outputs/' + tod + '_transit.csv', 'wb') as f:
-                  df.to_csv(f)
+       workbook = writer.book
+       index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
+       transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
+       #transit_df[tod + '_board'] = df[tod + '_board']
+       #transit_df[tod + '_time'] = df[tod + '_time']
+    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
+    transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
+       
+       #if col == 0:
+       #    worksheet = writer.sheets['Transit Summaries']
+       #    routes = df.index.tolist()
+       #    for route_no in range(len(routes)):
+       #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
+       #    col = col + 1
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
+       #else:
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
+
 
     #*******write out counts:
     for value in counts_dict.itervalues():
         df_counts = df_counts.merge(value, right_index = True, left_index = True)
         df_counts = df_counts.drop_duplicates()
     
-    #write counts out to csv:
-    with open('outputs/' + counts_output_file, 'wb') as f:
-        df_counts.to_csv(f)
-    f.close
+    #write counts out to xlsx:
 
+    df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
 
     #*******write out network summaries
-    #will rewrite using pandas
     soundcast_tods = sound_cast_net_dict.keys
     list_of_measures = ['vmt', 'vht', 'delay']
     list_of_FTs = fac_type_dict.keys()
@@ -312,49 +352,51 @@ def main():
         for factype in list_of_FTs:
             header.append(factype + '_' + measure)
     list_of_rows.append(header)
-    
-    #write out the rows and columns
+
+    net_summary_df = pd.DataFrame(columns = header)
+    net_summary_df['tod'] = ft_summary_dict.keys()    
+    net_summary_df['TP_4k'] = net_summary_df['tod'].map(sound_cast_net_dict)
+    net_summary_df = net_summary_df.set_index('tod')
     for key, value in ft_summary_dict.iteritems():
-        #tod
-        row_list.append(key)
-        #4k time period:
-        row_list.append(sound_cast_net_dict[key])
         for measure in list_of_measures:
             for factype in list_of_FTs:
-                #print measure, factype
-                row_list.append(value[measure][factype])
-        list_of_rows.append(row_list)
-        row_list = []
-    
-    writeCSV('outputs/' + net_summary_file, list_of_rows)
+                net_summary_df[factype + '_' + measure][key] = value[measure][factype]
+    net_summary_df.to_excel(excel_writer = writer, sheet_name = 'Network Summary')
 
     #*******write out screenlines
-    with open('outputs/' + screenlines_file, 'wb') as f:
-        writer = csv.writer(f)
-        for key, value in screenline_dict.iteritems():
-           #print key, value
-           writer.writerow([key, value])
-    f.close
+    screenline_df = pd.DataFrame()
+    screenline_df['Screenline'] = screenline_dict.keys()
+    screenline_df['Volumes'] = screenline_dict.values()
+    screenline_df.to_excel(excel_writer = writer, sheet_name = 'Screenline Volumes')
 
-    
-    
+    uc_vmt_df = pd.DataFrame(columns = uc_list, index = uc_vmt_dict.keys())
+    for colnum in range(len(uc_list)):
+        for index in uc_vmt_dict.keys():
+            uc_vmt_df[uc_list[colnum]][index] = uc_vmt_dict[index][colnum]
+    uc_vmt_df = uc_vmt_df.sort_index()
+    uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
 
-    a = 0
-    with open('outputs/' + 'uc_vmt.csv', 'wb') as f:
-        writer = csv.writer(f)
-        #write header:
-        for tod, uv_vmt_list in uc_vmt_dict.iteritems():
-            if a == 0:
-                #header
-                writer.writerow(uc_list)
-                uv_vmt_list.append(tod)
-                writer.writerow(uv_vmt_list)
-            else: 
-                uv_vmt_list.append(tod)
-                writer.writerow(uv_vmt_list)
-            a = a + 1
-    f.close
-    
+    writer.save()
+
+    #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
+    import imp
+    try:
+        imp.find_module('openpyxl')
+        found_openpyxl = True
+    except ImportError:
+        found_openpyxl = False
+    if found_openpyxl == True:
+        xlautofit.run('outputs/network_summary_detailed.xlsx')
+    else:
+        try:
+            imp.find_module('pip')
+            found_pip = True
+        except ImportError:
+            found_pip = False
+        if found_pip == True:
+            pip.main(['install','openpyxl'])
+        else:
+            print('Library openpyxl needed to autofit columns')
     
     #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
     #for key, value in screenline_dict.iteritems():

@@ -1,280 +1,279 @@
 #!python.exe
-# Beta One
 # PSRC SoundCast Model Runner
 # ===========================
-
-# Daysim executable is also not on Git
-daysim_code = 'r:/soundcast/daysim'
-master_project = 'LoadTripTables'
-# Large input files are not in Git; copy them from:
-base_inputs = 'r:/soundcast/inputs'
-# make this configurable later
-network_summary_files=['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
-                       'counts_output', 'network_summary']
-logfile = open('d:/Soundcast_log.txt', 'wb')
-
-pop_sample = [20, 10, 5, 5, 2, 2, 1, 1]
-
-import os,sys,datetime,re
+import os
+import sys
+import datetime
+import re
 import subprocess
+import inro.emme.desktop.app as app
 import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
-
-time_start = datetime.datetime.now()
-print "\nSoundCast run: start time:", time_start
-
-def multipleReplace(text, wordDict):
-    for key in wordDict:
-        text = text.replace(key, wordDict[key])
-    return text
-
-def copy_daysim_code():
-    print 'Copying Daysim executables...'
-    if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
-       os.makedirs(os.path.join(os.getcwd(), 'daysim'))
-    shcopy(daysim_code +'/Daysim.exe', 'daysim')
-    shcopy(daysim_code +'/Daysim.Attributes.dll', 'daysim')
-    shcopy(daysim_code +'/Daysim.Framework.dll', 'daysim')
-    shcopy(daysim_code +'/Daysim.Interfaces.dll', 'daysim')
-    shcopy(daysim_code +'/HDF5DotNet.dll', 'daysim')
-    shcopy(daysim_code +'/NDesk.Options.dll', 'daysim')
-    shcopy(daysim_code +'/Ninject.dll', 'daysim')
-    shcopy(daysim_code +'/Ninject.xml', 'daysim')
-    shcopy(daysim_code +'/msvcr100.dll', 'daysim')
-    shcopy(daysim_code +'/szip.dll', 'daysim')
-    shcopy(daysim_code +'/zlib.dll', 'daysim')
-    shcopy(daysim_code +'/hdf5_hldll.dll', 'daysim')
-    shcopy(daysim_code +'/hdf5dll.dll', 'daysim')
-    shcopy(daysim_code +'/Ionic.Zip.dll', 'daysim')
-    shcopy(daysim_code +'/msvcp100.dll', 'daysim')
-    shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
-
-def setup_emme_bank_folders():
-    emmebank_dimensions_dict = json.load(open(os.path.join('inputs', 'skim_params', 'emme_bank_dimensions.json')))
-    
-    if not os.path.exists('Banks'):
-        os.makedirs('Banks')
-    #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
-    time_periods = os.listdir('projects')
-    
-    for period in time_periods:
-        if period == master_project:
-            pass
-        
-        else:
-            print period
-            print "creating bank for time period %s" % period
-            if not os.path.exists(os.path.join('Banks', period)):
-                os.makedirs(os.path.join('Banks', period))
-                path = os.path.join('Banks', period, 'emmebank')
-                emmebank = _eb.create(path, emmebank_dimensions_dict)
-                emmebank.title = period
-                scenario = emmebank.create_scenario(1002)
-                network = scenario.get_network()
-                #need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
-                network.create_mode('AUTO', 'a')
-                scenario.publish_network(network)
-                emmebank.dispose()
+import logging
+import logcontroller
+import inro.emme.database.emmebank as _eb
+import random
+import datetime
+import shutil 
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from input_configuration import *
+from sc_email import *
+from data_wrangling import *
 
 
-def setup_emme_project_folders():
-    'Copy, unzip, and prepare the Projects/ and Banks/ emme folders'
 
-    # Unzip Projects/ templates using 7-zip (must be in path)
-    unzip_cmd = '7z.exe x -y '+base_inputs+'/etc/emme_projects.7z'
-    subprocess.call(unzip_cmd)
+@timed
+def parcel_buffering():
+    copy_parcel_buffering_files()
+    print 'adding military jobs to regular jobs'
+    returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    if returncode != 0:
+        print 'Military Job loading failed'
+        sys.exit(1)
+    print 'military jobs loaded'
+    create_buffer_xml()
+    print 'running buffer tool'
+    main_dir = os.path.abspath('')
+    returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
+    os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
-    # get timeperiod subfolders from os
-    project_list = os.listdir('projects')
-    print project_list
+@timed    
+def build_seed_skims():
+    print "Processing skims and paths."
+    time_copy = datetime.datetime.now()
+    returncode = subprocess.call([sys.executable,
+        'scripts/skimming/SkimsAndPaths.py',
+        '-use_daysim_output_seed_trips'])
+    if returncode != 0:
+        sys.exit(1)
+                  
+    time_skims = datetime.datetime.now()
+    print '###### Finished skimbuilding:', str(time_skims - time_copy)
+ 
+@timed   
+def modify_config(config_vals):
+    config_template = open('configuration_template.properties','r')
+    config = open('configuration.properties','w')
+  
+    try:
+        for line in config_template:
+            for config_temp, config_update in config_vals:
+                if config_temp in line:
+                    line = line.replace(config_temp, str(config_update))
+            config.write(line)
+               
+        config_template.close()
+        config.close()
 
-    # Subst current workdir into project files:
-    only_time_periods = os.listdir('projects')
-    only_time_periods.remove(master_project)
-    print only_time_periods
-    tod_bank_path_dict = {}
-    
-    for period in only_time_periods:
-        print "munging",period
-        emmebank = os.path.join(os.getcwd(),'Banks',period)
-        emmebank = emmebank.replace('\\','/')
-        tod_bank_path_dict.update({period : emmebank})
-    print project_list
-    for proj_name in project_list:
-        template = os.path.join('projects',proj_name,proj_name+'.tmpl')
-        project  = os.path.join('projects',proj_name,proj_name+'.emp')
-        with open(template,'r') as source:
-            lines = source.readlines()
-        with open(project,'w') as source:
-            for line in lines:
-                line = str(line)
-                line = multipleReplace(line, tod_bank_path_dict)
-                source.write(line)
-            source.close()
-
-def copy_large_inputs():
-    print 'Copying large inputs...' 
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
-    dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
-    # the configuration does not currently use the node_node distance file
-    #shcopy(base_inputs+'/etc/psrc_node_node_distances_2010.h5','Inputs')
-    shcopy(base_inputs+'/etc/psrc_parcel_decay_2010.dat','Inputs')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
-    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
-    shcopy(base_inputs+'/4k/trips_auto_4k.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/trips_transit_4k.h5','Inputs/4k')
-
-def run_R_summary(summary_name,iter):
-     R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-     tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-     run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-     returncode = subprocess.check_call(run_R)
-     shcopy(os.path.join(os.getcwd(), summary_name+'.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.pdf'))
-     shcopy(os.path.join(os.getcwd(), 'Rplots.pdf'), os.path.join(os.getcwd(), 'outputs',summary_name+ str(iter)+'_Plot.pdf'))
-     os.remove(os.path.join(os.getcwd(), summary_name+'.pdf'))
-     os.remove(os.path.join(os.getcwd(), 'Rplots.pdf'))
-
-def run_Rcsv_summary(summary_name,iter):
-    R_path=os.path.join(os.getcwd(),'scripts/summarize/' + summary_name +'.Rnw')
-    tex_path=os.path.join(os.getcwd(),'scripts/summarize/'+ summary_name +'.tex')
-    run_R ='R --max-mem-size=50000M CMD Sweave --pdf ' + R_path
-    returncode = subprocess.check_call(run_R)
-
-def move_files_to_outputs(iter):
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'), os.path.join(os.getcwd(), 'outputs/ModelTripsDistrict'+str(iter)+'.csv'))
-    shcopy(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'), os.path.join(os.getcwd(), 'outputs/ModelWorkFlow'+str(iter)+'.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelTripsDistrict.csv'))
-    os.remove(os.path.join(os.getcwd(), 'scripts/summarize/ModelWorkFlow.csv'))
-    
-def delete_tex_files():
-    for root, dirs, files in os.walk(os.getcwd()):
-        for currentFile in files:
-            print "processing file: " + currentFile
-            if currentFile.endswith('tex'):
-                os.remove(os.path.join(root, currentFile))
-
-def run_all_R_summaries(iter):
-     run_R_summary('DaySimReport',iter)
-     run_R_summary('DaysimReportLongTerm',iter)
-     run_R_summary('DaysimReportDayPattern',iter)
-     run_R_summary('ModeChoiceReport',iter)
-     run_R_summary('DaysimDestChoice',iter)
-     #run_R_summary('DaysimTimeChoice',iter)
-     run_Rcsv_summary('DaysimReport_District', iter)
-     run_Rcsv_summary('Daysim_PNRs', iter)
-     move_files_to_outputs(iter)
-     delete_tex_files()
-
-def rename_network_outs(iter):
-    for summary_name in network_summary_files:
-        csv_output = os.path.join(os.getcwd(), 'outputs',summary_name+'.csv')
-        if os.path.isfile(csv_output):
-            shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
-            os.remove(csv_output)
-       
-def daysim_sample(iter):
-    try: 
-     config_template= open('configuration_template.xml','r')
-     config= open('configuration.xml','w')
-
-     for line in config_template:
-         config.write(line.replace("$REPLACEME", str(pop_sample[iter])))
-
-     config_template.close()
-     config.close()
     except:
      config_template.close()
      config.close()
-##########################
+     print ' Error creating configuration template file'
+     sys.exit(1)
+    
+@timed
+def build_shadow_only():
+     for shad_iter in range(0, len(shadow_work)):
+        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
+        logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
+        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
+        if returncode != 0:
+            #send_error_email(recipients, returncode)
+            sys.exit(1)
+        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
+        rmse_list = shadow_con_file.readlines()
+        iteration_number = len(rmse_list)
+        current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
+        if current_rmse < shadow_con:
+            print "done with shadow prices"
+            shadow_con_file.close()
+
+
+@timed
+def run_truck_supplemental(iteration):
+      ### RUN Truck Model ################################################################
+     if run_truck_model:
+         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+         if returncode != 0:
+            #send_error_email(recipients, returncode)
+            sys.exit(1)
+
+      ### RUN Supplemental Trips
+      ### ################################################################
+    ###Adds external, special generator, and group quarters trips to DaySim
+    ###outputs.'''
+     if run_supplemental_trips:
+         # Only run generation script once - does not change with feedback
+        if iteration == 0:
+            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+            if returncode != 0:
+                sys.exit(1)
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+        if returncode != 0:
+           sys.exit(1)
+@timed
+def daysim_assignment(iteration):
+     
+     ### RUN DAYSIM ################################################################
+     if run_daysim:
+         logger.info("Start of %s iteration of Daysim", str(iteration))
+         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         logger.info("End of %s iteration of Daysim", str(iteration))
+         if returncode != 0:
+             #send_error_email(recipients, returncode)
+             sys.exit(1)
+     
+     ### ADD SUPPLEMENTAL TRIPS
+     ### ####################################################
+     run_truck_supplemental(iteration)
+     #### ASSIGNMENTS
+     #### ###############################################################
+     if run_skims_and_paths:
+         logger.info("Start of %s iteration of Skims and Paths", str(iteration))
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         logger.info("End of %s iteration of Skims and Paths", str(iteration))
+         print 'return code from skims and paths is ' + str(returncode)
+         if returncode != 0:
+            sys.exit(1)
+
+
+@timed
+def check_convergence(iteration, recipr_sample):
+    converge = "not yet"
+    if iteration > 0 and recipr_sample == 1:
+            con_file = open('inputs/converge.txt', 'r')
+            converge = json.load(con_file)   
+            con_file.close()
+    return converge
+
+@timed
+def run_all_summaries():
+
+   if run_network_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+      # this summary is producing erronous results, we don't want people to think they are correct.
+      subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
+
+   if run_soundcast_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
+
+   if run_travel_time_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
+
+   if run_network_summary and run_soundcast_summary and run_travel_time_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+
+
+##################################################################################################### ###################################################################################################### 
 # Main Script:
-#copy_daysim_code()
-#setup_emme_project_folders()
-#setup_emme_bank_folders()
+def main():
+## SET UP INPUTS ##########################################################
 
-#copy_large_inputs()
-svn_file =open('daysim/svn_stamp_out.txt','r')
-svn_info=svn_file.read()
-logfile.write(svn_info)
-#time_copy = datetime.datetime.now()
-#print '###### Finished copying files:', time_copy - time_start
+    if run_parcel_buffering:
+        parcel_buffering()
 
-#### IMPORT NETWORKS ###############################################################\
-#time_copy = datetime.datetime.now()
-#returncode = subprocess.call([sys.executable,
-#    'scripts/network/network_importer.py'])
 
-#if returncode != 0:
-#    sys.exit(1)
+    if not os.path.exists('outputs'):
+        os.makedirs('outputs')
 
-#time_network = datetime.datetime.now()
-#print '###### Finished Importing Networks:', time_network - time_copy
+    if run_copy_daysim_code:
+        copy_daysim_code()
+
+    if run_setup_emme_bank_folders:
+        setup_emme_bank_folders()
+
+    if run_setup_emme_project_folders:
+        setup_emme_project_folders()
+
+    if run_copy_large_inputs:
+        copy_large_inputs()
+
+    if run_update_parking:
+        if base_year == scenario_name:
+            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
+        else:
+            returncode = subprocess.call([sys.executable,
+                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+
+### IMPORT NETWORKS
+### ###############################################################
+    if run_import_networks:
+        time_copy = datetime.datetime.now()
+        logger.info("Start of network importer")
+        returncode = subprocess.call([sys.executable,
+        'scripts/network/network_importer.py', base_inputs])
+        logger.info("End of network importer")
+        time_network = datetime.datetime.now()
+        if returncode != 0:
+           sys.exit(1)
 
 ### BUILD SKIMS ###############################################################
-#returncode = subprocess.call([sys.executable,
-#    'scripts/skimming/SkimsAndPaths.py',
-#    '-use_daysim_output_seed_trips'])
+    if run_skims_and_paths_seed_trips == True:
+        build_seed_skims()
 
-#if returncode != 0:
-#    sys.exit(1)
+    # Check all inputs have been created or copied
+    check_inputs()
+    
+### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
+### ##########################################
 
-#time_skims = datetime.datetime.now()
-#print '###### Finished skimbuilding:', time_skims - time_copy
+    for iteration in range(len(pop_sample)):
+        print "We're on iteration %d" % (iteration)
+        logger.info(("We're on iteration %d\r\n" % (iteration)))
+        time_start = datetime.datetime.now()
+        logger.info("starting run %s" % str((time_start)))
+  
+  # set up your Daysim configuration depending on if you are building shadow
+  # prices or not
+        if not should_build_shadow_price or pop_sample[iteration] > 2:
+            ####we are not using shadow pricing during initial skim building for now. Shadow prices are built 
+            #from scratch below if should_build_shadow_price = true. Keeping old code in case we want to switch back. 
+            #copy_shadow_price_file()####
+            modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+        else:
+         modify_config([("$SHADOW_PRICE", "false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+        
+        # RUN THE MODEL finally
+        daysim_assignment(iteration)
 
-for iteration in range(0,len(pop_sample)):
+        converge=check_convergence(iteration, pop_sample[iteration])
+        if converge == 'stop':
+            print "System converged! The universe is in equilbrium for just one moment."
+            break
+        print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-     #### RUN DAYSIM ################################################################
-     daysim_sample(iteration)
-     returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.xml')
-     if returncode != 0:
-       sys.exit(1)
-     shcopy(os.path.join(os.getcwd(), 'scripts/summarize/pnr_trips.csv'), os.path.join(os.getcwd(), 'outputs/pnr_trips_'+str(iteration)+'.csv'))
-     os.remove(os.path.join(os.getcwd(), 'scripts/summarize/pnr_trips.csv'))
-     time_daysim = datetime.datetime.now()
-     print time_daysim
-     logfile.write("ending daysim %s\r\n" %str((time_daysim)))   
+    # when building shadow prices we get the skims to convergence and then we run work and school models only
+    # then we run one round of daysim -final assignment.
+    if should_build_shadow_price:
+        build_shadow_only()
+        modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
+        #This function needs an iteration parameter. Value of 1 is fine. 
+        daysim_assignment(1)
 
-     ###### RUN Truck Model ################################################################
-     returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-     if returncode != 0:
-         sys.exit(1)
+### SUMMARIZE
+### ##################################################################
+    run_all_summaries()
 
-     print "We're on iteration %d" % (iteration)
-     logfile.write("We're on iteration %d\r\n" % (iteration))
-     time_start = datetime.datetime.now()
-     logfile.write("starting run %s" %str((time_start)))
-
-     #con_file = open('inputs/converge.txt', 'r')
-     #converge = json.load(con_file)
-     #if converge == 'stop':
-     #    print "done"
-     #    con_file.close()
-     #    break
-     #print 'keep going'
-     #con_file.close()
-
-     ###### ASSIGNMENTS ###############################################################
-     returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-     if returncode != 0:
-       sys.exit(1)
-     time_assign = datetime.datetime.now()
-     
-     #print '###### Finished running assignments:',time_assign - time_daysim
-
-
-### ASSIGNMENT AND R SUMMARY################################################################
-subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
-time_assign_summ = datetime.datetime.now()
-print '###### Finished running assignment summary:',time_assign_summ - time_assign
-run_all_R_summaries(datetime.datetime.now().strftime("%Y-%m-%d %H"))
-logfile.close()
-
-#### ALL DONE ##################################################################
-print '###### OH HAPPY DAY!  ALL DONE. (go get a pickle.)'
+#### ALL DONE
+#### ##################################################################
+    clean_up()
+    send_completion_email(recipients)
+    print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 
+if __name__ == "__main__":
+    logger = logcontroller.setup_custom_logger('main_logger')
+    logger.info('------------------------NEW RUN STARTING----------------------------------------------')
+    start_time = datetime.datetime.now()
 
 
+    main()
 
+    end_time = datetime.datetime.now()
+    elapsed_total = end_time - start_time
+    logger.info('------------------------RUN ENDING_----------------------------------------------')
+    logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
