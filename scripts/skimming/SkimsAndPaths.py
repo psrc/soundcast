@@ -53,6 +53,34 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
+# Input values
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
+transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
+                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
+                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
+                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
+                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
+                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
+
+# Transit Fare:
+zone_file = 'inputs/Fares/transit_fare_zones.grt'
+peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
+peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
+offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
+offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+fare_matrices_tod = ['6to7', '9to10']
+
+# Intrazonals
+intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
+taz_area_file = 'inputs/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/intrazonals/destination_tt.in'
+
+# Zone Index
+tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
@@ -130,7 +158,7 @@ def define_matrices(my_project):
     start_define_matrices = time.time()
     ##Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
-    
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
 
     for x in range (0, len(emme_matrix_subgroups)):
         for y in range (0, len(matrix_dict[emme_matrix_subgroups[x]])):
@@ -573,7 +601,7 @@ def average_matrices(old_matrix, new_matrix):
 def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     start_export_hdf5 = time.time()
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     my_user_classes = json_to_dictionary("user_classes")
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
@@ -669,6 +697,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             print matrix_name+' was transferred to the HDF5 container.'
 
     #bike/walk
+    
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -949,6 +978,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
+     print hdf5_file_path
      my_store = h5py.File(hdf5_file_path, "r+")
      daysim_set = my_store["Trip"]
      #open departure time array
@@ -1096,6 +1126,7 @@ def bike_walk_assignment(my_project, assign_for_all_tods):
     assignment_specification = json_to_dictionary("bike_walk_assignment")
     #get demand matrix name from here:
     user_classes = json_to_dictionary("user_classes")
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     mod_assign = assignment_specification
     #only skim for time for certain tod
     #Also fill in intrazonals
@@ -1137,7 +1168,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
     tod_dict = text_to_dictionary('time_of_day')
     uniqueTOD = set(tod_dict.values())
     uniqueTOD = list(uniqueTOD)
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     #populate a dictionary of with key=bank name, value = emmebank object
     data_explorer = project_name.desktop.data_explorer()
     all_emmebanks = {}
@@ -1349,9 +1380,10 @@ def main():
         for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
+
         
         #want pooled processes finished before executing more code in main:
-
+        #run_assignments_parallel('projects/7to8/7to8.emp')
         
         start_transit_pool(project_list)
        

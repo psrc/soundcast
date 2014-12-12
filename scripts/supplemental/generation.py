@@ -39,6 +39,14 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 
 bal_to_attractions = ["colpro"]
 
+# Input locations
+hh_trip_loc = base_inputs + '/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = base_inputs + '/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = base_inputs + '/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = base_inputs + '/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = base_inputs + '/supplemental/generation/pums/' 
+externals_loc = base_inputs + '/supplemental/generation/externals.csv'
+
 # Define column values for household and employment data
 hh_cols = [1, 101]    # Begin and end column numbers for all household-related cross classification data in HHEMP
 emp_cols = [109, 125]    # Begin and end columns for all employement-related cross class data in HHEMP
@@ -158,10 +166,10 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         if key not in bal_to_attractions:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             else:
                 ext = 0
-            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             bal_factor = (prod - ext)/(att - ext)
             trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
             print "key " + key + ", " + value + ' ' + str(bal_factor)
@@ -169,7 +177,7 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         else:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
             else:
                 ext = 0
             bal_factor = (att - ext)/(prod - ext)

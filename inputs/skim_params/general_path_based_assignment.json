@@ -185,8 +185,8 @@
     "background_traffic": null,
     "stopping_criteria": {
         "max_iterations": 10,
-        "best_relative_gap": 0.05,
-        "relative_gap": 0.01,
+        "best_relative_gap": 0.01,
+        "relative_gap": 0.0001,
         "normalized_gap": 0.01
     }
 }
