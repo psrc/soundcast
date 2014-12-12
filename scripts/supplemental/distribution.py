@@ -238,7 +238,7 @@ def summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purps):
             # Add rows (minus 1 for zero-based NumPy index)
             filtered[[loc_zone - 1],:] = ext_spg_summary[purpose][[loc_zone - 1],:]
             # Add columns (minus 1 for zero-based NumPy index)
-            filtered[:,[loc_zone]] = ext_spg_summary[purpose][:,[loc_zone]]
+            filtered[:,[loc_zone - 1]] = ext_spg_summary[purpose][:,[loc_zone - 1]]
             # Combine with group quarters array
             if purpose not in ['hw2', 'hw3', 'hw4']:
                 filtered += gq_summary[purpose]
@@ -269,7 +269,7 @@ def ext_spg_selected(trip_purps):
             # Add rows (minus 1 for zero-based NumPy index)
             filtered[[loc_zone - 1],:] = emme_data[[loc_zone - 1],:]
             # Add columns (minus 1 for zero-based NumPy index)
-            filtered[:,[loc_zone]] = emme_data[:,[loc_zone]]
+            filtered[:,[loc_zone - 1]] = emme_data[:,[loc_zone - 1]]
         # Add only external rows and columns
         filtered[3700:,:] = emme_data[3700:,:]
         filtered[:,3700:] = emme_data[:,3700:]
