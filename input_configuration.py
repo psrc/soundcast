@@ -51,8 +51,11 @@ good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamo
 log_file_name = 'skims_log.txt'
 STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
-max_iter = 50              # Assignment Convergence Criteria
-b_rel_gap = 0.0001         # Assignment Convergence Criteria
+max_iter = 50             # Assignment Convergence Criteria
+best_relative_gap = 0.01  # Assignment Convergence Criteria
+relative_gap = .0001
+normalized_gap = 0.01
+
 MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
 MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
 HIGH_TAZ = 3700
