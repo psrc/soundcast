@@ -360,7 +360,9 @@ def traffic_assignment(my_project):
     # Modify the Assignment Specifications for the Closure Criteria and Perception Factors
     mod_assign = assignment_specification
     mod_assign["stopping_criteria"]["max_iterations"]= max_iter
-    mod_assign["stopping_criteria"]["best_relative_gap"]= b_rel_gap
+    mod_assign["stopping_criteria"]["best_relative_gap"]= best_relative_gap 
+    mod_assign["stopping_criteria"]["relative_gap"]= relative_gap
+    mod_assign["stopping_criteria"]["normalized_gap"]= normalized_gap
 
     for x in range (0, len(mod_assign["classes"])):
         vot = ((1/float(my_user_classes["Highway"][x]["Value of Time"]))*60)
@@ -753,8 +755,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
  
 
     #load zones into a NumpyArray to index trips otaz and dtaz
-    tazIndex = np.asarray(zones)
-
+    #tazIndex = np.asarray(zones)
+    #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
+    dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
     tod_index = create_trip_tod_indices(my_project.tod)
 
@@ -837,24 +840,19 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
                 if dorp[x] <= 1:
                     #get the index of the Otaz
-                    myOtaz = np.where(tazIndex == otaz[x])
-                    
-                    #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])
                     #some missing Os&Ds in seed trips!
-                    if len(myOtaz) == 1 and len(myDtaz) == 1:
-                        
-                        OtazInt = int(myOtaz[0])
-                        DtazInt = int(myDtaz[0])
-                        #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                    if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
+                        myOtaz = dictZoneLookup[otaz[x]]
+                        myDtaz = dictZoneLookupd[dtaz[x]]
+                        print myOtaz, myDtaz 
                         trips = np.asscalar(np.float32(trexpfac[x]))
                         trips = round(trips, 2)
                         print trips
                         #print trips
                         #if mode in supplemental_modes:
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
-                   
-            
+        
+        #Regular Daysim Output:            
         else:
             if vot[x] < 15: vot[x]=1
             elif vot[x] < 25: vot[x]=2
@@ -867,18 +865,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 #Only want drivers, transit trips.
                 if dorp[x] <= 1:
                     mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
-                    #get the index of the Otaz
-                    myOtaz = np.where(tazIndex == otaz[x])
-                    #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])
-                    
-                    OtazInt = int(myOtaz[0])
-                    DtazInt = int(myDtaz[0])
-                     #add the trip, if it's not in a special generator location
+                    myOtaz = dictZoneLookup[otaz[x]]
+                    myDtaz = dictZoneLookup[dtaz[x]]
+                    #add the trip, if it's not in a special generator location
                     #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
                     trips = np.asscalar(np.float32(trexpfac[x]))
                     trips = round(trips, 2)
-                    #if mode in supplemental_modes:
                     demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
@@ -889,7 +881,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
-        emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
+        #emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
+        emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
     
     end_time = time.time()

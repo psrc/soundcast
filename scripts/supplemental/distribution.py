@@ -9,6 +9,9 @@ import numpy as np
 from input_configuration import *
 from EmmeProject import *
 
+# Global variable to hold taz id/index; populated in main
+dictZoneLookup = {}
+
 def json_to_dictionary(dict_name):
     ''' Load supplemental input files as dictionary '''
     input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
@@ -42,18 +45,6 @@ def init_dir(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.mkdir(directory)
-
-def network_importer(EmmeProject):
-    for scenario in list(EmmeProject.bank.scenarios()):
-            my_project.bank.delete_scenario(scenario)
-        #create scenario
-    EmmeProject.bank.create_scenario(1002)
-    EmmeProject.change_scenario()
-        #print key
-    EmmeProject.delete_links()
-    EmmeProject.delete_nodes()
-    EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)  
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
@@ -236,9 +227,11 @@ def summarize_all_by_purp(ext_spg_summary, gq_summary, trip_purps):
         # Add only special generator rows
         for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
             # Add rows (minus 1 for zero-based NumPy index)
-            filtered[[loc_zone - 1],:] = ext_spg_summary[purpose][[loc_zone - 1],:]
+            #filtered[[loc_zone - 1],:] = ext_spg_summary[purpose][[loc_zone - 1],:]
+            filtered[[dictZoneLookup[loc_zone]],:] = ext_spg_summary[purpose][[dictZoneLookup[loc_zone]],:]
             # Add columns (minus 1 for zero-based NumPy index)
-            filtered[:,[loc_zone - 1]] = ext_spg_summary[purpose][:,[loc_zone - 1]]
+            #filtered[:,[loc_zone - 1]] = ext_spg_summary[purpose][:,[loc_zone - 1]]
+            filtered[:,[dictZoneLookup[loc_zone]]] = ext_spg_summary[purpose][:,[dictZoneLookup[loc_zone]]]
             # Combine with group quarters array
             if purpose not in ['hw2', 'hw3', 'hw4']:
                 filtered += gq_summary[purpose]
@@ -267,9 +260,11 @@ def ext_spg_selected(trip_purps):
         # Add only special generator rows
         for loc_name, loc_zone in SPECIAL_GENERATORS.iteritems():
             # Add rows (minus 1 for zero-based NumPy index)
-            filtered[[loc_zone - 1],:] = emme_data[[loc_zone - 1],:]
+            #filtered[[loc_zone - 1],:] = emme_data[[loc_zone - 1],:]
+            filtered[[dictZoneLookup[loc_zone]],:] = emme_data[[dictZoneLookup[loc_zone]],:]
             # Add columns (minus 1 for zero-based NumPy index)
-            filtered[:,[loc_zone - 1]] = emme_data[:,[loc_zone - 1]]
+            #filtered[:,[loc_zone - 1]] = emme_data[:,[loc_zone - 1]]
+            filtered[:,[dictZoneLookup[loc_zone]]] = emme_data[:,[dictZoneLookup[loc_zone]]]
         # Add only external rows and columns
         filtered[3700:,:] = emme_data[3700:,:]
         filtered[:,3700:] = emme_data[:,3700:]
@@ -301,7 +296,9 @@ def supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_to
     write_csv(sum_p + [[]] + sum_tm, file_name='supplemental_summary.csv')
 
 def main():
-
+    global dictZoneLookup
+    dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.current_scenario.zone_numbers))
+    
     # Overwrite previous trip tables 
     init_dir(supplemental_loc)
 
@@ -312,9 +309,7 @@ def main():
     pm_dist_skim = load_skims(pm_skim_file_loc, mode_name='svtl1d', divide_by_100=True)
     cost_skim = (am_cost_skim + pm_cost_skim) * .5
     dist_skim = (am_cost_skim + pm_dist_skim) * .5
-    # Import a network
-    network_importer(my_project)
-
+   
     # Compute friction factors by trip purpose
     fric_facs = calc_fric_fac(cost_skim, dist_skim)
 
