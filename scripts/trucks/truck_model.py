@@ -154,9 +154,9 @@ def truck_attractions():
     for key, value in spec_gen_dict.iteritems():
         my_project.matrix_calculator(result = 'md' + key, expression = 'md' + key + '+ md' + value)
 
-    refactor_dict = {'moltprof' : 'moltpro * 0.280',
-                     'momtprof' : 'momtpro * 0.547',
-                     'mohtprof' : 'mohtpro * 1.125',
+    refactor_dict = {'moltprof' : 'moltpro * 0.554',
+                     'momtprof' : 'momtpro * 0.309',
+                     'mohtprof' : 'mohtpro * 0.413',
                      'mdltattf' : 'mdltatt * 0.749',
                      'mdmtattf' : 'mdmtatt * 0.500',
                      'mdhtattf' : 'mdhtatt * 1.375'}
