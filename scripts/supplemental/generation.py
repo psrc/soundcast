@@ -66,7 +66,7 @@ def json_to_dictionary(dict_name):
 
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
-            my_project.bank.delete_scenario(scenario)
+            EmmeProject.bank.delete_scenario(scenario)
         #create scenario
     EmmeProject.bank.create_scenario(1002)
     EmmeProject.change_scenario()
