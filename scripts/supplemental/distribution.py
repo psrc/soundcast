@@ -20,8 +20,8 @@ def json_to_dictionary(dict_name):
     return(my_dictionary)
 
 # Load the trip productions and attractions
-trip_table = pd.read_csv(trip_table_loc, index_col="index")  # total 4K Ps and As by trip purpose
-gq_trip_table = pd.read_csv(gq_trips_loc, index_col="index")  # only group quarter Ps and As
+trip_table = pd.read_csv(trip_table_loc, index_col="taz")  # total 4K Ps and As by trip purpose
+gq_trip_table = pd.read_csv(gq_trips_loc, index_col="taz")  # only group quarter Ps and As
 
 # Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
@@ -318,25 +318,25 @@ def main():
     ext_spg_trimmed = ext_spg_selected(trip_purp_full)    # Include only external and special gen. zones
 
     # Distribute group quarters trips by purpose and summarize results
-    distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
-    gq_summary = sum_by_purp(trip_purp_gq, my_project)
+    #distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
+    #gq_summary = sum_by_purp(trip_purp_gq, my_project)
 
     # Combine external, special gen., and group quarters trips
-    combined = {}
-    for purp in trip_purp_full:
-        if purp not in ['hw2', 'hw3', 'hw4']:   # These purposes don't exist for GQ trips, use only for ext_spg
-            combined[purp] = ext_spg_trimmed[purp] + gq_summary[purp]
-        else:
-            combined[purp] = ext_spg_trimmed[purp]
+    #combined = {}
+    #for purp in trip_purp_full:
+    #    if purp not in ['hw2', 'hw3', 'hw4']:   # These purposes don't exist for GQ trips, use only for ext_spg
+    #        combined[purp] = ext_spg_trimmed[purp] + gq_summary[purp]
+    #    else:
+    #        combined[purp] = ext_spg_trimmed[purp]
 
      # Split by mode and TOD
-    split_by_mode_tod = split_trips(combined, trip_purp_full, my_project)
+    #split_by_mode_tod = split_trips(combined, trip_purp_full, my_project)
 
     # Export results to H5
-    export_trips(split_by_mode_tod, output_dir = 'outputs/supplemental')
+    #export_trips(split_by_mode_tod, output_dir = 'outputs/supplemental')
 
     # Report results in CSV summary
-    supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)
+    #supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)
 
 my_project = EmmeProject(supplemental_project)
     
