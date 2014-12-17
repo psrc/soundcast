@@ -125,22 +125,21 @@ hdf_transit_filename = 'inputs/4k/transit.h5'
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
 ext_spg_trips = 'outputs/supplemental/ext_spg/'
 supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
-hh_trip_loc = base_inputs + '/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = base_inputs + '/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = base_inputs + '/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = base_inputs + '/supplemental/generation/landuse/tazdata.in'
-pums_data_loc = base_inputs + '/supplemental/generation/pums/' 
-externals_loc = base_inputs + '/supplemental/generation/externals.csv'
+hh_trip_loc = '/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = '/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = '/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = '/supplemental/generation/pums/' 
+externals_loc = '/supplemental/generation/externals.csv'
 # Special generator zones and demand (dictionary key is TAZ, value is demand)
 spg_general = {3110: 1682,    
                631: 7567, 
                438: 14013}    
 spg_airport = {983: 101838}
 
-# Assuming AM skims (8 to 9 AM)
+# Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'
 pm_skim_file_loc = 'inputs/17to18.h5'
-base_skim_file_loc = base_inputs + '/seed_skims/7to8.h5'
 trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
