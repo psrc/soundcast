@@ -197,7 +197,7 @@ def copy_large_inputs():
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
     if run_parcel_buffering == False:
-        shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
+        shcopy(base_inputs+'/landuse/buffered_parcels.dat','Inputs')
 @timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
