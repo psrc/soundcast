@@ -11,9 +11,6 @@
 import pandas as pd
 import h5py
 import numpy as np
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
-import patsy
 from input_configuration import *
 
 # Cannot import parcel data CSV, truncated by Excel
