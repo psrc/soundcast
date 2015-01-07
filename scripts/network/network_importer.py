@@ -123,8 +123,7 @@ class EmmeProject:
     def change_scenario(self):
         self.current_scenario = list(self.bank.scenarios())[0]
 
-      
-    
+          
 def import_tolls(emmeProject):
     #create extra attributes:
     create_extras = emmeProject.m.tool("inro.emme.data.extra_attribute.create_extra_attribute")
@@ -140,11 +139,13 @@ def import_tolls(emmeProject):
     
     import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
 
-  
-    attr_file = base_inputs + '/tolls/' + 'tolls' + emmeProject.tod + '.txt'
+    tod_4k = sound_cast_net_dict[emmeProject.tod]
+
+    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in']
 
     # set tolls
-    import_attributes(attr_file, scenario = emmeProject.current_scenario,
+    for file in attr_file:
+        import_attributes(file, scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
                              1: "jnode",
                              2: "@toll1",
@@ -172,17 +173,6 @@ def import_tolls(emmeProject):
             for i in no_toll_modes:
                 link.modes -= set([network.mode(i)])
     emmeProject.current_scenario.publish_network(network)
-
-    
-
-def multiwordReplace(text, replace_dict):
-    rc = re.compile(r"[A-Za-z_]\w*")
-    def translate(match):
-        word = match.group(0)
-        return replace_dict.get(word, word)
-    return rc.sub(translate, text)
-
-
 
 
 def run_importer(project_name):
