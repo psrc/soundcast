@@ -174,6 +174,12 @@ def import_tolls(emmeProject):
                 link.modes -= set([network.mode(i)])
     emmeProject.current_scenario.publish_network(network)
 
+def multiwordReplace(text, replace_dict):
+    rc = re.compile(r"[A-Za-z_]\w*")
+    def translate(match):
+        word = match.group(0)
+        return replace_dict.get(word, word)
+    return rc.sub(translate, text)
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
