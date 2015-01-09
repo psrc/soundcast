@@ -13,7 +13,10 @@ network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 recipients = []
 
-# Script and subprocess controls 
+# Script and subprocess controls
+ 
+# Only update parking for future-year analysis!
+run_update_parking = False
 run_parcel_buffering = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
@@ -29,8 +32,7 @@ run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
 run_travel_time_summary = True
-# Only update parking for future-year analysis!
-run_update_parking = False
+
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 1, 1, 1]
@@ -235,7 +237,6 @@ guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
-parcel_decay_file = 'inputs/buffered_parcels.dat'
 travel_time_file = 'inputs/ObservedTravelTimes.xlsx'
 
 topsheet = 'outputs/Topsheet.xlsx'

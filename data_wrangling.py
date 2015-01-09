@@ -92,6 +92,15 @@ def copy_parcel_buffering_files():
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
+    print 'Copying Hourly and Daily Parking Files'
+    if run_update_parking: 
+        try:
+            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/parcel_buffer')
+            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/parcel_buffer')
+        except:
+            print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
+            sys.exit(1)
+
     print 'Copying Parcel Buffering Code'
     try:
         dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')

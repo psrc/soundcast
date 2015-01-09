@@ -47,6 +47,16 @@ def parcel_buffering():
         print 'Military Job loading failed'
         sys.exit(1)
     print 'military jobs loaded'
+
+    if run_update_parking:
+        if base_year == scenario_name:
+            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
+        else:
+            print 'Starting to update UrbanSim parcel data with 4k parking data file'
+            returncode = subprocess.call([sys.executable,
+                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+            print 'Finished updating parking data on parcel file'
+
     create_buffer_xml()
     print 'running buffer tool'
     main_dir = os.path.abspath('')
@@ -187,6 +197,7 @@ def run_all_summaries():
 def main():
 ## SET UP INPUTS ##########################################################
 
+
     if run_parcel_buffering:
         parcel_buffering()
 
@@ -206,12 +217,7 @@ def main():
     if run_copy_large_inputs:
         copy_large_inputs()
 
-    if run_update_parking:
-        if base_year == scenario_name:
-            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
-        else:
-            returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+   
 
 ### IMPORT NETWORKS
 ### ###############################################################

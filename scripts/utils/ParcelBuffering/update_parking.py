@@ -13,14 +13,14 @@ import h5py
 import numpy as np
 from input_configuration import *
 
-# Cannot import parcel data CSV, truncated by Excel
-parcel_h5 = "outputs\daysim_outputs.h5"
-daily_parking_cost = "inputs\daily_parking_costs.csv"
-hourly_parking_cost = "inputs\hourly_parking_costs.csv"
-input_ensemble = "inputs\parking_gz.csv"
+
+daily_parking_cost = "inputs\\parcel_buffer\\daily_parking_costs.csv"
+hourly_parking_cost = "inputs\parcel_buffer\\hourly_parking_costs.csv"
+input_ensemble = "inputs\\parking_gz.csv"
+
 
 # Combine data columns
-df_parcels = pd.read_csv(input_parcels, thousands=',', low_memory=False)
+df_parcels = pd.read_csv("inputs\\parcel_buffer\\parcels_urbansim.txt", delim_whitespace=True)
 df_ensemble = pd.read_csv(input_ensemble, low_memory = False)
 df_daily_parking_cost = pd.DataFrame(pd.read_csv(daily_parking_cost, low_memory = False))
 df_hourly_parking_cost = pd.DataFrame(pd.read_csv(hourly_parking_cost, low_memory = False))
@@ -52,10 +52,10 @@ for column_title in drop_columns:
 # For now, replacing all zero-parking locations with region-wide average number of parking spots. 
 # We can update this with an ensemble-wide average from GIS analysis later.
 #
-daily_parking_zeros = df[df['PPRICDYP'] > 0]['PARKDY_P']
-hourly_parking_zeros = df[df['PPRICHRP'] > 0]['PARKHR_P']
-avg_daily_parking = daily_parking_zeros.mean()
-avg_hourly_parking = hourly_parking_zeros.mean()
+daily_parking_zeros = df[df['PPRICDYP'] > 0]['PPRICDYP']
+hourly_parking_zeros = df[df['PPRICHRP'] > 0]['PPRICHRP']
+avg_daily_parking = int(daily_parking_zeros.mean())
+avg_hourly_parking = int(hourly_parking_zeros.mean())
 
 replace_daily_parking_costs = daily_parking_zeros[daily_parking_zeros == 0]
 replace_hourly_parking_costs = hourly_parking_zeros[hourly_parking_zeros == 0]
@@ -89,7 +89,7 @@ if len(replace_daily_parking_costs) > 0:
 df = df.drop(['ENS', 'TAZ'], 1)
 
 # Save results to text file
-df.to_csv(input_parcels, index=False)
+df.to_csv(input_parcels, sep = ' ', index = False)
 
 # End the script
 print "Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_costs)) + " parcels were updated." 
