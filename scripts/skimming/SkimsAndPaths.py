@@ -289,7 +289,7 @@ def intitial_extra_attributes(my_project):
     my_project.create_extra_attribute("LINK", "@trnv3", "Transit Vehicles",True)
  
     # Create the link extra attribute to store the arterial delay in
-    my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
+    #my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
 
     end_extra_attr = time.time()
 
@@ -882,6 +882,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         #emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
+        print mat_name
+        print np_array.shape
         emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
     
@@ -929,6 +931,7 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
 
     # Copy truck trip tables with a time of day factor
     if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
+       print matrix_name + str(np_matrix_1.shape)
        sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
@@ -956,7 +959,11 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     
     # Extract specified array size and store as NumPy array 
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
-    demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
+    sub_demand_array = (np.asarray(sub_demand_matrix))
+    print sub_demand_array.shape
+    print zonesDim
+    demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
+    #demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
 
     return demand_matrix
 
@@ -1336,7 +1343,7 @@ def run_assignments_parallel(project_name):
 
     ##set up for assignments
     intitial_extra_attributes(my_project)
-    arterial_delay_calc(my_project)
+    #arterial_delay_calc(my_project)
     vdf_initial(my_project)
     ##run auto assignment/skims
     traffic_assignment(my_project)
