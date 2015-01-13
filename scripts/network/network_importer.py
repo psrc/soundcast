@@ -141,7 +141,7 @@ def import_tolls(emmeProject):
 
     tod_4k = sound_cast_net_dict[emmeProject.tod]
 
-    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in', 'inputs/rdly/' + tod_4k + '_rdly.txt']
+    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in', 'inputs/networks/rdly/' + tod_4k + '_rdly.txt']
 
     # set tolls
     #for file in attr_file:
