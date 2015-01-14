@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 # open nodes file & convert to pandas dataframe
-nodes = ps.open(r'\inputs\networks\junctions.dbf')
+nodes = ps.open('inputs/networks/junctions.dbf')
 d = dict([(col, np.array(nodes.by_col(col))) for col in nodes.header])
 df = pd.DataFrame(d)
 
