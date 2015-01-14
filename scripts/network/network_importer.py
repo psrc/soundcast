@@ -181,12 +181,12 @@ def import_tolls(emmeProject):
 
     
     # change modes on tolled network, but exclude some bridges/ferries
-    #network = emmeProject.current_scenario.get_network()
-    #for link in network.links():
-    #    if link['@toll1'] > 0 and link['@brfer'] == 0:
-    #        for i in no_toll_modes:
-    #            link.modes -= set([network.mode(i)])
-    #emmeProject.current_scenario.publish_network(network)
+    network = emmeProject.current_scenario.get_network()
+    for link in network.links():
+        if link['@toll1'] > 0 and link['@brfer'] == 0:
+            for i in no_toll_modes:
+                link.modes -= set([network.mode(i)])
+    emmeProject.current_scenario.publish_network(network)
 
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
@@ -240,6 +240,11 @@ def main():
    
     
     run_importer(network_summary_project)
+    
+    returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
+    if returncode != 0:
+        sys.exit(1)
+    
     print 'done'
 
 if __name__ == "__main__":
