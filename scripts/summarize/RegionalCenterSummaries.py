@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import h5toDF
 import time
+import h5toDF
 import xlautofit
 import math
 import xlrd
@@ -132,10 +132,10 @@ def add_percent_sign(input):
 
 #datafile = 'D:/soundcat/soundcat/outputs/daysim_outputs.h5'
 #datafile = 'R:/JOE/summarize/daysim_outputs.h5'
-datafile = 'Q:/soundcat9414/soundcat/outputs/daysim_outputs.h5'
-guidefile = 'R:/JOE/summarize/CatVarDict.xlsx'
-districtfile = 'R:/JOE/summarize/TAZ_TAD_County.csv'
-urbcen = 'R:/JOE/summarize/Parcel-UrbCen.csv'
+datafile = 'Q:/soundcast/outputs/daysim_outputs.h5'
+guidefile = 'Q:/soundcast/scripts/summarize/CatVarDict.xlsx'
+districtfile = 'Q:/soundcast/scripts/summarize/TAZ_TAD_County.csv'
+urbcen = 'Q:/soundcast/scripts/summarize/parcels_in_urbcens.csv'
 data = h5toDF.convert(datafile, guidefile, 'Results')
 zone_district = get_districts(districtfile)
 parcels_regional_centers = pd.DataFrame.from_csv(urbcen)
@@ -249,7 +249,7 @@ for center in center_list:
         center_parcels = parcels_regional_centers.query('NAME == "' + str(center) + '"').reset_index()
     else:
         center_parcels = parcels_regional_centers.reset_index()
-    pcl_list = center_parcels['PARCEL'].value_counts().index
+    pcl_list = center_parcels['hhparcel'].value_counts().index
 
     arrivals = data['Trip'][['opcl', 'dpcl', 'arrtm', 'mode', 'trexpfac']].query('dpcl in @pcl_list and opcl not in @pcl_list')
     arrivals['arr_hr'] = min_to_hour(arrivals['arrtm'], 3)
@@ -326,7 +326,7 @@ def add_pie_charts(writer, sheet_name):
 
 
 
-writer = pd.ExcelWriter('R:/JOE/summarize/reports/Regional_Centers.xlsx', engine = 'xlsxwriter')
+writer = pd.ExcelWriter('Q:/soundcast/outputs/Regional_Centers.xlsx', engine = 'xlsxwriter')
 mode_split.to_excel(excel_writer = writer, sheet_name = 'Mode Split', na_rep = '-')
 work_mode_split.to_excel(excel_writer = writer, sheet_name = 'Work Trip Mode Split', na_rep = '-')
 work_dest_mode_split.to_excel(excel_writer = writer, sheet_name = 'Work Destination Mode Split', na_rep = '-')
@@ -346,9 +346,9 @@ arrival_mode_split.to_excel(excel_writer = writer, sheet_name = 'Arrival Mode Sp
 departure_mode_split.to_excel(excel_writer = writer, sheet_name = 'Departure Mode Split', na_rep = '-')
 writer.save()
 
-colwidths = xlautofit.even_widths_single_index('R:/JOE/summarize/reports/Regional_Centers.xlsx')
+colwidths = xlautofit.even_widths_single_index('Q:/soundcast/outputs/Regional_Centers.xlsx')
 
-writer = pd.ExcelWriter('R:/JOE/summarize/reports/Regional_Centers.xlsx', engine = 'xlsxwriter')
+writer = pd.ExcelWriter('Q:/soundcast/outputs/Regional_Centers.xlsx', engine = 'xlsxwriter')
 mode_split.to_excel(excel_writer = writer, sheet_name = 'Mode Split', na_rep = '-')
 work_mode_split.to_excel(excel_writer = writer, sheet_name = 'Work Trip Mode Split', na_rep = '-')
 work_dest_mode_split.to_excel(excel_writer = writer, sheet_name = 'Work Destination Mode Split', na_rep = '-')
