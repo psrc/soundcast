@@ -73,7 +73,16 @@ class EmmeProject:
         create_scenario = self.m.tool(NAMESPACE)
         create_scenario(scenario_id=scenario_number,
                         scenario_title= scenario_title)
-
+    def network_calculator(self, type, **kwargs):
+        spec = json_to_dictionary(type)
+        for name, value in kwargs.items():
+            if name == 'selections_by_link':
+                spec['selections']['link'] = value
+            else:
+                spec[name] = value
+        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+        network_calc = self.m.tool(NAMESPACE)
+        self.network_calc_result = network_calc(spec)
 
    
     def delete_links(self):
@@ -121,7 +130,19 @@ class EmmeProject:
             revert_on_error = True,
             scenario = self.current_scenario)
     def change_scenario(self):
+
         self.current_scenario = list(self.bank.scenarios())[0]
+
+
+    
+def json_to_dictionary(dict_name):
+
+    #Determine the Path to the input files and load them
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    my_dictionary = json.load(open(input_filename))
+
+    return(my_dictionary)
+
 
           
 def import_tolls(emmeProject):
@@ -167,8 +188,11 @@ def import_tolls(emmeProject):
                              7: "@trkc3"},
               revert_on_error=False)
 
+    
+    #@rdly:
     import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
              revert_on_error=False)
+    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
 # set bridge/ferry flags
 

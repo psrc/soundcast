@@ -300,48 +300,48 @@ def arterial_delay_calc(my_project):
 
     # Create the temporary attributes needed for the signal delay calculations
     #t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@tmpl1",extra_attribute_description="temp link calc 1",overwrite=True)
-    t1 = my_project.create_extra_attribute("LINK", "@tmpl1", "temp link calc 1", True)
-    t2 = my_project.create_extra_attribute("LINK", "@tmpl2", "temp link calc 2", True)
-    t3 = my_project.create_extra_attribute("NODE", "@tmpn1", "temp node calc 1", True)
-    t4 = my_project.create_extra_attribute("NODE", "@tmpn2", "temp node calc 2", True)
-    t5 = my_project.create_extra_attribute("NODE", "@cycle", "Cycle Length", True)
-    t6 = my_project.create_extra_attribute("LINK", "@red", "Red Time", True)
+    #t1 = my_project.create_extra_attribute("LINK", "@tmpl1", "temp link calc 1", True)
+    #t2 = my_project.create_extra_attribute("LINK", "@tmpl2", "temp link calc 2", True)
+    #t3 = my_project.create_extra_attribute("NODE", "@tmpn1", "temp node calc 1", True)
+    #t4 = my_project.create_extra_attribute("NODE", "@tmpn2", "temp node calc 2", True)
+    #t5 = my_project.create_extra_attribute("NODE", "@cycle", "Cycle Length", True)
+    #t6 = my_project.create_extra_attribute("LINK", "@red", "Red Time", True)
 
-    # Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
-    # Exclude links that intersect with centroid connectors and weave links
-    my_project.network_calculator("link_calculation", result = "@tmpl1", expression = "1", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+    ## Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
+    ## Exclude links that intersect with centroid connectors and weave links
+    #my_project.network_calculator("link_calculation", result = "@tmpl1", expression = "1", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
     
-    # Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
-    # for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
-    # Exclude links that intersect with centroid connectors and weave links
-    my_project.network_calculator("link_calculation", result = "@tmpl2", expression = "(lanes+2).min.5", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+    ## Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
+    ## for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
+    ## Exclude links that intersect with centroid connectors and weave links
+    #my_project.network_calculator("link_calculation", result = "@tmpl2", expression = "(lanes+2).min.5", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
    
-    # Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
-    my_project.network_calculator("link_calculation", result = "@tmpn1", expression = "@tmpl1", aggregation = "+")
+    ## Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
+    #my_project.network_calculator("link_calculation", result = "@tmpn1", expression = "@tmpl1", aggregation = "+")
     
-    # Set Temporary Node Attribute #2 to sum of intersecting arterial links (@tmpl2)
-    my_project.network_calculator("link_calculation", result = "@tmpn2", expression = "@tmpl2", aggregation = "+")
+    ## Set Temporary Node Attribute #2 to sum of intersecting arterial links (@tmpl2)
+    #my_project.network_calculator("link_calculation", result = "@tmpn2", expression = "@tmpl2", aggregation = "+")
     
-    # Cycle Time at Every I-Node
-    my_project.network_calculator("node_calculation", result = "@cycle", expression = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)")
+    ## Cycle Time at Every I-Node
+    #my_project.network_calculator("node_calculation", result = "@cycle", expression = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)")
  
-    my_project.network_calculator("link_calculation", result = "@red", expression = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999")
-    # Red Time at Every J-Node
+    #my_project.network_calculator("link_calculation", result = "@red", expression = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999")
+    ## Red Time at Every J-Node
     
-    # Calculate intersection delay factor for every link with a cycle time exceeding zero
-    my_project.network_calculator("link_calculation", result = "@rdly", expression = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0", selections_by_link = "@cyclej=0.01,999999")
+    ## Calculate intersection delay factor for every link with a cycle time exceeding zero
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0", selections_by_link = "@cyclej=0.01,999999")
  
-    # Set intersection delay factor to 0 for links of 0.01 mile lenght or less
-    my_project.network_calculator("link_calculation", result = "@rdly", expression = "0", selections_by_link = "length=0,0.01")
+    ## Set intersection delay factor to 0 for links of 0.01 mile lenght or less
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "0", selections_by_link = "length=0,0.01")
     
-    #delete the temporary extra attributes
-    my_project.delete_extra_attribute("@tmpl1")
-    my_project.delete_extra_attribute("@tmpl2")
-    my_project.delete_extra_attribute("@tmpn1")
-    my_project.delete_extra_attribute("@tmpn2")
-    my_project.delete_extra_attribute("@cycle")
-    my_project.delete_extra_attribute("@red")
-
+    ##delete the temporary extra attributes
+    #my_project.delete_extra_attribute("@tmpl1")
+    #my_project.delete_extra_attribute("@tmpl2")
+    #my_project.delete_extra_attribute("@tmpn1")
+    #my_project.delete_extra_attribute("@tmpn2")
+    #my_project.delete_extra_attribute("@cycle")
+    #my_project.delete_extra_attribute("@red")
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .75")
     end_arterial_calc = time.time()
 
 
@@ -1343,7 +1343,10 @@ def run_assignments_parallel(project_name):
 
     ##set up for assignments
     intitial_extra_attributes(my_project)
+
+    # ************arterial delay is being handled in network_importer for now. Leave commented!!!!!!!!!!!!!
     #arterial_delay_calc(my_project)
+
     vdf_initial(my_project)
     ##run auto assignment/skims
     traffic_assignment(my_project)
