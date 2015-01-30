@@ -7,6 +7,7 @@ import os, sys
 import re 
 import multiprocessing as mp
 import subprocess
+import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
