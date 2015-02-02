@@ -217,6 +217,8 @@ def main():
     if run_copy_large_inputs:
         copy_large_inputs()
 
+    if  run_convert_hhinc_2000_2010:
+        subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
    
 
 ### IMPORT NETWORKS

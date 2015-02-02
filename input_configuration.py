@@ -17,11 +17,12 @@ recipients = []
  
 # Only update parking for future-year analysis!
 run_update_parking = False
+run_convert_hhinc_2000_2010 = True
 run_parcel_buffering = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
+run_copy_large_inputs =True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
 should_build_shadow_price = True
