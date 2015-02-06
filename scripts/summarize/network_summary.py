@@ -59,6 +59,8 @@ transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
 counts_file = 'TrafficCounts_Mid.txt'
+aadt_counts_file = 'soundcast_aadt.csv'
+tptt_counts_file = 'soundcast_tptt.csv'
 
 # Output Files: 
 net_summary_file = 'network_summary.csv'
@@ -191,6 +193,7 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      
      results_dict['delay'] = delay_dict
      return results_dict
+
 def vmt_by_user_class(EmmeProject):
     #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
     uc_vmt_list = []
@@ -199,6 +202,7 @@ def vmt_by_user_class(EmmeProject):
         #total vmt by ft: 
         uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
+
 def get_link_counts(EmmeProject, df_counts, tod):
     #get the network for the active scenario
      network = EmmeProject.current_scenario.get_network()
@@ -219,6 +223,119 @@ def get_link_counts(EmmeProject, df_counts, tod):
      df =  pd.DataFrame(list_model_vols)
      df = df.set_index(['loop_INode', 'loop_JNode'])
      return df
+
+def get_aadt_volumes(EmmeProject, df_aadt_counts, vol_dict):
+    network = EmmeProject.current_scenario.get_network()
+    for index, row in df_aadt_counts.iterrows():
+        x = {}
+        id = row['MIN_ID']
+        i = row['MIN_NewINode']
+        j = row['MIN_NewJNode']
+        if row['MIN_Oneway'] == 2:
+            link1 = network.link(i,j)
+            link2 = network.link(j, i)
+            if link1<>None and link2<> None:
+                vol = link1['@tveh'] + link2['@tveh']
+            elif link1 == None and link2 == None:
+                vol = 0
+                #print i, j
+            elif link1 <> None and link2 == None:
+                vol = link1['@tveh'] 
+                #print j, i
+            elif link1 == None and link2 <> None:
+                vol = link2['@tveh'] 
+
+        elif row['MIN_Oneway'] == 0:
+            link1 = network.link(i,j)
+            if link1 <> None:
+                vol = link1['@tveh']
+        else:
+            link1 = network.link(j,i)
+            if link1 <> None:
+                vol = link1['@tveh']
+
+        #hov
+        if row['MIN_HOV_I'] > 0:
+            i = row['MIN_HOV_I'] + 4000
+            j = row['MIN_HOV_J'] + 4000
+            #both directions:
+            if row['MIN_Oneway'] == 2:
+                link1 = network.link(i,j)
+                link2 = network.link(j, i)
+                if link1<>None and link2<> None:
+                    vol = vol +link1['@tveh'] + link2['@tveh']
+                elif link1 == None and link2 == None:
+                    vol = vol + 0
+                    #print i, j
+                elif link1 <> None and link2 == None:
+                    vol = vol + link1['@tveh'] 
+                    #print j, i
+                elif link1 == None and link2 <> None:
+                    vol = vol + link2['@tveh'] 
+            #IJ
+            elif row['MIN_Oneway'] == 0:
+                link1 = network.link(i,j)
+                if link1 <> None:
+                    vol = vol + link1['@tveh']
+            #JI
+            else:
+                link1 = network.link(j,i)
+                if link1 <> None:
+                    vol = vol + link1['@tveh']
+
+
+        if id in vol_dict.keys():
+            vol_dict[id]['EstVol'] = vol_dict[id]['EstVol'] + vol
+        else:
+            x['ID'] = id
+            x['PSRCEdgeID'] = row['PSRCEdgeID']
+            x['ObsVol'] = row['MEAN_AADT']
+            #x['RteID'] = row['First_Route_ID']
+            x['EstVol'] = vol
+            vol_dict[id] = x
+    return vol_dict
+
+def get_tptt_volumes(EmmeProject, df_tptt_counts, vol_dict):
+    network = EmmeProject.current_scenario.get_network()
+    for index, row in df_tptt_counts.iterrows():
+        x = {}
+        id = row ['ID']
+        i = row['NewINode']
+        j = row['NewJNode']
+        if row['Direction_'] == 'Bothways':
+            link1 = network.link(i,j)
+            link2 = network.link(j, i)
+            if link1<>None and link2<> None:
+                vol = link1['@tveh'] + link2['@tveh']
+            elif link1 == None and link2 == None:
+                vol = 0
+                #print i, j
+            elif link1 <> None and link2 == None:
+                vol = link1['@tveh'] 
+                #print j, i
+            elif link1 == None and link2 <> None:
+                vol = link2['@tveh'] 
+
+        elif row['Oneway'] == 0:
+            link1 = network.link(i,j)
+            if link1 <> None:
+                vol = link1['@tveh']
+        else:
+            link1 = network.link(j,i)
+            if link1 <> None:
+                vol = link1['@tveh']
+
+        if id in vol_dict.keys():
+            vol_dict[id]['EstVol'] = vol_dict[id]['EstVol'] + vol
+        else:
+            x['ID'] = id
+            x['SRID'] = row['SRID']
+            x['ObsVol'] = row['Year_2010']
+            x['Location'] = row['Location']
+            x['EstVol'] = vol
+            vol_dict[id] = x
+    return vol_dict
+
 def get_unique_screenlines(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
     unique_screenlines = []
@@ -226,6 +343,7 @@ def get_unique_screenlines(EmmeProject):
         if link.type <> 90 and link.type not in unique_screenlines:
             unique_screenlines.append(str(link.type))
     return unique_screenlines
+
 def get_screenline_volumes(screenline_dict, EmmeProject):
 
     for screen_line in screenline_dict.iterkeys():
@@ -236,6 +354,7 @@ def calc_transit_line_atts(EmmeProject):
     #calc boardings and transit line time
      EmmeProject.transit_line_calculator(result = '@board', expression = 'board')
      EmmeProject.transit_line_calculator(result = '@timtr', expression = 'timtr')
+
 def get_transit_boardings_time(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
     df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time'))
@@ -251,6 +370,7 @@ def get_transit_boardings_time(EmmeProject):
     df = pd.DataFrame(line_list)
     df = df.set_index(['id'])
     return df
+
 def calc_transit_link_volumes(EmmeProject):
     total_hours = transit_tod[EmmeProject.tod]['num_of_hours']
     my_expression = str(total_hours) + ' * vauteq * (60/hdw)'
@@ -276,9 +396,15 @@ def main():
        
     #pandas dataframe to hold count table:
     df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
+    df_aadt_counts = pd.read_csv('inputs/network_summary/' + aadt_counts_file)
+    df_tptt_counts = pd.read_csv('inputs/network_summary/' + tptt_counts_file)
+    
  
     counts_dict = {}
     uc_vmt_dict = {}
+    aadt_counts_dict = {}
+    tptt_counts_dict = {}
+    
     #get a list of screenlines from the bank/scenario
     screenline_list = get_unique_screenlines(my_project) 
     screenline_dict = {}
@@ -312,7 +438,18 @@ def main():
         df_tod_vol = get_link_counts(my_project, df_counts, key)
         counts_dict[key] = df_tod_vol
         
-        get_screenline_volumes(screenline_dict, my_project) 
+        #AADT Counts:
+
+        get_aadt_volumes(my_project, df_aadt_counts, aadt_counts_dict)
+        
+        #TPTT:
+        get_tptt_volumes(my_project, df_tptt_counts, tptt_counts_dict)
+        
+        
+        #screen lines
+        get_screenline_volumes(screenline_dict, my_project)
+        
+        
 
    #write out transit:
     print uc_vmt_dict
@@ -350,8 +487,18 @@ def main():
         df_counts = df_counts.drop_duplicates()
     
     #write counts out to xlsx:
-
+    #loops
     df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
+    
+    #aadt:
+    aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
+    aadt_df.to_excel(excel_writer = writer, sheet_name = 'Arterial Counts Output')
+
+    #tptt:
+    tptt_df = pd.DataFrame.from_dict(tptt_counts_dict, orient="index")
+    tptt_df.to_excel(excel_writer = writer, sheet_name = 'TPTT Counts Output')
+
+    
 
     #*******write out network summaries
     soundcast_tods = sound_cast_net_dict.keys
