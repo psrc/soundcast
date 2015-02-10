@@ -285,22 +285,13 @@ def check_inputs():
 
     logger = logging.getLogger('main_logger')
 
-    # Get a list of input files from input_configuration.py
-    config_list = []
-    a = globals()
-    for key, value in a.iteritems():
-        if value not in output_list:    # Ignore outputs file names
-            if type(value) is str and '.' in value:
-                config_list.append(value.split('/')[-1])    # Save file name only, strip local directory
-
-    # Build list of existing inputs from base_inputs (on shared network drive) and local inputs
+    # Build list of existing inputs from local inputs
     input_list = []
-    find_inputs(base_inputs, input_list)    # shared network drive
     find_inputs(os.getcwd(), input_list)    # local inputs
 
     # Compare lists and report inconsistenies
     missing_list = []
-    for f in config_list:
+    for f in commonly_missing_files:
         if not any(f in input for input in input_list):
             missing_list.append(f)
 

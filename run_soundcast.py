@@ -197,7 +197,6 @@ def run_all_summaries():
 def main():
 ## SET UP INPUTS ##########################################################
 
-
     if run_parcel_buffering:
         parcel_buffering()
 
@@ -219,7 +218,6 @@ def main():
 
     if  run_convert_hhinc_2000_2010:
         subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
-   
 
 ### IMPORT NETWORKS
 ### ###############################################################
@@ -234,7 +232,7 @@ def main():
            sys.exit(1)
 
 ### BUILD SKIMS ###############################################################
-    if run_skims_and_paths_seed_trips == True:
+    if run_skims_and_paths_seed_trips:
         build_seed_skims()
 
     # Check all inputs have been created or copied
@@ -242,34 +240,26 @@ def main():
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
+    if(run_daysim or run_skims_and_paths or run_skims_and_paths_seed_trips):
+        for iteration in range(len(pop_sample)):
+            print "We're on iteration %d" % (iteration)
+            logger.info(("We're on iteration %d\r\n" % (iteration)))
+            time_start = datetime.datetime.now()
+            logger.info("starting run %s" % str((time_start)))
 
-    for iteration in range(len(pop_sample)):
-        print "We're on iteration %d" % (iteration)
-        logger.info(("We're on iteration %d\r\n" % (iteration)))
-        time_start = datetime.datetime.now()
-        logger.info("starting run %s" % str((time_start)))
-  
-  # set up your Daysim configuration depending on if you are building shadow
-  # prices or not
-        if not should_build_shadow_price or pop_sample[iteration] > 2:
-            ####we are not using shadow pricing during initial skim building for now. Shadow prices are built 
-            #from scratch below if should_build_shadow_price = true. Keeping old code in case we want to switch back. 
-            #copy_shadow_price_file()####
+            # Set up your Daysim Configration
             modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
-        else:
-         modify_config([("$SHADOW_PRICE", "false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
-        
-        # RUN THE MODEL finally
-        daysim_assignment(iteration)
 
-        converge=check_convergence(iteration, pop_sample[iteration])
-        if converge == 'stop':
-            print "System converged! The universe is in equilbrium for just one moment."
-            break
-        print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+            # Run Skimming and/or Daysim
 
-    # when building shadow prices we get the skims to convergence and then we run work and school models only
-    # then we run one round of daysim -final assignment.
+            daysim_assignment(iteration)
+            converge=check_convergence(iteration, pop_sample[iteration])
+            if converge == 'stop':
+                print "System converged!"
+                break
+            print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+
+## BUILDING WORK AND SCHOOL SHADOW PRICES, THEN DAYSIM + ASSIGNMENT ############################
     if should_build_shadow_price:
         build_shadow_only()
         modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])

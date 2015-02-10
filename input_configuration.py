@@ -25,9 +25,9 @@ run_setup_emme_bank_folders = True
 run_copy_large_inputs =True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
-should_build_shadow_price = True
+should_build_shadow_price =True
 run_skims_and_paths = True
-run_truck_model = True
+run_truck_model =True
 run_supplemental_trips = True
 run_daysim = True
 run_network_summary = True
@@ -47,8 +47,11 @@ parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be c
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
-good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamon dolce latte"]
+good_thing = ["cookie", "run", "puppy", "beer", "snack", "nap","venti cinnamon dolce latte"]
 
+# These files are often missing from a run.  We want to check they are present and warn if not.
+# Please add to this list as you find files that are missing.
+commonly_missing_files = ['inputs/buffered_parcels.dat', '/supplemental/generation/landuse/tazdata.in']
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
