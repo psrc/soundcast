@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 import numpy as np
 import pandas as pd
 import xlsxwriter
@@ -496,7 +510,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     print('---Begin Destination Choice Report compilation---')
     start = time.time()
 
-    #Filter out unreasonable trip/tour lengths    
+    #Filter out unreasonable trip/tour lengths
+    #survey data does not include drive to transit trips, remove- how can we do this without referencing max internal zone?    
     tour_ok_1 = data1['Tour'].query('tautodist>0 and tautodist<200')[['hhno', 'pno', 'tour', 'day', 'tautodist', 'toexpfac', 'pdpurp', 'tmodetp', 'tdtaz']]
     tour_ok_2 = data2['Tour'].query('tautodist>0 and tautodist<200')[['hhno', 'pno', 'tour', 'day', 'tautodist', 'toexpfac', 'pdpurp', 'tmodetp', 'tdtaz']] 
     trip_ok_1 = data1['Trip'].query('travdist>0 and travdist<200')[['hhno', 'pno', 'tour', 'day', 'travdist', 'trexpfac', 'dpurp', 'mode', 'dtaz']]
@@ -562,6 +577,8 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
 
     cp3 = time.time()
     print('Number of trips by tour purpose data frame created in ' + str(round(cp3 - cp2, 1)) + ' seconds')
+
+
 
     #Average Distance by Trip Purpose
     atripdist1 = weighted_average(trip_ok_1, 'travdist', 'trexpfac', 'dpurp')
@@ -761,6 +778,7 @@ def DestChoice(data1, data2, name1, name2, location, districtfile):
     num_students.set_legend({'position': 'top'})
     num_students.set_size({'x_scale':2,'y_scale':1.5})
     worksheet.insert_chart('J15', num_students)
+    worksheet.write('A20', 'Transit Lengths are wrong! Ignore')
     writer.save()
 
     print('---Destination Choice Report successfully compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
@@ -1097,6 +1115,7 @@ def ModeChoice(data1, data2, name1, name2, location):
     colors=['#0c2c56','#005c5c']
     for sheet in writer.sheets:
         worksheet=writer.sheets[sheet]
+        worksheet.write('A20', 'Transit Lengths are wrong! Ignore')
         for col_num in range(worksheet.dim_colmax+1):
             worksheet.set_column(col_num,col_num,colwidths[sheet][col_num])
         if sheet != 'Trip Mode by Tour Mode':

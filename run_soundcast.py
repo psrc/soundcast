@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 #!python.exe
 # PSRC SoundCast Model Runner
 # ===========================
@@ -11,20 +25,20 @@ import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
+import logging
+import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
+import datetime
 import shutil 
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
 from data_wrangling import *
 
-# Create text file to log model performance
-logfile = open(main_log_file, 'wb')
 
-time_start = datetime.datetime.now()
-print "\nSoundCast run: start time:", time_start
 
+@timed
 def parcel_buffering():
     copy_parcel_buffering_files()
     print 'adding military jobs to regular jobs'
@@ -33,12 +47,23 @@ def parcel_buffering():
         print 'Military Job loading failed'
         sys.exit(1)
     print 'military jobs loaded'
+
+    if run_update_parking:
+        if base_year == scenario_name:
+            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
+        else:
+            print 'Starting to update UrbanSim parcel data with 4k parking data file'
+            returncode = subprocess.call([sys.executable,
+                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+            print 'Finished updating parking data on parcel file'
+
     create_buffer_xml()
     print 'running buffer tool'
     main_dir = os.path.abspath('')
     returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
     os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
+@timed    
 def build_seed_skims():
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
@@ -46,15 +71,12 @@ def build_seed_skims():
         'scripts/skimming/SkimsAndPaths.py',
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
-             returncode = subprocess.call([sys.executable,
-                           'scripts/skimming/SkimsAndPaths.py',
-                            '-use_daysim_output_seed_trips'])
+        sys.exit(1)
                   
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
-    if returncode != 0:
-        sys.exit(1)
-
+ 
+@timed   
 def modify_config(config_vals):
     config_template = open('configuration_template.properties','r')
     config = open('configuration.properties','w')
@@ -75,36 +97,33 @@ def modify_config(config_vals):
      print ' Error creating configuration template file'
      sys.exit(1)
     
-
+@timed
 def build_shadow_only():
      for shad_iter in range(0, len(shadow_work)):
-         if run_daysim:
-            modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
-            returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
-            if returncode != 0:
-               send_error_email(recipients, returncode)
-               sys.exit(1)
-            returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
-            shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
-            rmse_list = shadow_con_file.readlines()
-            iteration_number = len(rmse_list)
-            current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
-         if current_rmse < shadow_con:
+        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
+        logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
+        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
+        if returncode != 0:
+            #send_error_email(recipients, returncode)
+            sys.exit(1)
+        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
+        rmse_list = shadow_con_file.readlines()
+        iteration_number = len(rmse_list)
+        current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
+        if current_rmse < shadow_con:
             print "done with shadow prices"
             shadow_con_file.close()
-            break
-
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" % str((time_daysim)))
 
 
-def run_truck_supplemental():
+@timed
+def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
      if run_truck_model:
          returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
          if returncode != 0:
-            send_error_email(recipients, returncode)
+            #send_error_email(recipients, returncode)
             sys.exit(1)
 
       ### RUN Supplemental Trips
@@ -112,46 +131,41 @@ def run_truck_supplemental():
     ###Adds external, special generator, and group quarters trips to DaySim
     ###outputs.'''
      if run_supplemental_trips:
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-        if returncode != 0:
-           sys.exit(1)
+         # Only run generation script once - does not change with feedback
+        if iteration == 0:
+            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+            if returncode != 0:
+                sys.exit(1)
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
         if returncode != 0:
            sys.exit(1)
-
-def daysim_assignment():
+@timed
+def daysim_assignment(iteration):
      
      ### RUN DAYSIM ################################################################
      if run_daysim:
+         logger.info("Start of %s iteration of Daysim", str(iteration))
          returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)
              sys.exit(1)
-
-         time_daysim = datetime.datetime.now()
-         print time_daysim
-         logfile.write("ending daysim %s\r\n" % str((time_daysim)))   
      
      ### ADD SUPPLEMENTAL TRIPS
      ### ####################################################
-     run_truck_supplemental()
+     run_truck_supplemental(iteration)
      #### ASSIGNMENTS
      #### ###############################################################
      if run_skims_and_paths:
+         logger.info("Start of %s iteration of Skims and Paths", str(iteration))
          returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
-             returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
-             if returncode != 0: 
-                  #send_error_email(recipients, returncode)
-                  sys.exit(1)
-                  
-     
-     time_assign = datetime.datetime.now()
-     print time_assign
-     logfile.write("ending assignment %s\r\n" % str((time_assign)))
+            sys.exit(1)
 
 
+@timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
     if iteration > 0 and recipr_sample == 1:
@@ -160,10 +174,12 @@ def check_convergence(iteration, recipr_sample):
             con_file.close()
     return converge
 
+@timed
 def run_all_summaries():
 
    if run_network_summary:
       subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+      # this summary is producing erronous results, we don't want people to think they are correct.
       subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
 
    if run_soundcast_summary:
@@ -184,6 +200,7 @@ def main():
     if run_parcel_buffering:
         parcel_buffering()
 
+
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
 
@@ -199,63 +216,55 @@ def main():
     if run_copy_large_inputs:
         copy_large_inputs()
 
-    if run_update_parking:
-        if base_year == scenario_name:
-            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
-        else:
-            returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+    if  run_convert_hhinc_2000_2010:
+        subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
 
 ### IMPORT NETWORKS
 ### ###############################################################
     if run_import_networks:
         time_copy = datetime.datetime.now()
+        logger.info("Start of network importer")
         returncode = subprocess.call([sys.executable,
         'scripts/network/network_importer.py', base_inputs])
+        logger.info("End of network importer")
         time_network = datetime.datetime.now()
-        print '###### Finished Importing Networks:', str(time_network - time_copy)
         if returncode != 0:
            sys.exit(1)
 
 ### BUILD SKIMS ###############################################################
-    if run_skims_and_paths_seed_trips == True:
+    if run_skims_and_paths_seed_trips:
         build_seed_skims()
+
+    # Check all inputs have been created or copied
+    check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
+    if(run_daysim or run_skims_and_paths or run_skims_and_paths_seed_trips):
+        for iteration in range(len(pop_sample)):
+            print "We're on iteration %d" % (iteration)
+            logger.info(("We're on iteration %d\r\n" % (iteration)))
+            time_start = datetime.datetime.now()
+            logger.info("starting run %s" % str((time_start)))
 
-    for iteration in range(len(pop_sample)):
-        print "We're on iteration %d" % (iteration)
-        logfile.write("We're on iteration %d\r\n" % (iteration))
-        time_start = datetime.datetime.now()
-        logfile.write("starting run %s" % str((time_start)))
-  
-  # set up your Daysim configuration depending on if you are building shadow
-  # prices or not
-        if not should_build_shadow_price or pop_sample[iteration] > 2:
-            ####we are not using shadow pricing during initial skim building for now. Shadow prices are built 
-            #from scratch below if should_build_shadow_price = true. Keeping old code in case we want to switch back. 
-            #copy_shadow_price_file()####
+            # Set up your Daysim Configration
             modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
-        else:
-         modify_config([("$SHADOW_PRICE", "false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
-        
-        # RUN THE MODEL finally
-        daysim_assignment()
 
-        converge=check_convergence(iteration, pop_sample[iteration])
-        if converge == 'stop':
-            print "System converged! The universe is in equilbrium for just one moment."
-            con_file.close()
-            break
-        print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+            # Run Skimming and/or Daysim
 
-    # when building shadow prices we get the skims to convergence and then we run work and school models only
-    # then we run one round of daysim -final assignment.
+            daysim_assignment(iteration)
+            converge=check_convergence(iteration, pop_sample[iteration])
+            if converge == 'stop':
+                print "System converged!"
+                break
+            print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+
+## BUILDING WORK AND SCHOOL SHADOW PRICES, THEN DAYSIM + ASSIGNMENT ############################
     if should_build_shadow_price:
         build_shadow_only()
         modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
-        daysim_assignment()
+        #This function needs an iteration parameter. Value of 1 is fine. 
+        daysim_assignment(1)
 
 ### SUMMARIZE
 ### ##################################################################
@@ -269,4 +278,14 @@ def main():
 ##print '    Total run time:',time_assign_summ - time_start
 
 if __name__ == "__main__":
+    logger = logcontroller.setup_custom_logger('main_logger')
+    logger.info('------------------------NEW RUN STARTING----------------------------------------------')
+    start_time = datetime.datetime.now()
+
+
     main()
+
+    end_time = datetime.datetime.now()
+    elapsed_total = end_time - start_time
+    logger.info('------------------------RUN ENDING_----------------------------------------------')
+    logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))

@@ -7,10 +7,32 @@ import os, sys
 import re 
 import multiprocessing as mp
 import subprocess
+import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 
+project = 'Projects/LoadTripTables/LoadTripTables.emp'
+tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
+sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
+                       '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
+                       '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
+                       '18to20' : 'ev', '20to5' : 'ni'}
+load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
+
+mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 
+                      'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 
+                      'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
+                      'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
+                      'ahijstuvbw' : 'asehdimjvutbpw'}
+
+mode_file = 'modes.txt'
+transit_vehicle_file = 'vehicles.txt' 
+base_net_name = '_roadway.in'
+turns_name = '_turns.in'
+transit_name = '_transit.in'
+shape_name = '_link_shape_1002.txt'
+no_toll_modes = ['s', 'h', 'i', 'j']
 
 class EmmeProject:
     def __init__(self, filepath):
@@ -52,7 +74,16 @@ class EmmeProject:
         create_scenario = self.m.tool(NAMESPACE)
         create_scenario(scenario_id=scenario_number,
                         scenario_title= scenario_title)
-
+    def network_calculator(self, type, **kwargs):
+        spec = json_to_dictionary(type)
+        for name, value in kwargs.items():
+            if name == 'selections_by_link':
+                spec['selections']['link'] = value
+            else:
+                spec[name] = value
+        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+        network_calc = self.m.tool(NAMESPACE)
+        self.network_calc_result = network_calc(spec)
 
    
     def delete_links(self):
@@ -100,10 +131,21 @@ class EmmeProject:
             revert_on_error = True,
             scenario = self.current_scenario)
     def change_scenario(self):
+
         self.current_scenario = list(self.bank.scenarios())[0]
 
-      
+
     
+def json_to_dictionary(dict_name):
+
+    #Determine the Path to the input files and load them
+    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    my_dictionary = json.load(open(input_filename))
+
+    return(my_dictionary)
+
+
+          
 def import_tolls(emmeProject):
     #create extra attributes:
     create_extras = emmeProject.m.tool("inro.emme.data.extra_attribute.create_extra_attribute")
@@ -114,16 +156,18 @@ def import_tolls(emmeProject):
     t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
     t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
     t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@brfer",extra_attribute_description="Bridge & Ferrry Flag",overwrite=True)
-    
+    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@rdly",extra_attribute_description="Intersection Delay",overwrite=True)
  
     
     import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
 
-  
-    attr_file = base_inputs + '/tolls/' + 'tolls' + emmeProject.tod + '.txt'
+    tod_4k = sound_cast_net_dict[emmeProject.tod]
+
+    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in', 'inputs/networks/rdly/' + tod_4k + '_rdly.txt']
 
     # set tolls
-    import_attributes(attr_file, scenario = emmeProject.current_scenario,
+    #for file in attr_file:
+    import_attributes(attr_file[0], scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
                              1: "jnode",
                              2: "@toll1",
@@ -133,6 +177,23 @@ def import_tolls(emmeProject):
                              6: "@trkc2",
                              7: "@trkc3"},
               revert_on_error=False)
+
+    import_attributes(attr_file[1], scenario = emmeProject.current_scenario,
+              column_labels={0: "inode",
+                             1: "jnode",
+                             2: "@toll1",
+                             3: "@toll2",
+                             4: "@toll3",
+                             5: "@trkc1",
+                             6: "@trkc2",
+                             7: "@trkc3"},
+              revert_on_error=False)
+
+    
+    #@rdly:
+    import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
+             revert_on_error=False)
+    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .30")
 
 # set bridge/ferry flags
 
@@ -152,17 +213,12 @@ def import_tolls(emmeProject):
                 link.modes -= set([network.mode(i)])
     emmeProject.current_scenario.publish_network(network)
 
-    
-
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
     def translate(match):
         word = match.group(0)
         return replace_dict.get(word, word)
     return rc.sub(translate, text)
-
-
-
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
@@ -209,6 +265,11 @@ def main():
    
     
     run_importer(network_summary_project)
+    
+    returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
+    if returncode != 0:
+        sys.exit(1)
+    
     print 'done'
 
 if __name__ == "__main__":

@@ -53,6 +53,34 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
+# Input values
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
+transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
+                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
+                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
+                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
+                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
+                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
+
+# Transit Fare:
+zone_file = 'inputs/Fares/transit_fare_zones.grt'
+peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
+peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
+offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
+offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+fare_matrices_tod = ['6to7', '9to10']
+
+# Intrazonals
+intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
+taz_area_file = 'inputs/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/intrazonals/destination_tt.in'
+
+# Zone Index
+tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
@@ -130,7 +158,7 @@ def define_matrices(my_project):
     start_define_matrices = time.time()
     ##Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
-    
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
 
     for x in range (0, len(emme_matrix_subgroups)):
         for y in range (0, len(matrix_dict[emme_matrix_subgroups[x]])):
@@ -261,7 +289,7 @@ def intitial_extra_attributes(my_project):
     my_project.create_extra_attribute("LINK", "@trnv3", "Transit Vehicles",True)
  
     # Create the link extra attribute to store the arterial delay in
-    my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
+    #my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
 
     end_extra_attr = time.time()
 
@@ -272,48 +300,48 @@ def arterial_delay_calc(my_project):
 
     # Create the temporary attributes needed for the signal delay calculations
     #t1 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@tmpl1",extra_attribute_description="temp link calc 1",overwrite=True)
-    t1 = my_project.create_extra_attribute("LINK", "@tmpl1", "temp link calc 1", True)
-    t2 = my_project.create_extra_attribute("LINK", "@tmpl2", "temp link calc 2", True)
-    t3 = my_project.create_extra_attribute("NODE", "@tmpn1", "temp node calc 1", True)
-    t4 = my_project.create_extra_attribute("NODE", "@tmpn2", "temp node calc 2", True)
-    t5 = my_project.create_extra_attribute("NODE", "@cycle", "Cycle Length", True)
-    t6 = my_project.create_extra_attribute("LINK", "@red", "Red Time", True)
+    #t1 = my_project.create_extra_attribute("LINK", "@tmpl1", "temp link calc 1", True)
+    #t2 = my_project.create_extra_attribute("LINK", "@tmpl2", "temp link calc 2", True)
+    #t3 = my_project.create_extra_attribute("NODE", "@tmpn1", "temp node calc 1", True)
+    #t4 = my_project.create_extra_attribute("NODE", "@tmpn2", "temp node calc 2", True)
+    #t5 = my_project.create_extra_attribute("NODE", "@cycle", "Cycle Length", True)
+    #t6 = my_project.create_extra_attribute("LINK", "@red", "Red Time", True)
 
-    # Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
-    # Exclude links that intersect with centroid connectors and weave links
-    my_project.network_calculator("link_calculation", result = "@tmpl1", expression = "1", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+    ## Set Temporary Link Attribute #1 to 1 for arterial links (ul3 .ne. 1,2)
+    ## Exclude links that intersect with centroid connectors and weave links
+    #my_project.network_calculator("link_calculation", result = "@tmpl1", expression = "1", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
     
-    # Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
-    # for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
-    # Exclude links that intersect with centroid connectors and weave links
-    my_project.network_calculator("link_calculation", result = "@tmpl2", expression = "(lanes+2).min.5", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
+    ## Set Temporary Link Attribute #2 to the minimum of lanes+2 or 5
+    ## for arterial links (ul3 .ne. 1,2)  - tmpl2 will equal either 3,4,5
+    ## Exclude links that intersect with centroid connectors and weave links
+    #my_project.network_calculator("link_calculation", result = "@tmpl2", expression = "(lanes+2).min.5", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and not length=0,.015")
    
-    # Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
-    my_project.network_calculator("link_calculation", result = "@tmpn1", expression = "@tmpl1", aggregation = "+")
+    ## Set Temporary Node Attribute #1 to sum of intersecting arterial links (@tmpl1)
+    #my_project.network_calculator("link_calculation", result = "@tmpn1", expression = "@tmpl1", aggregation = "+")
     
-    # Set Temporary Node Attribute #2 to sum of intersecting arterial links (@tmpl2)
-    my_project.network_calculator("link_calculation", result = "@tmpn2", expression = "@tmpl2", aggregation = "+")
+    ## Set Temporary Node Attribute #2 to sum of intersecting arterial links (@tmpl2)
+    #my_project.network_calculator("link_calculation", result = "@tmpn2", expression = "@tmpl2", aggregation = "+")
     
-    # Cycle Time at Every I-Node
-    my_project.network_calculator("node_calculation", result = "@cycle", expression = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)")
+    ## Cycle Time at Every I-Node
+    #my_project.network_calculator("node_calculation", result = "@cycle", expression = "(1+(@tmpn2/8)*(@tmpn1/4))*(@tmpn1.gt.2)")
  
-    my_project.network_calculator("link_calculation", result = "@red", expression = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999")
-    # Red Time at Every J-Node
+    #my_project.network_calculator("link_calculation", result = "@red", expression = "1.2*@cyclej*(1-(@tmpn1j*@tmpl2)/(2*@tmpn2j))", selections_by_link = "mod=a and i=4001,9999999 and j=4001,9999999 and ul3=3,99 and @cyclej=0.01,999999")
+    ## Red Time at Every J-Node
     
-    # Calculate intersection delay factor for every link with a cycle time exceeding zero
-    my_project.network_calculator("link_calculation", result = "@rdly", expression = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0", selections_by_link = "@cyclej=0.01,999999")
+    ## Calculate intersection delay factor for every link with a cycle time exceeding zero
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "((@red*@red)/(2*@cyclej).max.0.2).min.1.0", selections_by_link = "@cyclej=0.01,999999")
  
-    # Set intersection delay factor to 0 for links of 0.01 mile lenght or less
-    my_project.network_calculator("link_calculation", result = "@rdly", expression = "0", selections_by_link = "length=0,0.01")
+    ## Set intersection delay factor to 0 for links of 0.01 mile lenght or less
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "0", selections_by_link = "length=0,0.01")
     
-    #delete the temporary extra attributes
-    my_project.delete_extra_attribute("@tmpl1")
-    my_project.delete_extra_attribute("@tmpl2")
-    my_project.delete_extra_attribute("@tmpn1")
-    my_project.delete_extra_attribute("@tmpn2")
-    my_project.delete_extra_attribute("@cycle")
-    my_project.delete_extra_attribute("@red")
-
+    ##delete the temporary extra attributes
+    #my_project.delete_extra_attribute("@tmpl1")
+    #my_project.delete_extra_attribute("@tmpl2")
+    #my_project.delete_extra_attribute("@tmpn1")
+    #my_project.delete_extra_attribute("@tmpn2")
+    #my_project.delete_extra_attribute("@cycle")
+    #my_project.delete_extra_attribute("@red")
+    #my_project.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .75")
     end_arterial_calc = time.time()
 
 
@@ -332,7 +360,9 @@ def traffic_assignment(my_project):
     # Modify the Assignment Specifications for the Closure Criteria and Perception Factors
     mod_assign = assignment_specification
     mod_assign["stopping_criteria"]["max_iterations"]= max_iter
-    mod_assign["stopping_criteria"]["best_relative_gap"]= b_rel_gap
+    mod_assign["stopping_criteria"]["best_relative_gap"]= best_relative_gap 
+    mod_assign["stopping_criteria"]["relative_gap"]= relative_gap
+    mod_assign["stopping_criteria"]["normalized_gap"]= normalized_gap
 
     for x in range (0, len(mod_assign["classes"])):
         vot = ((1/float(my_user_classes["Highway"][x]["Value of Time"]))*60)
@@ -573,7 +603,7 @@ def average_matrices(old_matrix, new_matrix):
 def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     start_export_hdf5 = time.time()
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     my_user_classes = json_to_dictionary("user_classes")
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
@@ -669,6 +699,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             print matrix_name+' was transferred to the HDF5 container.'
 
     #bike/walk
+    
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -724,8 +755,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
  
 
     #load zones into a NumpyArray to index trips otaz and dtaz
-    tazIndex = np.asarray(zones)
-
+    #tazIndex = np.asarray(zones)
+    #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
+    dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
     tod_index = create_trip_tod_indices(my_project.tod)
 
@@ -808,24 +840,19 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
                 if dorp[x] <= 1:
                     #get the index of the Otaz
-                    myOtaz = np.where(tazIndex == otaz[x])
-                    
-                    #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])
                     #some missing Os&Ds in seed trips!
-                    if len(myOtaz) == 1 and len(myDtaz) == 1:
-                        
-                        OtazInt = int(myOtaz[0])
-                        DtazInt = int(myDtaz[0])
-                        #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
+                    if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
+                        myOtaz = dictZoneLookup[otaz[x]]
+                        myDtaz = dictZoneLookupd[dtaz[x]]
+                        print myOtaz, myDtaz 
                         trips = np.asscalar(np.float32(trexpfac[x]))
                         trips = round(trips, 2)
                         print trips
                         #print trips
                         #if mode in supplemental_modes:
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
-                   
-            
+        
+        #Regular Daysim Output:            
         else:
             if vot[x] < 15: vot[x]=1
             elif vot[x] < 25: vot[x]=2
@@ -838,18 +865,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 #Only want drivers, transit trips.
                 if dorp[x] <= 1:
                     mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
-                    #get the index of the Otaz
-                    myOtaz = np.where(tazIndex == otaz[x])
-                    #get the index of the Dtaz
-                    myDtaz = np.where(tazIndex == dtaz[x])
-                    
-                    OtazInt = int(myOtaz[0])
-                    DtazInt = int(myDtaz[0])
-                     #add the trip, if it's not in a special generator location
+                    myOtaz = dictZoneLookup[otaz[x]]
+                    myDtaz = dictZoneLookup[dtaz[x]]
+                    #add the trip, if it's not in a special generator location
                     #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
                     trips = np.asscalar(np.float32(trexpfac[x]))
                     trips = round(trips, 2)
-                    #if mode in supplemental_modes:
                     demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
@@ -860,7 +881,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
-        emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
+        #emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
+        print mat_name
+        print np_array.shape
+        emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
     
     end_time = time.time()
@@ -907,6 +931,7 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
 
     # Copy truck trip tables with a time of day factor
     if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
+       print matrix_name + str(np_matrix_1.shape)
        sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
@@ -934,7 +959,11 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     
     # Extract specified array size and store as NumPy array 
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
-    demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
+    sub_demand_array = (np.asarray(sub_demand_matrix))
+    print sub_demand_array.shape
+    print zonesDim
+    demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
+    #demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
 
     return demand_matrix
 
@@ -949,6 +978,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
+     print hdf5_file_path
      my_store = h5py.File(hdf5_file_path, "r+")
      daysim_set = my_store["Trip"]
      #open departure time array
@@ -1096,6 +1126,7 @@ def bike_walk_assignment(my_project, assign_for_all_tods):
     assignment_specification = json_to_dictionary("bike_walk_assignment")
     #get demand matrix name from here:
     user_classes = json_to_dictionary("user_classes")
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     mod_assign = assignment_specification
     #only skim for time for certain tod
     #Also fill in intrazonals
@@ -1137,7 +1168,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
     tod_dict = text_to_dictionary('time_of_day')
     uniqueTOD = set(tod_dict.values())
     uniqueTOD = list(uniqueTOD)
-
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict")
     #populate a dictionary of with key=bank name, value = emmebank object
     data_explorer = project_name.desktop.data_explorer()
     all_emmebanks = {}
@@ -1312,7 +1343,10 @@ def run_assignments_parallel(project_name):
 
     ##set up for assignments
     intitial_extra_attributes(my_project)
-    arterial_delay_calc(my_project)
+
+    # ************arterial delay is being handled in network_importer for now. Leave commented!!!!!!!!!!!!!
+    #arterial_delay_calc(my_project)
+
     vdf_initial(my_project)
     ##run auto assignment/skims
     traffic_assignment(my_project)
@@ -1349,9 +1383,10 @@ def main():
         for i in range (0, 12, parallel_instances):
             l = project_list[i:i+parallel_instances]
             start_pool(l)
+
         
         #want pooled processes finished before executing more code in main:
-
+        #run_assignments_parallel('projects/7to8/7to8.emp')
         
         start_transit_pool(project_list)
        

@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
@@ -15,71 +29,106 @@ import subprocess
 import csv
 import xlsxwriter
 import xlautofit 
+from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 
+network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
+                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
+                 'connectors' : 'ul3 = 5'}
 
-class EmmeProject:
-    def __init__(self, filepath):
-        self.desktop = app.start_dedicated(True, "cth", filepath)
-        self.m = _m.Modeller(self.desktop)
-        pathlist = filepath.split("/")
-        self.fullpath = filepath
-        self.filename = pathlist.pop()
-        self.dir = "/".join(pathlist) + "/"
-        self.bank = self.m.emmebank
-        self.tod = self.bank.title
-        self.current_scenario = list(self.bank.scenarios())[0]
-        self.data_explorer = self.desktop.data_explorer()
+extra_attributes_dict = {'@tveh' : 'total vehicles', 
+                         '@mveh' : 'medium trucks', 
+                         '@hveh' : 'heavy trucks', 
+                         '@vmt' : 'vmt',\
+                         '@vht' : 'vht', 
+                         '@trnv' : 'buses in auto equivalents',
+                         '@ovol' : 'observed volume', 
+                         '@bveh' : 'number of buses'}
+
+transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
+
+transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
+               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+# Input Files:
+counts_file = 'TrafficCounts_Mid.txt'
+aadt_counts_file = 'soundcast_aadt.csv'
+tptt_counts_file = 'soundcast_tptt.csv'
+
+# Output Files: 
+net_summary_file = 'network_summary.csv'
+counts_output_file = 'counts_output.csv'
+screenlines_file = 'screenline_volumes.csv'
+
+uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
+           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
+
+#class EmmeProject:
+#    def __init__(self, filepath):
+#        self.desktop = app.start_dedicated(True, "cth", filepath)
+#        self.m = _m.Modeller(self.desktop)
+#        pathlist = filepath.split("/")
+#        self.fullpath = filepath
+#        self.filename = pathlist.pop()
+#        self.dir = "/".join(pathlist) + "/"
+#        self.bank = self.m.emmebank
+#        self.tod = self.bank.title
+#        self.current_scenario = list(self.bank.scenarios())[0]
+#        self.data_explorer = self.desktop.data_explorer()
     
-    def change_active_database(self, database_name):
-        for database in self.data_explorer.databases():
-            #print database.title()
-            if database.title() == database_name:
+#    def change_active_database(self, database_name):
+#        for database in self.data_explorer.databases():
+#            #print database.title()
+#            if database.title() == database_name:
                 
-                database.open()
-                print 'changed'
-                self.bank = self.m.emmebank
-                self.tod = self.bank.title
-                print self.tod
-                self.current_scenario = list(self.bank.scenarios())[0]
-    def create_extras(self, type, name, description):
-        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
-        create_extras = self.m.tool(NAMESPACE)
-        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
+#                database.open()
+#                print 'changed'
+#                self.bank = self.m.emmebank
+#                self.tod = self.bank.title
+#                print self.tod
+#                self.current_scenario = list(self.bank.scenarios())[0]
+#    def create_extras(self, type, name, description):
+#        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
+#        create_extras = self.m.tool(NAMESPACE)
+#        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
     
-    def link_calculator(self, **kwargs):
-        spec = json_to_dictionary("link_calculation")
-        for name, value in kwargs.items():
-            print name
-            if name == 'selections':
-                spec[name]['link'] = value
-            else:
-                spec[name] = value
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#    def link_calculator(self, **kwargs):
+#        spec = json_to_dictionary("link_calculation")
+#        for name, value in kwargs.items():
+#            print name
+#            if name == 'selections':
+#                spec[name]['link'] = value
+#            else:
+#                spec[name] = value
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
        
      
-    def transit_line_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_line_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_line_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_line_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
     
-    def transit_segment_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_segment_calculation")
-        for name, value in kwargs.items():
-            spec[name] = value
+#    def transit_segment_calculator(self, **kwargs):
+#        spec = json_to_dictionary("transit_segment_calculation")
+#        for name, value in kwargs.items():
+#            spec[name] = value
         
-        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+#        network_calc = self.m.tool(NAMESPACE)
+#        self.link_calc_result = network_calc(spec)
 
 
 
@@ -99,13 +148,13 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
     #for that facility type
   
      #medium trucks
-     EmmeProject.link_calculator(result = '@mveh', expression = '@metrk/1.5')
+     EmmeProject.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
      
      #heavy trucks:
-     EmmeProject.link_calculator(result = '@hveh', expression = '@hvtrk/2')
+     EmmeProject.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2')
      
      #busses:
-     EmmeProject.link_calculator(result = '@bveh', expression = '@trnv/2')
+     EmmeProject.network_calculator("link_calculation", result = '@bveh', expression = '@trnv/2')
      ####################still need to do*****************************
      #hdw- number of buses:
      #mod_spec = network_calc_spec
@@ -116,42 +165,44 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      #calc total vehicles, store in @tveh 
      str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 +  @svnt2 + @svnt3 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
                        + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk + @mveh + @hveh + @bveh'
-     EmmeProject.link_calculator(result = '@tveh', expression = str_expression)
+     EmmeProject.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
      #a dictionary to hold vmt/vht/delay values:
      results_dict = {}
      #dictionary to hold vmts:
      vmt_dict = {}
      #calc vmt for all links by factilty type and get sum by ft. 
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vmt", expression = "@tveh * length", selections = value)
+        EmmeProject.network_calculator("link_calculation", result = "@vmt", expression = "@tveh * length", selections_by_link = value)
         #total vmt by ft: 
-        vmt_dict[key] = EmmeProject.link_calc_result['sum']
+        vmt_dict[key] = EmmeProject.network_calc_result['sum']
      #add to results dictionary
      results_dict['vmt'] = vmt_dict
     
      #Now do the same for VHT:
      vht_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = "@vht", expression = "@tveh * timau / 60", selections = value)
-        vht_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation", result = "@vht", expression = "@tveh * timau / 60", selections_by_link = value)
+        vht_dict[key] = EmmeProject.network_calc_result['sum']
      results_dict['vht'] = vht_dict
 
      #Delay:
      delay_dict = {}
      for key, value in fac_type_dict.iteritems():    
-        EmmeProject.link_calculator(result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections = value)
-        delay_dict[key] = EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression =  "@tveh*(timau-(length*60/ul2))/60", selections_by_link = value)
+        delay_dict[key] = EmmeProject.network_calc_result['sum']
      
      results_dict['delay'] = delay_dict
      return results_dict
+
 def vmt_by_user_class(EmmeProject):
     #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
     uc_vmt_list = []
     for item in uc_list:
-        EmmeProject.link_calculator(result = None, expression = item + ' * length')
+        EmmeProject.network_calculator("link_calculation", result = None, expression = item + ' * length')
         #total vmt by ft: 
-        uc_vmt_list.append(EmmeProject.link_calc_result['sum'])
+        uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
+
 def get_link_counts(EmmeProject, df_counts, tod):
     #get the network for the active scenario
      network = EmmeProject.current_scenario.get_network()
@@ -172,6 +223,119 @@ def get_link_counts(EmmeProject, df_counts, tod):
      df =  pd.DataFrame(list_model_vols)
      df = df.set_index(['loop_INode', 'loop_JNode'])
      return df
+
+def get_aadt_volumes(EmmeProject, df_aadt_counts, vol_dict):
+    network = EmmeProject.current_scenario.get_network()
+    for index, row in df_aadt_counts.iterrows():
+        x = {}
+        id = row['MIN_ID']
+        i = row['MIN_NewINode']
+        j = row['MIN_NewJNode']
+        if row['MIN_Oneway'] == 2:
+            link1 = network.link(i,j)
+            link2 = network.link(j, i)
+            if link1<>None and link2<> None:
+                vol = link1['@tveh'] + link2['@tveh']
+            elif link1 == None and link2 == None:
+                vol = 0
+                #print i, j
+            elif link1 <> None and link2 == None:
+                vol = link1['@tveh'] 
+                #print j, i
+            elif link1 == None and link2 <> None:
+                vol = link2['@tveh'] 
+
+        elif row['MIN_Oneway'] == 0:
+            link1 = network.link(i,j)
+            if link1 <> None:
+                vol = link1['@tveh']
+        else:
+            link1 = network.link(j,i)
+            if link1 <> None:
+                vol = link1['@tveh']
+
+        #hov
+        if row['MIN_HOV_I'] > 0:
+            i = row['MIN_HOV_I'] + 4000
+            j = row['MIN_HOV_J'] + 4000
+            #both directions:
+            if row['MIN_Oneway'] == 2:
+                link1 = network.link(i,j)
+                link2 = network.link(j, i)
+                if link1<>None and link2<> None:
+                    vol = vol +link1['@tveh'] + link2['@tveh']
+                elif link1 == None and link2 == None:
+                    vol = vol + 0
+                    #print i, j
+                elif link1 <> None and link2 == None:
+                    vol = vol + link1['@tveh'] 
+                    #print j, i
+                elif link1 == None and link2 <> None:
+                    vol = vol + link2['@tveh'] 
+            #IJ
+            elif row['MIN_Oneway'] == 0:
+                link1 = network.link(i,j)
+                if link1 <> None:
+                    vol = vol + link1['@tveh']
+            #JI
+            else:
+                link1 = network.link(j,i)
+                if link1 <> None:
+                    vol = vol + link1['@tveh']
+
+
+        if id in vol_dict.keys():
+            vol_dict[id]['EstVol'] = vol_dict[id]['EstVol'] + vol
+        else:
+            x['ID'] = id
+            x['PSRCEdgeID'] = row['PSRCEdgeID']
+            x['ObsVol'] = row['MEAN_AADT']
+            #x['RteID'] = row['First_Route_ID']
+            x['EstVol'] = vol
+            vol_dict[id] = x
+    return vol_dict
+
+def get_tptt_volumes(EmmeProject, df_tptt_counts, vol_dict):
+    network = EmmeProject.current_scenario.get_network()
+    for index, row in df_tptt_counts.iterrows():
+        x = {}
+        id = row ['ID']
+        i = row['NewINode']
+        j = row['NewJNode']
+        if row['Direction_'] == 'Bothways':
+            link1 = network.link(i,j)
+            link2 = network.link(j, i)
+            if link1<>None and link2<> None:
+                vol = link1['@tveh'] + link2['@tveh']
+            elif link1 == None and link2 == None:
+                vol = 0
+                #print i, j
+            elif link1 <> None and link2 == None:
+                vol = link1['@tveh'] 
+                #print j, i
+            elif link1 == None and link2 <> None:
+                vol = link2['@tveh'] 
+
+        elif row['Oneway'] == 0:
+            link1 = network.link(i,j)
+            if link1 <> None:
+                vol = link1['@tveh']
+        else:
+            link1 = network.link(j,i)
+            if link1 <> None:
+                vol = link1['@tveh']
+
+        if id in vol_dict.keys():
+            vol_dict[id]['EstVol'] = vol_dict[id]['EstVol'] + vol
+        else:
+            x['ID'] = id
+            x['SRID'] = row['SRID']
+            x['ObsVol'] = row['Year_2010']
+            x['Location'] = row['Location']
+            x['EstVol'] = vol
+            vol_dict[id] = x
+    return vol_dict
+
 def get_unique_screenlines(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
     unique_screenlines = []
@@ -179,16 +343,18 @@ def get_unique_screenlines(EmmeProject):
         if link.type <> 90 and link.type not in unique_screenlines:
             unique_screenlines.append(str(link.type))
     return unique_screenlines
+
 def get_screenline_volumes(screenline_dict, EmmeProject):
 
     for screen_line in screenline_dict.iterkeys():
-        EmmeProject.link_calculator(result = None, expression = "@tveh", selections = screen_line)
-        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.link_calc_result['sum']
+        EmmeProject.network_calculator("link_calculation",result = None, expression = "@tveh", selections_by_link = screen_line)
+        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.network_calc_result['sum']
 
 def calc_transit_line_atts(EmmeProject):
     #calc boardings and transit line time
      EmmeProject.transit_line_calculator(result = '@board', expression = 'board')
      EmmeProject.transit_line_calculator(result = '@timtr', expression = 'timtr')
+
 def get_transit_boardings_time(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
     df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time'))
@@ -204,6 +370,7 @@ def get_transit_boardings_time(EmmeProject):
     df = pd.DataFrame(line_list)
     df = df.set_index(['id'])
     return df
+
 def calc_transit_link_volumes(EmmeProject):
     total_hours = transit_tod[EmmeProject.tod]['num_of_hours']
     my_expression = str(total_hours) + ' * vauteq * (60/hdw)'
@@ -229,9 +396,15 @@ def main():
        
     #pandas dataframe to hold count table:
     df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
+    df_aadt_counts = pd.read_csv('inputs/network_summary/' + aadt_counts_file)
+    df_tptt_counts = pd.read_csv('inputs/network_summary/' + tptt_counts_file)
+    
  
     counts_dict = {}
     uc_vmt_dict = {}
+    aadt_counts_dict = {}
+    tptt_counts_dict = {}
+    
     #get a list of screenlines from the bank/scenario
     screenline_list = get_unique_screenlines(my_project) 
     screenline_dict = {}
@@ -244,11 +417,11 @@ def main():
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for name, desc in extra_attributes_dict.iteritems():
-            my_project.create_extras('LINK', name, desc)
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
-                my_project.create_extras('TRANSIT_LINE', name, desc)
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
             calc_transit_link_volumes(my_project)
             calc_transit_line_atts(my_project)
   
@@ -265,7 +438,18 @@ def main():
         df_tod_vol = get_link_counts(my_project, df_counts, key)
         counts_dict[key] = df_tod_vol
         
-        get_screenline_volumes(screenline_dict, my_project) 
+        #AADT Counts:
+
+        get_aadt_volumes(my_project, df_aadt_counts, aadt_counts_dict)
+        
+        #TPTT:
+        get_tptt_volumes(my_project, df_tptt_counts, tptt_counts_dict)
+        
+        
+        #screen lines
+        get_screenline_volumes(screenline_dict, my_project)
+        
+        
 
    #write out transit:
     print uc_vmt_dict
@@ -303,8 +487,18 @@ def main():
         df_counts = df_counts.drop_duplicates()
     
     #write counts out to xlsx:
-
+    #loops
     df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
+    
+    #aadt:
+    aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
+    aadt_df.to_excel(excel_writer = writer, sheet_name = 'Arterial Counts Output')
+
+    #tptt:
+    tptt_df = pd.DataFrame.from_dict(tptt_counts_dict, orient="index")
+    tptt_df.to_excel(excel_writer = writer, sheet_name = 'TPTT Counts Output')
+
+    
 
     #*******write out network summaries
     soundcast_tods = sound_cast_net_dict.keys

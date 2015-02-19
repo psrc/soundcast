@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 import os,sys,datetime,re
 import subprocess
 import inro.emme.desktop.app as app
@@ -7,10 +21,13 @@ from distutils import dir_util
 import re
 import inro.emme.database.emmebank as _eb
 import random
-import shutil 
+import shutil
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
+from logcontroller import *
+from input_configuration import *
+import input_configuration # Import as a module to access inputs as a dictionary
 
 
 def multipleReplace(text, wordDict):
@@ -18,6 +35,7 @@ def multipleReplace(text, wordDict):
         text = text.replace(key, wordDict[key])
     return text
 
+@timed
 def copy_daysim_code():
     print 'Copying Daysim executables...'
     if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
@@ -39,6 +57,7 @@ def copy_daysim_code():
     shcopy(daysim_code +'/msvcp100.dll', 'daysim')
     shcopy(daysim_code +'/svn_stamp_out.txt', 'daysim')
 
+@timed
 def copy_parcel_buffering_files():
     if not os.path.exists('Inputs/parcel_buffer'):
         os.makedirs('Inputs/parcel_buffer')
@@ -73,6 +92,15 @@ def copy_parcel_buffering_files():
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
+    print 'Copying Hourly and Daily Parking Files'
+    if run_update_parking: 
+        try:
+            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/parcel_buffer')
+            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/parcel_buffer')
+        except:
+            print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
+            sys.exit(1)
+
     print 'Copying Parcel Buffering Code'
     try:
         dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
@@ -100,7 +128,7 @@ def json_to_dictionary(dict_name):
 
     return(my_dictionary)
     
-    
+@timed    
 def setup_emme_bank_folders():
     tod_dict = text_to_dictionary('time_of_day')
     emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
@@ -130,7 +158,7 @@ def setup_emme_bank_folders():
         scenario.publish_network(network)
         emmebank.dispose()
 
-
+@timed
 def setup_emme_project_folders():
     #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
 
@@ -165,21 +193,23 @@ def setup_emme_project_folders():
         desktop.close()
         
    
-    
+@timed    
 def copy_large_inputs():
     print 'Copying large inputs...' 
     shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
+    dir_util.copy_tree (base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
+    dir_util.copy_tree (base_inputs+'/supplemental/generation','inputs/supplemental/generation')
     dir_util.copy_tree (base_inputs+'/supplemental/trips','outputs/supplemental')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
     if run_parcel_buffering == False:
-        shcopy(base_inputs+'/etc/buffered_parcels.dat','Inputs')
-
+        shcopy(base_inputs+'/landuse/buffered_parcels.dat','Inputs')
+@timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
     if not os.path.exists('working'):
@@ -187,14 +217,14 @@ def copy_shadow_price_file():
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
 
-
+@timed
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
         csv_output = os.path.join(os.getcwd(), 'outputs',summary_name+'.csv')
         if os.path.isfile(csv_output):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
-
+@timed
 def create_buffer_xml():
     try:
      'Creating xml file for the parcel buffering script pointing to your inputs'
@@ -226,7 +256,7 @@ def create_buffer_xml():
      buffer_template.close()
      buffer_config.close()
 
-       
+@timed          
 def clean_up():
     delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
                    'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
@@ -244,5 +274,31 @@ def clean_up():
         else:
             print file
 
+def find_inputs(base_directory, save_list):
+    for root, dirs, files in os.walk(base_directory):
+        for file in files:
+            if '.' in file:
+                save_list.append(file)
 
+def check_inputs():
+    ''' Warn user if any inputs are missing '''
 
+    logger = logging.getLogger('main_logger')
+
+    # Build list of existing inputs from local inputs
+    input_list = []
+    find_inputs(os.getcwd(), input_list)    # local inputs
+
+    # Compare lists and report inconsistenies
+    missing_list = []
+    for f in commonly_missing_files:
+        if not any(f in input for input in input_list):
+            missing_list.append(f)
+
+    # Save missing file list to soundcast log and print to console
+    if len(missing_list) > 0:
+        logger.info('Warning: the following files are missing and may be needed to complete the model run:')
+        print 'Warning: the following files are missing and may be needed to complete the model run:'
+        for file in missing_list:
+            logger.info('- ' + file)
+            print file

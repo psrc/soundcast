@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
@@ -12,6 +26,7 @@ import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
+from EmmeProject import *
 
 
 class EmmeProject:
@@ -101,20 +116,32 @@ class EmmeProject:
             scenario = self.current_scenario)
     def change_scenario(self):
         self.current_scenario = list(self.bank.scenarios())[0]
+
     def delete_matrix(self, matrix):
         NAMESPACE = "inro.emme.data.matrix.delete_matrix"
         process = self.m.tool(NAMESPACE)
         process(matrix, self.bank)
 
+    def delete_matrices(self, matrix_type):
+        NAMESPACE = "inro.emme.data.matrix.delete_matrix"
+        process = self.m.tool(NAMESPACE)
+        for matrix in self.bank.matrices():
+            if matrix_type == "ALL":
+                process(matrix, self.bank)
+            elif matrix.type == matrix_type:
+                process(matrix, self.bank)
+
     def create_matrix (self, matrix_name, matrix_description, matrix_type):
         NAMESPACE = "inro.emme.data.matrix.create_matrix"
         process = self.m.tool(NAMESPACE)
+        print self.current_scenario
         process (matrix_id= self.bank.available_matrix_identifier(matrix_type),
                           matrix_name= matrix_name,
                           matrix_description= matrix_description,
                           default_value=0,
                           overwrite=True,
                           scenario=self.current_scenario)
+
     def matrix_calculator(self, **kwargs):
         spec = json_to_dictionary('matrix_calc_spec')
         for name, value in kwargs.items():
@@ -179,7 +206,7 @@ class EmmeProject:
                 spec[name] = value
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
-        self.link_calc_result = network_calc(spec)
+        self.network_calc_result = network_calc(spec)
 
     def process_function_file(self, file_name):
         NAMESPACE=("inro.emme.data.function.function_transaction" )
@@ -202,6 +229,32 @@ class EmmeProject:
         NAMESPACE = "inro.emme.matrix_calculation.matrix_balancing"
         compute_matrix = self.m.tool(NAMESPACE)
         report = compute_matrix(spec) 
+
+    def import_matrices(self, matrix_name):
+        NAMESPACE = "inro.emme.data.matrix.matrix_transaction"
+        process = self.m.tool(NAMESPACE)
+        process(transaction_file = matrix_name,
+            throw_on_error = False,
+            scenario = self.current_scenario)
+
+    def transit_line_calculator(self, **kwargs):
+        spec = json_to_dictionary("transit_line_calculation")
+        for name, value in kwargs.items():
+            spec[name] = value
+        
+        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+        network_calc = self.m.tool(NAMESPACE)
+        self.transit_line_calc_result = network_calc(spec)
+
+    def transit_segment_calculator(self, **kwargs):
+        spec = json_to_dictionary("transit_segment_calculation")
+        for name, value in kwargs.items():
+            spec[name] = value
+        
+        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+        network_calc = self.m.tool(NAMESPACE)
+        self.transit_segment_calc_result = network_calc(spec)
+
 
 def json_to_dictionary(dict_name):
 

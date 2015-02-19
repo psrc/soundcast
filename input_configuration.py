@@ -11,31 +11,34 @@ base_inputs = 'R:/soundcast/inputs/' + scenario_name
 network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
 network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
-recipients = ['SChildress@psrc.org']
+recipients = []
 
-# Script and subprocess controls 
+# Script and subprocess controls
+ 
+# Only update parking for future-year analysis!
+run_update_parking = False
+run_convert_hhinc_2000_2010 = True
 run_parcel_buffering = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
+run_copy_large_inputs =True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
-should_build_shadow_price = True
+should_build_shadow_price =True
 run_skims_and_paths = True
-run_truck_model = True
+run_truck_model =True
 run_supplemental_trips = True
 run_daysim = True
 run_network_summary = True
 run_soundcast_summary = True
 run_travel_time_summary = True
-# Only update parking for future-year analysis!
-run_update_parking = False
+
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 1, 1, 1]
 # start building shadow prices - only run work locations
-shadow_work = [1, 1, 1, 1]
+shadow_work = [2, 1, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
@@ -44,52 +47,45 @@ parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be c
 main_log_file = 'soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
-good_thing = ["cookie", "pickle", "puppy", "beer", "snack", "nap","venti cinnamon dolce latte"]
+good_thing = ["cookie", "run", "puppy", "beer", "snack", "nap","venti cinnamon dolce latte"]
 
+# These files are often missing from a run.  We want to check they are present and warn if not.
+# Please add to this list as you find files that are missing.
+commonly_missing_files = ['buffered_parcels.dat', 'tazdata.in']
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
 STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
-max_iter = 50              # Assignment Convergence Criteria
-b_rel_gap = 0.0001         # Assignment Convergence Criteria
-MIN_EXTERNAL = 3733-1      #zone of externals (subtract 1 because numpy is zero-based)
-MAX_EXTERNAL = 3750-1      #zone of externals (subtract 1 because numpy is zero-based)
+max_iter = 50             # Assignment Convergence Criteria
+best_relative_gap = 0.01  # Assignment Convergence Criteria
+relative_gap = .0001
+normalized_gap = 0.01
+
+MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
+MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
 HIGH_TAZ = 3700
 LOW_PNR = 3751
 HIGH_PNR = 4000
 
-# this is the zone -1 one because numpy is zone based
-SPECIAL_GENERATORS = {"SeaTac":982,"Tacoma Dome":3109,"exhibition center":630, "Seattle Center":437}
+SPECIAL_GENERATORS = {"SeaTac":983,"Tacoma Dome":3110,"exhibition center":631, "Seattle Center":438}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
-project_list = ['Projects/5to6/5to6.emp',
-                      'Projects/6to7/6to7.emp',
-                      'Projects/7to8/7to8.emp',
-                      'Projects/8to9/8to9.emp',
-                      'Projects/9to10/9to10.emp',
-                      'Projects/10to14/10to14.emp',
-                      'Projects/14to15/14to15.emp',
-                      'Projects/15to16/15to16.emp',
-                      'projects/16to17/16to17.emp',
-                      'Projects/17to18/17to18.emp',
-                      'Projects/18to20/18to20.emp',
-                      'Projects/20to5/20to5.emp' ]
 
-## Alternate creation for project_list
-#tods = sound_cast_net_dict.keys()
-#proj_list = b = ['Projects/' + tod + '/' + tod + '.emp.' for tod in tods]
+# Time of day periods
+tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
+project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
 ## HDF5 Groups and Subgroups
 hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
-hdf5_emme_subgroups = ["5to6","6to7","7to8","8to9","9to10","10to14","14to15","15to16","16to17","17to18","18to20","20to5"]
+hdf5_emme_subgroups = tods
 emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit"]
 hdf5_urbansim_subgroups = ["Households","Parcels","Persons"]
 hdf5_freight_subgroups = ["Inputs","Outputs","Rates"]
 hdf5_daysim_subgroups = ["Household","Person","Trip","Tour"]
 
 # Skim for time, cost
-skim_matrix_designation_all_tods = ['t','c']
-skim_matrix_designation_limited = ['d']
+skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
+skim_matrix_designation_limited = ['d']    # Distance skim
 
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
@@ -98,12 +94,6 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
-bike_walk_matrix_dict = {'walk':{'time' : 'walkt', 'description' : 'walk time',
-                                 'demand' : 'walk', 'modes' : ["w", "x"],
-                                 'intrazonal_time' : 'izwtim'},
-                         'bike':{'time' : 'biket', 'description' : 'bike time',
-                                 'demand' : 'bike', 'modes' : ["k", "l", "q"],
-                                 'intrazonal_time' : 'izbtim'}}
 
 # Transit Inputs:
 transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
@@ -141,17 +131,21 @@ hdf_transit_filename = 'inputs/4k/transit.h5'
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
 ext_spg_trips = 'outputs/supplemental/ext_spg/'
 supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
-hh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/landuse/tazdata.in'
-pums_data_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/pums/' 
-externals_loc = 'R:/SoundCast/Inputs/2010/supplemental/generation/externals.csv'
+hh_trip_loc = '/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = '/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = '/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = '/supplemental/generation/pums/' 
+externals_loc = '/supplemental/generation/externals.csv'
+# Special generator zones and demand (dictionary key is TAZ, value is demand)
+spg_general = {3110: 1682,    
+               631: 7567, 
+               438: 14013}    
+spg_airport = {983: 101838}
 
-# Assuming AM skims (8 to 9 AM)
+# Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'
 pm_skim_file_loc = 'inputs/17to18.h5'
-base_skim_file_loc = 'R:/SoundCast/Inputs/2010/seed_skims/7to8.h5'
 trip_table_loc = 'outputs/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
@@ -237,24 +231,6 @@ tod_list = ['am','md', 'pm', 'ev', 'ni']
 LOW_STATION = 3733
 HIGH_STATION = 3750
 EXTERNAL_DISTRICT = 'ga20'
-truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 'tcushar', 'whlsshar', 'const', 
-                             'special_gen_light_trucks','special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                             'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-
-truck_tod_factor_dict = {'lttrk' : {'daily_trips' : 'mflgtod', 
-                                    'am' : '.194', 'md' : '.346', 'pm' : '.240', 'ev' : '.126', 'ni' : '.094'}, 
-                         'mdtrk' : {'daily_trips' : 'mfmedod', 
-                                    'am' : '.208', 'md' : '.417', 'pm' : '.204', 'ev' : '.095', 'ni' : '.076'}, 
-                         'hvtrk' : {'daily_trips' : 'mfhvyod', 
-                                    'am' : '.209', 'md' : '.417', 'pm' : '.189', 'ev' : '.071', 'ni' : '.063'}}
-
-truck_emp_dict = {"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup" : "prodsh*manu", 
-                  "manue" : "eqshar * manu", "tcu" : "tcushr * wtcu", "whls" : "whlssh * wtcu", 
-                  "retail" : "ret1 + ret2 + ret3", "fires" : "fires1 + fires2 + fires3", 
-                  "govedu" : "gov1 + gov2 + gov3 + edu"}
-
-origin_emp_dict = {'ret1' : '109', 'ret2' : '110', 'ret3' : '111', 'fires1' : '112', 'fires2' : '113', 'fires3' : '114', 
-                   'gov1' : '115', 'gov2' : '116', 'gov3' : '117','edu' : '118', 'wtcu' : '119', 'manu' : '120'}
 					
 #################################### SOUNDCAST SUMMARY ####################################
 h5_results_file = 'outputs/daysim_outputs.h5'
@@ -265,7 +241,6 @@ guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
 
-parcel_decay_file = 'inputs/buffered_parcels.dat'
 travel_time_file = 'inputs/ObservedTravelTimes.xlsx'
 
 topsheet = 'outputs/Topsheet.xlsx'
@@ -278,3 +253,6 @@ run_dest_choice_report = True
 run_long_term_report = True
 run_time_choice_report = True
 run_district_summary_report = True
+
+output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
+               'screenline_volumes', 'Topsheet.xlsx']

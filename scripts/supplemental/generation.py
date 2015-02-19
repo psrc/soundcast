@@ -4,6 +4,10 @@ import pandas as pd
 import os,sys
 import h5py
 from input_configuration import *
+from EmmeProject import *
+
+# Global variable to hold taz id/index; populated in main
+dictZoneLookup = {}
 
 # Initialize working dictionaries
 hhs_by_income = {"inc1" : { "column" : "102", "hhs" : []},
@@ -39,6 +43,14 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 
 bal_to_attractions = ["colpro"]
 
+# Input locations
+hh_trip_loc = base_inputs + '/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = base_inputs + '/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = base_inputs + '/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = base_inputs + '/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = base_inputs + '/supplemental/generation/pums/' 
+externals_loc = base_inputs + '/supplemental/generation/externals.csv'
+
 # Define column values for household and employment data
 hh_cols = [1, 101]    # Begin and end column numbers for all household-related cross classification data in HHEMP
 emp_cols = [109, 125]    # Begin and end columns for all employement-related cross class data in HHEMP
@@ -51,6 +63,18 @@ def json_to_dictionary(dict_name):
     input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
+
+def network_importer(EmmeProject):
+    for scenario in list(EmmeProject.bank.scenarios()):
+            EmmeProject.bank.delete_scenario(scenario)
+        #create scenario
+    EmmeProject.bank.create_scenario(1002)
+    EmmeProject.change_scenario()
+        #print key
+    EmmeProject.delete_links()
+    EmmeProject.delete_nodes()
+    EmmeProject.process_modes('inputs/networks/' + mode_file)
+    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)
 
 def init_dir(filename):
     try:
@@ -137,14 +161,18 @@ def add_special_gen(trip_table):
     # Add special generator home-based (spghbo) other and 75% of airport (spgapt) trips
     # to general home-based attractions (hboatt)
     for key, value in spg_general.iteritems():
-        trip_table.iloc[key - 1]["hboatt"] += value
+        #trip_table.iloc[key - 1]["hboatt"] += value
+        trip_table.iloc[dictZoneLookup[key]]["hboatt"] += value
 
     # Add 25% of airport trips to work-based attractions
-    trip_table.iloc[spg_airport.keys()[0] - 1]["hboatt"] += airport_hb_share * spg_airport.values()[0]
-    trip_table.iloc[spg_airport.keys()[0] - 1]["wkoatt"] += airport_wb_share * spg_airport.values()[0]
+    #trip_table.iloc[spg_airport.keys()[0] - 1]["hboatt"] += airport_hb_share * spg_airport.values()[0]
+    trip_table.iloc[dictZoneLookup[spg_airport.keys()[0]]]["hboatt"] += airport_hb_share * spg_airport.values()[0]
+    #trip_table.iloc[spg_airport.keys()[0] - 1]["wkoatt"] += airport_wb_share * spg_airport.values()[0]
+    trip_table.iloc[dictZoneLookup[spg_airport.keys()[0]]]["wkoatt"] += airport_wb_share * spg_airport.values()[0]
 
     # Add (unbalanced) externals
     externals = pd.DataFrame(pd.read_csv(externals_loc, index_col="taz"))
+    #externals.index = [taz_num-1 for taz_num in externals.index]    # convert to index from TAZ?
     externals.columns = trip_col
     trip_table = trip_table.append(externals)
 
@@ -158,22 +186,28 @@ def balance_trips(trip_table, bal_to_attractions, include_ext):
         if key not in bal_to_attractions:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                #ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
+                ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
+                dictZoneLookup
             else:
                 ext = 0
-            ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+            #ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
+            #ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
             bal_factor = (prod - ext)/(att - ext)
-            trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
+            #trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
+            trip_table[value].loc[1:HIGH_TAZ] *= bal_factor
             print "key " + key + ", " + value + ' ' + str(bal_factor)
         # Balance productions to attractions for college trips
         else:
             prod = trip_table[key].sum() ; att = trip_table[value].sum()
             if include_ext:
-                ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL].sum()
+                #ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
+                ext = trip_table[key].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
             else:
                 ext = 0
             bal_factor = (att - ext)/(prod - ext)
-            trip_table[key].loc[0:HIGH_TAZ-1] *= bal_factor
+            #trip_table[key].loc[0:HIGH_TAZ-1] *= bal_factor
+            trip_table[key].loc[1:HIGH_TAZ] *= bal_factor
             print "value " + value + ", " +key + ' ' + str(bal_factor)
 
 # Load household PUMS data
@@ -182,9 +216,18 @@ inc_k12_dict = json_to_dictionary('inc_k12_dict')
 inc_college_dict = json_to_dictionary('inc_college_dict')
 inc_veh_dict = json_to_dictionary('inc_veh_dict')
 
+my_project = EmmeProject(supplemental_project)   
+
+
 def main():
     print "Calculating supplemental trips generated by exterals, special generators, and group quarters."
+    global dictZoneLookup
+     
+    network_importer(my_project)
 
+
+    #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
+    dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.current_scenario.zone_numbers))
     # Initialize directory
     for file in [trip_table_loc, gq_trips_loc]:
         init_dir(file)
@@ -218,11 +261,14 @@ def main():
 
     # Create empty data frames to hold results
     trips_by_purpose = pd.DataFrame(np.zeros([HIGH_TAZ, 24]), 
-                                    columns = [str(i) for i in xrange(1, 24 + 1)])
+                                    columns = [str(i) for i in xrange(1, 24 + 1)],
+                                    index = taz_data.index)
     nonhh_trips_by_purp = pd.DataFrame(np.zeros([3700,24]), 
-                                    columns = [str(i) for i in xrange(1, 24 + 1)])
+                                    columns = [str(i) for i in xrange(1, 24 + 1)],
+                                    index = taz_data.index)
     gq_trips = pd.DataFrame(np.zeros([3700,24]), 
-                                    columns = [str(i) for i in xrange(1, 24 + 1)])
+                                    columns = [str(i) for i in xrange(1, 24 + 1)],
+                                    index = taz_data.index)
 
     # Compute household trip rates by TAZ and by purpose
     for purpose in xrange(purp_cols[0], purp_cols[1] + 1):
@@ -238,9 +284,12 @@ def main():
         gq_trip_rate.columns = ['col']
         for zone in xrange(1,HIGH_TAZ + 1):
             #print 'zone ' + str(zone)
-            hhs1 = pd.DataFrame(hhs.iloc[zone-1])
-            nonhhs1 = pd.DataFrame(nonhhs.iloc[zone-1])
-            gq1 = pd.DataFrame(gq.iloc[zone-1])
+            #hhs1 = pd.DataFrame(hhs.iloc[zone-1])
+            hhs1 = pd.DataFrame(hhs.loc[zone])
+            #nonhhs1 = pd.DataFrame(nonhhs.iloc[zone-1])
+            nonhhs1 = pd.DataFrame(nonhhs.loc[zone])
+            #gq1 = pd.DataFrame(gq.iloc[zone-1])
+            gq1 = pd.DataFrame(gq.loc[zone])
             hhs1.index = [str(i) for i in xrange(hh_cols[0], hh_cols[1])]
             nonhhs1.index = [str(i) for i in xrange(emp_cols[0], emp_cols[1])]
             gq1.index = [str(i) for i in xrange(122, 124 + 1)]
@@ -251,9 +300,12 @@ def main():
             dot1 = trip_rate['col'].dot(hhs1['col'])
             dot2 = nh_trip_rate['col'].dot(nonhhs1['col'])
             dot3 = gq_trip_rate['col'].dot(gq1['col'])
-            trips_by_purpose[str(purpose)].loc[zone-1] = dot1
-            nonhh_trips_by_purp[str(purpose)].loc[zone-1] = dot2
-            gq_trips[str(purpose)].loc[zone-1] = dot3
+            #trips_by_purpose[str(purpose)].loc[zone-1] = dot1
+            trips_by_purpose[str(purpose)].loc[zone] = dot1
+            #nonhh_trips_by_purp[str(purpose)].loc[zone-1] = dot2
+            nonhh_trips_by_purp[str(purpose)].loc[zone] = dot2
+            #gq_trips[str(purpose)].loc[zone-1] = dot3
+            gq_trips[str(purpose)].loc[zone] = dot3
             trip_table = trips_by_purpose + nonhh_trips_by_purp
 
     # Rename columns
@@ -281,9 +333,9 @@ def main():
     trip_table.columns = trip_col
 
     # Fill empty rows with placeholder zeros
-    externals = trip_table.loc[LOW_STATION:HIGH_STATION]
-    base = trip_table.loc[:HIGH_TAZ-1]
-    placeholder_index = [[str(i) for i in xrange(HIGH_TAZ,LOW_STATION)]+[str(i) for i in xrange(LOW_PNR,HIGH_PNR)]]
+    externals = trip_table.loc[MIN_EXTERNAL:MAX_EXTERNAL]
+    base = trip_table.loc[:HIGH_TAZ]
+    placeholder_index = [str(i) for i in xrange(LOW_PNR,HIGH_PNR)]
     placeholder_rows = pd.DataFrame(index=placeholder_index,columns=trip_col)
     trip_table = base.append([placeholder_rows, externals])
     trip_table = trip_table.sort_index(axis=0)
@@ -293,8 +345,8 @@ def main():
     trip_table = trip_table.fillna(0)
 
     # Write results to CSV
-    trip_table.to_csv(trip_table_loc, index_label="index")
-    gq_append.to_csv(gq_trips_loc, index_label="index")
+    trip_table.to_csv(trip_table_loc, index_label="taz")
+    gq_append.to_csv(gq_trips_loc, index_label="taz")
 
 if __name__ == "__main__":
     main()
