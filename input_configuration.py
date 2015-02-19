@@ -51,7 +51,7 @@ good_thing = ["cookie", "run", "puppy", "beer", "snack", "nap","venti cinnamon d
 
 # These files are often missing from a run.  We want to check they are present and warn if not.
 # Please add to this list as you find files that are missing.
-commonly_missing_files = ['inputs/buffered_parcels.dat', '/supplemental/generation/landuse/tazdata.in']
+commonly_missing_files = ['buffered_parcels.dat', 'tazdata.in']
 
 #################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
