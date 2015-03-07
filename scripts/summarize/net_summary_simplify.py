@@ -21,6 +21,7 @@ import xlrd
 import time
 import summary_functions as scf
 from input_configuration import *
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 
 

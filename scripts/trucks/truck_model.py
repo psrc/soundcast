@@ -14,6 +14,7 @@ import subprocess
 from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from input_configuration import *
 from EmmeProject import *
 

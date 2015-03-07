@@ -21,6 +21,8 @@ import xlautofit
 import math
 from input_configuration import *
 from summary_functions import *
+import sys
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     print('---Begin District to District Summary compilation---')

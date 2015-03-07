@@ -15,6 +15,8 @@
 #!python.exe
 # PSRC SoundCast Model Runner
 # ===========================
+
+
 import os
 import sys
 import datetime
@@ -26,12 +28,13 @@ from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
 import logging
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import datetime
 import shutil 
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from sc_email import *
 from data_wrangling import *

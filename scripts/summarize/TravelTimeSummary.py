@@ -18,6 +18,7 @@ import get_skims
 import xlautofit
 from input_configuration import *
 from summary_functions import get_differences
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 skim_location = 'inputs'
 

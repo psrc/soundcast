@@ -17,6 +17,7 @@ import os.path
 sys.path.append("C:\\Program Files (x86)\\ArcGIS\\Desktop10.2\\bin")
 sys.path.append("C:\\Program Files (x86)\\ArcGIS\\Desktop10.2\\arcpy")
 sys.path.append("C:\\Program Files (x86)\\ArcGIS\\Desktop10.2\\AcrToolbox\\Scripts")
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 import arcpy
 from arcpy import env

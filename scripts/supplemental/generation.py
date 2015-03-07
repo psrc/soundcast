@@ -4,7 +4,9 @@ import pandas as pd
 import os,sys
 import h5py
 from input_configuration import *
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
+
 
 # Global variable to hold taz id/index; populated in main
 dictZoneLookup = {}

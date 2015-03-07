@@ -19,7 +19,10 @@ import sys
 import pandas as pd
 import math
 import time
+import os
 from input_configuration import *
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+
 
 def copy_sheet(from_book, from_sheet_name, to_book, to_sheet_name): #Copies data from one sheet to another (does not preserve formatting)
     from_sheet = from_book.sheet_by_name(from_sheet_name)

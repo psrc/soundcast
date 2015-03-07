@@ -17,6 +17,7 @@ from multiprocessing import Pool
 import logging
 import datetime
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from input_configuration import *
 from EmmeProject import *
 

@@ -33,6 +33,7 @@ from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from input_configuration import *
 
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
