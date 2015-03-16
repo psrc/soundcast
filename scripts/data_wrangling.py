@@ -24,7 +24,6 @@ import random
 import shutil
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
-from sc_email import *
 from logcontroller import *
 from input_configuration import *
 import input_configuration # Import as a module to access inputs as a dictionary

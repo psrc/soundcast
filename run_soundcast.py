@@ -36,7 +36,6 @@ import random
 import datetime
 import shutil 
 from input_configuration import *
-from sc_email import *
 from data_wrangling import *
 
 

@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import os
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 parcels_urbansim = pd.read_csv("inputs\\parcel_buffer\\parcels_urbansim.txt", delim_whitespace=True)
