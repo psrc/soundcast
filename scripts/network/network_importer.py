@@ -10,7 +10,6 @@ import subprocess
 import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
-sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from input_configuration import *
 
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -237,6 +236,8 @@ def run_importer(project_name):
         my_project.process_modes('inputs/networks/' + mode_file)
         
         my_project.process_base_network('inputs/networks/' + value + base_net_name)
+        my_project.process_base_network('inputs/networks/fixes/ferries/' + value + base_net_name)
+
         my_project.process_turn('inputs/networks/' + value + turns_name)
     #my_project.process_shape('/inputs/network' + tod_network + shape_name)
 
