@@ -275,7 +275,6 @@ def main():
 #### ALL DONE
 #### ##################################################################
     clean_up()
-    send_completion_email(recipients)
     print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 
