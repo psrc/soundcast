@@ -106,7 +106,7 @@ def WorkDistrictSummary(data1, data2, name1, name2, location, districtfile):
     DistrictDict = {}
     for i in range(len(districtfile['TAZ'])):
         if districtfile['TAZ'][i] not in DistrictDict and math.isnan(districtfile['TAZ'][i]) is False:
-            DistrictDict.update({int(districtfile['TAZ'][i]):districtfile['New DistrictName'][i]})
+            DistrictDict.update({int(districtfile['TAZ'][i]):districtfile['District'][i]})
     worker_1['Origin'] =  worker_1['hhtaz'].map(DistrictDict)
     worker_2['Origin'] = worker_2['hhtaz'].map(DistrictDict)
     worker_1['Destination'] = worker_1['pwtaz'].map(DistrictDict)
