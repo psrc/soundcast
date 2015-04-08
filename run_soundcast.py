@@ -193,6 +193,10 @@ def run_all_summaries():
    if run_network_summary and run_soundcast_summary and run_travel_time_summary:
       subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
 
+   #Create a daily network with volumes. Will add counts and summary emme project. 
+   if run_create_daily_bank:
+      subprocess.call([sys.executable, 'scripts/summarize/daily_bank.py'])
+
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
