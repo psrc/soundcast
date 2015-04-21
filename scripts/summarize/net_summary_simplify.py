@@ -575,6 +575,9 @@ def highway_summary(network, net_summary, format_sheet, times, screenlines, coun
         for tod in counts_by_tod.index:
             
             counts_by_tod.loc[tod, 'Counts (Observed)'] = scf.get_counts(counts_output, tod)
+            # hack to fix double counting of 5 to 6 period in 20 to 5
+            if tod == '20 to 5':
+                counts_by_tod.loc[tod, 'Counts (Observed)'] =  counts_by_tod.loc[tod, 'Counts (Observed)'] - counts_by_tod.loc['5 to 6', 'Counts (Observed)']
             counts_by_tod.loc[tod, 'Counts (' + model_run_name + ')'] = counts_output['vol' + tod.replace(' ', '')].sum()
 
         countstime.write_string(0, 0, 'Time Period', header_format)
