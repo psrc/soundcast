@@ -20,12 +20,6 @@ sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am
                        '18to20' : 'ev', '20to5' : 'ni'}
 load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
 
-mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 
-                      'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 
-                      'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
-                      'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
-                      'ahijstuvbw' : 'asehdimjvutbpw'}
-
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt' 
 base_net_name = '_roadway.in'
@@ -176,7 +170,7 @@ def import_tolls(emmeProject):
                              5: "@trkc1",
                              6: "@trkc2",
                              7: "@trkc3"},
-              revert_on_error=False)
+              revert_on_error=True)
 
     import_attributes(attr_file[1], scenario = emmeProject.current_scenario,
               column_labels={0: "inode",
@@ -187,12 +181,12 @@ def import_tolls(emmeProject):
                              5: "@trkc1",
                              6: "@trkc2",
                              7: "@trkc3"},
-              revert_on_error=False)
+              revert_on_error=True)
 
     
     #@rdly:
     import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
-             revert_on_error=False)
+             revert_on_error=True)
     emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .30")
 
 # set bridge/ferry flags
@@ -202,7 +196,7 @@ def import_tolls(emmeProject):
               column_labels={0: "inode",
                              1: "jnode",
                              2: "@brfer"},
-              revert_on_error=False)
+              revert_on_error=True)
 
     
     # change modes on tolled network, but exclude some bridges/ferries
@@ -251,20 +245,6 @@ def run_importer(project_name):
         #create_noToll_network(my_project)
 
 def main():
-    for tod in tod_networks:
-        filepath = os.path.join('inputs/networks/', tod + base_net_name )
-        filepath = filepath.replace('\\','/')
-        f = open(filepath, "r")
-        lines = f.readlines()
-        f.close()
-        f = open(filepath, "w")
-        for line in lines:
-            line = str(line)
-            line = multiwordReplace(line, mode_crosswalk_dict)
-            f.write(line)
-        f.close()
-        print 'done'
-   
     
     run_importer(network_summary_project)
     
