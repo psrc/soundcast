@@ -41,12 +41,9 @@ a fd25 =(length * 60 / ul2) * (1 + .6 * put(.366 * volau / (ul1 * lanes)
 a fd27 =(length * 60 / ul2) * (1 + .6 * put(.366 * volau / (ul1 * lanes)
         ) ^ 5.6) + el1 / ((1 - get(1)) .max. .25)
 a fd29 =(length * 60 / ul2)
-a fd31 =ul2 + 0 + 60 / lanes * (sqrt(1 + (.366 * ((volau + el2) / ul1) /
-         lanes) ^ 2) - 1)
-a fd33 =ul2 + 0 + 60 / lanes * (sqrt(1 + (.366 * (volau / ul1) / lanes)
-         ^ 2) - 1)
-a fd35 =ul2 + 0 + 60 / lanes * (sqrt(1 + (.366 * (volau / ul1) / lanes)
-         ^ 2) - 1)
+a fd31 =ul2
+a fd33 =ul2
+a fd35 =ul2
 a fd40 =ul2
 a ft4  =(length * 60 / ul2)
 a ft5  =ul2
