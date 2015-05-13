@@ -39,7 +39,7 @@ def copy_daysim_code():
     print 'Copying Daysim executables...'
     if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
        os.makedirs(os.path.join(os.getcwd(), 'daysim'))
-    shcopy(daysim_code, 'daysim')
+    dir_util.copy_tree(daysim_code, 'daysim')
 
 
 @timed
