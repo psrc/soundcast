@@ -38,8 +38,6 @@ import shutil
 from input_configuration import *
 from data_wrangling import *
 
-
-
 @timed
 def parcel_buffering():
     copy_parcel_buffering_files()
@@ -118,8 +116,6 @@ def build_shadow_only():
             print "done with shadow prices"
             shadow_con_file.close()
 
-
-@timed
 def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
      if run_truck_model:
@@ -206,6 +202,8 @@ def main():
     if run_parcel_buffering:
         parcel_buffering()
 
+    if run_parcel_buffer_summary:
+        subprocess.call([sys.executable, 'scripts/summarize/parcel_summary.py'])
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
