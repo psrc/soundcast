@@ -103,9 +103,9 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
-                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
-                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
 transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
                             '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
 
