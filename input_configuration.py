@@ -3,7 +3,7 @@
 #################################### RUN SOUNDCAST ####################################
 
 # Scenario and input paths
-base_year = '2010'
+base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
