@@ -10,16 +10,33 @@ Soundcast is a collection of statistical models used by the Puget Sound Regional
 
 The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using INRO's Emme software. If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports. 
 
-![Alt text](http://i61.tinypic.com/2u5xjwn.jpg)
+![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
 
-## Soundcast Setup
+## Hardware Requirements
+	- 100 GB disk space for each model run
+	- 32 GB RAM recommended
+	- Minimum of 12 processors
 
-Scripts
+## Software Requirements
+	- INRO Emme 4 License, with capability for processing 4000-zone matrices
+	- Only tested on 64-bit Windows 7 OS
+	- Anaconda Python Package (Python 2.7 with helper libraries included)
 
-## 
-This code is intended to control the exchange of data between the PSRC's network model in Inro's Emme 4.0 
-software to our new Activity Based Model (ABM) system that is being developed in the DaySim software. 
+## Initial Setup
 
+All Soundcast scripts are stored within a public [GitHub repository](https://github.com/psrc/soundcast). If you're familiar with Git technology, you can [clone](http://git-scm.com/docs/git-clone) the repository on your modeling machine. 
+
+Alternatively, you can download all the code as a ZIP file. 
+
+![Download GitHub ZIP](http://oi60.tinypic.com/dxmo2u.jpg)
+
+### Python Dependencies and PATH
+
+### Input Configuration
+
+### Inputs
+
+## Skimming and Assignment Scripts
 DaySim requires several measures of accessibility from our network model in the form of matrices of 
 travel times, costs, and distances. This Python code is intended to:
 
