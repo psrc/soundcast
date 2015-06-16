@@ -1,14 +1,6 @@
-# Soundcast
+# Soundcast User's Guide
 
-PSRC's Activity-Based Travel Model
-
-## Overview
-
-Soundcast is a collection of statistical models used by the Puget Sound Regional Council to forecast regional travel around the Puget Sound area of Washington state. The model includes several different components to estimate details of travel choices over time. This User's Guide focuses on practical steps to implement Soundcast, but more technical details are available from [PSRC's website](http://www.psrc.org/assets/11924/SoundCastDesign2014.pdf)
-
-## Model Structure
-
-The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using INRO's Emme software. If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports. 
+The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using [INRO's Emme software](http://www.inrosoftware.com/). If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports. 
 
 ![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
 
@@ -30,265 +22,230 @@ Alternatively, you can download all the code as a ZIP file.
 
 ![Download GitHub ZIP](http://oi60.tinypic.com/dxmo2u.jpg)
 
-### Python Dependencies and PATH
+### Python Versions and PATH
+Emme software includes a specific Python install, which must be used to run Soundcast scripts. This requirement complicates initial setup because Emme Python might conflict with other versions of Python previously installed on a machine. To ensure Emme Python is being used by default when scripts are called, you must set the **environment variables**. 
 
-### Input Configuration
+In Windows 7, you can access these settings by searching for 'environment variables' in the start menu search bar. Create a new system variable called 'PYTHONPATH' and set its value to the location of the Emme Python executable (python.exe). This path may be similar to this:
 
-### Inputs
+	- C:\Program Files (x86)\INRO\Emme\Emme 4\Emme-4.1.0\Python27
 
-## Skimming and Assignment Scripts
-DaySim requires several measures of accessibility from our network model in the form of matrices of 
-travel times, costs, and distances. This Python code is intended to:
+The PYTHONPATH variable is a reference to that directory location. This variable reference then must be added to the main "Path" variable. Edit the Path variable by adding in "%PYTHONPATH%" to the end of the Path string, separated by a semi-colon from any existing paths:
 
-	+ Import estimates of personal travel by vehicle class and time of day from DaySim
-	+ Estimate Truck Trips by time of day for:
-		- Light Trucks
-		- Medium Trucks
-		- Heavy Trucks
-	+ Estimate any special generators of travel not captured in DaySim for items like
-		- External Stations
-		- Sport's Stadiums
-		- Airports
-		- Convention Centers
-	+ Run Higway, Transit and Non-Motorized Assignments for various vehicle classes and times of day
-	+ Generate matrices of travel information related to Time, Cost and Distance for all od-pairs in our 4000 zone travel model system.
+	- ...;%PYTHONPATH%;
 
-The vehicle skims include 756 matrices (12 time periods x 63 skims). Previous data exchanges between our 
-model systems relied upon transfer via comma-separated formats.  We have implemented code that utilizes 
-an HDF5 database as a storage container for all Emme model output.  The intent is to use hdf5 during 
-runtime for all model processes as there are a variety of api's in various languages to access the data. 
-For now we are assuming an HDF5 database for each time period but this might change as we move forward 
-with implementation.
+This process directs any Python script calls to use the specific Python install specified in the PYTHONPATH variable, which is now set as the Emme version. 
 
-##Emme Data Structure
-To effectively utilize multiple cores on a pc for model runs, we need to have a separate Emme databank 
-and corresponding Emme project for every time period that we wish to run in parallel.  So in order to run 
-12 highway assignments concurrently, we need to have 12 distinct project files with only one databank in 
-each.
+### Python Libraries
 
-The current folder structure is:
+The Emme Python install includes many proprietary libraries used by the Emme software. However, the Soundcast scripts use a number of other libraries that are not included in the standard installation. It is recommended to install the entire Anaconda Python package, which includes a version of Python 2.7 and most of the required libraries. Especially useful among the libraries is "pip", which allows for very quick and simple installation of any other library not included in Anaconda. Once pip is installed, obtaining libraries is a simple command-line call to find, download, and install a library, used in the command prompt as follows:
 
-Root Directory (for example, C:\ABM)
- -> Banks
-    -> Bank1
-    -> Bank2
-    -> Bank3
-    -> Bank4
-    etc.
- -> Projects
-    -> Project1
-    -> Project2
-    -> Project3
-    -> Project4
-    etc.
+	- pip install pandas
 
-During code testing, we are relying on hardcoding all paths to the project files in the code.  Once 
-testing of the code is complete, we plan to implement a refined approach to selecting the projects either 
-through the use of a control file or possibly a tkinter based dialog selection using tkFileDialog.
+This command will download the latest version of the 'pandas' Python library and install it in the Anaconda Python directory. Unfortunately, there may be some confusion because of the required Emme Python versions, but these libraries, once installed with pip, can be copied over easily to the proper directory. If you run into Python library installation issues, PSRC staff will help direct details of installation. 
 
-##Input Files##
-As of now, there are a variety of input files that exist in various ascii formats.  These files currently 
-reside in the "Inputs" folder under each bank.  The inputs inlcude:
+If, rather than installing Anaconda, you'd rather use pip to renew or install specific libraries, the following are the libraries required in Soundcast Python scripts:
 
-	1. user_classes.txt (dictionary)
-		This file contains relevant data about the vehicle classes used in the skimming process. 
+	- pandas
+	- numpy
+	- h5py
+	- xlrd
+	- xlsxwriter
+	- xlautofit
+	- pysal
 
-It is used to create all relevant matrices, link attributes and assignment 
-and skim parameters used in the course of the run.
-	2. vdfs.txt (input)
-		This file contains the specification of the volume delay functions need for assignments in Emme
-	3. tolls.txt (input)
-		This file contains the specification of the link level tolls for the network
-	4. link_calculation.txt (Emme Tool Specification)
-		This file contains the specification for the link calculator tool from Emme Modeller
-	5. node_calculation.txt (Emme Tool Specification)
-		This file contains the specification for the node calculator tool from Emme Modeller
-	6. general_attribute_based_skim.txt (Emme Tool Specification)
-		This file contains the specification for Path Based Skimming of a network attribute from Emme Modeller
-	7. general_generalized_cost_skim.txt (Emme Tool Specification)
-		This file contains the specification for Path Based Skimming of an od object from Emme Modeller
-	8. general_path_based_assignment.txt (Emme Tool Specification)
-		This file contains the specification for Path Based Assignments from Emme Modeller
-	9. general_path_based_volume.txt (Emme Tool Specification)
-		This file contains the specification for Path Based Class Specific volumes from Emme Modeller
+## Run Configuration
+Once Python paths and libraries are defined and installed, inputs must be provided and configuration settings specified. Input locations and run settings are controlled centrally from the file **"input_configuration.py".** This is a Python script, but it simply holds variable definitions which are passed into other scripts when the model runs. The input configuration contains paths to input directories, scenario names and analysis years, and also controls number of iterations and convergence criteria. Additionally, it allows finer control over specific model components. For instance, all demand, skimming, and assignment iterations can be turned off, and only specific summarization scripts run, or the model can be set to stop after importing certain input files. 
 
-We are working on a solution to generalize the creation of as many of these inputs as possible.  The vdfs 
-and tolls file could reside in our hdf5 datastore.  The Emme specifications might be auto-generated based 
-on the inputs in the user_class dictionary.  For now, these specification files work for networks with 21 
-user classes.
+Scenarios and input paths are defined as follows by default. Users must point to the location of these inputs and ensure the inputs follow a format as defined later in this guide. 
 
-##Time Periods
-DaySim calculates travel for all hours of the day.  In order to provide meaningful accessibility data to 
-DaySim and still maintain reasonable model run times, the PSRC network model will be various time periods 
-per day for various modal purposes.  The difference by mode reflects the availability of network related 
-data by mode and time of day.  
+	- base_year = '2010'  # This should always be 2010 unless the base year changes
+	- scenario_name = '2040'
+	- daysim_code = 'R:/soundcast/daysim' 
+	- master_project = 'LoadTripTables'
+	- base_inputs = 'R:/soundcast/inputs/' + scenario_name
+	- network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
+	- network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
-###Time Periods for Highway Assignments
-The time periods for Highway Assignments are are defined as:
- 
-	1. Early AM		5:00 am - 6:00 am
-	2. AM Peak Hour 1	6:00 am - 7:00 am
-	3. AM Peak Hour 2	7:00 am - 8:00 am
-	4. AM Peak Hour 3	8:00 am - 9:00 am
-	5. AM Peak Hour 4	9:00 am - 10:00 am
-	6. Midday		10:00 am - 2:00 pm
-	7. PM Peak Hour 1	2:00 pm - 3:00 pm
-	8. PM Peak Hour 2	3:00 pm - 4:00 pm
-	9. PM Peak Hour 3	4:00 pm - 5:00 pm
-	10. PM Peak Hour 4	5:00 pm - 6:00 pm
-	11. Evening		6:00 pm – 8:00 pm
-	12. Overnight		8:00 pm - 5:00 am
+The following variables act as control parameters for the model. They are mostly self-explanatory by their variable name. 
 
-###Time Periods for Transit Assignments
-The time periods for Transit Assignments are are defined as:
- 
-	1. AM			6:00 am - 9:00 am
-	2. Midday		9:00 am - 3:00 pm
-	3. PM			3:00 pm - 6:00 pm
-	4. Evening		6:00 pm - 8:00 pm
-	5. Night		8:00 pm - 6:00 am
+	- run_update_parking = False
+	- run_convert_hhinc_2000_2010 = False
+	- run_parcel_buffering = True
+	- run_copy_daysim_code = True
+	- run_setup_emme_project_folders = True
+	- run_setup_emme_bank_folders = True
+	- run_copy_large_inputs = True
+	- run_import_networks = True
+	- run_skims_and_paths_seed_trips = True
+	- should_build_shadow_price =True
+	- run_skims_and_paths = True
+	- run_truck_model = True
+	- run_supplemental_trips = True
+	- run_daysim = True
+	- run_parcel_buffer_summary = True
+	- run_network_summary = True
+	- run_soundcast_summary = True
+	- run_travel_time_summary = True
+	- run_create_daily_bank = True
 
-###Vehicle Classification for Highway Assignments
-Assignment Specifications are currently set to work for a 21 class assignments as needed by DaySim.  The 
+For a basic run, these variables can be left in their default state as stored in the GitHub repository. This applies for all other variables in the input_configuration file, aside from the input directories listed above, which must be defined appropriately by the user.
 
-21 classes are:
+Other important parameters that the user may which to adjust are the number of defined model iterations and population sample settings.
 
-	1. SOV Toll Income Level 1
-	2. SOV Toll Income Level 2
-	3. SOV Toll Income Level 3
-	4. SOV No Toll Income Level 1
-	5. SOV No Toll Income Level 2
-	6. SOV No Toll Income Level 3
-	7. HOV 2 Toll Income Level 1
-	8. HOV 2 Toll Income Level 2
-	9. HOV 2 Toll Income Level 3
-	10. HOV 2 No Toll Income Level 1
-	11. HOV 2 No Toll Income Level 2
-	12. HOV 2 No Toll Income Level 3
-	13. HOV 3 Toll Income Level 1
-	14. HOV 3 Toll Income Level 2
-	15. HOV 3 Toll Income Level 3
-	16. HOV 3 No Toll Income Level 1
-	17. HOV 3 No Toll Income Level 2
-	18. HOV 3 No Toll Income Level 3
-	19. Light Trucks
-	20. Medium Trucks
-	21. Heavy Trucks
+	- pop_sample = [10, 5, 1, 1, 1, 1]   
+	- shadow_work = [1, 1, 1, 1]
+	- shadow_con = 10 #%RMSE for shadow pricing to consider being converged
+	- STOP_THRESHOLD = 0.025
+	- parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
+	- max_iter = 50             # Assignment Convergence Criteria
+	- best_relative_gap = 0.01  # Assignment Convergence Criteria
+	- relative_gap = .0001
+	- normalized_gap = 0.01
 
-###Value of Time
-The value of time categories used the assignment are coming from DaySim and are:
+The population sample (pop_sample) is a list of population sample proportions for each iteration to be produced by the DaySim demand models. In the example above, the 10 implies 1/10th of the population will be modeled (to save time for the first pass), and 5 implies 1/5th, whereas 1 represents a full population run. The length of the list represents the number of times the model might be run, if it doesn't first converge.
 
-	Class		$ per Hour		
-			Cat #1	Cat #2	Cat #3
-	SOV		$2.00	$8.00	$20.00
-	HOV 2		$4.00	$16.00	$40.00
-	HOV 3+		$6.00	$24.00	$60.00
-	Trucks		$40.00	$45.00	$50.00		
+The "shadow_work" variable represents the number of iterations for which shadow pricing will be run. This is an important part of the demand models, but consumes significant run time; the parameter should only be changed with good reason. 
 
-	Class		minutes per cent		
-			Cat #1	Cat #2	Cat #3
-	SOV		0.3000	0.0750	0.0300
-	HOV 2		0.1500	0.0375	0.0150
-	HOV 3+		0.1000	0.0250	0.0100
-	Trucks		0.0150	0.0133	0.0120
+The remaining variables in input_configuration are not intended to be changed by the user. Many are definitions that should not change, except with major model revisions. They're stored in this file for consistency, rather than scattering variable definitions across a number of scripts.
+
+## Inputs
+Soundcast inputs will be provided as a zipped folder to users. However, at this time, inputs will only be available to users with authorized access to use Washington State's highly employment disaggregate data. PSRC is still working through solutions to provide model access to all users without access to this sensitive data. 
+
+For users that are able to receive the input, the folder should be unzipped and stored on a local drive. The path must be specified in "input_configuration.py" and folder structure should not be changed. Soundcast copies all inputs into the local Soundcast directory to keep paths consistent, and allows for a central storage point of different model inputs. Input folders will typically be named to represent the land use and network year, e.g., 2010 or 2040. 
+
+The inputs directory should be structured as follows:
+
+	- 4k	# inputs for truck model, based on estimates from trip-based 4k model
+		- auto.h5
+		- transit.h5
+	- etc
+		- daysim_outputs_seed_trips.h5    # seed trips to use on first iteration of DaySim
+		- survey.h5    # 2006 household travel survey for DaySim estimation validation summaries
+	- landuse
+		- buffered_parcels.dat
+		- daily_parking_costs.csv
+		- hh_and_persons.h5
+		- hourly_parking_costs.csv
+		- parcels_military.csv    # Military employment data
+		- parcels_urbansim.txt    # Primary land-use data at the parcel level
+		- schema.ini
+		- tazdata.in
+	- networks
+		- am_roadway.in
+		- am_transit.in
+		- am_turns.in
+		... (roadway, transit, and turns network files for 5 times of day: am, md, pm, ev, ni)
+		- vehicles.txt    # list of transit vehicles and characteristics
+		- modes.txt    # list of modes and their characteristics
+		- fixes
+			- ferries
+				- am_roadway.in
+				... (roadway ferry flags for 5 times of day: am, md, pm, ev, ni)
+		- rdly
+			- am_rdly.txt
+			... (rdly.txt for 5 times of day: am, md, pm, ev, ni)
+		- various shapefiles for showing smooth network shapes, rather than blocky network topology. Edges 0-4 correspond to 5 times of day, in order: am, md, pm, ev, ni
+	- supplemental
+		- generation
+		- distribution
+		- trips
+	- tolls
+		- am_roadway_tolls.in
+		- bridge_ferry_flags.in
+		- ev_roadway_tolls.in
+		- ferry_vehicle_fares.in
+		- md_roadway_tolls.in
+		- ni_roadway_tolls.in
+		- pm_roadway_tolls.in
+	- trucks
+		- agshar.in
+		- const.in
+		- districts19_ga.ens
+		- equipshar.in
+		- heavy_trucks_reeb_ee.in
+		- heavy_trucks_reeb_ei.in
+		- heavy_trucks_reeb_ie.in
+		- input_skims.txt
+		- matrix_balancing_spec.txt
+		- matric_calc_spec.txt
+		- minshar.in
+		- prodshar.in
+		- special_gen_heavy_trucks.in
+		- special_gen_light_trucks.in
+		- special_gen_medium_trucks.in
+		- tazdata.in
+		- tcushar.in
+		- truck_gen_calc_dict.txt
+		- truck_matrices_dict.txt
+		- truck_operating_costs.in
+		- whlsshar.in
+
+## Running the Model
+Once the inputs have been properly structured and configuration defined, Soundcast can be started with a single command-line prompt. Open a command prompt and navigate to the location the soundcast directory. In the main directory, type:
+
+	- python run_soundcast.py
+
+This will call the run_soundcast script in Python, which is the master script file to start the model. Depending on the modules specified to run in input_configuration, Soundcast will be spawn its different processes. For a new run, this includes copying inputs into the local Soundcast directory, creating new directories to store outputs, initializing Emme projects, and finally starting an iteration of DaySim demand models and assignment. The model should run until convergence, or until maximum numbers of global iterations are attained, and (if specified) produce summary files and end. 
+
+## Log Files
+The Soundcast run can be monitored in the command prompt, since many functions include print statements, but since it takes many hours to complete a run, all important status outputs are stored in log files in the main Soundcast directory. The two primary log files are:
+
+	- soundcast_log.txt
+	- skims_log.txt
+
+The soundcast log contains high-level informatino about when different modules of the run began and were completed. Here's an example from the first 2 iterations of a soundcast log:
+
+	06/02/2015 11:25:39 AM ------------------------NEW RUN STARTING---------------------------------------
+	06/02/2015 11:26:11 AM  build_seed_skims starting
+	06/02/2015 07:39:14 PM build_seed_skims took 8:13:03.651000
+	06/02/2015 07:39:15 PM We're on iteration 0
 
 
-###Matrix Definition
-The code uses the Emme Tool for creating matrices to create the 84 total demand and skim matrices needed 
-for the model run.  The code overwrites any existing matrices as DaySim will be feeding new demand each 
-time it access Emme for skimming and the skims should change due to the new demand.  There are 21 demand 
-trip tables and 63 total skim tables being created for auto modes (time, cost and distance).  
-Naming convention is: class (2 characters), toll/notoll(2 characters), income (1 number), type (1 
-character)
+	06/02/2015 07:39:15 PM starting run 2015-06-02 19:39:15.084000
+	06/02/2015 07:39:15 PM  modify_config starting
+	06/02/2015 07:39:15 PM modify_config took 0:00:00
+	06/02/2015 07:39:15 PM  daysim_assignment starting
+	06/02/2015 07:39:15 PM Start of 0 iteration of Daysim
+	06/02/2015 08:28:47 PM End of 0 iteration of Daysim
+	06/02/2015 08:47:46 PM Start of 0 iteration of Skims and Paths
+	06/03/2015 09:03:20 AM End of 0 iteration of Skims and Paths
+	06/03/2015 09:03:20 AM daysim_assignment took 13:24:05.685000
+	06/03/2015 09:03:20 AM  check_convergence starting
+	06/03/2015 09:03:20 AM check_convergence took 0:00:00
+	06/03/2015 09:03:20 AM We're on iteration 1
 
-	1. svtl1v - SOV Toll Income Level 1 Demand
-	2. svtl2v - SOV Toll Income Level 1 Demand
-	3. svtl3v - SOV Toll Income Level 1 Demand
-	4. svnt1v - SOV No Toll Income Level 1 Demand
-	5. svnt2v - SOV No Toll Income Level 1 Demand
-	6. svnt3v - SOV No Toll Income Level 1 Demand
-	7. h2tl1v - HOV 2 Toll Income Level 1 Demand
-	8. h2tl2v - HOV 2 Toll Income Level 1 Demand
-	9. h2tl3v - HOV 2 Toll Income Level 1 Demand
-	10. h2nt1v - HOV 2 No Toll Income Level 1 Demand
-	11. h2nt2v - HOV 2 No Toll Income Level 1 Demand
-	12. h2nt3v - HOV 2 No Toll Income Level 1 Demand
-	13. h3tl1v - HOV 3+ Toll Income Level 1 Demand
-	14. h3tl2v - HOV 3+ Toll Income Level 1 Demand
-	15. h3tl3v - HOV 3+ Toll Income Level 1 Demand
-	16. h3nt1v - HOV 3+ No Toll Income Level 1 Demand
-	17. h3nt2v - HOV 3+ No Toll Income Level 1 Demand
-	18. h3nt3v - HOV 3+ No Toll Income 
-	19. lttrkv - Light Truck Demand
-	20. mdtrkv - Medium Truck Demand
-	21. hvtrkv - Heavy Truck Demand
-	22. svtl1t - SOV Toll Income Level 1 Time
-	23. svtl2t - SOV Toll Income Level 1 Time
-	24. svtl3t - SOV Toll Income Level 1 Time
-	25. svnt1t - SOV No Toll Income Level 1 Time
-	26. svnt2t - SOV No Toll Income Level 1 Time
-	27. svnt3t - SOV No Toll Income Level 1 Time
-	28. h2tl1t - HOV 2 Toll Income Level 1 Time
-	29. h2tl2t - HOV 2 Toll Income Level 1 Time
-	30. h2tl3t - HOV 2 Toll Income Level 1 Time
-	31. h2nt1t - HOV 2 No Toll Income Level 1 Time
-	32. h2nt2t - HOV 2 No Toll Income Level 1 Time
-	33. h2nt3t - HOV 2 No Toll Income Level 1 Time
-	34. h3tl1t - HOV 3+ Toll Income Level 1 Time
-	35. h3tl2t - HOV 3+ Toll Income Level 1 Time
-	36. h3tl3t - HOV 3+ Toll Income Level 1 Time
-	37. h3nt1t - HOV 3+ No Toll Income Level 1 Time
-	38. h3nt2t - HOV 3+ No Toll Income Level 1 Time
-	39. h3nt3t - HOV 3+ No Toll Income 
-	40. lttrkt - Light Truck Time
-	41. mdtrkt - Medium Truck Time
-	42. hvtrkt - Heavy Truck Time
-	43. svtl1c - SOV Toll Income Level 1 Cost
-	44. svtl2c - SOV Toll Income Level 1 Cost
-	45. svtl3c - SOV Toll Income Level 1 Cost
-	46. svnt1c - SOV No Toll Income Level 1 Cost
-	47. svnt2c - SOV No Toll Income Level 1 Cost
-	48. svnt3c - SOV No Toll Income Level 1 Cost
-	49. h2cl1c - HOV 2 Toll Income Level 1 Cost
-	50. h2cl2c - HOV 2 Toll Income Level 1 Cost
-	51. h2cl3c - HOV 2 Toll Income Level 1 Cost
-	52. h2nt1c - HOV 2 No Toll Income Level 1 Cost
-	53. h2nt2c - HOV 2 No Toll Income Level 1 Cost
-	54. h2nt3c - HOV 2 No Toll Income Level 1 Cost
-	55. h3cl1c - HOV 3+ Toll Income Level 1 Cost
-	56. h3cl2c - HOV 3+ Toll Income Level 1 Cost
-	57. h3cl3c - HOV 3+ Toll Income Level 1 Cost
-	58. h3nt1c - HOV 3+ No Toll Income Level 1 Cost
-	59. h3nt2c - HOV 3+ No Toll Income Level 1 Cost
-	60. h3nt3c - HOV 3+ No Toll Income 
-	61. lttrkc - Light Truck Cost
-	62. mdtrkc - Medium Truck Cost
-	63. hvtrkc - Heavy Truck Cost
-	64. svtl1d - SOV Toll Income Level 1 Distance
-	65. svtl2d - SOV Toll Income Level 1 Distance
-	66. svtl3d - SOV Toll Income Level 1 Distance
-	67. svnt1d - SOV No Toll Income Level 1 Distance
-	68. svnt2d - SOV No Toll Income Level 1 Distance
-	69. svnt3d - SOV No Toll Income Level 1 Distance
-	70. h2dl1d - HOV 2 Toll Income Level 1 Distance
-	71. h2dl2d - HOV 2 Toll Income Level 1 Distance
-	72. h2dl3d - HOV 2 Toll Income Level 1 Distance
-	73. h2nt1d - HOV 2 No Toll Income Level 1 Distance
-	74. h2nt2d - HOV 2 No Toll Income Level 1 Distance
-	75. h2nt3d - HOV 2 No Toll Income Level 1 Distance
-	76. h3dl1d - HOV 3+ Toll Income Level 1 Distance
-	77. h3dl2d - HOV 3+ Toll Income Level 1 Distance
-	78. h3dl3d - HOV 3+ Toll Income Level 1 Distance
-	79. h3nt1d - HOV 3+ No Toll Income Level 1 Distance
-	80. h3nt2d - HOV 3+ No Toll Income Level 1 Distance
-	81. h3nt3d - HOV 3+ No Toll Income 
-	82. lttrkd - Light Truck Distance
-	83. mdtrkd - Medium Truck Distance
-	84. hvtrkd - Heavy Truck Distance
 
-###Vehicle Matrix Calculations
-The code creates three sets of skims for use by DaySim - travel time, generalized cost and distance.  All 
-three skim procedures utilize the standard path based assignment analysis toolkits from Emme Modeller.  
-The travel time skims are created by skimming auto time (timau) across all paths, distance skims are 
-based on link length and the generalized cost skims use the conversion of toll costs to time via values 
-of time as noted above.
+	06/03/2015 09:03:20 AM starting run 2015-06-03 09:03:20.784000
+	06/03/2015 09:03:20 AM  modify_config starting
+	06/03/2015 09:03:20 AM modify_config took 0:00:00
+	06/03/2015 09:03:20 AM  daysim_assignment starting
+	06/03/2015 09:03:20 AM Start of 1 iteration of Daysim
+	06/03/2015 10:33:40 AM End of 1 iteration of Daysim
+	06/03/2015 10:40:47 AM Start of 1 iteration of Skims and Paths
+	06/03/2015 02:09:30 PM End of 1 iteration of Skims and Paths
+	06/03/2015 02:09:30 PM daysim_assignment took 5:06:09.604000
+	06/03/2015 02:09:30 PM  check_convergence starting
+	06/03/2015 02:09:30 PM check_convergence took 0:00:00.015000
+	06/03/2015 02:09:30 PM We're on iteration 2
+
+The skims log provides details on when each assignment and skimming script began, how long it took to complete, and the resulting relative gap, for each user class and time of day.
+
+## Results and Outputs
+As the model runs, results are stored in the 'outputs' directory of the local soundcast folder. Emme-related outputs are stored in 'projects' and 'banks' folders. Users can view results by time of day by opening up the corresponding project and bank in Emme. These files contain all time and cost skims by vehicle class and time of day. They are also available in a compressed format (hdf5) and, somewhat confusingly, created in the 'inputs' folder after an assignment iteration. They're stored in inputs because they're used as inputs to DaySim demand modeling, though they will represent the last assignment and skimming pass. These output files are named by their time period (e.g., 5to6.h5) and can be viewed interactively with Python or the [OMX Viewer](https://sites.google.com/site/openmodeldata/file-cabinet/omx-viewer) GUI.
+
+Results of DaySim demand are stored in hdf5 format as well, in the 'daysim_outputs.h5' file stored in the 'outputs' folder. These outputs include details for all persons, households, trips, and tours taken in the region, for a typical travel day. These include all the details about demographics and trip characteristics like mode, purpose, time, origin and destination, and many others. 
+
+Soundcast includes Python scripts to summarize model results and create output spreadsheets. The primary summaries are available in the following sheets:
+
+	- network_summary.xlsx
+	- Topsheet.xlsx
+
+Other summaries are included for detailed DaySim and network summaries as needed. Users may also create their own summaries by directly evaluating the h5 output files. 
+
+## Resources
+
+	- [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
+	- [Soundcast Technical Design Document](http://www.psrc.org/assets/11924/SoundCastDesign2014.pdf)
+	- [Soundcast GitHub Repo](https://github.com/psrc/soundcast)
+	- [Acitivty-Based Model Primer](http://onlinepubs.trb.org/onlinepubs/shrp2/SHRP2_C46.pdf)
+	- [PSRC Staff](http://www.psrc.org/about/contact/staff-roster/)
