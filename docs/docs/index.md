@@ -1,5 +1,3 @@
-# Soundcast User's Guide
-
 The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using [INRO's Emme software](http://www.inrosoftware.com/). If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports. 
 
 ![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
@@ -22,39 +20,21 @@ Alternatively, you can download all the code as a ZIP file.
 
 ![Download GitHub ZIP](http://oi60.tinypic.com/dxmo2u.jpg)
 
-### Python Versions and PATH
-Emme software includes a specific Python install, which must be used to run Soundcast scripts. This requirement complicates initial setup because Emme Python might conflict with other versions of Python previously installed on a machine. To ensure Emme Python is being used by default when scripts are called, you must set the **environment variables**. 
+### Python Packages and Paths
+It's recommended to [install the Anaconda 2.7 Python package](http://continuum.io/downloads) to run Soundcast. This package should include all necessary libraries to run the model. When installing, make sure the installer adds the Anaconda install to the system path (or add it yourself after installing). It's important that this install is the one referenced whenever the "python" program is invoked from a command. Many machines might include another Python install; it's okay to leave other versions installed, but you'll want to update the path variable to point only to the Anaconda version. 
 
-In Windows 7, you can access these settings by searching for 'environment variables' in the start menu search bar. Create a new system variable called 'PYTHONPATH' and set its value to the location of the Emme Python executable (python.exe). This path may be similar to this:
+After installing Anaconda, you must change Emme's settings to use the Anaconda installation by default. Otherwise, scripts that interact with Emme will use another install without the necessary libraries. To change the Python version used by Emme, select Tools (from the main taskbar) and click 'Application Options'. Under the Modeller tab is a field "Python path", which by default probably looks like:
 
-	- C:\Program Files (x86)\INRO\Emme\Emme 4\Emme-4.1.0\Python27
+	%<$EmmePath>%/Python27
 
-The PYTHONPATH variable is a reference to that directory location. This variable reference then must be added to the main "Path" variable. Edit the Path variable by adding in "%PYTHONPATH%" to the end of the Path string, separated by a semi-colon from any existing paths:
+![Emme Python version settings](http://oi57.tinypic.com/2466ecp.jpg)
 
-	- ...;%PYTHONPATH%;
+Replace this path with the full path to the Anaconda Python executable (python.exe). Depending on where Anaconda was installed, it may be something like:
 
-This process directs any Python script calls to use the specific Python install specified in the PYTHONPATH variable, which is now set as the Emme version. 
-
-### Python Libraries
-
-The Emme Python install includes many proprietary libraries used by the Emme software. However, the Soundcast scripts use a number of other libraries that are not included in the standard installation. It is recommended to install the entire Anaconda Python package, which includes a version of Python 2.7 and most of the required libraries. Especially useful among the libraries is "pip", which allows for very quick and simple installation of any other library not included in Anaconda. Once pip is installed, obtaining libraries is a simple command-line call to find, download, and install a library, used in the command prompt as follows:
-
-	- pip install pandas
-
-This command will download the latest version of the 'pandas' Python library and install it in the Anaconda Python directory. Unfortunately, there may be some confusion because of the required Emme Python versions, but these libraries, once installed with pip, can be copied over easily to the proper directory. If you run into Python library installation issues, PSRC staff will help direct details of installation. 
-
-If, rather than installing Anaconda, you'd rather use pip to renew or install specific libraries, the following are the libraries required in Soundcast Python scripts:
-
-	- pandas
-	- numpy
-	- h5py
-	- xlrd
-	- xlsxwriter
-	- xlautofit
-	- pysal
+	C:\Anaconda
 
 ## Run Configuration
-Once Python paths and libraries are defined and installed, inputs must be provided and configuration settings specified. Input locations and run settings are controlled centrally from the file **"input_configuration.py".** This is a Python script, but it simply holds variable definitions which are passed into other scripts when the model runs. The input configuration contains paths to input directories, scenario names and analysis years, and also controls number of iterations and convergence criteria. Additionally, it allows finer control over specific model components. For instance, all demand, skimming, and assignment iterations can be turned off, and only specific summarization scripts run, or the model can be set to stop after importing certain input files. 
+Once Python paths and versions are defined and installed, inputs must be provided and configuration settings specified. Input locations and run settings are controlled centrally from the file **"input_configuration.py".** This is a Python script, but it simply holds variable definitions which are passed into other scripts when the model runs. The input configuration contains paths to input directories, scenario names and analysis years, and also controls number of iterations and convergence criteria. Additionally, it allows finer control over specific model components. For instance, all demand, skimming, and assignment iterations can be turned off, and only specific summarization scripts run, or the model can be set to stop after importing certain input files. 
 
 Scenarios and input paths are defined as follows by default. Users must point to the location of these inputs and ensure the inputs follow a format as defined later in this guide. 
 
@@ -244,8 +224,8 @@ Other summaries are included for detailed DaySim and network summaries as needed
 
 ## Resources
 
-	- [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
-	- [Soundcast Technical Design Document](http://www.psrc.org/assets/11924/SoundCastDesign2014.pdf)
-	- [Soundcast GitHub Repo](https://github.com/psrc/soundcast)
-	- [Acitivty-Based Model Primer](http://onlinepubs.trb.org/onlinepubs/shrp2/SHRP2_C46.pdf)
-	- [PSRC Staff](http://www.psrc.org/about/contact/staff-roster/)
+- [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
+- [Soundcast Technical Design Document](http://www.psrc.org/assets/11924/SoundCastDesign2014.pdf)
+- [Soundcast GitHub Repo](https://github.com/psrc/soundcast)
+- [Acitivty-Based Model Primer](http://onlinepubs.trb.org/onlinepubs/shrp2/SHRP2_C46.pdf)
+- [PSRC Staff](http://www.psrc.org/about/contact/staff-roster/)
