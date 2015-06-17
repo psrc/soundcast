@@ -20,7 +20,9 @@ import numpy as np
 import xlrd
 import time
 import summary_functions as scf
+import os
 from input_configuration import *
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 
 
@@ -125,31 +127,31 @@ screenline_dict = {'Primary': {
                                     71: 'Woodinville'}}
 
 #Create a dictionary to map from screenline names to the observed daily volumes
-observed_screenline_volumes = {'Tacoma - East of CBD': 297693,
-                                'Auburn': 509582,
-                                'Tukwila': 223871,
-                                'Renton': 65723,
-                                'Seattle - South of CBD': 489382,
-                                'Bellevue/Redmond': 370010,
-                                'TransLake': 265618,
-                                'Ship Canal': 537910,
-                                'Kirkland/Redmond': 451152,
-                                'Seattle - North': 368812,
-                                'Lynnwood/Bothell': 265934,
-                                'Bothell': 265982,
-                                'Mill Creek': 360206,
-                                'Parkland': 261062,
-                                'Puyallup': 130529,
-                                'Tacoma Narrows': 87846,
-                                'Maple Valley': 58970,
-                                'SeaTac': 66983,
+observed_screenline_volumes = {'Tacoma - East of CBD': 271777,
+                                'Auburn': 534811,
+                                'Tukwila': 239527,
+                                'Renton': 81758,
+                                'Seattle - South of CBD': 490806,
+                                'Bellevue/Redmond': 354612,
+                                'TransLake': 250220,
+                                'Ship Canal': 521155,
+                                'Kirkland/Redmond': 381331,
+                                'Seattle - North': 327021,
+                                'Lynnwood/Bothell': 231368,
+                                'Bothell': 255590,
+                                'Mill Creek': 350492,
+                                'Parkland': 285859,
+                                'Puyallup': 118726,
+                                'Tacoma Narrows': 79000,
+                                'Maple Valley': 61921,
+                                'SeaTac': 71364,
                                 'Kent': 504607,
-                                'Gig Harbor': 60135,
-                                'Kitsap - North': 106798,
-                                'Agate Pass': 20000,
-                                'Cross-Sound': 25219,
-                                'Preston, Issaquah': 84674,
-                                'Woodinville': 99360}
+                                'Gig Harbor': 58503,
+                                'Kitsap - North': 97177,
+                                'Agate Pass': 21000,
+                                'Cross-Sound': 17466,
+                                'Preston, Issaquah': 93227,
+                                'Woodinville': 98331}
 
 transit_agency_dict = {'ET': 'Everett Transit',
                            'KT': 'Kitsap Transit',
@@ -573,6 +575,9 @@ def highway_summary(network, net_summary, format_sheet, times, screenlines, coun
         for tod in counts_by_tod.index:
             
             counts_by_tod.loc[tod, 'Counts (Observed)'] = scf.get_counts(counts_output, tod)
+            # hack to fix double counting of 5 to 6 period in 20 to 5
+            if tod == '20 to 5':
+                counts_by_tod.loc[tod, 'Counts (Observed)'] =  counts_by_tod.loc[tod, 'Counts (Observed)'] - counts_by_tod.loc['5 to 6', 'Counts (Observed)']
             counts_by_tod.loc[tod, 'Counts (' + model_run_name + ')'] = counts_output['vol' + tod.replace(' ', '')].sum()
 
         countstime.write_string(0, 0, 'Time Period', header_format)

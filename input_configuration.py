@@ -3,7 +3,7 @@
 #################################### RUN SOUNDCAST ####################################
 
 # Scenario and input paths
-base_year = '2010'
+base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
@@ -22,7 +22,7 @@ run_parcel_buffering = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
-run_copy_large_inputs =True
+run_copy_large_inputs = True
 run_import_networks = True
 run_skims_and_paths_seed_trips = True
 should_build_shadow_price =True
@@ -30,15 +30,17 @@ run_skims_and_paths = True
 run_truck_model =True
 run_supplemental_trips = True
 run_daysim = True
+run_parcel_buffer_summary = True
 run_network_summary = True
 run_soundcast_summary = True
 run_travel_time_summary = True
+run_create_daily_bank = True
 
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 1, 1, 1]
+pop_sample = [10, 5, 5, 2, 1]
 # start building shadow prices - only run work locations
-shadow_work = [2, 1, 1, 1]
+shadow_work = [2, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
@@ -101,9 +103,9 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
-                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
-                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
 transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
                             '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
 

@@ -16,6 +16,7 @@ import subprocess
 from multiprocessing import Pool
 import logging
 import datetime
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from EmmeProject import *
@@ -577,22 +578,27 @@ def class_specific_volumes(my_project):
 
 
 def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, max_value = None):
-    matrix_id = emmebank.matrix(matrix_name).id
-    emme_matrix = emmebank.matrix(matrix_id)
-    matrix_data = emme_matrix.get_data()
-    np_matrix = np.matrix(matrix_data.raw_data) 
-    print np_matrix.max()
-    if max_value <> None:
-        if np_matrix.max() >= max_value:
-            i,j = np.unravel_index(np_matrix.argmax(), np_matrix.shape)
-        #print matrix_name +  ' ' + str(i) + '-' + str(j)
-            print matrix_name + ' exceded max value of ' + str(max_value) + ' at ' +  str(i) + '-' + str(j) +'. Exiting Program!'
-            exit()
+     matrix_id = emmebank.matrix(matrix_name).id
+     emme_matrix = emmebank.matrix(matrix_id)
+     matrix_data = emme_matrix.get_data()
+     np_matrix = np.matrix(matrix_data.raw_data) 
+     print np_matrix.max()
+    #if max_value <> None:
+    #    if np_matrix.max() >= max_value:
+    #        i,j = np.unravel_index(np_matrix.argmax(), np_matrix.shape)
+    #    #print matrix_name +  ' ' + str(i) + '-' + str(j)
+    #        print matrix_name + ' exceded max value of ' + str(max_value) + ' at ' +  str(i) + '-' + str(j) +'. Exiting Program!'
+    #        exit()
 
-    np_matrix = np_matrix * multiplier
-    if np_matrix.dtype <> 'float':
+     np_matrix = np_matrix * multiplier
+    
+     if np_data_type == 'uint16':
+        max_value = np.iinfo(np_data_type).max
+        np_matrix = np.where(np_matrix > max_value, max_value, np_matrix)
+    
+     if np_data_type <> 'float32':
         np_matrix = np.where(np_matrix > np.iinfo(np_data_type).max, np.iinfo(np_data_type).max, np_matrix)
-    return np_matrix
+     return np_matrix    
 
 def average_matrices(old_matrix, new_matrix):
     avg_matrix = old_matrix + new_matrix

@@ -21,6 +21,8 @@ import xlautofit
 import math
 from input_configuration import *
 from summary_functions import *
+import sys
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     print('---Begin District to District Summary compilation---')
@@ -85,6 +87,80 @@ def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     worksheet.freeze_panes(0, 1)
     writer.save()
     print('---District to District Summary compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
+
+
+def WorkDistrictSummary(data1, data2, name1, name2, location, districtfile):
+    print('---Begin Work District to District Summary compilation---')
+    start = time.time()
+
+    merge_per_hh_1 = pd.merge(data1['Person'][['pwtaz', 'psexpfac', 'hhno', 'pwtyp']],
+                              data1['Household'][['hhtaz', 'hhno']],
+                              on = 'hhno')
+    merge_per_hh_2 = pd.merge(data2['Person'][['pwtaz', 'psexpfac', 'hhno', 'pwtyp']],
+                              data2['Household'][['hhtaz', 'hhno']],
+                              on = 'hhno')
+
+    worker_1 = merge_per_hh_1.query('pwtyp>0')
+    worker_2 = merge_per_hh_2.query('pwtyp>0')
+
+    DistrictDict = {}
+    for i in range(len(districtfile['TAZ'])):
+        if districtfile['TAZ'][i] not in DistrictDict and math.isnan(districtfile['TAZ'][i]) is False:
+            DistrictDict.update({int(districtfile['TAZ'][i]):districtfile['District'][i]})
+    worker_1['Origin'] =  worker_1['hhtaz'].map(DistrictDict)
+    worker_2['Origin'] = worker_2['hhtaz'].map(DistrictDict)
+    worker_1['Destination'] = worker_1['pwtaz'].map(DistrictDict)
+    worker_2['Destination'] = worker_2['pwtaz'].map(DistrictDict)
+    work_od1 = worker_1[['Origin', 'Destination', 'psexpfac']].groupby(['Origin', 'Destination']).sum()['psexpfac'].round(0)
+    work_od2 = worker_2[['Origin', 'Destination', 'psexpfac']].groupby(['Origin', 'Destination']).sum()['psexpfac'].round(0)
+    work_od1 = pd.DataFrame.from_items([('Persons', work_od1)])
+    work_od2 = pd.DataFrame.from_items([('Persons', work_od2)])
+    work_od1 = work_od1.reset_index()
+    work_od2 = work_od2.reset_index()
+    workod1 = work_od1.pivot('Origin', 'Destination', 'Persons')
+    workod2 = work_od2.pivot('Origin', 'Destination', 'Persons')
+    workoddiff = workod1 - workod2
+    workodpd = workoddiff / workod2 * 100
+    for column in workodpd.columns:
+        workodpd[column] = workodpd[column].round(2)
+
+    print('District to District data frames created in ' + str(round(time.time() - start, 1)) + ' seconds')
+
+    writer = pd.ExcelWriter(location + '/WorkDistrictReport.xlsx', engine = 'xlsxwriter')
+    workod1.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 1)
+    workod2.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 16)
+    workoddiff.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 31)
+    workodpd.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 46)
+    writer.save()
+
+    colwidths = xlautofit.getmaxwidths(location + '/WorkDistrictReport.xlsx')
+
+    writer = pd.ExcelWriter(location + '/WorkDistrictReport.xlsx', engine = 'xlsxwriter')
+    workbook = writer.book
+    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
+    cond_format = workbook.add_format({'font_color': '#880000', 'bold': 'True'})
+    workod1.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 1)
+    workod2.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 16)
+    workoddiff.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 31)
+    workodpd.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 46)
+    sheet = 'Work Locations by District'
+    worksheet = writer.sheets[sheet]
+    worksheet.merge_range(0, 0, 0, 11, name1, merge_format)
+    worksheet.merge_range(15, 0, 15, 11, name2, merge_format)
+    worksheet.merge_range(30, 0, 30, 11, 'Difference', merge_format)
+    worksheet.merge_range(45, 0, 45, 11, '% Difference', merge_format)
+    worksheet.write(1, 0, 'Destination ->', merge_format)
+    worksheet.write(16, 0, 'Destination ->', merge_format)
+    worksheet.write(31, 0, 'Destination ->', merge_format)
+    worksheet.write(46, 0, 'Destination ->', merge_format)
+    for colnum in range(worksheet.dim_colmax + 1):
+        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
+    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': cond_format})
+    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': cond_format})
+    worksheet.freeze_panes(0, 1)
+    writer.save()
+    print('-- Work District to District Summary compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
+
 
 def DayPattern(data1, data2, name1, name2, location):
     print('---Begin Day Pattern Report Compilation---')
@@ -1683,7 +1759,9 @@ def report_compile(h5_results_file,h5_results_name,
     if run_time_choice_report == True:
         TimeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     if run_district_summary_report == True:
-        DistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+        WorkDistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+        print 'start'
+        WorkDistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     totaltime = round(time.time() - timerstart, 1)
     if totaltime < 60:
         print('+-+-+-+Summary report compilation complete in ' + str(totaltime % 60) + ' seconds+-+-+-+')

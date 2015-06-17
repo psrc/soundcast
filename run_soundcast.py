@@ -15,6 +15,8 @@
 #!python.exe
 # PSRC SoundCast Model Runner
 # ===========================
+
+
 import os
 import sys
 import datetime
@@ -26,17 +28,15 @@ from shutil import copy2 as shcopy
 from distutils import dir_util
 import re
 import logging
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import datetime
 import shutil 
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
-from sc_email import *
 from data_wrangling import *
-
-
 
 @timed
 def parcel_buffering():
@@ -116,8 +116,6 @@ def build_shadow_only():
             print "done with shadow prices"
             shadow_con_file.close()
 
-
-@timed
 def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
      if run_truck_model:
@@ -191,6 +189,10 @@ def run_all_summaries():
    if run_network_summary and run_soundcast_summary and run_travel_time_summary:
       subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
 
+   #Create a daily network with volumes. Will add counts and summary emme project. 
+   if run_create_daily_bank:
+      subprocess.call([sys.executable, 'scripts/summarize/daily_bank.py'])
+
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
@@ -200,6 +202,8 @@ def main():
     if run_parcel_buffering:
         parcel_buffering()
 
+    if run_parcel_buffer_summary:
+        subprocess.call([sys.executable, 'scripts/summarize/parcel_summary.py'])
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
@@ -273,7 +277,6 @@ def main():
 #### ALL DONE
 #### ##################################################################
     clean_up()
-    send_completion_email(recipients)
     print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
 ##print '    Total run time:',time_assign_summ - time_start
 

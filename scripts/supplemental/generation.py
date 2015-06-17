@@ -4,7 +4,9 @@ import pandas as pd
 import os,sys
 import h5py
 from input_configuration import *
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
+
 
 # Global variable to hold taz id/index; populated in main
 dictZoneLookup = {}
@@ -44,12 +46,16 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 bal_to_attractions = ["colpro"]
 
 # Input locations
-hh_trip_loc = base_inputs + '/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = base_inputs + '/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = base_inputs + '/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = base_inputs + '/supplemental/generation/landuse/tazdata.in'
-pums_data_loc = base_inputs + '/supplemental/generation/pums/' 
-externals_loc = base_inputs + '/supplemental/generation/externals.csv'
+hh_trip_loc = 'inputs/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = 'inputs/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = 'inputs/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = 'inputs/supplemental/generation/landuse/tazdata.in'
+pums_data_loc = 'inputs/supplemental/generation/pums/' 
+externals_loc = 'inputs/supplemental/generation/externals.csv'
+
+# Number of header lines for input files (keep these standard for all scenarios)
+tazdata_header_len = 5      
+pums_header_len = 6
 
 # Define column values for household and employment data
 hh_cols = [1, 101]    # Begin and end column numbers for all household-related cross classification data in HHEMP
@@ -102,7 +108,7 @@ def puma_taz_lookup(puma_taz):
 
     # Import TAZ household and employment data
     rate_cols = ["taz","purpose", "value"]
-    taz_data = process_inputs(taz_data_loc, start_row=5, col_names=rate_cols, 
+    taz_data = process_inputs(taz_data_loc, start_row=tazdata_header_len, col_names=rate_cols, 
                               clean_column="purpose", pivot_fields=['taz', 'purpose'], 
                               reorder=False)
     # Convert column names to string to join with PUMA data
@@ -117,7 +123,7 @@ def load_pums():
     pums_cols = ['puma', 'hhtype', 'num_hhs']
 
     for file in pums_list:
-        df = process_inputs(pums_data_loc + file, start_row=6, col_names=pums_cols, 
+        df = process_inputs(pums_data_loc + file, start_row=pums_header_len, col_names=pums_cols, 
                             clean_column='hhtype', pivot_fields=False, reorder=False)
         list.append(df)
     pums_df = pd.concat(list)

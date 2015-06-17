@@ -7,6 +7,8 @@ import pandas as pd
 import h5py
 import numpy as np
 from input_configuration import *
+import sys
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
 
 # Global variable to hold taz id/index; populated in main
