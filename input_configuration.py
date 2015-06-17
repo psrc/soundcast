@@ -3,7 +3,7 @@
 #################################### RUN SOUNDCAST ####################################
 
 # Scenario and input paths
-base_year = '2010'
+base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
 daysim_code = 'R:/soundcast/daysim' 
 master_project = 'LoadTripTables'
@@ -38,7 +38,7 @@ run_create_daily_bank = True
 
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 1]
+pop_sample = [10, 5, 5, 2, 1]
 # start building shadow prices - only run work locations
 shadow_work = [2, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
