@@ -52,31 +52,30 @@ for column_title in drop_columns:
 # For now, replacing all zero-parking locations with region-wide average number of parking spots. 
 # We can update this with an ensemble-wide average from GIS analysis later.
 #
-daily_parking_zeros = df[df['PPRICDYP'] > 0]['PPRICDYP']
-hourly_parking_zeros = df[df['PPRICHRP'] > 0]['PPRICHRP']
-avg_daily_parking = int(daily_parking_zeros.mean())
-avg_hourly_parking = int(hourly_parking_zeros.mean())
+daily_parking_spaces = df[df['PPRICDYP'] > 0]['PARKDY_P']
+hourly_parking_spaces = df[df['PPRICHRP'] > 0]['PARKHR_P']
+avg_daily_parking = int(daily_parking_spaces.mean())
+avg_hourly_parking = int(hourly_parking_spaces.mean())
 
-replace_daily_parking_costs = daily_parking_zeros[daily_parking_zeros == 0]
-replace_hourly_parking_costs = hourly_parking_zeros[hourly_parking_zeros == 0]
+replace_daily_parking_spaces= daily_parking_spaces[daily_parking_spaces == 0]
+replace_hourly_parking_spaces= hourly_parking_spaces[hourly_parking_spaces == 0]
 f_dy = lambda x : avg_daily_parking
 f_hr = lambda x : avg_hourly_parking
-replace_daily_parking_costs = replace_daily_parking_costs.apply(f_dy)
-replace_daily_parking_costs = pd.DataFrame(replace_daily_parking_costs)
-replace_hourly_parking_costs = replace_hourly_parking_costs.apply(f_hr)
-replace_hourly_parking_costs = pd.DataFrame(replace_hourly_parking_costs)
+replace_daily_parking_spaces = replace_daily_parking_spaces.apply(f_dy)
+replace_daily_parking_spaces = pd.DataFrame(replace_daily_parking_spaces)
+replace_hourly_parking_spaces = replace_hourly_parking_spaces.apply(f_hr)
+replace_hourly_parking_spaces = pd.DataFrame(replace_hourly_parking_spaces)
 
 # merge results back in to main data
-if len(replace_daily_parking_costs) > 0:
-    df = df.join(replace_daily_parking_costs, lsuffix = '_left', rsuffix = '_right')
+if len(replace_daily_parking_spaces) > 0:
+    df = df.join(replace_daily_parking_spaces, lsuffix = '_left', rsuffix = '_right')
     df = df.rename(columns = {'PARKDY_P_right':'PARKDY_P'})
     if 'PARKDY_P_left' in df:
         df = df.drop('PARKDY_P_left', 1)
-    df = df.join(replace_hourly_parking_costs, lsuffix = '_left', rsuffix = '_right')
+    df = df.join(replace_hourly_parking_spaces, lsuffix = '_left', rsuffix = '_right')
     df = df.rename(columns = {'PARKHR_P_right':'PARKHR_P'})
     if 'PARKHR_P_left' in df:
         df = df.drop('PARKHR_P_left', 1)
-
 # check if any lines have zero costs and more than zero paid parking spaces
 #check_day = df[df['PPRICDYP'] > 0]['PARKDY_P']
 #check_hour = df[df['PPRICHRP'] > 0]['PARKHR_P']
