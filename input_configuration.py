@@ -38,7 +38,7 @@ run_create_daily_bank = True
 
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 5, 2, 1]
+pop_sample = [10, 5, 2]
 # start building shadow prices - only run work locations
 shadow_work = [2, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
