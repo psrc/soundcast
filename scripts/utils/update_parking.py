@@ -15,7 +15,7 @@ from input_configuration import *
 
 
 daily_parking_cost = "inputs\\parcel_buffer\\daily_parking_costs.csv"
-hourly_parking_cost = "inputs\parcel_buffer\\hourly_parking_costs.csv"
+hourly_parking_cost = "inputs\\parcel_buffer\\hourly_parking_costs.csv"
 input_ensemble = "inputs\\parking_gz.csv"
 input_parcels = "inputs\\parcel_buffer\\parcels_urbansim.txt"
 
@@ -51,16 +51,18 @@ for column_title in drop_columns:
 # For parcels in regions with non-zero parking costs, ensure each parcel has some minumum parking spaces available
 # For now, replacing all zero-parking locations with region-wide average number of parking spots. 
 # We can update this with an ensemble-wide average from GIS analysis later.
-#
+
+avg_daily_spaces = df[df['PARKDY_P'] > 0]['PARKDY_P'].mean()
+avg_hourly_spaces = df[df['PARKHR_P'] > 0]['PARKHR_P'].mean()
+
 daily_parking_spaces = df[df['PPRICDYP'] > 0]['PARKDY_P']
 hourly_parking_spaces = df[df['PPRICHRP'] > 0]['PARKHR_P']
-avg_daily_parking = int(daily_parking_spaces.mean())
-avg_hourly_parking = int(hourly_parking_spaces.mean())
+
 
 replace_daily_parking_spaces= daily_parking_spaces[daily_parking_spaces == 0]
 replace_hourly_parking_spaces= hourly_parking_spaces[hourly_parking_spaces == 0]
-f_dy = lambda x : avg_daily_parking
-f_hr = lambda x : avg_hourly_parking
+f_dy = lambda x : avg_daily_spaces
+f_hr = lambda x : avg_hourly_spaces
 replace_daily_parking_spaces = replace_daily_parking_spaces.apply(f_dy)
 replace_daily_parking_spaces = pd.DataFrame(replace_daily_parking_spaces)
 replace_hourly_parking_spaces = replace_hourly_parking_spaces.apply(f_hr)
@@ -91,4 +93,4 @@ df = df.drop(['ENS', 'TAZ'], 1)
 df.to_csv(input_parcels, sep = ' ', index = False)
 
 # End the script
-print "Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_costs)) + " parcels were updated." 
+print "Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_spaces)) + " parcels were updated." 
