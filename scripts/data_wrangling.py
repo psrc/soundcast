@@ -77,6 +77,13 @@ def copy_parcel_buffering_files():
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
+    try:
+        shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/parcel_buffer')
+    except:
+        print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
+        sys.exit(1)
+
+
     print 'Copying Hourly and Daily Parking Files'
     if run_update_parking: 
         try:
