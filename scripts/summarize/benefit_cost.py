@@ -61,7 +61,7 @@ def fill_time_matrices(output):
 
     return travel_times
 
-def calculate_diffs(base_trips, base_travel_time, scen_trips, scen_travel_time):
+def calculate_ave_diffs(base_trips, base_travel_time, scen_trips, scen_travel_time):
     time_diff = (scen_travel_time - base_travel_time)
     trips_total = (scen_trips + base_trips)
 
@@ -70,12 +70,23 @@ def calculate_diffs(base_trips, base_travel_time, scen_trips, scen_travel_time):
     return avg_time_diff_matrix
 
 
-def write_results(avg_time_diff_matrix):
+def calculate_tot_diffs(base_trips, base_travel_time, scen_trips, scen_travel_time):
+    time_diff = (scen_travel_time - base_travel_time)
+    trips_total = (scen_trips + base_trips)
+
+    tot_time_diff_matrix = time_diff*trips_total
+    tot_time_diff_matrix[np.isnan(avg_time_diff_matrix)] =0
+    return tot_time_diff_matrix
+
+
+def write_results(avg_time_diff_matrix, tot_time_diff_matrix):
     taz_labels = np.array(range(1, zone_dim + 1))
     time_by_origin = np.mean(avg_time_diff_matrix, axis = 1, dtype=np.float64)
     time_by_destination = np.mean(avg_time_diff_matrix, axis = 0, dtype=np.float64)
-    all_colls = zip(taz_labels,time_by_origin, time_by_destination)
-    results = pd.DataFrame(data=all_colls, columns=['taz','origin_time_diff', 'destination_time_diff'])
+    total_time_by_origin = np.sum(tot_time_diff_matrix, axis = 1, dtype=np.float64)
+    total_time_by_destination = np.sum(tot_time_diff_matrix, axis = 0, dtype=np.float64)
+    all_colls = zip(taz_labels,time_by_origin, time_by_destination, 'total_time_by_origin', 'total_time_by_destination')
+    results = pd.DataFrame(data=all_colls, columns=['taz','origin_avg_time_diff', 'destination_avg_time_diff', 'origin_total_time_diff', 'destination_total_time_diff'])
     results.to_csv(report_output_location)
 
 def main():
@@ -93,8 +104,9 @@ def main():
     scen_trips = fill_trip_matrices(outputs_scen)
     scen_trav_times = fill_time_matrices(outputs_scen)
 
-    time_diff_matrix = calculate_diffs(base_trips, base_travel_times, scen_trips, scen_trav_time)
-    write_results(time_diff_matrix)
+    time_diff_matrix = calculate_ave_diffs(base_trips, base_travel_times, scen_trips, scen_trav_time)
+    time_diff_matrix = calculate_tot_diffs(base_trips, base_travel_times, scen_trips, scen_trav_time)
+    write_results(time_diff_matrix, total_diff_matrix)
 
 if __name__ == "__main__":
     main()
