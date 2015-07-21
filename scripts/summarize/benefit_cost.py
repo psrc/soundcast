@@ -8,11 +8,11 @@ from summary_functions import *
 
 # where are your files?
 # this should be a run or config parameter
-model_dir = 'C:/soundcast615/'
+model_dir = 'C:/soundcast/'
 
 h5_base_file = 'outputs/daysim_outputs.h5'
 h5_base_name = 'Base'
-h5_scen_file = 'outputs/daysim_outputs2040luv.h5'
+h5_scen_file = 'outputs/daysim_outputs2040.h5'
 h5_scen_name = 'Scenario'
 report_output_location = 'outputs/time_zone.csv'
 guidefile = 'scripts/summarize/CatVarDict.xlsx'
@@ -75,7 +75,7 @@ def calculate_tot_diffs(base_trips, base_travel_time, scen_trips, scen_travel_ti
     trips_total = (scen_trips + base_trips)
 
     tot_time_diff_matrix = time_diff*trips_total
-    tot_time_diff_matrix[np.isnan(avg_time_diff_matrix)] =0
+    tot_time_diff_matrix[np.isnan(tot_time_diff_matrix)] =0
     return tot_time_diff_matrix
 
 
@@ -85,27 +85,27 @@ def write_results(avg_time_diff_matrix, tot_time_diff_matrix):
     time_by_destination = np.mean(avg_time_diff_matrix, axis = 0, dtype=np.float64)
     total_time_by_origin = np.sum(tot_time_diff_matrix, axis = 1, dtype=np.float64)
     total_time_by_destination = np.sum(tot_time_diff_matrix, axis = 0, dtype=np.float64)
-    all_colls = zip(taz_labels,time_by_origin, time_by_destination, 'total_time_by_origin', 'total_time_by_destination')
+    all_colls = zip(taz_labels,time_by_origin, time_by_destination, total_time_by_origin, total_time_by_destination)
     results = pd.DataFrame(data=all_colls, columns=['taz','origin_avg_time_diff', 'destination_avg_time_diff', 'origin_total_time_diff', 'destination_total_time_diff'])
     results.to_csv(report_output_location)
 
 def main():
     variables_to_read =['otaz', 'dtaz', 'travtime']
-    matrices_to_fill = ['trips', 'travtime']
-    outputs_base = {}
-    outputs_scenario = {}
-    matrices_base = {}
-    matrices_scenario = {}
+    #matrices_to_fill = ['trips', 'travtime']
+    #outputs_base = {}
+    #outputs_scenario = {}
+    #matrices_base = {}
+    #matrices_scenario = {}
 
     outputs_base =read_in_data(h5_base_file,variables_to_read)
     outputs_scenario = read_in_data(h5_scen_file,variables_to_read)
     base_trips = fill_trip_matrices(outputs_base)
     base_trav_times = fill_time_matrices(outputs_base)
-    scen_trips = fill_trip_matrices(outputs_scen)
-    scen_trav_times = fill_time_matrices(outputs_scen)
+    scen_trips = fill_trip_matrices(outputs_scenario)
+    scen_trav_times = fill_time_matrices(outputs_scenario)
 
-    time_diff_matrix = calculate_ave_diffs(base_trips, base_travel_times, scen_trips, scen_trav_time)
-    time_diff_matrix = calculate_tot_diffs(base_trips, base_travel_times, scen_trips, scen_trav_time)
+    time_diff_matrix = calculate_ave_diffs(base_trips, base_trav_times, scen_trips, scen_trav_times)
+    total_diff_matrix = calculate_tot_diffs(base_trips, base_trav_times, scen_trips, scen_trav_times)
     write_results(time_diff_matrix, total_diff_matrix)
 
 if __name__ == "__main__":
