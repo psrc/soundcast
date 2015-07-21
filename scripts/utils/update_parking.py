@@ -89,6 +89,9 @@ if len(replace_daily_parking_spaces) > 0:
 # Delete TAZ and ENS columns to restore file to original form. 
 df = df.drop(['ENS', 'TAZ'], 1)
 
+#Make sure there are no Na's
+df.fillna(0, inplace =True)
+
 # Save results to text file
 df.to_csv(input_parcels, sep = ' ', index = False)
 
