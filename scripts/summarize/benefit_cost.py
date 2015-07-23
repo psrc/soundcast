@@ -72,7 +72,7 @@ def calculate_ave_diffs(base_trips, base_travel_time, scen_trips, scen_travel_ti
 
 def calculate_tot_diffs(base_trips, base_travel_time, scen_trips, scen_travel_time):
     time_diff = (scen_travel_time - base_travel_time)
-    trips_total = (scen_trips + base_trips)
+    trips_total = (scen_trips + base_trips)/2
 
     tot_time_diff_matrix = time_diff*trips_total
     tot_time_diff_matrix[np.isnan(tot_time_diff_matrix)] =0
@@ -107,6 +107,8 @@ def main():
     time_diff_matrix = calculate_ave_diffs(base_trips, base_trav_times, scen_trips, scen_trav_times)
     total_diff_matrix = calculate_tot_diffs(base_trips, base_trav_times, scen_trips, scen_trav_times)
     write_results(time_diff_matrix, total_diff_matrix)
+
+    # break this down by mode
 
 if __name__ == "__main__":
     main()
