@@ -188,33 +188,39 @@ def add_special_gen(trip_table):
 def balance_trips(trip_table, bal_to_attractions, include_ext):
     for key, value in trip_purp_col.iteritems():
         
-        # Balance attractions to productions for most trip purposes
-        if key not in bal_to_attractions:
-            prod = trip_table[key].sum() ; att = trip_table[value].sum()
-            if include_ext:
+        print key
+
+        # don't balance placeholder columns; avoid divide-by-zero error
+        # hbwpro isn't used
+        if key not in ['hbwpro', 'empty1']:
+
+            # Balance attractions to productions for most trip purposes
+            if key not in bal_to_attractions:
+                prod = trip_table[key].sum() ; att = trip_table[value].sum()
+                if include_ext:
+                    #ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
+                    ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
+                    dictZoneLookup
+                else:
+                    ext = 0
                 #ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
-                ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
-                dictZoneLookup
+                #ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
+                bal_factor = (prod - ext)/(att - ext)
+                #trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
+                trip_table[value].loc[1:HIGH_TAZ] *= bal_factor
+                print "key " + key + ", " + value + ' ' + str(bal_factor)
+            # Balance productions to attractions for college trips
             else:
-                ext = 0
-            #ext = trip_table[value].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
-            #ext = trip_table[value].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
-            bal_factor = (prod - ext)/(att - ext)
-            #trip_table[value].loc[0:HIGH_TAZ-1] *= bal_factor
-            trip_table[value].loc[1:HIGH_TAZ] *= bal_factor
-            print "key " + key + ", " + value + ' ' + str(bal_factor)
-        # Balance productions to attractions for college trips
-        else:
-            prod = trip_table[key].sum() ; att = trip_table[value].sum()
-            if include_ext:
-                #ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
-                ext = trip_table[key].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
-            else:
-                ext = 0
-            bal_factor = (att - ext)/(prod - ext)
-            #trip_table[key].loc[0:HIGH_TAZ-1] *= bal_factor
-            trip_table[key].loc[1:HIGH_TAZ] *= bal_factor
-            print "value " + value + ", " +key + ' ' + str(bal_factor)
+                prod = trip_table[key].sum() ; att = trip_table[value].sum()
+                if include_ext:
+                    #ext = trip_table[key].iloc[HIGH_TAZ:MAX_EXTERNAL-1].sum()
+                    ext = trip_table[key].iloc[dictZoneLookup[MIN_EXTERNAL]:dictZoneLookup[MAX_EXTERNAL]].sum()
+                else:
+                    ext = 0
+                bal_factor = (att - ext)/(prod - ext)
+                #trip_table[key].loc[0:HIGH_TAZ-1] *= bal_factor
+                trip_table[key].loc[1:HIGH_TAZ] *= bal_factor
+                print "value " + value + ", " +key + ' ' + str(bal_factor)
 
 # Load household PUMS data
 inc_size_workers_dict = json_to_dictionary('inc_size_workers_dict')
