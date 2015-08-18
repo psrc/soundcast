@@ -16,7 +16,7 @@ import os
 import h5py
 import numpy as np
 import pandas as pd
-from urbansim.maps import dframe_explorer
+from scripts.summarize import dframe_explorer
 
 # Parameters
 hightaz = 3700    # Max TAZ for mapping
