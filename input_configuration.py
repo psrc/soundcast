@@ -35,6 +35,7 @@ run_network_summary = True
 run_soundcast_summary = True
 run_travel_time_summary = True
 run_create_daily_bank = True
+run_map = False
 
 
 # Model iterations, population sampling, log files, etc.
