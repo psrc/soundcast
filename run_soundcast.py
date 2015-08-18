@@ -54,7 +54,10 @@ def parcel_buffering():
         else:
             print 'Starting to update UrbanSim parcel data with 4k parking data file'
             returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/ParcelBuffering/update_parking.py', base_inputs])
+                                      'scripts/utils/update_parking.py', base_inputs])
+            if returncode != 0:
+                print 'Update Parking failed'
+                sys.exit(1)
             print 'Finished updating parking data on parcel file'
 
     create_buffer_xml()

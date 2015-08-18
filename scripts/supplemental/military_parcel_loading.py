@@ -3,12 +3,18 @@ import sys
 import os
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
-parcels_urbansim = pd.read_csv("inputs\\parcel_buffer\\parcels_urbansim.txt", delim_whitespace=True)
+
+
+parcels_urbansim = pd.read_csv("inputs\\parcel_buffer\\parcels_urbansim.txt", sep = " ")
 
 parcels_military = pd.read_csv("inputs\\parcel_buffer\\parcels_military.csv")
 
-all_parcels =parcels_urbansim.merge(parcels_military, how='outer', left_on='PARCELID', right_on="Parcel_ID")
+#these are regular jobs that need to be redistributed to other JBLM taz's, which currently do not have parcels so we aree
+#making dummy ones. 
+jblm_govt_jobs = pd.read_csv("inputs\\parcel_buffer\\distribute_jblm_jobs.csv")
+lone_jblm_parcel = 1500003
 
+all_parcels = parcels_urbansim.merge(parcels_military, how='outer', left_on='PARCELID', right_on="Parcel_ID")
 all_parcels.fillna(0, inplace =True)
 
 all_parcels['EMPGOV_P'] = all_parcels['EMPGOV_P'] + all_parcels['Emp']
@@ -21,7 +27,6 @@ all_parcels['EMPTOT_P'] = all_parcels['EMPTOT_P'] + all_parcels['Emp']
 max_id =int(all_parcels['PARCELID'].max())
 new_max = max_id + 1
 max_index = all_parcels.index.max()
-
 
 all_parcels.fillna(0, inplace =True)
 
@@ -38,6 +43,37 @@ for index, row in all_parcels.iterrows():
 
 # get rid of the extra columns from the military parcels
 for colname in parcels_military.columns:
+    all_parcels = all_parcels.drop(colname, 1)
+
+for colname in all_parcels.columns:
+    all_parcels[colname] = all_parcels[colname].astype(int)
+
+
+#jblm stuff:
+all_parcels = all_parcels.merge(jblm_govt_jobs, how='outer', left_on='PARCELID', right_on="Parcel_ID")
+
+all_parcels.fillna(0, inplace =True)
+
+jblm_parcel_record = all_parcels.loc[all_parcels['PARCELID'] == lone_jblm_parcel]
+
+total_jblm_jobs = int(jblm_parcel_record['EMPGOV_P'])
+
+new_total = int(total_jblm_jobs/5)
+
+for index, row in all_parcels.iterrows():
+    if row['PARCELID'] == lone_jblm_parcel:
+        row['EMPGOV_P'] = new_total
+        row['EMPTOT_P'] = row['EMPEDU_P'] + row['EMPFOO_P'] + row['EMPGOV_P'] + row['EMPIND_P'] + row['EMPMED_P'] + row['EMPOFC_P'] + row['EMPOTH_P'] + row['EMPRET_P'] + row['EMPRSC_P'] + row['EMPSVC_P']
+    elif row['Parcel_ID'] == -1:
+        row['PARCELID'] = new_max
+        new_max = new_max + 1
+        row['EMPGOV_P'] = new_total
+        row['EMPTOT_P'] = new_total
+        row['XCOORD_P'] = row['x']
+        row['YCOORD_P'] = row['y']
+        row['TAZ_P'] = row['TAZ']
+
+for colname in jblm_govt_jobs.columns:
     all_parcels = all_parcels.drop(colname, 1)
 
 for colname in all_parcels.columns:
