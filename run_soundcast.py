@@ -196,6 +196,9 @@ def run_all_summaries():
    if run_create_daily_bank:
       subprocess.call([sys.executable, 'scripts/summarize/daily_bank.py'])
 
+   # Start a webmap server in a new console
+   if run_map:
+      subprocess.Popen([sys.executable, 'scripts/summarize/map.py'], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
