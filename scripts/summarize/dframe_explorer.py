@@ -77,7 +77,7 @@ def start(views,
           join_name='zone_id',  # from data frames
           precision=8,
           port=8765,
-          host='localhost',
+          host='0.0.0.0',
           testing=False):
     """
     Start the web service which serves the Pandas queries and generates the
@@ -126,7 +126,9 @@ def start(views,
         'shape_json': shape_json,
         'geom_name': geom_name,
         'join_name': join_name,
-        'precision': precision
+        'precision': precision,
+        'port': port,
+        'host': host
     }
 
     for k in views:
