@@ -17,6 +17,7 @@ import h5py
 import numpy as np
 import pandas as pd
 from scripts.summarize import dframe_explorer
+import socket
 
 # Parameters
 hightaz = 3700    # Max TAZ for mapping
@@ -128,6 +129,17 @@ def main():
   # add column for TAZ
   newdf['TAZ'] = newdf.index
 
+  # Create legible columns for the dataframe results
+  df_name_dict = {'svtl1t': 'SOV Low Income',
+                  'svtl2t': 'SOV Med Income',
+                  'svtl3t': 'SOV High Income',
+                  'transit_time': 'Transit',
+                  'walkt': 'Walk',
+                  'biket': 'Bike'}
+
+  newdf.rename(columns=df_name_dict, inplace=True)
+
+
   # Create dictionary of dataframes to plot
   d = {"Accessibility to Jobs within %d minutes" % max_trav_time : newdf}
 
@@ -141,7 +153,7 @@ def main():
                         geom_name='TAZ',
                         join_name='TAZ',
                         precision=2, 
-                        host='0.0.0.0'
+                        host=socket.gethostbyname(socket.gethostname())    # 
                         )  
 
 if __name__ == "__main__":

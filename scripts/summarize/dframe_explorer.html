@@ -47,7 +47,11 @@ ZOOM = {{zoom}};
 PRECISION = {{precision}};
 GEOMNAME = "{{geom_name}}";
 JOINNAME = "{{join_name}}";
-ROOT = "http://localhost:8765/"
+HOST = "{{host}}";
+PORT = "{{port}}";
+ROOT = "http://" + HOST + ":" + PORT + "/";
+//ROOT = "http://10.10.11.173:8765/"    // IP address of server, currently set to PSRC 3827, needs to be dynamic
+console.log(HOST);
 
 MAP = null;
 var shapeLayer = null;
@@ -137,15 +141,14 @@ function controller($scope, $http) {
         if(values.length == 0) {
             values = [0, 0];
         }
-        if ($scope.scale == "quantile") {
-            q = d3.scale.quantile()
-                    .domain(values)
-                    .range(d3.range(buckets));
-        } else {
-            q = d3.scale.quantize()
-                    .domain(d3.extent(values))
-                    .range(d3.range(buckets));
-        }
+        // if ($scope.scale == "quantile") {
+        //     q = d3.scale.quantile()
+        //             .domain(values)
+        //             .range(d3.range(buckets));
+        // } else {
+        q = d3.scale.quantize()
+                .domain(d3.extent(values))
+                .range(d3.range(buckets));
     }
 
     $scope.setLegend = function() {
@@ -248,11 +251,11 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 <div id="map" style="width:100%; height:100%; position:fixed; left:0; top:0; overflow:hidden;"></div>
 
-<select style="position:absolute; right: 10px; top: 10px; width: 150px;" ng-options="name for name in df_names" ng-model="df_name"></select>
+<select style="position:absolute; right: 10px; top: 10px; width: 250px;" ng-options="name for name in df_names" ng-model="df_name"></select>
 
-<select ng-show="aggregation != 'size()' && !eval" style="position:absolute; right: 10px; top: 35px; width: 150px;" ng-options="name for name in schema[df_name]" ng-model="field_name"></select>
+<select ng-show="aggregation != 'size()' && !eval" style="position:absolute; right: 10px; top: 35px; width: 250px;" ng-options="name for name in schema[df_name]" ng-model="field_name"></select>
 
-<select style="position:absolute; right: 10px; top: 60px; width: 150px;" ng-options="name for name in colors" ng-model="color"></select>
+<!-- <select style="position:absolute; right: 10px; top: 60px; width: 150px;" ng-options="name for name in colors" ng-model="color"></select>
 
 <select style="position:absolute; right: 10px; top: 85px; width: 150px;" ng-options="name for name in scale_options" ng-model="scale"></select>
 
@@ -264,7 +267,7 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 <form ng-submit="runQuery()">
 <input style="position:absolute; right: 10px; top: 160px; width: 150px;" ng-model="eval">
-</form>
+</form> -->
 
 <!--
 <button style="position:absolute; right: 10px; top: 135px; width: 100px;" ng-click="runQuery()">Run Query</button>
