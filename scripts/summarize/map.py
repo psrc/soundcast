@@ -63,52 +63,59 @@ def get_nmt_skims(skim_dict, tod_nmt):
 
   return skim_dict
 
-def main():
-
-  # Store skims in a dictionary
-  skim_dict = {}
-
-  # Get bike and walk skims (for Soundcast, only assigned for time period 5 to 6 am)
-  skim_dict = get_nmt_skims(skim_dict, tod_nmt='5to6')
-
-  ##### Process the following for a given time periods
-  tod = '8to9'    # AM transit
-
-  # Get transit skims
-  my_store_8to9 = h5py.File(main_dir + r'/inputs/' + tod + '.h5', "r+")
-  # Total transit time
+def get_transit_skims(skim_dict, tod_transit):
+  # Get AM transit skims (for 8 to 9 AM)
+  my_store_8to9 = h5py.File(main_dir + r'/inputs/8to9.h5', "r+")
+  # Extract total transit time (twtwa)
   skim_dict['transit_time'] = clean_skims(my_store_8to9['Skims']['twtwa'])
 
+  return skim_dict
+
+def get_auto_skims(skim_dict, tod_auto):
   # Get auto travel times for a given time period
   # assume we only want the SOV toll class
   sovs = ['svtl' + str(x) for x in range(1,4)]
   sovs = [sov + 't' for sov in sovs]
 
-  tod = '7to8'
-  my_auto_store = h5py.File(main_dir + r'/inputs/' + tod + '.h5', "r+")
+  #tod_auto = '7to8'
+  my_auto_store = h5py.File(main_dir + r'/inputs/' + tod_auto + '.h5', "r+")
 
   # Get data for each SOV skim
   #sov_time = {}
   for sov in sovs:
       skim_dict[sov] = clean_skims(my_auto_store['Skims'][sov])
 
-  # Load in parcel data
-  parcels = pd.read_csv(main_dir + r'/inputs/buffered_parcels.dat', delim_whitespace=True)
+  return skim_dict
 
-  # Aggregate parcels to zones and only import employment columns
-  tazjobs = parcels.groupby('taz_p').sum()[['empedu_p','empfoo_p','empgov_p', 'empind_p','empmed_p', 'empmed_p', 'empofc_p', 'empret_p',
-                                    'empsvc_p', 'empoth_p', 'emptot_p']]
+def accessibility_calc(parcels):
+  '''
+  Accessibility is measured as the total number of jobs accessible within a max travel time, by a given mode and time period.
+  The metric is computed first by creating a binary OD table with 1's for trips under a threshold, 0 otherwise.
+  The OD binary matrix is multiplied by total jobs in each zone, and summed for each origin. 
+  '''
 
-  # Create an empty dataframe with index for zones 1 through highest TAZ number
-  newdf = pd.DataFrame(np.zeros(hightaz), index=range(1,hightaz+1))
+  # Store skims in a dictionary
+  skim_dict = {}
+
+  # Access auto, transit, and nonmotorized (bike and walk) skim results in common format
+  skim_dict = get_auto_skims(skim_dict, tod_auto='7to8')
+  skim_dict = get_nmt_skims(skim_dict, tod_nmt='5to6')
+  skim_dict = get_transit_skims(skim_dict, tod_transit='8to9')
+  
+  # Aggregate parcels to zones and only import employment columns from parcels
+  tazjobs = parcels.groupby('taz_p').sum()[['empedu_p','empfoo_p','empgov_p', 'empind_p',
+                                            'empmed_p', 'empmed_p', 'empofc_p', 'empret_p',
+                                            'empsvc_p', 'empoth_p', 'emptot_p']]
+
+  # Create an empty dataframe with index for zones 1 through highest TAZ number (offset by 1 because pandas is 0-based and zones begin at 1)
+  empty_zone_df = pd.DataFrame(np.zeros(hightaz), index=range(1,hightaz+1))
 
   # Join tazjobs data to the empty dataframe so all TAZs have data, even if its equal to zero
-  jobs = newdf.join(tazjobs)
-  jobs.drop(0, axis=1, inplace=True)
-  jobs.fillna(0, axis=1, inplace=True)
+  jobs = empty_zone_df.join(tazjobs)
+  jobs.drop(0, axis=1, inplace=True)    # Drop the empty  placeholder column 0 from empty_zone_df
+  jobs.fillna(0, axis=1, inplace=True)    # Replace any NaN values with 0
 
-  # Travel times under certain time
-  # Replace OD pairs with travel time less than 15 with an indicator variable 1, 0 otherwise
+  # Create OD binary matrix with travel time less than max_trav_time = 1, 0 otherwise, store results in new dict
   filtered_skims = {}
 
   for skim_name, skim_data in skim_dict.iteritems():
@@ -117,43 +124,60 @@ def main():
       # 0-time trips suggest O-D pairs with zero service or access
       filtered_skims[skim_name] = np.where((skim_data < max_trav_time) & (skim_data > 0), 1, 0)
 
-  np.mean(filtered_skims['transit_time'])
+  # np.mean(filtered_skims['transit_time'])
 
   # Build a dataframe with accessibility by mode
-  newdf = pd.DataFrame(index=range(1,hightaz+1))   # plus because range func is 0-based
+  accessiblity_df = pd.DataFrame(index=range(1,hightaz+1))   # plus 1 because range function is 0-based
 
   for skim_name, skim_value in filtered_skims.iteritems():
-      print "exporting skim to dataframe: " + skim_name
-      newdf[skim_name] = calc_jobs(filtered_skims, skim_name, jobs)
+      print "Calculating accessibility for: " + skim_name
+      accessiblity_df[skim_name] = calc_jobs(filtered_skims, skim_name, jobs)
 
   # add column for TAZ
-  newdf['TAZ'] = newdf.index
+  accessiblity_df['TAZ'] = accessiblity_df.index
 
   # Create legible columns for the dataframe results
-  df_name_dict = {'svtl1t': 'SOV Low Income',
-                  'svtl2t': 'SOV Med Income',
-                  'svtl3t': 'SOV High Income',
+  df_name_dict = {'svtl1t': 'SOV - Low Income',
+                  'svtl2t': 'SOV - Med Income',
+                  'svtl3t': 'SOV - High Income',
                   'transit_time': 'Transit',
                   'walkt': 'Walk',
                   'biket': 'Bike'}
 
-  newdf.rename(columns=df_name_dict, inplace=True)
+  accessiblity_df.rename(columns=df_name_dict, inplace=True)
 
+  return accessiblity_df
 
-  # Create dictionary of dataframes to plot
-  d = {"Accessibility to Jobs within %d minutes" % max_trav_time : newdf}
+def main():
+
+  # Read parcel data
+  parcels = pd.read_csv(main_dir + r'/inputs/buffered_parcels.dat', delim_whitespace=True)
+  access_df = accessibility_calc(parcels)
+
+  # Rename parcel's TAZ column to match geo data
+  parcels['TAZ'] = parcels['taz_p']
+
+  # Load household-level results from daysim outputs
+  daysim = h5py.File(main_dir + r'/outputs/daysim_outputs.h5', "r+")
+  hh_df = pd.DataFrame(data={ 'TAZ' : daysim['Household']['zone_id'][:], 
+                                  'Household Income': daysim['Household']['hhincome'][:],
+                                  'Household Vehicles': daysim['Household']['hhvehs'][:],
+                                  'Household Size': daysim['Household']['hhsize'][:]})
+
+  # Create dictionary of dataframes to plot on map
+  d = {"Accessibility to Jobs within %d minutes" % max_trav_time : access_df,
+       "Land Use": parcels,
+       "Households": hh_df}
 
   # Start the dataframe explorer webmap
   dframe_explorer.start(d, 
                         center=[47.614848,-122.3359058],
                         zoom=11,
-                        #shape_json=main_dir+'/maps/taz2010.geojson',
-                        #shape_json=os.path.join(main_dir, r'/inputs/maps/taz2010.geojson'),
                         shape_json=os.path.join('inputs/', 'taz2010.geojson'),
                         geom_name='TAZ',
                         join_name='TAZ',
-                        precision=2, 
-                        host=socket.gethostbyname(socket.gethostname())    # 
+                        precision=1, 
+                        host=socket.gethostbyname(socket.gethostname())    # hosted on machine running the script
                         )  
 
 if __name__ == "__main__":

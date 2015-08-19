@@ -141,14 +141,15 @@ function controller($scope, $http) {
         if(values.length == 0) {
             values = [0, 0];
         }
-        // if ($scope.scale == "quantile") {
-        //     q = d3.scale.quantile()
-        //             .domain(values)
-        //             .range(d3.range(buckets));
-        // } else {
+        if ($scope.scale == "quantile") {
+            q = d3.scale.quantile()
+                    .domain(values)
+                    .range(d3.range(buckets));
+        } else {
         q = d3.scale.quantize()
                 .domain(d3.extent(values))
                 .range(d3.range(buckets));
+        }
     }
 
     $scope.setLegend = function() {
@@ -255,13 +256,13 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 <select ng-show="aggregation != 'size()' && !eval" style="position:absolute; right: 10px; top: 35px; width: 250px;" ng-options="name for name in schema[df_name]" ng-model="field_name"></select>
 
-<!-- <select style="position:absolute; right: 10px; top: 60px; width: 150px;" ng-options="name for name in colors" ng-model="color"></select>
+<select style="position:absolute; right: 10px; top: 60px; width: 150px;" ng-options="name for name in colors" ng-model="color"></select>
 
 <select style="position:absolute; right: 10px; top: 85px; width: 150px;" ng-options="name for name in scale_options" ng-model="scale"></select>
 
 <select style="position:absolute; right: 10px; top: 110px; width: 150px;" ng-options="name for name in aggregation_options" ng-model="aggregation"></select>
 
-<form ng-submit="runQuery()">
+<!-- <form ng-submit="runQuery()">
 <input style="position:absolute; right: 10px; top: 135px; width: 150px;" ng-model="filter">
 </form>
 

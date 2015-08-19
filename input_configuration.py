@@ -17,25 +17,25 @@ recipients = []
  
 # Only update parking for future-year analysis!
 run_update_parking = False
-run_convert_hhinc_2000_2010 = True
-run_parcel_buffering = True
-run_copy_daysim_code = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
-run_import_networks = True
-run_skims_and_paths_seed_trips = True
-should_build_shadow_price =True
-run_skims_and_paths = True
-run_truck_model =True
-run_supplemental_trips = True
-run_daysim = True
-run_parcel_buffer_summary = True
-run_network_summary = True
-run_soundcast_summary = True
-run_travel_time_summary = True
-run_create_daily_bank = True
-run_map = False
+run_convert_hhinc_2000_2010 = False
+run_parcel_buffering = False
+run_copy_daysim_code = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_large_inputs = False
+run_import_networks = False
+run_skims_and_paths_seed_trips = False
+should_build_shadow_price =False
+run_skims_and_paths = False
+run_truck_model =False
+run_supplemental_trips = False
+run_daysim = False
+run_parcel_buffer_summary = False
+run_network_summary = False
+run_soundcast_summary = False
+run_travel_time_summary = False
+run_create_daily_bank = False
+run_map = True
 
 
 # Model iterations, population sampling, log files, etc.
@@ -249,13 +249,13 @@ travel_time_file = 'inputs/ObservedTravelTimes.xlsx'
 topsheet = 'outputs/Topsheet.xlsx'
 
 # Specific reports to run
-run_daysim_report = True
-run_day_pattern_report = True
-run_mode_choice_report = True
-run_dest_choice_report = True
-run_long_term_report = True
-run_time_choice_report = True
-run_district_summary_report = True
+run_daysim_report = False
+run_day_pattern_report = False
+run_mode_choice_report = False
+run_dest_choice_report = False
+run_long_term_report = False
+run_time_choice_report = False
+run_district_summary_report = False
 
 output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
                'screenline_volumes', 'Topsheet.xlsx']
