@@ -199,6 +199,7 @@ def run_all_summaries():
    # Start a webmap server in a new console
    if run_map:
       subprocess.Popen([sys.executable, 'scripts/summarize/map.py'], creationflags=subprocess.CREATE_NEW_CONSOLE)
+      #subprocess.Popen([sys.executable, 'scripts/summarize/map.py'])
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
