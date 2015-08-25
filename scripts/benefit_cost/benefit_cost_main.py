@@ -7,9 +7,14 @@ import itertools
 import collections
 import h5toDF
 import xlsxwriter
+import os, sys
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+import input_configuration
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 from EmmeProject import *
+import datetime
 
 # Read in Configuration Hard Code for now
 model_dir = 'C:/soundcast/'
@@ -23,8 +28,6 @@ daysim_outputs_scenario_file =  model_dir + daysim_outputs_scenario_file
 guidefile = model_dir+'scripts/summarize/CatVarDict.xlsx'
 bc_outputs_file = model_dir+'outputs/BenefitCost.xlsx'
 parcels_file  =model_dir + '/inputs/buffered_parcels.dat'
-
-
 
 
 #truck_base_file =somewhere
@@ -45,10 +48,10 @@ ANNUALIZATION = 300
 ANNUAL_OWNERSHIP_COST = 6290
 
 
-def get_variables_trips(output_df,trip_variables_to_read, hh_variables_to_read, person_variables_to_read):
-    trip_data = output_df['Trip'][trip_variables_to_read]
-    hh_data = output_df['Household'][hh_variables_to_read]
-    person_data = output_df['Person'][person_variables_to_read]
+def get_variables_trips(output_df,trip_variables, hh_variables, person_variables):
+    trip_data = output_df['Trip'][trip_variables]
+    hh_data = output_df['Household'][hh_variables]
+    person_data = output_df['Person'][person_variables]
     tour_data = output_df['Tour'][['hhno', 'pno', 'id']]
     tour_data.rename(columns = {'id': 'tour_id'}, inplace = True)
 
@@ -89,8 +92,61 @@ def nonmotorized_benefits(trips, mode):
     people_times = {'Time': trips_people.mean(), 'People': trips_people.count()}
     return  people_times
 
+
+def group_vmt_speed(my_project):
+    speed_bins = [-20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+    speed_dict = {}
+
+    for item in speed_bins:
+        speed_dict[item] = {'car_vmt' : 0, 'lt_truck_vmt' : 0,  'med_truck_vmt' : 0, 'hv_truck_vmt' : 0}
+
+    for key, value in sound_cast_net_dict.iteritems():
+
+        print 'Getting VMT by Speed bin for time period ' + key
+        
+        my_project.change_active_database(key)
+        network = my_project.current_scenario.get_network()
+
+        for link in network.links():
+            speed = link['length']* MINS_HR/link['auto_time']
+            speed = int(round(speed, -1))
+            if speed > 0 and speed <100:
+                speed_dict[speed]['car_vmt'] = speed_dict[speed]['car_vmt'] + (link['@svtl1']+ link['@svtl2'] + link['@svtl3'] + link['@svnt1'] +  link['@svnt2'] + link['@svnt3'] + link['@h2tl1'] + link['@h2tl2'] +
+                link['@h2tl3'] + link['@h2nt1'] + link['@h2nt2'] + link['@h2nt3'] + link['@h3tl1'] +
+                link['@h3tl2'] + link['@h3tl3'] + link['@h3nt1'] + link['@h3nt2'] + link['@h3nt3'])*link['length']
+
+                speed_dict[speed]['lt_truck_vmt'] = speed_dict[speed]['lt_truck_vmt'] + link['@lttrk'] * link['length']
+                speed_dict[speed]['med_truck_vmt'] = speed_dict[speed]['med_truck_vmt'] + link['@mveh'] * link['length']
+                speed_dict[speed]['hv_truck_vmt'] = speed_dict[speed]['hv_truck_vmt'] + link['@hveh'] * link['length']
+
+    speed_df = pd.DataFrame.from_dict(speed_dict)                 
+    return speed_df
+
+def group_vmt_class(my_project):
+    # Currently the assumptions do not vary the accident rates by VC range
+    # if they did we could update this to include a VC class breakdwon.
+    # for testing:
+    network = my_project.current_scenario.get_network()
+
+    # store vmt by functional class 1= Freeway, 3= Expressway, etc
+    vmt_func_class= {1 : 0, 3 : 0,  5 : 0, 7 : 0}
+    
+    for key, value in sound_cast_net_dict.iteritems():
+
+        print 'Getting VMT by Facility Type for Time Period ' + key
+        my_project.change_active_database(key)
+        network = my_project.current_scenario.get_network()
+
+        for link in network.links():
+            # Only bigger facility types are included
+            if link['volume_delay_func'] in vmt_func_class.keys():
+                vmt_func_class[link['volume_delay_func']]+=link['auto_volume']*link['length']
+
+    vmt_fc_df = pd.DataFrame.from_dict(vmt_func_class)
+    return vmt_fc_df       
+
+
 def main():
-    ## To be main###########
     bc_assumptions = {}
 
     # Write out the assumptions
@@ -101,29 +157,32 @@ def main():
     bc_assumptions['Base Truck File Location'] = daysim_outputs_base_file
     bc_assumptions['Scenario Truck File Location'] = daysim_outputs_scenario_file
 
-    ############# Calculate
-    ############# Impacts#############################################################################################
+    ############# Calculate Impacts#######################################################################
     bc_outputs = {}
     bc_time_outputs = {}
     bc_low_inc_outputs = {}
     bc_health_outputs = {}
 
-    ## Read in Outputs########
-    trip_variables_to_read = ['otaz', 'dtaz', 'travtime', 'travcost', 'pno', 'mode', 'tour_id', 'opcl', 'dpcl', 'dorp']
-    hh_variables_to_read = ['hhno', 'hhincome', 'hhvehs', 'hhtaz']
-    person_variables_to_read = ['hhno', 'pno', 'pagey', 'pgend']
+    ## Read in Dayim Outputs########
+    trip_variables = ['otaz', 'dtaz', 'travtime', 'travcost', 'pno', 'mode', 'tour_id', 'opcl', 'dpcl', 'dorp']
+    hh_variables = ['hhno', 'hhincome', 'hhvehs', 'hhtaz']
+    person_variables = ['hhno', 'pno', 'pagey', 'pgend']
 
-    base_outputs = convert(daysim_outputs_base_file,guidefile, base_output_name)
-    scenario_outputs = convert(daysim_outputs_scenario_file,guidefile, scenario_output_name)
+    base_outputs = h5toDF.convert(daysim_outputs_base_file,guidefile, base_output_name)
+    scenario_outputs = h5toDF.convert(daysim_outputs_scenario_file,guidefile, scenario_output_name)
 
-    base_trips = get_variables_trips(base_outputs, trip_variables_to_read, hh_variables_to_read, person_variables_to_read)
-    scenario_trips = get_variables_trips(scenario_outputs, trip_variables_to_read, hh_variables_to_read, person_variables_to_read)
+    base_trips = get_variables_trips(base_outputs, trip_variables, hh_variables, person_variables)
+    scenario_trips = get_variables_trips(scenario_outputs, trip_variables, hh_variables, person_variables)
+
+    ### Get EMME project set up##############
+    my_project = EmmeProject(project)
 
     ##### TRAVEL TIME######################################3
     # Calculate Auto Travel Time Impacts
     # To Do - Calculate for different groups of people - young and old, more income
     # groups
     # Calculate by home origin
+    # Should we include walking and biking costs?
 
     # Time is calculated in PathTypeModel.cs
     # For Walking and Biking, time is just the walk or bike time
@@ -163,6 +222,7 @@ def main():
     #bc_outputs['Scenario Total Value of Auto Travel Time']
 
     # Calculate Transit Travel Time Impacts
+    print "Calculating Transit Travel Time Impacts"
     bc_time_outputs['Base Total Household Transit Time'] = impedance_inc_mode(base_trips, MAX_INC,"transit", "travtime") / MINS_HR
     bc_time_outputs['Base Low Income Household Transit Time'] = impedance_inc_mode(base_trips, LOW_INC_MAX, "transit", "travtime") / MINS_HR
 
@@ -192,6 +252,7 @@ def main():
     # Is this cost scaled for occupancy?
 
     # For transit, the cost is the fare
+    print "Calculating Out-of-Pocket and Ownership Costs"
     bc_outputs['Base Total Auto Household Toll and Auto Operating Cost'] = impedance_inc_mode(base_trips, MAX_INC, "auto", "travcost")
     bc_low_inc_outputs['Base Low Income Household Tolls  and Auto Operating Cost'] = impedance_inc_mode(base_trips, LOW_INC_MAX, "auto", "travcost")
     bc_outputs['Scenario Total Auto Household Tolls and Auto Operating Cost'] = impedance_inc_mode(scenario_trips, MAX_INC, "auto", "travcost")
@@ -220,36 +281,13 @@ def main():
 
 
     # Calculate Emissions Impacts
-
-    # First Need to summarize Vehicle Miles by
-    # Car, Light Truck, Med Truck, Large Truck into 10 mph bins
-
-    # To Do this:
-    #Something like this:
-
-     #for key, value in sound_cast_net_dict.iteritems():
-     # Load the project by time period
-     # my_project.change_active_database(key)
-    # create a dataframe to hold: time bin, cars, trucks by type
-     # for each link
-     # add the vmt by type to the correct time bin speed timau (minutes)/length
-     # (mi) : convert to speed
-     # dependent on the sped on the link
-     #
-     # Calculate the VMT by vehicle classes
-
-	     # str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 + @svnt2 + @svnt3 +
-	     # @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
-	     #                  + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk +
-	     #                  @mveh + @hveh + @bveh'
-	     #EmmeProject.network_calculator("link_calculation", result = '@tveh',
-	     #expression = str_expression)
-
-    # make a total vmt by time bin by speed bin across all time periods
-
+    # The emissions impacts come from grouping VMT into speed groups and applying a factor per mile.
+    vmt_speed_bin = group_vmt_speed(my_project)
+   
     # Calculate Collision Impacts
-
-
+    # For collisions, we assume a rate of collisions per VMT by facility type.
+    vmt_func_class = group_vmt_class(my_project)
+  
 
     # Calculate Health Costs
     # For this we need average distance walked and biked per person
@@ -277,8 +315,6 @@ def main():
     bc_health_outputs['Scenario Total Number of Bikers'] = scenario_bike_times['People'].values[0]
 
 
-    # Calculate Noise Costs
-
     # Aggregate Logsum based Time measure
 
     # Optionally calculate Project Costs, operating and maintenance cost
@@ -289,6 +325,8 @@ def main():
     pd.DataFrame(bc_time_outputs.items(), columns= ['Time', 'Value']).sort_index(by=['Time']).to_excel(excel_writer = writer, sheet_name ='Time', na_rep = 0, startrow = 1)
     pd.DataFrame(bc_health_outputs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']).to_excel(excel_writer = writer, sheet_name ='Health', na_rep = 0, startrow = 1)
     pd.DataFrame(bc_assumptions.items(), columns= ['Assumption', 'Value']).sort_index(by=['Assumption']).to_excel(excel_writer = writer, sheet_name ='Assumptions', na_rep = 0, startrow = 1)
+    vmt_speed_bin.to_excel(excel_writer = writer, sheet_name = 'AirQuality', na_rep = 0, startrow =1)
+    vmt_func_bin.to_excel(excel_writer = writer, sheet_name = 'Collisions', na_rep = 0, startrow =1)
     writer.close()
 
 if __name__ == "__main__":
