@@ -479,180 +479,180 @@ def main():
 
     export_corridor_results(my_project)
     
-   #  writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
-   #  #create extra attributes:
+    writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
+    #create extra attributes:
     
        
-   #  #pandas dataframe to hold count table:
-   #  df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
-   #  df_aadt_counts = pd.read_csv('inputs/network_summary/' + aadt_counts_file)
-   #  df_tptt_counts = pd.read_csv('inputs/network_summary/' + tptt_counts_file)
+    #pandas dataframe to hold count table:
+    df_counts = pd.read_csv('inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
+    df_aadt_counts = pd.read_csv('inputs/network_summary/' + aadt_counts_file)
+    df_tptt_counts = pd.read_csv('inputs/network_summary/' + tptt_counts_file)
     
  
-   #  counts_dict = {}
-   #  uc_vmt_dict = {}
-   #  aadt_counts_dict = {}
-   #  tptt_counts_dict = {}
+    counts_dict = {}
+    uc_vmt_dict = {}
+    aadt_counts_dict = {}
+    tptt_counts_dict = {}
     
-   #  #get a list of screenlines from the bank/scenario
-   #  screenline_list = get_unique_screenlines(my_project) 
-   #  screenline_dict = {}
+    #get a list of screenlines from the bank/scenario
+    screenline_list = get_unique_screenlines(my_project) 
+    screenline_dict = {}
     
-   #  for item in screenline_list:
-   #      #dict where key is screen line id and value is 0
-   #      screenline_dict[item] = 0
+    for item in screenline_list:
+        #dict where key is screen line id and value is 0
+        screenline_dict[item] = 0
 
-   #  #loop through all tod banks and get network summaries
-   #  for key, value in sound_cast_net_dict.iteritems():
-   #      my_project.change_active_database(key)
-   #      for name, desc in extra_attributes_dict.iteritems():
-   #          my_project.create_extra_attribute('LINK', name, desc, 'True')
-   #      #TRANSIT:
-   #      if my_project.tod in transit_tod.keys():
-   #          for name, desc in transit_extra_attributes_dict.iteritems():
-   #              my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-   #          calc_transit_link_volumes(my_project)
-   #          calc_transit_line_atts(my_project)
+    #loop through all tod banks and get network summaries
+    for key, value in sound_cast_net_dict.iteritems():
+        my_project.change_active_database(key)
+        for name, desc in extra_attributes_dict.iteritems():
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
+        #TRANSIT:
+        if my_project.tod in transit_tod.keys():
+            for name, desc in transit_extra_attributes_dict.iteritems():
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
+            calc_transit_link_volumes(my_project)
+            calc_transit_line_atts(my_project)
   
-   #          transit_summary_dict[key] = get_transit_boardings_time(my_project)
-   #          #print transit_summary_dict
+            transit_summary_dict[key] = get_transit_boardings_time(my_project)
+            #print transit_summary_dict
           
-   #      net_stats = calc_vmt_vht_delay_by_ft(my_project)
-   #      #store tod network summaries in dictionary where key is tod:
-   #      ft_summary_dict[key] = net_stats
-   #      #store vmt by user class in dict:
-   #      uc_vmt_dict[key] = vmt_by_user_class(my_project)
+        net_stats = calc_vmt_vht_delay_by_ft(my_project)
+        #store tod network summaries in dictionary where key is tod:
+        ft_summary_dict[key] = net_stats
+        #store vmt by user class in dict:
+        uc_vmt_dict[key] = vmt_by_user_class(my_project)
 
-   #      #counts:
-   #      df_tod_vol = get_link_counts(my_project, df_counts, key)
-   #      counts_dict[key] = df_tod_vol
+        #counts:
+        df_tod_vol = get_link_counts(my_project, df_counts, key)
+        counts_dict[key] = df_tod_vol
         
-   #      #AADT Counts:
+        #AADT Counts:
 
-   #      get_aadt_volumes(my_project, df_aadt_counts, aadt_counts_dict)
+        get_aadt_volumes(my_project, df_aadt_counts, aadt_counts_dict)
         
-   #      #TPTT:
-   #      get_tptt_volumes(my_project, df_tptt_counts, tptt_counts_dict)
+        #TPTT:
+        get_tptt_volumes(my_project, df_tptt_counts, tptt_counts_dict)
         
         
-   #      #screen lines
-   #      get_screenline_volumes(screenline_dict, my_project)
+        #screen lines
+        get_screenline_volumes(screenline_dict, my_project)
         
         
 
-   # #write out transit:
-   #  print uc_vmt_dict
-   #  col = 0
-   #  transit_df = pd.DataFrame()
-   #  for tod, df in transit_summary_dict.iteritems():
-   #     #if transit_tod[tod] == 'am':
-   #     #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
-   #     #keys=None, levels=None, names=None, verify_integrity=False)
+   #write out transit:
+    print uc_vmt_dict
+    col = 0
+    transit_df = pd.DataFrame()
+    for tod, df in transit_summary_dict.iteritems():
+       #if transit_tod[tod] == 'am':
+       #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
+       #keys=None, levels=None, names=None, verify_integrity=False)
 
-   #     workbook = writer.book
-   #     index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
-   #     transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
-   #     #transit_df[tod + '_board'] = df[tod + '_board']
-   #     #transit_df[tod + '_time'] = df[tod + '_time']
-   #  transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
-   #  transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
+       workbook = writer.book
+       index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
+       transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
+       #transit_df[tod + '_board'] = df[tod + '_board']
+       #transit_df[tod + '_time'] = df[tod + '_time']
+    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
+    transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
        
-   #     #if col == 0:
-   #     #    worksheet = writer.sheets['Transit Summaries']
-   #     #    routes = df.index.tolist()
-   #     #    for route_no in range(len(routes)):
-   #     #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
-   #     #    col = col + 1
-   #     #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-   #     #    col = col + 2
-   #     #else:
-   #     #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-   #     #    col = col + 2
+       #if col == 0:
+       #    worksheet = writer.sheets['Transit Summaries']
+       #    routes = df.index.tolist()
+       #    for route_no in range(len(routes)):
+       #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
+       #    col = col + 1
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
+       #else:
+       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
+       #    col = col + 2
 
 
-   #  #*******write out counts:
-   #  for value in counts_dict.itervalues():
-   #      df_counts = df_counts.merge(value, right_index = True, left_index = True)
-   #      df_counts = df_counts.drop_duplicates()
+    #*******write out counts:
+    for value in counts_dict.itervalues():
+        df_counts = df_counts.merge(value, right_index = True, left_index = True)
+        df_counts = df_counts.drop_duplicates()
     
-   #  #write counts out to xlsx:
-   #  #loops
-   #  df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
+    #write counts out to xlsx:
+    #loops
+    df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
     
-   #  #aadt:
-   #  aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
-   #  aadt_df.to_excel(excel_writer = writer, sheet_name = 'Arterial Counts Output')
+    #aadt:
+    aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
+    aadt_df.to_excel(excel_writer = writer, sheet_name = 'Arterial Counts Output')
 
-   #  #tptt:
-   #  tptt_df = pd.DataFrame.from_dict(tptt_counts_dict, orient="index")
-   #  tptt_df.to_excel(excel_writer = writer, sheet_name = 'TPTT Counts Output')
+    #tptt:
+    tptt_df = pd.DataFrame.from_dict(tptt_counts_dict, orient="index")
+    tptt_df.to_excel(excel_writer = writer, sheet_name = 'TPTT Counts Output')
 
     
 
-   #  #*******write out network summaries
-   #  soundcast_tods = sound_cast_net_dict.keys
-   #  list_of_measures = ['vmt', 'vht', 'delay']
-   #  list_of_FTs = fac_type_dict.keys()
-   #  row_list = []
-   #  list_of_rows = []
-   #  header = ['tod', 'TP_4k']
+    #*******write out network summaries
+    soundcast_tods = sound_cast_net_dict.keys
+    list_of_measures = ['vmt', 'vht', 'delay']
+    list_of_FTs = fac_type_dict.keys()
+    row_list = []
+    list_of_rows = []
+    header = ['tod', 'TP_4k']
     
-   #  #create the header
-   #  for measure in list_of_measures:
-   #      for factype in list_of_FTs:
-   #          header.append(factype + '_' + measure)
-   #  list_of_rows.append(header)
+    #create the header
+    for measure in list_of_measures:
+        for factype in list_of_FTs:
+            header.append(factype + '_' + measure)
+    list_of_rows.append(header)
 
-   #  net_summary_df = pd.DataFrame(columns = header)
-   #  net_summary_df['tod'] = ft_summary_dict.keys()    
-   #  net_summary_df['TP_4k'] = net_summary_df['tod'].map(sound_cast_net_dict)
-   #  net_summary_df = net_summary_df.set_index('tod')
-   #  for key, value in ft_summary_dict.iteritems():
-   #      for measure in list_of_measures:
-   #          for factype in list_of_FTs:
-   #              net_summary_df[factype + '_' + measure][key] = value[measure][factype]
-   #  net_summary_df.to_excel(excel_writer = writer, sheet_name = 'Network Summary')
+    net_summary_df = pd.DataFrame(columns = header)
+    net_summary_df['tod'] = ft_summary_dict.keys()    
+    net_summary_df['TP_4k'] = net_summary_df['tod'].map(sound_cast_net_dict)
+    net_summary_df = net_summary_df.set_index('tod')
+    for key, value in ft_summary_dict.iteritems():
+        for measure in list_of_measures:
+            for factype in list_of_FTs:
+                net_summary_df[factype + '_' + measure][key] = value[measure][factype]
+    net_summary_df.to_excel(excel_writer = writer, sheet_name = 'Network Summary')
 
-   #  #*******write out screenlines
-   #  screenline_df = pd.DataFrame()
-   #  screenline_df['Screenline'] = screenline_dict.keys()
-   #  screenline_df['Volumes'] = screenline_dict.values()
-   #  screenline_df.to_excel(excel_writer = writer, sheet_name = 'Screenline Volumes')
+    #*******write out screenlines
+    screenline_df = pd.DataFrame()
+    screenline_df['Screenline'] = screenline_dict.keys()
+    screenline_df['Volumes'] = screenline_dict.values()
+    screenline_df.to_excel(excel_writer = writer, sheet_name = 'Screenline Volumes')
 
-   #  uc_vmt_df = pd.DataFrame(columns = uc_list, index = uc_vmt_dict.keys())
-   #  for colnum in range(len(uc_list)):
-   #      for index in uc_vmt_dict.keys():
-   #          uc_vmt_df[uc_list[colnum]][index] = uc_vmt_dict[index][colnum]
-   #  uc_vmt_df = uc_vmt_df.sort_index()
-   #  uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
+    uc_vmt_df = pd.DataFrame(columns = uc_list, index = uc_vmt_dict.keys())
+    for colnum in range(len(uc_list)):
+        for index in uc_vmt_dict.keys():
+            uc_vmt_df[uc_list[colnum]][index] = uc_vmt_dict[index][colnum]
+    uc_vmt_df = uc_vmt_df.sort_index()
+    uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
 
-   #  writer.save()
+    writer.save()
 
-   #  #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
-   #  import imp
-   #  try:
-   #      imp.find_module('openpyxl')
-   #      found_openpyxl = True
-   #  except ImportError:
-   #      found_openpyxl = False
-   #  if found_openpyxl == True:
-   #      xlautofit.run('outputs/network_summary_detailed.xlsx')
-   #  else:
-   #      try:
-   #          imp.find_module('pip')
-   #          found_pip = True
-   #      except ImportError:
-   #          found_pip = False
-   #      if found_pip == True:
-   #          pip.main(['install','openpyxl'])
-   #      else:
-   #          print('Library openpyxl needed to autofit columns')
+    #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
+    import imp
+    try:
+        imp.find_module('openpyxl')
+        found_openpyxl = True
+    except ImportError:
+        found_openpyxl = False
+    if found_openpyxl == True:
+        xlautofit.run('outputs/network_summary_detailed.xlsx')
+    else:
+        try:
+            imp.find_module('pip')
+            found_pip = True
+        except ImportError:
+            found_pip = False
+        if found_pip == True:
+            pip.main(['install','openpyxl'])
+        else:
+            print('Library openpyxl needed to autofit columns')
     
-    #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
-    #for key, value in screenline_dict.iteritems():
-    #    print key, value
-    #    writer.writerow([key, value])
-    #writer = None
+    writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
+    for key, value in screenline_dict.iteritems():
+       print key, value
+       writer.writerow([key, value])
+    writer = None
 
 if __name__ == "__main__":
     main()
