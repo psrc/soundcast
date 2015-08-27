@@ -148,6 +148,39 @@ def accessibility_calc(parcels):
 
   return accessiblity_df
 
+def transit_mode_share(trip_hh):
+  # Calculate transit mode shares by home TAZ
+  non_transit_modes = [1,2,3,4,5,8,9]
+  # Replace non-transit modes with 0 and transit modes with 1
+  trip_hh['Transit Share'] = trip_hh['Mode'].replace([1,2,3,4,5,8,9],np.zeros(len(non_transit_modes)))
+  trip_hh['Transit Share'] = trip_hh['Transit Share'].replace(6,1)
+
+  # Get transit share by income
+  trip_hh_inc = { "low_inc": trip_hh.query('Household_Income < 25000'),
+                  "med_inc": trip_hh.query('25000 < Household_Income < 75000'),
+                  "high_inc": trip_hh.query('Household_Income > 75000')}
+
+  my_dict = {}
+  for df_name, df in trip_hh_inc.iteritems():
+    # Compute percent of trips by transit for households in each zone
+    transit_share_df = df.groupby('TAZ').sum()/df.groupby('TAZ').count()
+    # Add the result to an empty df with all zones
+    empty_zone_df = pd.DataFrame(np.zeros(hightaz), index=range(1,hightaz+1))
+    transit_share = empty_zone_df.join(transit_share_df)
+    transit_share.drop(0, axis=1, inplace=True)    # Drop the empty  placeholder column 0 from empty_zone_df
+    transit_share.fillna(0, axis=1, inplace=True)    # Replace any NaN values with 0
+    transit_share['TAZ'] = transit_share.index
+    
+    # Store the df with transit share for each income class in a dictionary 
+    transit_share[df_name] = transit_share['Transit Share']
+    my_dict[df_name] = transit_share
+
+  # Combine all dfs from the dictionary into a single dataframe
+  transit_share = pd.concat(objs=[my_dict['low_inc']['low_inc'],my_dict['med_inc']['med_inc'],my_dict['high_inc']['high_inc']],axis=1)
+  transit_share['TAZ'] = transit_share.index
+
+  return transit_share
+
 def main():
 
   # Read parcel data
@@ -160,14 +193,29 @@ def main():
   # Load household-level results from daysim outputs
   daysim = h5py.File(main_dir + r'/outputs/daysim_outputs.h5', "r+")
   hh_df = pd.DataFrame(data={ 'TAZ' : daysim['Household']['zone_id'][:], 
-                                  'Household Income': daysim['Household']['hhincome'][:],
+                                  'Household_Income': daysim['Household']['hhincome'][:],
                                   'Household Vehicles': daysim['Household']['hhvehs'][:],
-                                  'Household Size': daysim['Household']['hhsize'][:]})
+                                  'Household Size': daysim['Household']['hhsize'][:],
+                                  'Household ID': daysim['Household']['hhno'][:]})
+
+  trip_df = pd.DataFrame(data={ 'Household ID': daysim['Trip']['hhno'][:],
+                                'Travel Time': daysim['Trip']['travtime'][:],
+                                'Travel Cost': daysim['Trip']['travcost'][:],
+                                'Travel Distance': daysim['Trip']['travdist'][:],
+                                'Mode': daysim['Trip']['mode'][:],
+                                'Purpose': daysim['Trip']['dpurp'][:]})
+
+  trip_hh = pd.merge(trip_df, hh_df[['TAZ','Household ID', 'Household_Income']], on='Household ID')
+
+  # Transit share by income class
+  transit_share = transit_mode_share(trip_hh)
 
   # Create dictionary of dataframes to plot on map
   d = {"Accessibility to Jobs within %d minutes" % max_trav_time : access_df,
        "Land Use": parcels,
-       "Households": hh_df}
+       "Households": hh_df,
+       "Trips": trip_hh,
+       "Transit Mode Share": transit_share}
 
   # Start the dataframe explorer webmap
   dframe_explorer.start(d, 
@@ -176,7 +224,7 @@ def main():
                         shape_json=os.path.join('inputs/', 'taz2010.geojson'),
                         geom_name='TAZ',
                         join_name='TAZ',
-                        precision=1, 
+                        precision=3, 
                         host=socket.gethostbyname(socket.gethostname())    # hosted on machine running the script
                         )  
 
