@@ -1,4 +1,4 @@
-# This file contains model input parameters imported by SoundCast scripts.   
+﻿# This file contains model input parameters imported by SoundCast scripts.   
 
 #################################### RUN SOUNDCAST ####################################
 
@@ -35,7 +35,8 @@ run_network_summary = False
 run_soundcast_summary = False
 run_travel_time_summary = False
 run_create_daily_bank = False
-run_map = True
+run_map = False
+run_ben_cost = True
 
 
 # Model iterations, population sampling, log files, etc.
@@ -243,6 +244,7 @@ h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
+bc_outputs_file = 'outputs/BenefitCost.xlsx'
 
 travel_time_file = 'inputs/ObservedTravelTimes.xlsx'
 
