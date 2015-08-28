@@ -1,4 +1,4 @@
-#Copyright [2014] [Puget Sound Regional Council]
+﻿#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import datetime
+import pandas as pd
 import shutil 
 from input_configuration import *
 from data_wrangling import *
@@ -200,6 +201,10 @@ def run_all_summaries():
    if run_map:
       subprocess.Popen([sys.executable, 'scripts/summarize/map.py'], creationflags=subprocess.CREATE_NEW_CONSOLE)
       #subprocess.Popen([sys.executable, 'scripts/summarize/map.py'])
+   if run_ben_cost:
+      
+      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost.py'])
+
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
