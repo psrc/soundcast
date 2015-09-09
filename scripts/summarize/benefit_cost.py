@@ -35,17 +35,14 @@ def get_variables_trips(output_df,trip_variables, hh_variables, person_variables
     merge_trip_hh = pd.merge(merge_hh_tour, trip_data, 'outer', on= 'tour_id')
     return merge_trip_hh  
 
-def impedance_inc_mode(trips, max_income, mode, impedance_type):
-    if mode == 'auto':
-        imp_inc_mode = trips.query('hhincome < @max_income & (mode== "SOV" or mode == "HOV2" or mode == "HOV3+")')
-    else:
-        imp_inc_mode = trips.query('hhincome < @max_income & (mode== "Transit")')
+def impedance_inc_mode(trips, max_income, impedance_type):
+    imp_inc_mode = trips.query('hhincome < @max_income').groupby('mode')
     return imp_inc_mode[impedance_type].sum()
 
-def calculate_park_costs(parcel_decay_file, trips):
+def calculate_park_costs(parcel_decay_file, trips, max_income):
     parcels = pd.read_table(parcel_decay_file, sep=' ')
     # only get the trips where the person is driving
-    drive_trips =  trips.loc[trips['dorp']=='Driver']
+    drive_trips =  trips.loc[(trips['dorp']=='Driver')].query('hhincome < @max_income')
     park_cost = pd.merge(parcels, drive_trips, left_on = 'parcelid', right_on= 'dpcl')
     park_cost_tot = PAID_UNPAID_PARK_RATIO*HRS_PARKED_AVG* park_cost['pprichr1'].sum()/CENTS_DOLLAR
     # need to delete variables to not run out of memory
@@ -53,23 +50,25 @@ def calculate_park_costs(parcel_decay_file, trips):
     del parcels
     return park_cost_tot
 
-def auto_own_cost(output_df):
-    hh_data = output_df['Household']['hhvehs']
+def auto_own_cost(output_df, max_income):
+    hh_data = output_df['Household']['hhvehs'].loc[output_df['Household']['hhincome']<max_income]
     hh_data.loc[hh_data== 4] = FOUR_PLUS_CAR_AVG
     return hh_data.sum()*ANNUAL_OWNERSHIP_COST/ANNUALIZATION
 
-def nonmotorized_benefits(trips, mode):
-    nonmotorized_trips_dist=  trips.loc[trips['mode']== mode]
+def nonmotorized_benefits(trips, mode, max_income):
+    nonmotorized_trips_dist=  trips.loc[(trips['mode']== mode) & (trips['hhincome']<max_income)]
     trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'travtime' :[np.sum]})
     people_times = {'Time': trips_people.mean(), 'People': trips_people.count()}
     return  people_times
 
-def nonmotorized_benefits(trips, mode):
-    nonmotorized_trips_dist=  trips.loc[trips['mode']== mode]
-    trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'travtime' :[np.sum]})
-    people_times = {'Time': trips_people.mean(), 'People': trips_people.count()}
-    return  people_times
 
+def mode_users(trips, max_income):
+    mode_user_totals= {'Bike': 0, 'Walk': 0, 'HOV2': 0, 'HOV3+': 0, 'SOV': 0, 'School Bus': 0, 'Transit' : 0, 'Walk': 0}
+    for key, value in mode_user_totals.iteritems():
+        trips_mode =  trips.loc[(trips['mode'] == key) & (trips['hhincome']<max_income)]
+        trips_people= len(trips_mode.groupby('id').count())
+        mode_user_totals[key] =  trips_people
+    return  pd.DataFrame(mode_user_totals, index = ['Users'])
 
 def group_vmt_speed(my_project):
     speed_bins = [-10, 0, 10, 20, 30, 40, 50, 60, 70]
@@ -176,59 +175,54 @@ def injury_calc(injury_file, my_project):
 
 
 def main():
-    bc_assumptions = {}
-
-    # Write out the assumptions
-    bc_assumptions['Household Value of Time'] = HOUSEHOLD_VOT
-    bc_assumptions['Truck Value of Time'] = TRUCK_VOT
-    bc_assumptions[' Household File Location'] = h5_results_file
 
 
+   
+
+    # for testing:
+    #h5_results_file = 'C:/soundcastrepo/outputs/daysim_outputs.h5'
+    #guidefile= 'C:/soundcastrepo/scripts/summarize/CatVarDict.xlsx'
+    #parcel_decay_file = 'C:/soundcastrepo/inputs/buffered_parcels.dat'
     ############# Calculate Impacts#######################################################################
-    bc_outputs = {}
-    bc_time_outputs = {}
-    bc_low_inc_outputs = {}
+    bc_outputs_by_mode = {}
+    bc_costs = {}
     bc_health_outputs = {}
+    mode_users_dict = {}
+    lw_mode_users_dict = {}
+    bc_people ={}
 
     ## Read in Dayim Outputs########
     trip_variables = ['otaz', 'dtaz', 'travtime', 'travcost', 'pno', 'mode', 'tour_id', 'opcl', 'dpcl', 'dorp']
     hh_variables = ['hhno', 'hhincome', 'hhvehs', 'hhtaz']
-    person_variables = ['hhno', 'pno', 'pagey', 'pgend']
-
+    person_variables = ['hhno', 'pno', 'pagey', 'pgend', 'id']
     outputs = h5toDF.convert(h5_results_file,guidefile, output_name)
     trips = get_variables_trips(outputs, trip_variables, hh_variables, person_variables)
 
 
     ##### TRAVEL TIME######################################3
     # Calculate Auto Travel Time Impacts
-    # To Do - Calculate for different groups of people - young and old, more income
-    # groups
-    # Calculate by home origin
-    # Should we include walking and biking costs?
 
     # Time is calculated in PathTypeModel.cs
     # For Walking and Biking, time is just the walk or bike time
     # For Auto the time is just in-vehicle time var
     # For transit: path.Time = outboundInVehicleTime + initialWaitTime +
     # transferWaitTime + WalkTime
+    print 'Counting People'
+    bc_people['Total People'] = outputs['Person']['pno'].count()
+    merge_hh_person = pd.merge(outputs['Person'][person_variables], outputs['Household'][hh_variables], 'inner', on = 'hhno')
+    bc_people['Low Income People'] =  merge_hh_person.query('hhincome < @LOW_INC_MAX').count()['id']
+
     print "Calculating Auto Travel Time Impacts"
 
-    bc_time_outputs['Total Auto Household Time'] = impedance_inc_mode(trips, MAX_INC, "auto", "travtime") / MINS_HR
-    bc_time_outputs[' Auto Low Income Household Time'] = impedance_inc_mode(trips, LOW_INC_MAX, "auto", "travtime") / MINS_HR
-    #bc_outputs['Truck Time'] = calculate_truck_time(truck_file)
-    bc_outputs['Total Auto Household Time Cost'] = bc_time_outputs['Total Auto Household Time'] * HOUSEHOLD_VOT
+    bc_outputs_by_mode['Total Household Time Impedances'] = impedance_inc_mode(trips, MAX_INC,"travtime") / MINS_HR
+    bc_outputs_by_mode[' Household Low-Income Time'] = impedance_inc_mode(trips, LOW_INC_MAX, "travtime") / MINS_HR
 
 
-    #bc_outputs['Total Value of Auto Time'] = HOUSEHOLD_VOT*bc_outputs['Base
-    #Total Auto Household Time'] + TRUCK_VOT*bc_outputs['Truck Time']
 
-    # Calculate Transit Travel Time Impacts
-    print "Calculating Transit Travel Time Impacts"
-    bc_time_outputs['Total Household Transit Time'] = impedance_inc_mode(trips, MAX_INC,"transit", "travtime") / MINS_HR
-    bc_time_outputs['Low Income Household Transit Time'] = impedance_inc_mode(trips, LOW_INC_MAX, "transit", "travtime") / MINS_HR
-    bc_outputs['Total Transit Household Time Cost'] = bc_time_outputs['Total Household Transit Time'] * HOUSEHOLD_VOT
-   
+   # Also break this down for Work only
 
+   # per Trips
+ 
     # Calculate Reliability Impacts
     # Reliability is already included in travel times in our vdfs - may want to
     # revisit
@@ -239,22 +233,21 @@ def main():
     # For Auto the travel cost is: the Toll cost in the skims + Auto Operatin?
     # For transit, the cost is the fare
     print "Calculating Out-of-Pocket and Ownership Costs"
-    bc_outputs['Total Auto Household Toll and Auto Operating Cost'] = impedance_inc_mode(trips, MAX_INC, "auto", "travcost")
-    bc_low_inc_outputs['Low Income Household Tolls  and Auto Operating Cost'] = impedance_inc_mode(trips, LOW_INC_MAX, "auto", "travcost")
+    bc_outputs_by_mode['Total Household Costs'] = impedance_inc_mode(trips, MAX_INC, "travcost")
+    bc_outputs_by_mode['Total Low Income Household Costs'] = impedance_inc_mode(trips, LOW_INC_MAX,"travcost")
     
-    bc_outputs['Total Transit Fares'] = impedance_inc_mode(trips, MAX_INC, "transit", "travcost")
-    bc_low_inc_outputs['Low Income Transit Fares'] = impedance_inc_mode(trips, MAX_INC, "transit", "travcost")
-   
+
     # Calculate Parking Cost
     ##Find this by joining the trips with the buffered parcel data and getting parking cost value
     # Reasonability check - In 2010, number of hourly parking spaces in the region = 90,000
     # Mean Cost per space per hour $8.22, Assume that occupied 10 hours per day -would be a cost of 7.4 million per day
-    bc_outputs['Parking Costs'] = calculate_park_costs(parcel_decay_file, trips)
+    bc_costs['Parking Costs'] = calculate_park_costs(parcel_decay_file, trips, MAX_INC)
+    bc_costs['Parking Costs Low Income'] = calculate_park_costs(parcel_decay_file, trips, LOW_INC_MAX)
 
     # Calculate Auto Ownership and Operating Costs
     # Auto Ownership Cost = Number of Autos Owned * Average Ownership Cost
-    bc_outputs['Auto Ownership Costs'] = auto_own_cost(outputs)
-  
+    bc_costs['Auto Ownership Costs'] = auto_own_cost(outputs, MAX_INC)
+    bc_costs['Auto Ownership Costs Low Income'] = auto_own_cost(outputs, LOW_INC_MAX)
     # Calculate Health Costs
     # For this we need average distance walked and biked per person
     # Total number of people walking and biking
@@ -264,13 +257,23 @@ def main():
     # Currently the average time walked per walker is quite high.  We should fix
     # this. I think the problem is capturing the short walk trips and we should be able
     # to get this with the 2014 dataset.
-    walk_times = nonmotorized_benefits(trips, 'Walk')
-    bike_times = nonmotorized_benefits(trips, 'Bike')
+
+    print bc_costs
+    walk_times = nonmotorized_benefits(trips, 'Walk', MAX_INC)
+    bike_times = nonmotorized_benefits(trips, 'Bike', MAX_INC)
+
     bc_health_outputs['Average Time Walked per Walker'] = walk_times['Time'].values[0]
     bc_health_outputs['Total Number of Walkers'] = walk_times['People'].values[0]
     bc_health_outputs['Average Time Biked per Biker'] = bike_times['Time'].values[0]
     bc_health_outputs['Total Number of Bikers'] = bike_times['People'].values[0]
-    
+
+    walk_times_low_inc = nonmotorized_benefits(trips, 'Walk', LOW_INC_MAX)
+    bike_times_low_inc = nonmotorized_benefits(trips, 'Bike', LOW_INC_MAX)
+
+    bc_health_outputs['Average Time Walked per Low Income Walker'] = walk_times_low_inc['Time'].values[0]
+    bc_health_outputs['Total Number of Low Income Walkers'] = walk_times_low_inc['People'].values[0]
+    bc_health_outputs['Average Time Biked per Low Income Biker'] = bike_times_low_inc['Time'].values[0]
+    bc_health_outputs['Total Number of Low INcome Bikers'] = bike_times_low_inc['People'].values[0]
     
     ### Get EMME project set up##############
     emme_project = EmmeProject(project)
@@ -280,6 +283,9 @@ def main():
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
    
+    # measures to add annual vehicle hours of delay
+
+    # Average Distance and Travel Time to Work from Home Location
 
     # Aggregate Logsum based Time measure
 
@@ -287,22 +293,40 @@ def main():
 
     # Outputs and Visualization
 
+  
+
     bc_writer = pd.ExcelWriter(bc_outputs_file, engine = 'xlsxwriter')
     START_ROW = 1
-    pd.DataFrame(bc_outputs.items(), columns= ['Cost', 'Value']).sort_index(by=['Cost']).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
+
+    pd.DataFrame(bc_people, index = [0]).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
     START_ROW = START_ROW + REPORT_ROW_GAP
-    pd.DataFrame(bc_time_outputs.items(), columns= ['Time', 'Value']).sort_index(by=['Time']).to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow = START_ROW)
+
+
+    pd.DataFrame(bc_outputs_by_mode).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
     START_ROW = START_ROW + REPORT_ROW_GAP
+
+
+    mode_users(trips, MAX_INC).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
+    START_ROW = START_ROW + REPORT_ROW_GAP
+
+    mode_users(trips, LOW_INC_MAX).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
+    START_ROW = START_ROW + REPORT_ROW_GAP
+
+    pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']).to_excel(excel_writer = bc_writer, sheet_name ='Raw Costs', na_rep = 0, startrow = START_ROW)
+    START_ROW = START_ROW + REPORT_ROW_GAP
+
     pd.DataFrame(bc_health_outputs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']).to_excel(excel_writer = bc_writer, sheet_name ='Raw Costs', na_rep = 0, startrow = START_ROW)
     START_ROW = START_ROW + REPORT_ROW_GAP
-    pd.DataFrame(bc_assumptions.items(), columns= ['Assumption', 'Value']).sort_index(by=['Assumption']).to_excel(excel_writer = bc_writer, sheet_name ='Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
+
     df_emissions.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
     START_ROW = START_ROW + REPORT_ROW_GAP
+
     noise_vmt.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
+
     START_ROW = START_ROW + REPORT_ROW_GAP
     injury_rates_vmt.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
-    
+
+
     bc_writer.close()
 
 if __name__ == "__main__":
