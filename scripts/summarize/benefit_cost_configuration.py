@@ -1,5 +1,5 @@
 ﻿# Read in Configuration Hard Code for now
-output_name = 'EasyTravel'
+output_name = 'TransFu2010'
 
 pollutant_file = 'scripts/summarize/pollutant_rates.csv'
 injury_file ='scripts/summarize/injury_rates.csv'
@@ -42,5 +42,5 @@ CAR_NOISE_COST = 0.0012
 TRUCK_NOISE_COST = 0.015
 
 #Write the tables every report_row_gap number of rows apart
-REPORT_ROW_GAP = 15
+REPORT_ROW_GAP = 20
 
