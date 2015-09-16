@@ -1,4 +1,4 @@
-#Copyright [2014] [Puget Sound Regional Council]
+﻿#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -1623,8 +1623,8 @@ def TimeChoice(data1, data2, name1, name2, location, districtfile):
     print('Preliminary data frames created in ' + str(round(cp1 - start, 1)) + ' seconds')
 
     #Trip arrival time by hour
-    trip_ok_1['hr'] = min_to_hour(trip_ok_1['arrtm'], 3)
-    trip_ok_2['hr'] = min_to_hour(trip_ok_2['arrtm'], 3)
+    trip_ok_1['hr'] = min_to_hour(trip_ok_1['arrtm'], 0)
+    trip_ok_2['hr'] = min_to_hour(trip_ok_2['arrtm'], 0)
     trip_1_time = trip_ok_1[['hr', 'trexpfac']].groupby('hr').sum()['trexpfac']
     trip_2_time = trip_ok_2[['hr', 'trexpfac']].groupby('hr').sum()['trexpfac']
     trip_1_time_share = 100 * trip_1_time / trip_1_time.sum()
@@ -1639,8 +1639,8 @@ def TimeChoice(data1, data2, name1, name2, location, districtfile):
     print('Trip Apprival Time by Hour data frame created in ' + str(round(cp2 - cp1, 1)) + ' seconds')
 
     #Tour Primary Destination arrival time by hour
-    tour_ok_1['hrapd'] = min_to_hour(tour_ok_1['tardest'], 3)
-    tour_ok_2['hrapd'] = min_to_hour(tour_ok_2['tardest'], 3)
+    tour_ok_1['hrapd'] = min_to_hour(tour_ok_1['tardest'], 0)
+    tour_ok_2['hrapd'] = min_to_hour(tour_ok_2['tardest'], 0)
     tour_1_time_apd = tour_ok_1[['hrapd', 'toexpfac']].groupby('hrapd').sum()['toexpfac']
     tour_2_time_apd = tour_ok_2[['hrapd', 'toexpfac']].groupby('hrapd').sum()['toexpfac']
     tour_1_time_share_apd = 100 * tour_1_time_apd / tour_1_time_apd.sum()
@@ -1655,8 +1655,8 @@ def TimeChoice(data1, data2, name1, name2, location, districtfile):
     print('Tour Primary Destination Arrival Time by Hour data frame created in ' + str(round(cp3 - cp2, 1)) + ' seconds')
 
     #Tour Primary Destination Departure time by hour
-    tour_ok_1['hrlpd'] = min_to_hour(tour_ok_1['tlvdest'], 3)
-    tour_ok_2['hrlpd'] = min_to_hour(tour_ok_2['tlvdest'], 3)
+    tour_ok_1['hrlpd'] = min_to_hour(tour_ok_1['tlvdest'], 0)
+    tour_ok_2['hrlpd'] = min_to_hour(tour_ok_2['tlvdest'], 0)
     tour_1_time_lpd = tour_ok_1[['hrlpd', 'toexpfac']].groupby('hrlpd').sum()['toexpfac']
     tour_2_time_lpd = tour_ok_2[['hrlpd', 'toexpfac']].groupby('hrlpd').sum()['toexpfac']
     tour_1_time_share_lpd = 100 * tour_1_time_lpd / tour_1_time_lpd.sum()
