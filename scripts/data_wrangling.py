@@ -1,4 +1,4 @@
-#Copyright [2014] [Puget Sound Regional Council]
+﻿#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from input_configuration import *
 from logcontroller import *
 from input_configuration import *
+import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
 
 
@@ -44,14 +45,14 @@ def copy_daysim_code():
 
 @timed
 def copy_parcel_buffering_files():
-    if not os.path.exists('Inputs/parcel_buffer'):
-        os.makedirs('Inputs/parcel_buffer')
+    if not os.path.exists('inputs/parcel_buffer'):
+        os.makedirs('inputs/parcel_buffer')
     if not os.path.exists('scripts/parcel_buffer'):
         os.makedirs('scripts/parcel_buffer')
 
-    print 'Copying Parcel Buffering Network Inputs.  The file is about 2 GB so it could take a couple of minutes.'
+    print 'copying parcel buffering network inputs.  the file is about 2 gb so it could take a couple of minutes.'
     try: 
-        shcopy(network_buffer_inputs, 'Inputs/parcel_buffer')
+        shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
     except:
         print 'error copying network_buffer inputs at ' + network_buffer_inputs
         sys.exit(2)
@@ -60,15 +61,34 @@ def copy_parcel_buffering_files():
     unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
     returncode= subprocess.call(unzip_net_ins)
     if returncode!=0:
-        print 'Could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
+        print 'could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
         sys.exit(2)
     
     print 'Copying UrbanSim parcel file'
     try:
-        shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
-    except:
-        print ' error copying parcel file from urbansim at ' + base_inputs+'/landuse/parcels_urbansim.txt'
+        if os.path.isfile(base_inputs+'/landuse/parcels_urbansim.txt'):
+            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
+        # the file may need to be reformatted- like this coming right out of urbansim
+        elif os.path.isfile(base_inputs+'/landuse/parcels.dat'):
+            print 'the file is ' + base_inputs +'/landuse/parcels.dat'
+            print "Parcels file is being reformatted to Daysim format"
+            parcels = pd.DataFrame.from_csv(base_inputs+'/landuse/parcels.dat',sep=" " )
+            print 'Read in unformatted parcels file'
+            for col in parcels.columns:
+                print col
+                new_col = [x.upper() for x in col]
+                new_col = ''.join(new_col)
+                parcels=parcels.rename(columns = {col:new_col})
+                print new_col
+            parcels.to_csv(base_inputs+'/landuse/parcels_urbansim.txt', sep = " ")
+            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
+
+    except Exception as ex:
+        template = "An exception of type {0} occured. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print message
         sys.exit(1)
+
 
     print 'Copying Military parcel file'
     try:
