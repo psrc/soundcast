@@ -212,6 +212,7 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
+    dir_util.copy_tree(base_inputs+'/tolls','Inputs/Fares')
     dir_util.copy_tree (base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
     dir_util.copy_tree (base_inputs+'/supplemental/generation','inputs/supplemental/generation')
     dir_util.copy_tree (base_inputs+'/supplemental/trips','outputs/supplemental')
