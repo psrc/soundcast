@@ -1,0 +1,13 @@
+{
+    "by_mode_subset": {
+        "modes": [
+            "k",
+            "l",
+            "q"
+        ],
+        "actual_in_vehicle_times": "mfbivt",
+        "actual_aux_transit_times": "mfbaux",
+	"perceived_in_vehicle_times": "mfpbiv"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+}
