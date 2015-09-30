@@ -200,12 +200,13 @@ def import_tolls(emmeProject):
 
     
     # change modes on tolled network, but exclude some bridges/ferries
-    network = emmeProject.current_scenario.get_network()
-    for link in network.links():
-        if link['@toll1'] > 0 and link['@brfer'] == 0:
-            for i in no_toll_modes:
-                link.modes -= set([network.mode(i)])
-    emmeProject.current_scenario.publish_network(network)
+    if create_no_toll_network:
+        network = emmeProject.current_scenario.get_network()
+        for link in network.links():
+            if link['@toll1'] > 0 and link['@brfer'] == 0:
+                for i in no_toll_modes:
+                    link.modes -= set([network.mode(i)])
+        emmeProject.current_scenario.publish_network(network)
 
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
