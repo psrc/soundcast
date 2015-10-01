@@ -187,7 +187,9 @@ def import_tolls(emmeProject):
     #@rdly:
     import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
              revert_on_error=True)
-    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
+    
+    #We are using the same rdly has 4k. No need to factor. 
+    #emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
 # set bridge/ferry flags
 
@@ -242,8 +244,7 @@ def run_importer(project_name):
 
         #import tolls
         import_tolls(my_project)
-        #No toll network- Not using right now
-        #create_noToll_network(my_project)
+        
 
 def main():
     
