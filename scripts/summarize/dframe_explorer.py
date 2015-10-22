@@ -24,30 +24,58 @@ def get_schema():
     return {name: list(DFRAMES[name].columns) for name in DFRAMES}
 
 
-@route('/map_query/<table>/<filter>/<groupby>/<field:path>/<agg>', method="GET")
-def map_query(table, filter, groupby, field, agg):
+@route('/map_query/<table>/<compare>/<filter>/<groupby>/<field:path>/<agg>', method="GET")
+def map_query(table, compare, filter, groupby, field, agg):
     global DFRAMES
 
     filter = ".query('%s')" % filter if filter != "empty" else ""
 
-    df = DFRAMES[table]
+    df_main = DFRAMES['main']
+    df_alt = DFRAMES['alternative']
 
-    if field not in df.columns:
-        print "Col not found, trying eval:", field
-        df["eval"] = df.eval(field)
-        field = "eval"
+    if compare=='Main vs. Alternative':
+        print 'Showing base-alternative comparison'
+        if field not in df_main.columns:
+            print "Col not found, trying eval:", field
+            df_main["eval"] = df_main.eval(field)
+            field = "eval"
 
-    cmd = "df%s.groupby('%s')['%s'].%s" % \
-          (filter, groupby, field, agg)
-    print cmd
-    results = eval(cmd)
-    results[results == np.inf] = np.nan
+        cmd_base = "df_main%s.groupby('%s')['%s'].%s" % \
+              (filter, groupby, field, agg)
+        print cmd_base
+
+        if field not in df_alt.columns:
+            print "Col not found, trying eval:", field
+            df_alt["eval"] = df_alt.eval(field)
+            field = "eval"
+
+        cmd_alt = "df_alt%s.groupby('%s')['%s'].%s" % \
+              (filter, groupby, field, agg)
+
+        base_results = eval(cmd_base)
+        base_results[base_results == np.inf] = np.nan
+        
+        alt_results = eval(cmd_alt)
+        alt_results[alt_results == np.inf] = np.nan
+
+        # Percent change versus base, should be flexible in future
+        results = (alt_results-base_results)/base_results
+    else:
+        print 'Showing primary results'
+        if field not in df_main.columns:
+            df_main["eval"] = df_main.eval(field)
+            field = "eval"
+
+        cmd_base = "df_main%s.groupby('%s')['%s'].%s" % \
+              (filter, groupby, field, agg)
+        results = eval(cmd_base)
+
     results = yamlio.series_to_yaml_safe(results.dropna())
     results = {int(k): results[k] for k in results}
     return results
 
 
-@route('/map_query/<table>/<filter>/<groupby>/<field>/<agg>', method="OPTIONS")
+@route('/map_query/<table>/<compare>/<filter>/<groupby>/<field>/<agg>', method="OPTIONS")
 def ans_options(table=None, filter=None, groupby=None, field=None, agg=None):
     return {}
 

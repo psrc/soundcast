@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 from scripts.summarize import dframe_explorer
 import socket
+from input_configuration import map_daysim_alt
 
 # Parameters
 hightaz = 3700    # Max TAZ for mapping
@@ -183,39 +184,70 @@ def transit_mode_share(trip_hh):
 
 def main():
 
+  print "Processing data before loading map"
+
   # Read parcel data
-  parcels = pd.read_csv(main_dir + r'/inputs/buffered_parcels.dat', delim_whitespace=True)
-  access_df = accessibility_calc(parcels)
+  #parcels = pd.read_csv(main_dir + r'/inputs/buffered_parcels.dat', delim_whitespace=True)
+  #access_df = accessibility_calc(parcels)
 
   # Rename parcel's TAZ column to match geo data
-  parcels['TAZ'] = parcels['taz_p']
+  #parcels['TAZ'] = parcels['taz_p']
 
-  # Load household-level results from daysim outputs
-  daysim = h5py.File(main_dir + r'/outputs/daysim_outputs.h5', "r+")
-  hh_df = pd.DataFrame(data={ 'TAZ' : daysim['Household']['zone_id'][:], 
-                                  'Household_Income': daysim['Household']['hhincome'][:],
-                                  'Household Vehicles': daysim['Household']['hhvehs'][:],
-                                  'Household Size': daysim['Household']['hhsize'][:],
-                                  'Household ID': daysim['Household']['hhno'][:]})
+  # Load daysim results
+  daysim_main = h5py.File(main_dir + r'/outputs/daysim_outputs.h5', "r+")
+  daysim_alt = h5py.File(map_daysim_alt, 'r+')
 
-  trip_df = pd.DataFrame(data={ 'Household ID': daysim['Trip']['hhno'][:],
-                                'Travel Time': daysim['Trip']['travtime'][:],
-                                'Travel Cost': daysim['Trip']['travcost'][:],
-                                'Travel Distance': daysim['Trip']['travdist'][:],
-                                'Mode': daysim['Trip']['mode'][:],
-                                'Purpose': daysim['Trip']['dpurp'][:]})
+  trip_main = pd.DataFrame(data={ 'Household ID': daysim_main['Trip']['hhno'][:],
+                            'Travel Time': daysim_main['Trip']['travtime'][:],
+                            'Travel Cost': daysim_main['Trip']['travcost'][:],
+                            'Travel Distance': daysim_main['Trip']['travdist'][:],
+                            'Mode': daysim_main['Trip']['mode'][:],
+                            'Purpose': daysim_main['Trip']['dpurp'][:]})
 
-  trip_hh = pd.merge(trip_df, hh_df[['TAZ','Household ID', 'Household_Income']], on='Household ID')
+  trip_alt = pd.DataFrame(data={ 'Household ID': daysim_alt['Trip']['hhno'][:],
+                            'Travel Time': daysim_alt['Trip']['travtime'][:],
+                            'Travel Cost': daysim_alt['Trip']['travcost'][:],
+                            'Travel Distance': daysim_alt['Trip']['travdist'][:],
+                            'Mode': daysim_alt['Trip']['mode'][:],
+                            'Purpose': daysim_alt['Trip']['dpurp'][:]})
+
+  hh_main = pd.DataFrame(data={ 'TAZ' : daysim_main['Household']['hhtaz'][:], 
+                              'Household_Income': daysim_main['Household']['hhincome'][:],
+                              'Household Vehicles': daysim_main['Household']['hhvehs'][:],
+                              'Household Size': daysim_main['Household']['hhsize'][:],
+                              'Household ID': daysim_main['Household']['hhno'][:]})
+
+  hh_alt = pd.DataFrame(data={ 'TAZ' : daysim_alt['Household']['hhtaz'][:], 
+                              'Household_Income': daysim_alt['Household']['hhincome'][:],
+                              'Household Vehicles': daysim_alt['Household']['hhvehs'][:],
+                              'Household Size': daysim_alt['Household']['hhsize'][:],
+                              'Household ID': daysim_alt['Household']['hhno'][:]})
+
+  pers_main = pd.DataFrame(data={'Household ID': daysim_main['Person']['hhno'][:],
+                                 'Age': daysim_main['Person']['pagey'][:],
+                                 'Gender': daysim_main['Person']['pgend'][:]})
+  pers_alt = pd.DataFrame(data={'Household ID': daysim_alt['Person']['hhno'][:],
+                                 'Age': daysim_alt['Person']['pagey'][:],
+                                 'Gender': daysim_alt['Person']['pgend'][:]})
+
+  trip_hh_main = pd.merge(trip_main, hh_main[['TAZ', 'Household ID', 'Household_Income']], on='Household ID')
+  trip_hh_main = pd.merge(trip_hh_main, pers_main, on='Household ID')
+
+  trip_hh_alt = pd.merge(trip_alt, hh_alt[['TAZ', 'Household ID', 'Household_Income']], on='Household ID')
+  trip_hh_alt = pd.merge(trip_hh_alt, pers_alt, on='Household ID')
 
   # Transit share by income class
-  transit_share = transit_mode_share(trip_hh)
+  #transit_share = transit_mode_share(trip_hh)
 
   # Create dictionary of dataframes to plot on map
-  d = {"Accessibility to Jobs within %d minutes" % max_trav_time : access_df,
-       "Land Use": parcels,
-       "Households": hh_df,
-       "Trips": trip_hh,
-       "Transit Mode Share": transit_share}
+  d = {'main': trip_hh_main,
+       'alternative': trip_hh_alt
+       # "Accessibility to Jobs within %d minutes" % max_trav_time : access_df,
+       # "Land Use": parcels,
+       # "Households": hh_df,
+       # "Trips": trip_hh,
+       # "Transit Mode Share": transit_share
+       }
 
   # Start the dataframe explorer webmap
   dframe_explorer.start(d, 
