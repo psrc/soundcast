@@ -65,18 +65,7 @@ var q = null;
 function controller($scope, $http) {
     MAP = L.map("map").setView(CENTER, ZOOM);
 
-    // Basic map
-    // L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    //     maxZoom: 18,
-    //     attribution: 'Map data (c) <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-    // }).addTo(MAP);
-
-    // Satellite imagery basemap
-    // L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    //     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    // }).addTo(MAP);
-
-    // Greyscale
+    // Greyscale base map
     L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
         maxZoom: 16
@@ -89,7 +78,7 @@ function controller($scope, $http) {
     $scope.color = "YlGnBu";
     $scope.scale_options = ["quantile", "equal_interval"];
     $scope.scale = "quantile";
-    $scope.aggregation_options = ["mean()", "quantile(.25)", "quantile(.5)", "quantile(.75)", "min()", "max()", "std()", 'sum()', 'size()'];
+    $scope.aggregation_options = ["mean()", "count()", "quantile(.25)", "quantile(.5)", "quantile(.75)", "min()", "max()", "std()", 'sum()', 'size()'];
     $scope.aggregation = "mean()";
     $scope.filter = "";
 
@@ -97,7 +86,7 @@ function controller($scope, $http) {
         $scope.field_name = $scope.schema[nv][0];
     });
 
-    $scope.$watch('df_name + field_name + quantile + aggregation', function(nv, ov) {
+    $scope.$watch('df_name + compare + field_name + quantile + aggregation', function(nv, ov) {
         $scope.runQuery();
     });
 
@@ -196,7 +185,7 @@ function controller($scope, $http) {
         filter = $scope.filter || "empty";
         var eval = $scope.eval || $scope.field_name;
         eval = encodeURIComponent(eval)
-        var url = ROOT+"map_query/"+$scope.df_name+"/"+filter+"/"+JOINNAME+"/"+eval+"/"+$scope.aggregation;
+        var url = ROOT+"map_query/"+$scope.df_name+"/"+$scope.compare+"/"+filter+"/"+JOINNAME+"/"+eval+"/"+$scope.aggregation;
         console.log(url);
         $http.get(url, {timeout: 10000})
                 .success(function (data) {
@@ -252,9 +241,15 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 <div id="map" style="width:100%; height:100%; position:fixed; left:0; top:0; overflow:hidden;"></div>
 
-<select style="position:absolute; right: 10px; top: 10px; width: 250px;" ng-options="name for name in df_names" ng-model="df_name"></select>
+<select style="position:absolute; right: 10px; top: 10px; width: 150px;" ng-options="name for name in df_names" ng-model="df_name"></select>
 
-<select ng-show="aggregation != 'size()' && !eval" style="position:absolute; right: 10px; top: 35px; width: 250px;" ng-options="name for name in schema[df_name]" ng-model="field_name"></select>
+<select style="position:absolute; right: 10px; top: 10px; width: 150px;"ng-model='compare'>
+    <option value="" selected hidden />
+    <option selected>Main Results</option>
+    <option>Main vs. Alternative</option>
+</select>
+
+<select ng-show="aggregation != 'size()' && !eval" style="position:absolute; right: 10px; top: 35px; width: 150px;" ng-options="name for name in schema[df_name]" ng-model="field_name"></select>
 
 <select style="position:absolute; right: 10px; top: 60px; width: 150px;" ng-options="name for name in colors" ng-model="color"></select>
 
@@ -262,17 +257,19 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 <select style="position:absolute; right: 10px; top: 110px; width: 150px;" ng-options="name for name in aggregation_options" ng-model="aggregation"></select>
 
-<!-- <form ng-submit="runQuery()">
+<div style="position:absolute; right: 50px; top: 135px; width: 150px;">Filter:</div>
+
+<form ng-submit="runQuery()">
 <input style="position:absolute; right: 10px; top: 135px; width: 150px;" ng-model="filter">
 </form>
 
 <form ng-submit="runQuery()">
 <input style="position:absolute; right: 10px; top: 160px; width: 150px;" ng-model="eval">
-</form> -->
+</form>
 
-<!--
-<button style="position:absolute; right: 10px; top: 135px; width: 100px;" ng-click="runQuery()">Run Query</button>
--->
+
+<button style="position:absolute; right: 10px; top: 185px; width: 150px;" ng-click="runQuery()">Run Query</button>
+
 <script>
 // This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
 var colorbrewer = {YlGn: {
