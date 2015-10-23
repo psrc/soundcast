@@ -100,11 +100,10 @@ function controller($scope, $http) {
         $scope.setScale();
         $scope.setLegend();
         if(shapeLayer) shapeLayer.setStyle(style_f);
-    })
+    });
 
     $scope.$watch('data', function(nv, ov) {
         data = nv;
-
         $scope.setScale();
         $scope.setLegend();
         if(shapeLayer) shapeLayer.setStyle(style_f);
@@ -131,13 +130,17 @@ function controller($scope, $http) {
             values = [0, 0];
         }
         if ($scope.scale == "quantile") {
-            q = d3.scale.quantile()
+            if (document.getElementById('changeScale').checked) {
+                q = d3.scale.quantile()
                     .domain(values)
                     .range(d3.range(buckets));
+            };
         } else {
-        q = d3.scale.quantize()
+            if (document.getElementById('changeScale').checked) {
+                q = d3.scale.quantize()
                 .domain(d3.extent(values))
                 .range(d3.range(buckets));
+            };
         }
     }
 
@@ -269,6 +272,12 @@ d3.json(SHAPE_JSON, function(error, zones) {
 
 
 <button style="position:absolute; right: 10px; top: 185px; width: 150px;" ng-click="runQuery()">Run Query</button>
+
+<div style="position:absolute; right: 20px; top: 210; width: 100px;">Update Scale:</div>
+
+<form>
+  <input style="position:absolute; right: 10px; top: 210px; width: 10px;" type="checkbox" id="changeScale" value=true checked>
+</form>
 
 <script>
 // This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
