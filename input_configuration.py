@@ -299,3 +299,8 @@ run_district_summary_report = False
 
 output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
                'screenline_volumes', 'Topsheet.xlsx']
+
+# Alternative run for map comparisons
+map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
+
+results_db = 'R:\SoundCast\db\soundcastRuns.sl3'
