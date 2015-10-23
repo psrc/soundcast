@@ -36,7 +36,6 @@ run_network_summary = False
 run_soundcast_summary = False
 run_travel_time_summary = False
 run_create_daily_bank = False
-run_map = False
 run_ben_cost = True
 run_bike_model = True
 
