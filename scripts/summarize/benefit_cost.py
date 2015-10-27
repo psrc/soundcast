@@ -86,11 +86,12 @@ def group_vmt_speed(my_project):
         network = my_project.current_scenario.get_network()
 
         for link in network.links():
-            speed = link['length']* MINS_HR/link['auto_time']
-            #speed = int(round(speed, -1))
-            speed = int(speed - speed%10)
-            if speed == 70:
-                speed = max_speed
+            if link['auto_time']:
+                speed = link['length']* MINS_HR/link['auto_time']
+                #speed = int(round(speed, -1))
+                speed = int(speed - speed%10)
+                if speed == 70:
+                    speed = max_speed
             
              
             if speed > 0 and speed <100:
@@ -276,6 +277,7 @@ def main():
     bc_health_outputs['Total Number of Low INcome Bikers'] = bike_times_low_inc['People'].values[0]
     
     ### Get EMME project set up##############
+    project = "E:\\TranFu_15_2cents\\soundcast\\projects\\LoadTripTables\\LoadTripTables.emp"
     emme_project = EmmeProject(project)
     # Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
