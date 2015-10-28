@@ -277,7 +277,6 @@ def main():
     bc_health_outputs['Total Number of Low INcome Bikers'] = bike_times_low_inc['People'].values[0]
     
     ### Get EMME project set up##############
-    project = "E:\\TranFu_15_2cents\\soundcast\\projects\\LoadTripTables\\LoadTripTables.emp"
     emme_project = EmmeProject(project)
     # Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
