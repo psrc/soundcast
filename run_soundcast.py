@@ -201,9 +201,6 @@ def run_all_summaries():
       
       subprocess.call([sys.executable, 'scripts/summarize/benefit_cost.py'])
 
-   subprocess.call([sys.executable, 'scripts/summarize/tableau.py'])
-
-
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
 def main():

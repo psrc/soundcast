@@ -28,7 +28,9 @@ import multiprocessing as mp
 import subprocess
 import csv
 import xlsxwriter
-import xlautofit 
+import xlautofit
+import sqlite3 as lite
+import datetime
 from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
@@ -59,80 +61,11 @@ transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
                '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
-counts_file = 'TrafficCounts_Mid.txt'
 aadt_counts_file = 'soundcast_aadt.csv'
 tptt_counts_file = 'soundcast_tptt.csv'
 
-# Output Files: 
-net_summary_file = 'network_summary.csv'
-counts_output_file = 'counts_output.csv'
-screenlines_file = 'screenline_volumes.csv'
-
 uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
            '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
-
-#class EmmeProject:
-#    def __init__(self, filepath):
-#        self.desktop = app.start_dedicated(True, "cth", filepath)
-#        self.m = _m.Modeller(self.desktop)
-#        pathlist = filepath.split("/")
-#        self.fullpath = filepath
-#        self.filename = pathlist.pop()
-#        self.dir = "/".join(pathlist) + "/"
-#        self.bank = self.m.emmebank
-#        self.tod = self.bank.title
-#        self.current_scenario = list(self.bank.scenarios())[0]
-#        self.data_explorer = self.desktop.data_explorer()
-    
-#    def change_active_database(self, database_name):
-#        for database in self.data_explorer.databases():
-#            #print database.title()
-#            if database.title() == database_name:
-                
-#                database.open()
-#                print 'changed'
-#                self.bank = self.m.emmebank
-#                self.tod = self.bank.title
-#                print self.tod
-#                self.current_scenario = list(self.bank.scenarios())[0]
-#    def create_extras(self, type, name, description):
-#        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
-#        create_extras = self.m.tool(NAMESPACE)
-#        create_extras(extra_attribute_type=type, extra_attribute_name = name, extra_attribute_description = description, overwrite=True)
-    
-#    def link_calculator(self, **kwargs):
-#        spec = json_to_dictionary("link_calculation")
-#        for name, value in kwargs.items():
-#            print name
-#            if name == 'selections':
-#                spec[name]['link'] = value
-#            else:
-#                spec[name] = value
-#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-#        network_calc = self.m.tool(NAMESPACE)
-#        self.link_calc_result = network_calc(spec)
-       
-     
-#    def transit_line_calculator(self, **kwargs):
-#        spec = json_to_dictionary("transit_line_calculation")
-#        for name, value in kwargs.items():
-#            spec[name] = value
-        
-#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-#        network_calc = self.m.tool(NAMESPACE)
-#        self.link_calc_result = network_calc(spec)
-    
-#    def transit_segment_calculator(self, **kwargs):
-#        spec = json_to_dictionary("transit_segment_calculation")
-#        for name, value in kwargs.items():
-#            spec[name] = value
-        
-#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-#        network_calc = self.m.tool(NAMESPACE)
-#        self.link_calc_result = network_calc(spec)
-
-
-
 
 def json_to_dictionary(dict_name):
 
@@ -385,99 +318,55 @@ def writeCSV(fileNamePath, listOfTuples):
     for l in listOfTuples:
         myWriter.writerow(l)
 
-def get_link_attribute(network, attr):
-        ''' Return dataframe of link attribute and link ID'''
-        link_dict = {}
-        for i in network.links():
-            link_dict[i.id] = i[attr]
-        df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
-        return df
+def dict_to_df(input_dict, measure):
+    '''converts triple-nested dict into Dataframe for a given facility type'''
+    mydict = {}
+    for tod in tods:
+        mydict[tod] = {}
+        for facility in fac_type_dict.keys():
+            mydict[tod][facility] = input_dict[tod][measure][facility]
+    return pd.DataFrame(mydict)
 
-def export_corridor_results(my_project):
-    ''' Evaluate corridor travel time for a single AM and PM period'''
-    am_df = corridor_results(tod='am', hour='7to8', my_project=my_project)
-    pm_df = corridor_results(tod='pm', hour='16to17', my_project=my_project)
+def get_runid(table, con):
+    '''Update run ID from existing database'''
+    try:
+        return len(pd.read_sql('select * from ' + table, con))
+    except:
+        return 0
 
-    # combine am and pm into single CSV and export
-    corridor_df = pd.concat(objs=[am_df, pm_df])
-    corridor_df.to_csv('outputs/corridor_summary.csv')
+def get_date():
+    '''Get last time stamp from run log.
+       Log time stamps are consistently formatted & exist for each line in the log
+       For runs without a log, or on error, get current time. '''
+    try:
+        timestamp = str(pd.read_csv(main_log_file).iloc[-1]).split(' ')
+        date = timestamp[0]
+        time = timestamp[1] + " " + timestamp[2]
+    except:
+        date = datetime.now().strftime("%m/%d/%Y")
+        time = datetime.now().strftime("%I:%M:%S %p")
+    return date, time
 
-def corridor_results(tod, hour, my_project):
-    corridor_count = 12    # number of input corridor files
+def stamp(df, con, table):
+    '''Add run information to a table row'''
+    df['scenario_name'],df['runid'],df['date'],df['time'] = \
+    [scenario_name,get_runid(table, con),get_date()[0],get_date()[1]]
+    return df
 
-    # filepath = r'projects\\' + tod + '\\' + tod + '.emp'
-    # my_project = EmmeProject(filepath)
-    my_project.change_active_database(hour)
-
-    # Access the nework link data
-    network = my_project.current_scenario.get_network()
-
-    # Get the auto time and length of each link
-    
-
-    # Get dataframes for time and length
-    time_df = get_link_attribute(network=network, attr='auto_time')
-    length_df = get_link_attribute(network=network, attr='length')    
-
-    # combine link time and length data into single dataframe
-    link_df = pd.merge(time_df, length_df)
-
-    corridor_flags_df = pd.DataFrame()
-    for i in range(1, corridor_count+1):    # +1 because python is zero-based
-        corridor_df = pd.read_table(r'inputs/corridors/corridor_' + str(i) + '.in', skiprows=1, skipinitialspace=True, sep=' ')
-        corridor_df['link_id'] = corridor_df['inode'].astype('str') + '-' + corridor_df['jnode'].astype('str')
-        corridor_flags_df = pd.concat(objs=[corridor_flags_df, corridor_df])
-
-    corridor_flags_df.fillna(0, inplace=True)
-
-    # join corridor flags to link travel time
-    corridor_times_df = pd.merge(link_df, corridor_flags_df)
-
-    # sum corridor travel time and length for each corridor
-    link_trav_time = pd.DataFrame()
-    for i in range(1, corridor_count+1):    # +1 because python is zero-based
-        if i < 10:
-            code = '@corr'
-        else:
-            code = '@cor'
-
-        corridor_sum = pd.DataFrame(corridor_times_df.groupby(code + str(i)).sum()[['auto_time', 'length']])
-        
-        # add a corridor id and facility type for analysis in Excel
-        corridor_sum['Corridor Input File'] = i
-        corridor_sum['Local ID'] = corridor_sum.index
-        if i == 1: 
-            corridor_sum['corridor_type'] = 'a'    # arterial corridor
-        else:
-            corridor_sum['corridor_type'] = 'f'    # freeway corridor
-        link_trav_time = pd.concat([link_trav_time, corridor_sum])        
-
-    # remove all the 0-index results (these are travel times on non-tagged links)
-    link_trav_time = link_trav_time.query('index > 0')
-
-    # Add a column for time of day
-    link_trav_time['tod'] = tod
-
-    # Add a column that concatenates the corridor file number and the corridor tag ID 
-    # for processessing in Excel
-     # (must convert numbers to int then convert to string to join with other strings)
-    link_trav_time['full_id'] = link_trav_time['Corridor Input File'].astype('int').astype('str') + link_trav_time['Local ID'].astype('int').astype('str')
-    link_trav_time['full_id'] = link_trav_time['corridor_type'] + link_trav_time['tod'] + link_trav_time['full_id']
-
-    
-
-    # Write out to CSV
-    df_out = link_trav_time[['tod', 'Corridor Input File', 'Local ID', 
-                'full_id', 'auto_time', 'length']]
-
-    return df_out
 
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
-    my_project = EmmeProject(project)
 
-    export_corridor_results(my_project)
+    tableau_dict = {}
+
+    # Connect to sqlite3 db
+    con = None
+    con = lite.connect(results_db)
+
+    ################################
+    # UPDATE this path
+    my_project = EmmeProject(r'projects\LoadTripTables\LoadTripTables.emp')
     
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
     #create extra attributes:
@@ -492,6 +381,7 @@ def main():
     counts_dict = {}
     uc_vmt_dict = {}
     aadt_counts_dict = {}
+    
     tptt_counts_dict = {}
     
     #get a list of screenlines from the bank/scenario
@@ -518,6 +408,7 @@ def main():
             #print transit_summary_dict
           
         net_stats = calc_vmt_vht_delay_by_ft(my_project)
+
         #store tod network summaries in dictionary where key is tod:
         ft_summary_dict[key] = net_stats
         #store vmt by user class in dict:
@@ -538,17 +429,34 @@ def main():
         #screen lines
         get_screenline_volumes(screenline_dict, my_project)
         
-        
+    
+    # Write results to Tableau
+    facility_results = {}
+    list_of_measures = ['vmt', 'vht', 'delay']
+    for measure in list_of_measures:
+        facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
+                                                measure=measure)
+        # Mesaures by TOD
+        df = pd.DataFrame(facility_results[measure].sum(),columns=[measure]).T
+        df = stamp(df, con=con, table=measure+'_by_tod')
+        df.to_sql(name=measure+'_by_tod', con=con, if_exists='append', chunksize=1000)
+
+        # Measures by Facility Type
+        df = pd.DataFrame(facility_results[measure].T.sum(),columns=[measure]).T
+        df = stamp(df, con=con, table=measure+'_by_facility')
+        df.to_sql(name=measure+'_by_facility', con=con, if_exists='append', chunksize=1000)
+
 
    #write out transit:
     print uc_vmt_dict
     col = 0
     transit_df = pd.DataFrame()
+
     for tod, df in transit_summary_dict.iteritems():
        #if transit_tod[tod] == 'am':
        #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
        #keys=None, levels=None, names=None, verify_integrity=False)
-
+        
        workbook = writer.book
        index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
        transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
@@ -591,7 +499,6 @@ def main():
 
     #*******write out network summaries
     soundcast_tods = sound_cast_net_dict.keys
-    list_of_measures = ['vmt', 'vht', 'delay']
     list_of_FTs = fac_type_dict.keys()
     row_list = []
     list_of_rows = []
@@ -648,11 +555,11 @@ def main():
         else:
             print('Library openpyxl needed to autofit columns')
     
-    writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
-    for key, value in screenline_dict.iteritems():
-       print key, value
-       writer.writerow([key, value])
-    writer = None
+    #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
+    #for key, value in screenline_dict.iteritems():
+    #    print key, value
+    #    writer.writerow([key, value])
+    #writer = None
 
 if __name__ == "__main__":
     main()
