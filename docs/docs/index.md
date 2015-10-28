@@ -4,12 +4,14 @@ The Soundcast model package includes all estimated and calibrated demand models 
 
 ![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
 
-## Hardware Requirements
+## Hardware Recommendations
 	- 100 GB disk space for each model run
 	- 32 GB RAM recommended
 	- Minimum of 12 processors
 
-## Software Requirements
+(Soundcast can be run on machines with less memory and fewer processors, but run time will be extended.)
+
+## Software Recommendations
 	- INRO Emme 4 License, with capability for processing 4000-zone matrices
 	- Only tested on 64-bit Windows 7 OS
 	- Anaconda Python Package (Python 2.7 with helper libraries included)
