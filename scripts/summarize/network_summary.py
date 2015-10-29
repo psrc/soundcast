@@ -30,7 +30,7 @@ import csv
 import xlsxwriter
 import xlautofit
 import sqlite3 as lite
-import datetime
+from datetime import datetime
 from EmmeProject import *
 from multiprocessing import Pool
 import pandas as pd
@@ -340,19 +340,47 @@ def get_date():
        For runs without a log, or on error, get current time. '''
     try:
         timestamp = str(pd.read_csv(main_log_file).iloc[-1]).split(' ')
-        date = timestamp[0]
-        time = timestamp[1] + " " + timestamp[2]
+        logdate = timestamp[0] + " " + timestamp[1] + " " + timestamp[2]
     except:
-        date = datetime.now().strftime("%m/%d/%Y")
-        time = datetime.now().strftime("%I:%M:%S %p")
-    return date, time
+        logdate = datetime.now().strftime("%m/%d/%Y %I:%M:%S %p")
+    summarydate = datetime.now().strftime("%m/%d/%Y %I:%M:%S %p")
+    return logdate, summarydate
 
 def stamp(df, con, table):
     '''Add run information to a table row'''
-    df['scenario_name'],df['runid'],df['date'],df['time'] = \
+    df['scenario_name'],df['runid'],df['logdate'],df['summarydate'] = \
     [scenario_name,get_runid(table, con),get_date()[0],get_date()[1]]
     return df
 
+def process_h5(data_table, h5_file, columns):
+    ''' Convert DaySim tables (e.g., person, household files) to dataframe ''' 
+    h5_file = h5py.File(h5_file)    # read h5 data
+    df = pd.DataFrame()     # initialize empty data frame
+    
+    for col in columns:
+        df[col] = h5_file[data_table][col].value
+    return df
+
+def process_screenlines(screenline_dict):
+    '''Convert screenline volume dictionary to dataframe in SQL format (single row of columns)'''
+    
+    # Load screenline lookup between location name and network value
+    screenline_names = pd.read_json('inputs/screenline_dict.json',orient='values')
+    screenline_names['id'] = screenline_names.index
+
+    # Load screenline volumes from the network and merge with names lookup
+    screenline_data = pd.DataFrame(screenline_dict.values(), index=screenline_dict.keys(),columns=['volume'])
+    screenline_data['id'] = screenline_data.index.astype('float64')
+    screenline_data = pd.merge(screenline_data, screenline_names)
+
+    # Create a single column of screenline volumes 
+    screenline_data.fillna('',inplace=True) 
+    screenline_data.index = screenline_data['Primary']+screenline_data['Secondary']
+    
+    # Combine the 2 Auburn screenlines; can't have duplicate column names in SQL
+    screenline_data = screenline_data.groupby(screenline_data.index).sum()[['volume']].T    # transpose to convert to single row
+    
+    return screenline_data
 
 def main():
     ft_summary_dict = {}
@@ -430,13 +458,13 @@ def main():
         get_screenline_volumes(screenline_dict, my_project)
         
     
-    # Write results to Tableau
+    # Write results to sqlite3 db (for Tableau)
     facility_results = {}
     list_of_measures = ['vmt', 'vht', 'delay']
     for measure in list_of_measures:
         facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
                                                 measure=measure)
-        # Mesaures by TOD
+        # Measures by TOD
         df = pd.DataFrame(facility_results[measure].sum(),columns=[measure]).T
         df = stamp(df, con=con, table=measure+'_by_tod')
         df.to_sql(name=measure+'_by_tod', con=con, if_exists='append', chunksize=1000)
@@ -447,8 +475,26 @@ def main():
         df.to_sql(name=measure+'_by_facility', con=con, if_exists='append', chunksize=1000)
 
 
+    # Re-form screenlines for export to db
+    screenline_data = process_screenlines(screenline_dict)
+    screenline_data = stamp(screenline_data, con=con, table='screenlines')
+    screenline_data.to_sql(name='screenlines', con=con, if_exists='append', chunksize=1000)
+
+    # Export DaySim results to db
+    daysim_metrics = [u'mode', u'travcost', u'travdist', u'travtime']
+    
+    # Convert daysim outputs H5 to a dataframe
+    daysim_df = process_h5(data_table='Trip', h5_file=r'outputs/daysim_outputs.h5', columns=daysim_metrics)
+
+    # Process tables that show results by mode
+    for metric in [u'travcost', u'travdist', u'travtime']:
+        df = daysim_df.groupby('mode').mean()[[metric]].T
+        df.columns = ['Walk','Bike','SOV','HOV2','HOV3+','Transit','School Bus']
+        df = stamp(df, con=con, table=metric)
+        df.to_sql(name=metric, con=con, if_exists='append', chunksize=1000)
+
    #write out transit:
-    print uc_vmt_dict
+    # print uc_vmt_dict
     col = 0
     transit_df = pd.DataFrame()
 
