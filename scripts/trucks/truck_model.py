@@ -102,9 +102,8 @@ def import_emp_matrices():
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
                                  'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-    for i in range(0, len(truck_emp_dict)):
-        print 'inputs/' + truck_matrix_import_list[i] + '.in'
-        my_project.import_matrices('inputs/trucks/' + truck_matrix_import_list[i] + '.in')
+    for name in truck_matrix_import_list:
+        my_project.import_matrices('inputs/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information
@@ -273,7 +272,7 @@ def calculate_impedance():
 
     # calculate heavy truck impedances:
     my_project.matrix_calculator(result = 'mfhvyimp', 
-                                 expression = 'exp(-0.008*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
+                                 expression = 'exp(-0.00001*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
                                  constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                                  constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
