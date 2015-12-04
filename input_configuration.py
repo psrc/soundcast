@@ -5,11 +5,11 @@
 # Scenario and input paths
 base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
-daysim_code = 'R:/soundcast/daysim' 
+daysim_code = 'F:/Soundcast Inputs/daysim' 
 master_project = 'LoadTripTables'
-base_inputs = 'R:/soundcast/inputs/' + scenario_name
-network_buffer_inputs = 'R:/soundcast/inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
-network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
+base_inputs = 'F:/Soundcast Inputs/' + scenario_name
+network_buffer_inputs = 'F:/Soundcast Inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
+network_buffer_code = 'F:/Soundcast Inputs/util/parcel_buffering/'
 
 recipients = []
 
@@ -17,7 +17,7 @@ recipients = []
  
 # Only update parking for future-year analysis!
 run_update_parking = False
-run_convert_hhinc_2000_2010 = False
+run_convert_hhinc_2000_2010 = True
 run_parcel_buffering = False
 run_copy_daysim_code = False
 run_setup_emme_project_folders = False
@@ -28,14 +28,14 @@ create_no_toll_network =False
 run_skims_and_paths_seed_trips = False
 should_build_shadow_price =False
 run_skims_and_paths = False
-run_truck_model =False
-run_supplemental_trips = False
-run_daysim = False
-run_parcel_buffer_summary = False
-run_network_summary = False
-run_soundcast_summary = False
-run_travel_time_summary = False
-run_create_daily_bank = False
+run_truck_model =True
+run_supplemental_trips = True
+run_daysim = True
+run_parcel_buffer_summary = True
+run_network_summary = True
+run_soundcast_summary = True
+run_travel_time_summary = True
+run_create_daily_bank = True
 run_ben_cost = True
 run_bike_model = True
 

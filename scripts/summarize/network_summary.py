@@ -472,8 +472,9 @@ def main():
     export_corridor_results(my_project)
 
     # Connect to sqlite3 db
-    con = None
-    con = lite.connect(results_db)
+    if run_tableau_db:
+        con = None
+        con = lite.connect(results_db)
     
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
     #create extra attributes:
@@ -538,44 +539,45 @@ def main():
         
     
     # Write results to sqlite3 db (for Tableau)
-    facility_results = {}
-    list_of_measures = ['vmt', 'vht', 'delay']
-    for measure in list_of_measures:
-        facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
-                                                measure=measure)
-        # Measures by TOD
-        df = pd.DataFrame(facility_results[measure].sum(),columns=[measure]).T
-        df = stamp(df, con=con, table=measure+'_by_tod')
-        df.to_sql(name=measure+'_by_tod', con=con, if_exists='append', chunksize=1000)
+    if run_tableau_db:
+        facility_results = {}
+        list_of_measures = ['vmt', 'vht', 'delay']
+        for measure in list_of_measures:
+            facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
+                                                    measure=measure)
+            # Measures by TOD
+            df = pd.DataFrame(facility_results[measure].sum(),columns=[measure]).T
+            df = stamp(df, con=con, table=measure+'_by_tod')
+            df.to_sql(name=measure+'_by_tod', con=con, if_exists='append', chunksize=1000)
 
-        # Measures by Facility Type
-        df = pd.DataFrame(facility_results[measure].T.sum(),columns=[measure]).T
-        df = stamp(df, con=con, table=measure+'_by_facility')
-        df.to_sql(name=measure+'_by_facility', con=con, if_exists='append', chunksize=1000)
-
-
-    # Re-form screenlines for export to db
-    screenline_data = process_screenlines(screenline_dict)
-    screenline_data = stamp(screenline_data, con=con, table='screenlines')
-    screenline_data.to_sql(name='screenlines', con=con, if_exists='append', chunksize=1000)
-
-    # Export DaySim results to db
-    daysim_metrics = [u'mode', u'travcost', u'travdist', u'travtime']
-    
-    # Convert daysim outputs H5 to a dataframe
-    daysim_df = process_h5(data_table='Trip', h5_file=r'outputs/daysim_outputs.h5', columns=daysim_metrics)
-
-    # Process tables that show results by mode
-    for metric in [u'travcost', u'travdist', u'travtime']:
-        df = daysim_df.groupby('mode').mean()[[metric]].T
-        df.columns = ['Walk','Bike','SOV','HOV2','HOV3+','Transit','School Bus']
-        df = stamp(df, con=con, table=metric)
-        df.to_sql(name=metric, con=con, if_exists='append', chunksize=1000)
-
-    # Transit Counts to db
+            # Measures by Facility Type
+            df = pd.DataFrame(facility_results[measure].T.sum(),columns=[measure]).T
+            df = stamp(df, con=con, table=measure+'_by_facility')
+            df.to_sql(name=measure+'_by_facility', con=con, if_exists='append', chunksize=1000)
 
 
-    # Mode Share to DB
+        # Re-form screenlines for export to db
+        screenline_data = process_screenlines(screenline_dict)
+        screenline_data = stamp(screenline_data, con=con, table='screenlines')
+        screenline_data.to_sql(name='screenlines', con=con, if_exists='append', chunksize=1000)
+
+        # Export DaySim results to db
+        daysim_metrics = [u'mode', u'travcost', u'travdist', u'travtime']
+        
+        # Convert daysim outputs H5 to a dataframe
+        daysim_df = process_h5(data_table='Trip', h5_file=r'outputs/daysim_outputs.h5', columns=daysim_metrics)
+
+        # Process tables that show results by mode
+        for metric in [u'travcost', u'travdist', u'travtime']:
+            df = daysim_df.groupby('mode').mean()[[metric]].T
+            df.columns = ['Walk','Bike','SOV','HOV2','HOV3+','Transit','School Bus']
+            df = stamp(df, con=con, table=metric)
+            df.to_sql(name=metric, con=con, if_exists='append', chunksize=1000)
+
+        # Transit Counts to db
+
+
+        # Mode Share to DB
 
    #write out transit:
     # print uc_vmt_dict
