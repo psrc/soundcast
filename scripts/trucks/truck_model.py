@@ -209,7 +209,7 @@ def import_skims():
         pm_skim_name = truck_type['dist_name'] + '_pm'
         bidir_skim_name = truck_type['dist_bidir_name']
         #distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
-        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100
+        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100.0
         bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
