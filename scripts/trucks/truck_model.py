@@ -102,7 +102,10 @@ def import_emp_matrices():
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
                                  'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
+    #for i in range(0, len(truck_emp_dict)):
     for name in truck_matrix_import_list:
+        #print 'inputs/' + truck_matrix_import_list[i] + '.in'
+        print name
         my_project.import_matrices('inputs/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
@@ -197,7 +200,7 @@ def import_skims():
         am_skim_name = truck_type['gc_name'] + '_am'
         pm_skim_name = truck_type['gc_name'] + '_pm'
         bidir_skim_name = truck_type['gc_bidir_name']
-        bi_dir_skim = np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name]
+        bi_dir_skim = np_gc_skims[am_skim_name] + np.transpose(np_gc_skims[pm_skim_name])
         bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
@@ -209,7 +212,8 @@ def import_skims():
         pm_skim_name = truck_type['dist_name'] + '_pm'
         bidir_skim_name = truck_type['dist_bidir_name']
         #distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
-        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100.0
+       
+        bi_dir_skim = (np_gc_skims[am_skim_name] + np.transpose(np_gc_skims[pm_skim_name])/100.0)
         bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
