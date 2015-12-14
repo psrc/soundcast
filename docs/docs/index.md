@@ -261,6 +261,10 @@ Soundcast includes Python scripts to summarize model results and create output s
 
 Other summaries are included for detailed DaySim and network summaries as needed. Users may also create their own summaries by directly evaluating the h5 output files.
 
+**[File Information and Directory Structure](file-structure.md)**
+
+**[Daysim Variable Definitions and Codes](https://github.com/psrc/soundcast/blob/master/Daysim1.8%20Users%20Guide.xlsx)**
+
 ## Resources
 
 - [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
