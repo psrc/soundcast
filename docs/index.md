@@ -1,22 +1,22 @@
-# Soundcast Users' Guide
+# Overview
 
 The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using [INRO's Emme software](http://www.inrosoftware.com/). If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports. 
 
 ![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
 
-## Hardware Recommendations
+# Hardware Recommendations
 	- 100 GB disk space for each model run
 	- 32 GB RAM recommended
 	- Minimum of 12 processors
 
 (Soundcast can be run on machines with less memory and fewer processors, but run time will be extended.)
 
-## Software Recommendations
+# Software Recommendations
 	- INRO Emme 4 License, with capability for processing 4000-zone matrices
 	- Only tested on 64-bit Windows 7 OS
 	- Anaconda Python Package (Python 2.7 with helper libraries included)
 
-## Initial Setup
+# Initial Setup
 
 All Soundcast scripts are stored within a public [GitHub repository](https://github.com/psrc/soundcast). If you're familiar with Git technology, you can [clone](http://git-scm.com/docs/git-clone) the repository on your modeling machine. 
 
@@ -24,7 +24,7 @@ Alternatively, you can download all the code as a ZIP file.
 
 ![Download GitHub ZIP](http://oi60.tinypic.com/dxmo2u.jpg)
 
-### Python Packages and Paths
+## Python Packages and Paths
 It's recommended to [install the Anaconda Python package](https://repo.continuum.io/archive) to run Soundcast. This package should include all necessary libraries to run the model. When installing, make sure the installer adds the Anaconda install to the system path (or add it yourself after installing). It's important that this install is the one referenced whenever the "python" program is invoked from a command. Many machines might include another Python install; it's okay to leave other versions installed, but you'll want to update the path variable to point only to the Anaconda version. In order to avoid conflicts with Emme's Python install, *download package version 2.2.0.* [Click here to directly download Anaconda 2.2.0 for 64-bit Windows](2.2.0 https://repo.continuum.io/arcive/Anaconda-2.2.0-Windows-x86_64.exe). Additionally, you may want to install Anaconda for current users only (not for all users). Sometimes installing Python for all users will conflict with administrative rights, so it's best to install and use it as a local user. 
 
 After installing Anaconda, you must change Emme's settings to use the Anaconda installation by default. Otherwise, scripts that interact with Emme will use another install without the necessary libraries. To change the Python version used by Emme, select Tools (from the main taskbar) and click 'Application Options'. Under the Modeller tab is a field "Python path", which by default probably looks like:
@@ -37,10 +37,10 @@ Replace this path with the full path to the Anaconda Python executable (python.e
 
 	C:\Anaconda
 
-### Troubleshooting Python Install
+## Troubleshooting Python Install
 Emme's Python libraries can conflict with the Anaconda install used to run Python. As of Emme release 4.2.3, there are two known conflicts with the Anaconda libraries. Two libraries "ply" and "pyqt" from Anaconda clash with Emme. INRO's solution is to remove these two libraries from the Anaconda install and rely on the Emme libraries. This works for Anaconda 2.2.0 and prior releases, but does not work for the latest versions. For now, the recommended approach is to use Anaconda 2.2.0 and remove ply and pyqt libraries. This can be done from the command prompt with "conda uninstall ply" and "condat uninstall pyqt". When these libraries are removed from Anaconda, Emme will look to its local install of these packages, which should have no conflicts.
 
-### Install additional Python libraries
+## Install additional Python libraries
 Although the Anaconda Python package include many libraries, there are some specialized libraries required for Soundcast that are not included. Fortunately, these can easily be added from the command prompt. The required additional libraries are:
 
 	- pysal (used to read geodatabase files from ArcGIS)
@@ -48,10 +48,10 @@ Although the Anaconda Python package include many libraries, there are some spec
 
 These can be added either by typing "pip install [library name]" or "conda install [library name]". If the model run crashes because of a missing library, it should be easy to quickly add the library and restart the model from the point of failure.
 
-### Install 7-zip
+## Install 7-zip
 Soundcast inputs are very large and are stored as compressed files to save space. Scripts rely on the 7-zip tool to open and expand these files, and the program *must be added to the system path*. Before running Soundcast, ensure that 7-zip is installed. If not, it can be [freely obtained here](http://www.7-zip.org/). Once installed, copy the location of the 7-zip.exe and add it to the system's path environment variable. To do this, open the Environment Variables window under Control Panel and edit the "path" system variable (the second scroll window from the top).
 
-## Run Configuration
+# Run Configuration
 Once Python paths and versions are defined and installed, inputs must be provided and configuration settings specified. Input locations and run settings are controlled centrally from the file **"input_configuration.py".** This is a Python script, but it simply holds variable definitions which are passed into other scripts when the model runs. The input configuration contains paths to input directories, scenario names and analysis years, and also controls number of iterations and convergence criteria. Additionally, it allows finer control over specific model components. For instance, all demand, skimming, and assignment iterations can be turned off, and only specific summarization scripts run, or the model can be set to stop after importing certain input files. Scroll to the end of the Variable value field, add paste the directory to the 7zip exe (ensuring it is separated with a semicolon from previous fields).
 
 Scenarios and input paths are defined as follows by default. Users must point to the location of these inputs and ensure the inputs follow a format as defined later in this guide. 
@@ -106,7 +106,7 @@ The "shadow_work" variable represents the number of iterations for which shadow 
 
 The remaining variables in input_configuration are not intended to be changed by the user. Many are definitions that should not change, except with major model revisions. They're stored in this file for consistency, rather than scattering variable definitions across a number of scripts.
 
-## Inputs
+# Inputs
 Soundcast inputs will be provided as a zipped folder to users. However, at this time, inputs will only be available to users with authorized access to use Washington State's highly employment disaggregate data. PSRC is still working through solutions to provide model access to all users without access to this sensitive data. 
 
 For users that are able to receive the input, the folder should be unzipped and stored on a local drive. The path must be specified in "input_configuration.py" and folder structure should not be changed. Soundcast copies all inputs into the local Soundcast directory to keep paths consistent, and allows for a central storage point of different model inputs. Input folders will typically be named to represent the land use and network year, e.g., 2010 or 2040. 
@@ -178,14 +178,14 @@ The inputs directory should be structured as follows:
 		- truck_operating_costs.in
 		- whlsshar.in
 
-## Running the Model
+# Running the Model
 Once the inputs have been properly structured and configuration defined, Soundcast can be started with a single command-line prompt. Open a command prompt and navigate to the location the soundcast directory. In the main directory, type:
 
 	- python run_soundcast.py
 
 This will call the run_soundcast script in Python, which is the master script file to start the model. Depending on the modules specified to run in input_configuration, Soundcast will be spawn its different processes. For a new run, this includes copying inputs into the local Soundcast directory, creating new directories to store outputs, initializing Emme projects, and finally starting an iteration of DaySim demand models and assignment. The model should run until convergence, or until maximum numbers of global iterations are attained, and (if specified) produce summary files and end. 
 
-## Log Files
+# Log Files
 The Soundcast run can be monitored in the command prompt, since many functions include print statements, but since it takes many hours to complete a run, all important status outputs are stored in log files in the main Soundcast directory. The two primary log files are:
 
 	- soundcast_log.txt
@@ -228,10 +228,10 @@ The soundcast log contains high-level informatino about when different modules o
 
 The skims log provides details on when each assignment and skimming script began, how long it took to complete, and the resulting relative gap, for each user class and time of day.
 
-## Model Structure
+# Model Structure
 Soundcast is designed to run its processes in a specific order. Understanding this flow is critical to performing partial runs (e.g., traffic assignment or demand only) that will save processing time. Being able to recover from a crash mid-way through a model run requires knowledge of how the model's scripts are designed. The basic process is as follows.
 
-### run_soundcast.py
+## run_soundcast.py
 Soundcast's primary controller script is run_soundcast.py. Most of the major model functions are controlled here, along with input_configuration.py, which controls which processes are run, and certain input values. The run_soundcast script is rather readable, with many processes self-documented by relevant function or variable names. As with all Python scripts in Soundcast, the main function of the scripts are contained in the main() function. This is the part of the script that is first executed. In run_soundcast, subprocesses are called in a specific order. Subprocesses are controlled by binary variables that are defined in input_configuration. If these control variables are defined as True in input_configuration, Soundcast will execute that subprocess. For instance, if the variable "run_copy_daysim_code" is defined as True in the configuration, then Soundcast will run the function to move all Daysim inputs into the local directory. Many times, if a model run is being run for another iteration, or has been stopped during a crash, these processes will not need to be repeated, so they are frequently turned off (set to False). The order of subprocesses exectued by run_soundcast are as follows:
 
 	- parcel buffering (land use preparation for demand estimation)
@@ -249,7 +249,7 @@ Soundcast's primary controller script is run_soundcast.py. Most of the major mod
 
 The number of global iterations is defined in input_configuration.py, as the length of the pop_sample array. Each value in this list represents an iteration of demand+skimming/assignment. The number corresponds to the population size being sampled on that run. Samples are used to reduce run time, and the sample size should gradually increase with each iteration. The number is actually the denominator of the population size. For instance pop_sample = [10,5,2] indicates that 3 global iterations will be performed. The first will use a population sample size of 1/10th the actual population, the next a sample of 1/5, and finally a sample of 1/2. 
 
-## Results and Outputs
+# Results and Outputs
 As the model runs, results are stored in the 'outputs' directory of the local soundcast folder. Emme-related outputs are stored in 'projects' and 'banks' folders. Users can view results by time of day by opening up the corresponding project and bank in Emme. These files contain all time and cost skims by vehicle class and time of day. They are also available in a compressed format (hdf5) and, somewhat confusingly, created in the 'inputs' folder after an assignment iteration. They're stored in inputs because they're used as inputs to DaySim demand modeling, though they will represent the last assignment and skimming pass. These output files are named by their time period (e.g., 5to6.h5) and can be viewed interactively with Python or the [OMX Viewer](https://sites.google.com/site/openmodeldata/file-cabinet/omx-viewer) GUI.
 
 Results of DaySim demand are stored in hdf5 format as well, in the 'daysim_outputs.h5' file stored in the 'outputs' folder. These outputs include details for all persons, households, trips, and tours taken in the region, for a typical travel day. These include all the details about demographics and trip characteristics like mode, purpose, time, origin and destination, and many others. 
@@ -265,7 +265,7 @@ Other summaries are included for detailed DaySim and network summaries as needed
 
 **[Daysim Variable Definitions and Codes](https://github.com/psrc/soundcast/blob/master/Daysim1.8%20Users%20Guide.xlsx)**
 
-## Resources
+# Resources
 
 - [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
 - [Soundcast Technical Design Document]()

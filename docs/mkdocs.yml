@@ -1,6 +1,6 @@
 site_name: soundcast-user-guide
 pages:
-- Home: 'index.md'
+- User's Guide: 'index.md'
 - File Structure: 'file-structure.md'
 - EMME Codes: 'emme-codes.md'
 theme: readthedocs
