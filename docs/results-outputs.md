@@ -1,3 +1,19 @@
+# Results and Outputs
+As the model runs, results are stored in the 'outputs' directory of the local soundcast folder. Emme-related outputs are stored in 'projects' and 'banks' folders. Users can view results by time of day by opening up the corresponding project and bank in Emme. These files contain all time and cost skims by vehicle class and time of day. They are also available in a compressed format (hdf5) and, somewhat confusingly, created in the 'inputs' folder after an assignment iteration. They're stored in inputs because they're used as inputs to DaySim demand modeling, though they will represent the last assignment and skimming pass. These output files are named by their time period (e.g., 5to6.h5) and can be viewed interactively with Python or the [OMX Viewer](https://sites.google.com/site/openmodeldata/file-cabinet/omx-viewer) GUI.
+
+Results of DaySim demand are stored in hdf5 format as well, in the 'daysim_outputs.h5' file stored in the 'outputs' folder. These outputs include details for all persons, households, trips, and tours taken in the region, for a typical travel day. These include all the details about demographics and trip characteristics like mode, purpose, time, origin and destination, and many others. 
+
+Soundcast includes Python scripts to summarize model results and create output spreadsheets. The primary summaries are available in the following sheets:
+
+	- network_summary.xlsx
+	- Topsheet.xlsx
+
+Other summaries are included for detailed DaySim and network summaries as needed. Users may also create their own summaries by directly evaluating the h5 output files.
+
+**[File Information and Directory Structure](file-structure.md)**
+
+**[Daysim Variable Definitions and Codes](https://github.com/psrc/soundcast/blob/master/Daysim1.8%20Users%20Guide.xlsx)**
+
 # EMME Codes
 
 Speed speedau
