@@ -51,11 +51,11 @@ def copy_parcel_buffering_files():
         os.makedirs('scripts/parcel_buffer')
 
     print 'copying parcel buffering network inputs.  the file is about 2 gb so it could take a couple of minutes.'
-    # try: 
-        # shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
-    # except:
-        # print 'error copying network_buffer inputs at ' + network_buffer_inputs
-        # sys.exit(2)
+    try: 
+        shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
+    except:
+        print 'error copying network_buffer inputs at ' + network_buffer_inputs
+        sys.exit(2)
  
     main_dir = os.path.abspath('')
     print main_dir
