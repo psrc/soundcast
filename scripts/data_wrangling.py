@@ -51,14 +51,16 @@ def copy_parcel_buffering_files():
         os.makedirs('scripts/parcel_buffer')
 
     print 'copying parcel buffering network inputs.  the file is about 2 gb so it could take a couple of minutes.'
-    try: 
-        shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
-    except:
-        print 'error copying network_buffer inputs at ' + network_buffer_inputs
-        sys.exit(2)
+    # try: 
+        # shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
+    # except:
+        # print 'error copying network_buffer inputs at ' + network_buffer_inputs
+        # sys.exit(2)
  
     main_dir = os.path.abspath('')
+    print main_dir
     unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
+    print unzip_net_ins
     returncode= subprocess.call(unzip_net_ins)
     if returncode!=0:
         print 'could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'

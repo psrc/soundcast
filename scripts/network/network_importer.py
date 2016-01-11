@@ -1,4 +1,4 @@
-import inro.emme.desktop.app as app
+﻿import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
@@ -10,6 +10,7 @@ import subprocess
 import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from emme_configuration import *
 from input_configuration import *
 
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -247,7 +248,7 @@ def run_importer(project_name):
         
 
 def main():
-    
+    print network_summary_project
     run_importer(network_summary_project)
     
     returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
