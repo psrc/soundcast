@@ -82,8 +82,16 @@ def build_seed_skims():
  
 @timed   
 def modify_config(config_vals):
-    config_template = open('configuration_template.properties','r')
-    config = open('configuration.properties','w')
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.split(script_path)[0] #<-- absolute dir the script is in
+    config_template_path = "daysim_configuration_template.properties"
+    config_path = "Daysim/daysim_configuration.properties"
+
+    abs_config_path_template = os.path.join(script_dir, config_template_path)
+    abs_config_path_out =os.path.join(script_dir, config_path)
+    print abs_config_path_template
+    config_template = open(abs_config_path_template,'r')
+    config = open(abs_config_path_out,'w')
   
     try:
         for line in config_template:
@@ -106,12 +114,12 @@ def build_shadow_only():
      for shad_iter in range(0, len(shadow_work)):
         modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
         logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
-        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
         if returncode != 0:
             #send_error_email(recipients, returncode)
             sys.exit(1)
-        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        returncode = subprocess.call([sys.executable, 'scripts/utils/shadow_pricing_check.py'])
         shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
         rmse_list = shadow_con_file.readlines()
         iteration_number = len(rmse_list)
@@ -147,7 +155,7 @@ def daysim_assignment(iteration):
      ### RUN DAYSIM ################################################################
      if run_daysim:
          logger.info("Start of %s iteration of Daysim", str(iteration))
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
          logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)
@@ -180,26 +188,19 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
    if run_network_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
       # this summary is producing erronous results, we don't want people to think they are correct.
-      subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
 
    if run_soundcast_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
-
-   if run_travel_time_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
-
-   if run_network_summary and run_soundcast_summary and run_travel_time_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
 
    #Create a daily network with volumes. Will add counts and summary emme project. 
    if run_create_daily_bank:
-      subprocess.call([sys.executable, 'scripts/summarize/daily_bank.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
    if run_ben_cost:
-      
-      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
@@ -210,7 +211,7 @@ def main():
         parcel_buffering()
 
     if run_parcel_buffer_summary:
-        subprocess.call([sys.executable, 'scripts/summarize/parcel_summary.py'])
+        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
