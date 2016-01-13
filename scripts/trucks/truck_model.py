@@ -15,15 +15,17 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
-from input_configuration import *
-from EmmeProject import *
+#from truck_model import *
+from EmmeProject import * 
+from truck_configuration import *
+from emme_configuration import *
 
 # Temp log file for de-bugging
 logfile = open("truck_log.txt", 'wb')
           
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
-            my_project.bank.delete_scenario(scenario)
+           EmmeProject.bank.delete_scenario(scenario)
         #create scenario
     EmmeProject.bank.create_scenario(1002)
     EmmeProject.change_scenario()
@@ -102,9 +104,8 @@ def import_emp_matrices():
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
                                  'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-    for i in range(0, len(truck_emp_dict)):
-        print 'inputs/' + truck_matrix_import_list[i] + '.in'
-        my_project.import_matrices('inputs/trucks/' + truck_matrix_import_list[i] + '.in')
+    for name in truck_matrix_import_list:
+        my_project.import_matrices('inputs/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information
@@ -210,7 +211,7 @@ def import_skims():
         pm_skim_name = truck_type['dist_name'] + '_pm'
         bidir_skim_name = truck_type['dist_bidir_name']
         #distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
-        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100
+        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100.0
         bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
@@ -273,7 +274,7 @@ def calculate_impedance():
 
     # calculate heavy truck impedances:
     my_project.matrix_calculator(result = 'mfhvyimp', 
-                                 expression = 'exp(-0.008*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
+                                 expression = 'exp(-0.00001*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
                                  constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                                  constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
@@ -322,6 +323,7 @@ def calculate_daily_trips():
                                          expression = value['daily_trips'] + '*' + value[tod])
 
 def main():
+    #my_project = EmmeProject(truck_model_project)
     network_importer(my_project)
     my_project.delete_matrices("ALL")
     place_holder_scalar_matrix()
@@ -339,10 +341,10 @@ def main():
     calculate_daily_trips()
     skims_to_hdf5(my_project)
 
+my_project = EmmeProject(truck_model_project)
 input_skims = json_to_dictionary('input_skims')
 origin_destination_dict = json_to_dictionary('truck_matrices_dict')
 truck_generation_dict = json_to_dictionary('truck_gen_calc_dict')
-my_project = EmmeProject(truck_model_project)
 
 if __name__ == "__main__":
     main()

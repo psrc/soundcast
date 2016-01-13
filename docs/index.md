@@ -1,9 +1,27 @@
-PSRC's Activity-Based Travel Model
+Soundcast is PSRC's activity-based travel model. This User's Guide provides an overview of the software and information of how to run the model and analyze its results. Use the navigation bar to the left to learn more. 
 
-## Overview
+# Soundcast Overview
 
-Soundcast is a collection of statistical models used by the Puget Sound Regional Council (PSRC) to forecast regional travel around the Puget Sound area of Washington State. The model includes several different components to estimate details of travel choices over time. 
+The Soundcast model package includes all estimated and calibrated demand models and scripts to assign demand onto road and transit networks. Soundcast's demand models were developed as part of the DaySim activity model framework by consultants [RSG](http://www.rsginc.com/). As shown in the figure below, the demand models process land use, demographics, and network inputs to produce trip tables by user class and time of day. These trips (i.e., 'demand') are then assigned to travel networks using [INRO's Emme software](http://www.inrosoftware.com/). If network assignment hasn't yet reached equilibrium, cost and time skims are sent back to the DaySim demand models to produce trip tables that incorporate network conditions from the latest model iteration. Upon convergence (specified as a configurable parameter) the model estimation will conclude and produce summary reports.
 
-This resource is a User's Guide, focusing on practical steps to set up and run the Soundcast model. Click and scroll through this guide to learn about model requirements, installation, and implementation steps. For troubleshooting beyond these instructions, contact [PSRC modelling staff](http://www.psrc.org/about/contact/staff-roster/). 
+![Soundcast flow diagram](http://i61.tinypic.com/2u5xjwn.jpg)
 
-For more detailed technical information on Soundcast and travel modeling in general, visit from [PSRC's website](http://www.psrc.org/assets/11924/SoundCastDesign2014.pdf) and the [Travel Forecasting Resource wiki](http://tfresource.org/Activity-Based_Models).
+# Hardware Recommendations
+	- 100 GB disk space for each model run
+	- 32 GB RAM recommended
+	- Minimum of 12 processors
+
+(Soundcast can be run on machines with less memory and fewer processors, but run time will be extended.)
+
+# Software Recommendations
+	- INRO Emme 4 License, with capability for processing 4000-zone matrices
+	- Only tested on 64-bit Windows 7 OS
+	- Anaconda Python Package (Python 2.7 with helper libraries included)
+
+# External Resources
+
+- [Activity-Based Modeling at PSRC](http://www.psrc.org/data/models/abmodel/)
+- [Soundcast Technical Design Document]()
+- [Soundcast GitHub Repo](https://github.com/psrc/soundcast)
+- [Acitivty-Based Model Primer](http://onlinepubs.trb.org/onlinepubs/shrp2/SHRP2_C46.pdf)
+- [PSRC Staff](http://www.psrc.org/about/contact/staff-roster/)
