@@ -1,0 +1,17 @@
+HomeCounty,WorkCounty,Workers
+King,King,907835
+King,Kitsap,1940
+King,Pierce,25045
+King,Snohomish,35925
+Kitsap,King,12125
+Kitsap,Kitsap,92375
+Kitsap,Pierce,5960
+Kitsap,Snohomish,1300
+Pierce,King,84695
+Pierce,Kitsap,4025
+Pierce,Pierce,261035
+Pierce,Snohomish,1525
+Snohomish,King,116230
+Snohomish,Kitsap,865
+Snohomish,Pierce,1580
+Snohomish,Snohomish,217425

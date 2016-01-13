@@ -4,6 +4,7 @@ import os, sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
 from input_configuration import *
+from bike_configuration import *
 
 # Get the auto time and length of each link
 def get_link_attribute(attr, network):

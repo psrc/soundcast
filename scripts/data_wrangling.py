@@ -58,7 +58,9 @@ def copy_parcel_buffering_files():
         sys.exit(2)
  
     main_dir = os.path.abspath('')
+    print main_dir
     unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
+    print unzip_net_ins
     returncode= subprocess.call(unzip_net_ins)
     if returncode!=0:
         print 'could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
