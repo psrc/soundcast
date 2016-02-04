@@ -77,7 +77,10 @@ def merge_networks(master_network, merge_network):
        
 #Use a copy of an existing bank for the daily bank
 copy_emmebank('Banks/7to8', 'Banks/Daily')
+
 daily_emmebank =_emmebank.Emmebank(r'Banks\Daily\emmebank')
+# Set the emmebank title
+daily_emmebank.title = 'daily'
 daily_scenario = daily_emmebank.scenario(1002)
 daily_network = daily_scenario.get_network()
 
