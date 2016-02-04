@@ -510,9 +510,11 @@ def main():
     # Travel times on key corridors
     export_corridor_results(my_project)
 
-    # Export daily link measures
-    if run_create_daily_bank:
+    # Export daily link measures if a daily bank exists
+    if os.path.exists(r'Banks\Daily\emmebank'):
         export_link_values(my_project)
+    else:
+        print 'daily bank required to export link values'
 
     # Connect to sqlite3 db
     if run_tableau_db:
