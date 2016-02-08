@@ -16,17 +16,13 @@ import os
 import h5py
 import numpy as np
 import pandas as pd
-from scripts.summarize.mapping import dframe_explorer
 import socket
-import map_configuration.py
+import dframe_explorer
+from map_configuration import *
 
-# Parameters
-hightaz = 3700    # Max TAZ for mapping
-
-# Threshold travel time for accessibility calculation
-max_trav_time = 30
-
-main_dir = os.path.abspath('')
+# set working directory to soundcast root 
+os.chdir('../../..')
+main_dir = os.getcwd()
 
 def clean_skims(skim, max_zone=3700, divide_by=100):
   '''
