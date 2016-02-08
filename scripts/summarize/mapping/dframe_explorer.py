@@ -8,7 +8,6 @@ import pandas as pd
 import os
 from jinja2 import Environment
 
-
 @hook('after_request')
 def enable_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -76,7 +75,7 @@ def map_query(table, compare, filter, groupby, field, agg):
 
 
 @route('/map_query/<table>/<compare>/<filter>/<groupby>/<field>/<agg>', method="OPTIONS")
-def ans_options(table=None, filter=None, groupby=None, field=None, agg=None):
+def ans_options(compare=False, table=None, filter=None, groupby=None, field=None, agg=None):
     return {}
 
 
@@ -85,6 +84,7 @@ def index():
     global CONFIG
     dir = os.path.dirname(__file__)
     index = open(os.path.join(dir, 'dframe_explorer.html')).read()
+    # index = open('dframe_explorer.html').read()
     return Environment().from_string(index).render(CONFIG)
 
 # # Original code
