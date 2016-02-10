@@ -12,7 +12,7 @@ from pyproj import Proj, transform
 
 def load_network(precompute=None, file_name=network_name):
     # load OSM from hdf5 file
-    store = pd.HDFStore(os.path.join(misc.data_dir(), file_name), "r")
+    store = pd.HDFStore(file_name, "r")
     nodes = store.nodes
     edges = store.edges
     nodes.index.name = "index" # something that Synthicity wanted to fix
@@ -24,7 +24,7 @@ def load_network(precompute=None, file_name=network_name):
     return net
 
 def load_network_addons(network, file_name=network_add_ons):
-    store = pd.HDFStore(os.path.join(misc.data_dir(), file_name), "r")
+    store = pd.HDFStore(file_name, "r")
     network.addons = {}    
     for attr in map(lambda x: x.replace('/', ''), store.keys()):
         network.addons[attr] = pd.DataFrame({"node_id": network.node_ids.values}, index=network.node_ids.values)
@@ -152,10 +152,15 @@ def clean_up(parcels):
     parcels.columns = map(str.lower, parcels.columns)
     parcels=parcels.fillna(0)
     parcels_final = pd.DataFrame()
+    
+    # currently Daysim just uses dist_lbus as actually meaning the minimum distance to transit, so we will match that setup for now.
+    print 'updating the distance to local bus field to actually hold the minimum to any transit because that is how Daysim is currently reading the field' 
+    parcels['dist_lbus'] = parcels[['dist_lbus', 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt']].min(axis=1)
+
 
     for col in col_order:
         parcels_final[col] = parcels[col]
-        
+    
     parcels_final[u'xcoord_p'] = parcels_final[u'xcoord_p'].astype(int)
     return parcels_final
 
@@ -173,7 +178,7 @@ assign_nodes_to_dataset(parcels, net)
 parcels = process_parcels(parcels, transit_df)
 
 parcels_done = clean_up(parcels)
-parcels_done.to_csv(output_parcels)
+parcels_done.to_csv(output_parcels, index = False, sep = ' ')
 
 #if __name__ == "__main__":
 #    main()

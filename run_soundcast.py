@@ -40,8 +40,8 @@ from input_configuration import *
 from data_wrangling import *
 
 @timed
-def parcel_buffering():
-    copy_parcel_buffering_files()
+def accessibility_calcs():
+    copy_accessibility_files()
     print 'adding military jobs to regular jobs'
     returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
     if returncode != 0:
@@ -61,11 +61,12 @@ def parcel_buffering():
                 sys.exit(1)
             print 'Finished updating parking data on parcel file'
 
-    create_buffer_xml()
-    print 'running buffer tool'
-    main_dir = os.path.abspath('')
-    returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
-    os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
+    print 'Beginning Accessibility Calculations'
+    returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
+    if returncode != 0:
+        print 'Accessibility Calculations Failed For Some Reason :('
+        sys.exit(1)
+    print 'Done with accessibility calculations'
 
 @timed    
 def build_seed_skims():
@@ -207,10 +208,10 @@ def run_all_summaries():
 def main():
 ## SET UP INPUTS ##########################################################
 
-    if run_parcel_buffering:
-        parcel_buffering()
+    if run_accessibility_calcs:
+        accessibility_calcs()
 
-    if run_parcel_buffer_summary:
+    if run_accessibility_summary:
         subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('outputs'):

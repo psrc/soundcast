@@ -9,40 +9,39 @@ scenario_name = '2010'
 daysim_code = 'R:/SoundCast/daysim' 
 master_project = 'LoadTripTables'
 base_inputs = 'R:/SoundCast/Inputs/' + scenario_name
-network_buffer_inputs = 'R:/SoundCast/Inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
-network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
+
 
 # Script and subprocess controls
  
 # Only update parking for future-year analysis!
 run_update_parking = False
-run_convert_hhinc_2000_2010 = True
-run_parcel_buffering = True
-run_copy_daysim_code = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
-run_import_networks = True
+run_convert_hhinc_2000_2010 = False
+run_accessibility_calcs = False
+run_copy_daysim_code = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_large_inputs = False
+run_import_networks = False
 create_no_toll_network = True
-run_skims_and_paths_seed_trips = True
-should_build_shadow_price = True
+run_skims_and_paths_seed_trips = False
+should_build_shadow_price = False
 run_skims_and_paths = True
-run_truck_model = True
-run_supplemental_trips = True
-run_daysim = True
-run_parcel_buffer_summary = True
+run_truck_model = False
+run_supplemental_trips = False
+run_daysim = False
+run_accessibility_summary = False
 run_network_summary = True
 run_soundcast_summary = True
 run_create_daily_bank = True
 run_ben_cost = True
-run_bike_model = False
+run_bike_model = True
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 2]
 # start building shadow prices - only run work locations
 shadow_work = [2, 1, 1]
 shadow_con = 10 #%RMSE for shadow pricing to consider being converged
-parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
+parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
 main_log_file = 'soundcast_log.txt'

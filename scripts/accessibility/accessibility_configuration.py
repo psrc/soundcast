@@ -1,8 +1,8 @@
-parcels_file_name = 'D:/soundcast_parbuff/inputs/accessibility/parcels_urbansim.txt'
-output_parcels = 'D:/soundcast_parbuff/inputs/buffered_parcels.txt'
-transit_stops_name = 'D:/soundcast_parbuff/inputs/accessibility/transit_stops.csv'
-network_name = 'D:/soundcast_parbuff/inputs/accessibility/PugetSoundNetwork.h5'
-network_add_ons = 'D:/soundcast_parbuff/inputs/accessibility/PugetSoundNetworkAddons.h5'
+parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
+output_parcels = 'inputs/buffered_parcels.txt'
+transit_stops_name = 'inputs/accessibility/transit_stops.csv'
+network_name = 'inputs/accessibility/PugetSoundNetwork.h5'
+network_add_ons = 'inputs/accessibility/PugetSoundNetworkAddons.h5'
 
 max_dist = 4828 # 3 miles in meters
 
