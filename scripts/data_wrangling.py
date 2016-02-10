@@ -28,6 +28,7 @@ from logcontroller import *
 from input_configuration import *
 import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
+import glob
 
 
 def multipleReplace(text, wordDict):
@@ -96,6 +97,15 @@ def copy_accessibility_files():
         except:
             print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
             sys.exit(1)
+
+@timed
+def copy_seed_skims():
+    print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
+    if not(os.path.isdir(base_inputs+'/seed_skims')):
+           print 'It looks like you do not hava directory called' + base_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
+    for filename in glob.glob(os.path.join(base_inputs+'/seed_skims', '*.*')):
+        shutil.copy(filename, 'inputs')
+    print 'Done copying seed skims.'
 
 def text_to_dictionary(dict_name):
 

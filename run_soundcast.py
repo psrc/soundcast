@@ -244,10 +244,12 @@ def main():
         if returncode != 0:
            sys.exit(1)
 
-### BUILD SKIMS ###############################################################
+### BUILD OR COPY SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
         build_seed_skims()
-
+    # either you build seed skims or you copy them, or neither, but it wouldn't make sense to do both
+    elif copy_seed_skims:
+        copy_seed_skims()
     # Check all inputs have been created or copied
     check_inputs()
     
