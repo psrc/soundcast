@@ -14,7 +14,7 @@ base_inputs = 'R:/SoundCast/Inputs/' + scenario_name
 # Script and subprocess controls
  
 # Only update parking for future-year analysis!
-run_update_parking = True
+run_update_parking = False
 run_convert_hhinc_2000_2010 = True
 run_accessibility_calcs = True
 run_copy_daysim_code = True
@@ -22,7 +22,7 @@ run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_large_inputs = True
 run_import_networks = True
-create_no_toll_network = True
+create_no_toll_network = False
 # if copy seed skims is true, you don't need to run skims and paths seed trips
 # the model run will start with daysim
 copy_seed_skims = True
