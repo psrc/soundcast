@@ -133,14 +133,12 @@ def truck_productions():
     #Calculate Productions for 3 truck classes (Origin Matrices are populated)
     for key, value in truck_generation_dict['productions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        print "We're printing the productions part."
         logfile.write("We're printing the productions part.")
 
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
     for key, value in truck_generation_dict['attractions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        print "We're printing the attractions part."
         logfile.write("We're printing the attractions part.")
 
     truck_dest_matrices = ['ltatt', 'mtatt', 'htatt']
@@ -156,12 +154,12 @@ def truck_attractions():
     for key, value in spec_gen_dict.iteritems():
         my_project.matrix_calculator(result = 'md' + key, expression = 'md' + key + '+ md' + value)
 
-    refactor_dict = {'moltprof' : 'moltpro * 0.554',
-                     'momtprof' : 'momtpro * 0.309',
-                     'mohtprof' : 'mohtpro * 0.413',
-                     'mdltattf' : 'mdltatt * 0.749',
-                     'mdmtattf' : 'mdmtatt * 0.500',
-                     'mdhtattf' : 'mdhtatt * 1.375'}
+    refactor_dict = {'moltprof' : 'moltpro * ' + str(truck_adjustment_factor['ltpro']),
+                     'momtprof' : 'momtpro * ' + str(truck_adjustment_factor['mtpro']),
+                     'mohtprof' : 'mohtpro * ' + str(truck_adjustment_factor['htpro']),
+                     'mdltattf' : 'mdltatt * ' + str(truck_adjustment_factor['ltatt']),
+                     'mdmtattf' : 'mdmtatt * ' + str(truck_adjustment_factor['mtatt']),
+                     'mdhtattf' : 'mdhtatt * ' + str(truck_adjustment_factor['htatt'])}
 
     for key, value in refactor_dict.iteritems():
         my_project.matrix_calculator(result = key, expression = value)
@@ -321,6 +319,10 @@ def calculate_daily_trips():
         for key, value in truck_tod_factor_dict.iteritems():
             my_project.matrix_calculator(result = 'mf' + tod[0] + key, 
                                          expression = value['daily_trips'] + '*' + value[tod])
+
+def landuse_correction():
+    '''Restrict truck trips by land use type.'''
+    pass
 
 def main():
     #my_project = EmmeProject(truck_model_project)
