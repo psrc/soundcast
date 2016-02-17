@@ -8,7 +8,8 @@ base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
 daysim_code = 'R:/SoundCast/daysim' 
 master_project = 'LoadTripTables'
-base_inputs = 'R:/SoundCast/Inputs/' + scenario_name
+main_inputs_folder =  'R:/SoundCast/Inputs/'
+base_inputs = main_inputs_folder + scenario_name
 
 
 # Script and subprocess controls
@@ -23,9 +24,9 @@ run_setup_emme_bank_folders = True
 run_copy_large_inputs = True
 run_import_networks = True
 create_no_toll_network = False
-# if copy seed skims is true, you don't need to run skims and paths seed trips
+# if run copy seed skims is tru (intentional typo for find and replace), you don't need to run skims and paths seed trips
 # the model run will start with daysim
-copy_seed_skims = True
+run_copy_seed_skims = True
 run_skims_and_paths_seed_trips = False
 should_build_shadow_price = True
 run_skims_and_paths = True
@@ -37,7 +38,7 @@ run_network_summary = True
 run_soundcast_summary = True
 run_create_daily_bank = True
 run_ben_cost = True
-run_bike_model = True
+run_bike_model = False
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 2]
@@ -58,14 +59,14 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "snack", "nap"
 commonly_missing_files = ['buffered_parcels.dat', 'tazdata.in']
 
 # Specific reports to run
-run_daysim_report = True
-run_day_pattern_report = True
-run_mode_choice_report = True
-run_dest_choice_report = True
-run_long_term_report = True
-run_time_choice_report = True
-run_district_summary_report = True
-run_tableau_db = True
+run_daysim_report = False
+run_day_pattern_report = False
+run_mode_choice_report = False
+run_dest_choice_report = False
+run_long_term_report = False
+run_time_choice_report = False
+run_district_summary_report = False
+run_tableau_db = False
 
 # Calibration Summary Configuration
 h5_results_file = 'outputs/daysim_outputs.h5'
