@@ -53,6 +53,7 @@ def skims_to_hdf5(EmmeProject):
             e = matrix_name in my_store[tod]
             if e:
                 del my_store[tod][matrix_name]
+                'deleted ' + str(e)
             #export to hdf5
             print 'exporting'
             matrix_name = tod[0] + name
@@ -103,7 +104,8 @@ def import_emp_matrices():
     truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                                 'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
+                                 'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie',
+                                 'trucks']
     for name in truck_matrix_import_list:
         my_project.import_matrices('inputs/trucks/' + name + '.in')
 
@@ -137,6 +139,8 @@ def truck_productions():
 
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
+
+   
     for key, value in truck_generation_dict['attractions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
         logfile.write("We're printing the attractions part.")
@@ -322,7 +326,37 @@ def calculate_daily_trips():
 
 def landuse_correction():
     '''Restrict truck trips by land use type.'''
-    pass
+
+    #  Read in the csv files for Parcel ID and Taz and Parcel ID and Use Type for join
+    parcels = pd.read_csv(r'D:\soundcast\soundcast\inputs\buffered_parcels.dat', sep=' ')
+
+    # Ideally, we attach a land use code to the urbansim input and filter directly from there
+    # For now, we need to join in parcel land use info
+    parcel_lu = pd.read_csv(r'R:\Craig\Trucks\inputs\TripGen\Base\parcels\parcels_allowable_lu.txt')
+
+    df = parcels.merge(parcel_lu, left_on='parcelid',right_on='parcel_id')
+
+    # List of allowable truck land uses
+    truck_uses = ['Agriculture','Fisheries','Forest, harvestable','Forest, protected','Industrial','Military','Mining','Warehousing']
+
+    # select truck rows only, using the allowable truck land uses
+    truck_df = df[df["generic_land_use_1"].isin(truck_uses)]
+    # Add a flag for truck allowable field
+    truck_df['trucks_allowed_parcel'] = 1
+
+
+    # merge the truck_df back into the main df
+    df = df.merge(truck_df[['parcelid','trucks_allowed_parcel']], how='left')
+    df['trucks_allowed_parcel'].fillna(0,inplace=True)    # Truck restricted parcels get a 0
+
+    # Now, groupby TAZ and create new flag that allows trucks on TAZ with allowable land use
+    df_taz = pd.DataFrame(df.groupby('taz_p').sum()[['trucks_allowed_parcel']])
+    df_taz['trucks_allowed_taz'] = pd.cut(df_taz['trucks_allowed_parcel'], bins=[0,1,df_taz['trucks_allowed_parcel'].max()], labels=[0,1], include_lowest=True)
+
+    return df_taz
+
+
+
 
 def main():
     #my_project = EmmeProject(truck_model_project)
