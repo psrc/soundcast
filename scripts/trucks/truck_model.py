@@ -104,9 +104,11 @@ def import_emp_matrices():
     truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                                 'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie',
+                                 'heavy_trucks_ee', 'heavy_trucks_ei', 'heavy_trucks_ie',
+                                 'medium_trucks_ee', 'medium_trucks_ei', 'medium_trucks_ie',
                                  'trucks']
     for name in truck_matrix_import_list:
+        print 'importing: ' + str(name)
         my_project.import_matrices('inputs/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
@@ -309,9 +311,16 @@ def calculate_daily_trips():
     my_project.matrix_calculator(result = 'mfmedod', expression = '0.5*mfmeddis + 0.5*mfmeddis'+ "'")
     my_project.matrix_calculator(result = 'mfhvyod', expression = '0.5*mfhvydis + 0.5*mfhvydis'+ "'")
     
+    # convert annual external medium truck trips to daily and add to medium od
+    my_project.matrix_calculator(result = 'mfmedod', 
+                                 expression = 'mfmedod + (mfmedee + mfmedei + mfmedie)/264')
+
     #convert annual external heavy truck trips to daily and add to heavy od:
     my_project.matrix_calculator(result = 'mfhvyod', 
-                                 expression = 'mfhvyod + (mfreebee + mfreebei + mfreebie)/264')
+                                 expression = 'mfhvyod + (mfhvyee + mfhvyei + mfhvyie)/264')
+
+
+
     #apply vehicle-equivalency factors to medium and heavy trucks:
     my_project.matrix_calculator(result = 'mfmedod', expression = 'mfmedod * 1.5')
     my_project.matrix_calculator(result = 'mfhvyod', expression = 'mfhvyod * 2')
