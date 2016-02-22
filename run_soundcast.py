@@ -68,11 +68,12 @@ def parcel_buffering():
     os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
 @timed    
-def build_seed_skims():
+def build_seed_skims(max_iterations):
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
+        str(max_iterations),
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
         sys.exit(1)
@@ -127,6 +128,7 @@ def build_shadow_only():
         if current_rmse < shadow_con:
             print "done with shadow prices"
             shadow_con_file.close()
+            return
 
 def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
@@ -168,7 +170,8 @@ def daysim_assignment(iteration):
      #### ###############################################################
      if run_skims_and_paths:
          logger.info("Start of %s iteration of Skims and Paths", str(iteration))
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         num_iterations = str(max_iterations_list[iteration])
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations])
          logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
@@ -178,7 +181,7 @@ def daysim_assignment(iteration):
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
-    if iteration > 0 and recipr_sample == 1:
+    if iteration > 0 and recipr_sample <= min_pop_sample_convergence_test:
             con_file = open('inputs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
@@ -245,38 +248,60 @@ def main():
 
 ### BUILD SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
-        build_seed_skims()
+        build_seed_skims(10)
 
     # Check all inputs have been created or copied
     check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
+    
     if(run_daysim or run_skims_and_paths or run_skims_and_paths_seed_trips):
+        
         for iteration in range(len(pop_sample)):
             print "We're on iteration %d" % (iteration)
             logger.info(("We're on iteration %d\r\n" % (iteration)))
             time_start = datetime.datetime.now()
             logger.info("starting run %s" % str((time_start)))
 
-            # Set up your Daysim Configration
-            modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+            # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
+            if not should_build_shadow_price:
+                print 'here'
+                if iteration == 0 or pop_sample[iteration-1] > 2:
+                    print 'here'
+                    try:
+                                                        
+                            if not os.path.exists('working'):
+                                os.makedirs('working')
+                            shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+                            print "copying shadow prices" 
+                    except:
+                            print ' error copying shadow pricing file from shadow_pricing at ' + base_inputs+'/shadow_pricing/shadow_prices.txt'
+                            sys.exit(1)
+                # Set up your Daysim Configration
+                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
 
-            # Run Skimming and/or Daysim
+            else:
+                # We are building shadow prices from scratch, only use shadow pricing if pop sample is 2 or less
+                if pop_sample[iteration-1] > 2:
+                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+                else:
+                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+            ## Run Skimming and/or Daysim
 
             daysim_assignment(iteration)
+           
             converge=check_convergence(iteration, pop_sample[iteration])
             if converge == 'stop':
                 print "System converged!"
                 break
             print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-## BUILDING WORK AND SCHOOL SHADOW PRICES, THEN DAYSIM + ASSIGNMENT ############################
-    if should_build_shadow_price:
-        build_shadow_only()
-        modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
-        #This function needs an iteration parameter. Value of 1 is fine. 
-        daysim_assignment(1)
+# UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
+    build_shadow_only()
+    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
+    #This function needs an iteration parameter. Value of 1 is fine. 
+    daysim_assignment(1)
 
 ### SUMMARIZE
 ### ##################################################################

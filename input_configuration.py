@@ -14,8 +14,9 @@ network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 
 # Script and subprocess controls
  
-# Only update parking for future-year analysis!
+##### Only update parking for future-year analysis!
 run_update_parking = False
+##### ***** #####
 run_convert_hhinc_2000_2010 = True
 run_parcel_buffering = True
 run_copy_daysim_code = True
@@ -23,9 +24,11 @@ run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_large_inputs = True
 run_import_networks = True
-create_no_toll_network = True
+create_no_toll_network = False
 run_skims_and_paths_seed_trips = True
-should_build_shadow_price = True
+##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
+should_build_shadow_price = False
+##### ***** #####
 run_skims_and_paths = True
 run_truck_model = True
 run_supplemental_trips = True
@@ -34,14 +37,17 @@ run_parcel_buffer_summary = True
 run_network_summary = True
 run_soundcast_summary = True
 run_create_daily_bank = True
-run_ben_cost = True
+run_ben_cost = False
 run_bike_model = False
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 2]
+pop_sample = [10, 5, 5, 2]
+# Assignment Iterations:
+max_iterations_list = [50, 100, 100, 100, 100]
+min_pop_sample_convergence_test = 10
 # start building shadow prices - only run work locations
-shadow_work = [2, 1, 1]
-shadow_con = 10 #%RMSE for shadow pricing to consider being converged
+shadow_work = [1, 1, 1, 1]
+shadow_con = 30 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
