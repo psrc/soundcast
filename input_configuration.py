@@ -1,4 +1,4 @@
-﻿# This file contains model input parameters imported by SoundCast scripts.   
+# This file contains model input parameters imported by SoundCast scripts.   
 
 # CONFIGURATION TO RUN SOUNDCAST
 # Note there are many other configuration files for specific model steps in their respective directories, such as Daysim, or skimming.
@@ -17,28 +17,28 @@ network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
 ##### Only update parking for future-year analysis!
 run_update_parking = False
 ##### ***** #####
-run_convert_hhinc_2000_2010 = True
-run_parcel_buffering = True
-run_copy_daysim_code = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
-run_import_networks = True
+run_convert_hhinc_2000_2010 = False
+run_parcel_buffering = False
+run_copy_daysim_code = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_large_inputs = False
+run_import_networks = False
 create_no_toll_network = False
-run_skims_and_paths_seed_trips = True
+run_skims_and_paths_seed_trips = False
 ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
 should_build_shadow_price = False
 ##### ***** #####
-run_skims_and_paths = True
-run_truck_model = True
-run_supplemental_trips = True
-run_daysim = True
-run_parcel_buffer_summary = True
-run_network_summary = True
-run_soundcast_summary = True
-run_create_daily_bank = True
+run_skims_and_paths = False
+run_truck_model = False
+run_supplemental_trips = False
+run_daysim = False
+run_parcel_buffer_summary = False
+run_network_summary = False
+run_soundcast_summary = False
+run_create_daily_bank = False
 run_ben_cost = False
-run_bike_model = False
+run_bike_model = True
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 5, 2]

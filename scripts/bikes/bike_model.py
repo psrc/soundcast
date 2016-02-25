@@ -16,24 +16,6 @@ def get_link_attribute(attr, network):
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
     return df
 
-
-def get_aadt(my_project):
-	'''Return a dataframe of total daily traffic on each network link'''
-	network = my_project.current_scenario.get_network()
-
-	# Get dataframes for link length
-	length_df = get_link_attribute('length', network)
-	# Get extra attribute @tveh, which is daily total volume
-	################################
-	#####################
-	# MULTIPLYING BY 10 BECAUSE THIS IS ONLY 7TO8 AM
-	daily_vol = get_link_attribute('@tveh', network) 
-	#################
-
-	link_df = pd.merge(length_df, daily_vol)
-
-	return link_df
-
 def bike_facility_perception(my_project, link_df):
     '''Compute perceived travel distance impacts from bike facilities
        In the geodatabase, bike facility of 2=bicycle track and 8=separated path
@@ -49,31 +31,16 @@ def bike_facility_perception(my_project, link_df):
     df = df.merge(link_df)
     df = df.replace(bike_facility_crosswalk)
 
-    # Evaluate links with bike records only
-#     df = df[df['@bkfac'] != "none"]
-
     # Replace the facility ID with the estimated  marginal rate of substituion
     # value from Broach et al., 2012 (e.g., replace 'standard' with -0.108)
     df['facility_perception'] = df['@bkfac']
     df = df.replace(facility_dict)
-
-#     Multiply the estimated substituion value by link length to get perceived distance 
-#     reduction, and add this reduction to original length
-#     df['facility_perception'] = df['length'] + df['facility_perception']*df['length']
 
     return df
 
 def volume_perception(my_project, df):
     ''' For all links without bike lanes, apply a factor for the adjacent traffic (AADT) 
         This is implying that links with standard or premium bike facilities are unaffected by'''
-
-
-#     # Filter for links without a premium or standard bike facility and join to a df with AADT values
-#     df = df[df['@bkfac'] == 'none']
-#     df = df.merge(link_df)
-
-    # @tveh represents the AADT for each link
-#     df['volume_perception'] = df['@tveh']
 
     # Separate the auto volume into bins with the penalties as indicator values
     df['volume_perception'] = pd.cut(df['@tveh'], bins=aadt_bins, labels=aadt_labels, right=False)
@@ -139,15 +106,6 @@ def process_slope_perception(df, my_project):
     upslope_df['slope_penalty'] = upslope_df['slope_penalty'].astype('float')
     upslope_df = upslope_df.replace(to_replace=slope_dict)
 
-    # The incremental impact of the slope
-#     upslope_df['upslope_perception'] = upslope_df['slope_penalty']*upslope_df['length']
-
-#     # Join data to bike_attr_df to get total perceived distance
-#     upslope_df = upslope_df.merge(bike_attr_df)
-
-#     # Combine the upslope perception with the combined perception of facility type and AADT
-#     upslope_df['total_dist_perception'] = upslope_df['upslope_perception'] + bike_attr_df['perceived_dist']
-
     return upslope_df
 
 def write_generalized_time(df):
@@ -155,17 +113,14 @@ def write_generalized_time(df):
 		This is computed as additional percieved distance (miles) divided by 
 		average bike speed, times 60 to convert to minutes'''
 
-	
 	# Rename bike generalized time into a handle for import into Emme
 	df['@bkpgt'] = df['total_time_perception']
 
-	# Generalized time is further normalized since no negative values can be used
+	# Generalized time is normalized since no negative values can be used
 	# as link constraints in Emme transit assignment
 	# Add the min generalized time (most negative) from all generalized time values
 	min_time = abs(df['@bkpgt'].min())
-	print "original min time " + str(min_time)
 	df['@bkpgt'] = df['@bkpgt'] + min_time
-	print abs(df['@bkpgt'].min())
 
 	# Reformat and save as a text file in Emme format
 	df['inode'] = df['link_id'].str.split('-').str[0]
@@ -192,10 +147,6 @@ def generalized_biking_time(my_project, link_df):
 	vol_df = volume_perception(my_project, bike_fac_df)
 
 
-
-	# Combine df of perceived distance for links with and without bike lanes
-	# bike_attr_df = combine_facility_and_vol_perceptions(vol_df, bike_fac_df)
-
 	# Calcualte distance perception from elevation gain (for all links)
 	df = process_slope_perception(df=vol_df, my_project=my_project)
 
@@ -207,6 +158,9 @@ def generalized_biking_time(my_project, link_df):
 
 	# Convert perceived distance to time 
 	df['total_time_perception'] = df['total_dist_perception']/avg_bike_speed*60
+
+	# Write out link data for checking
+	df.to_csv(r'outputs/bike_attr.csv')
 
 	# Convert distance perception to (normalized) generalized time increase 
 	# and export as an Emme attribute file ('bkgpt.in')
@@ -236,7 +190,7 @@ def bike_assignment(my_project):
 	bike_spec = json.load(open(r'inputs\skim_params\bike_assignment.json'))
 	extended_assign_transit(bike_spec)
 
-	print 'assignment complete, now skimming'
+	print 'bike assignment complete, now skimming'
 
 	skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
 	bike_skim_spec = json.load(open(r'inputs\skim_params\bike_skim_setup.json'))
@@ -249,11 +203,9 @@ def bike_assignment(my_project):
 	bike_network_vol(bike_network_spec)
 
 	# Export skims to h5
-	for matrix in ["mfpbiv", "mfbaux", "mfpivt", "mfbiket"]:
-		try:
-			export_skims(my_project, matrix_name=matrix)
-		except:
-			print str(matrix) + ' exists'
+	for matrix in ["mfpbiv", "mfbaux", "mfbiket"]:
+		print 'exporting skim: ' + str(matrix)
+		export_skims(my_project, matrix_name=matrix)
 
 	print "bike assignment complete"
 
@@ -263,35 +215,57 @@ def export_skims(my_project, matrix_name):
 	my_store = h5py.File(r'inputs/' + bike_assignment_tod + '.h5', "r+")
 
 	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
-	my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value)
+	
+	if matrix_name in my_store['Skims'].keys():
+		my_store["Skims"][matrix_name][:] = matrix_value
+	else:
+		try:
+			my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value)
+		except:
+			'unable to export skim: ' + str(matrix_name)
 
 	my_store.close()
 
+def get_aadt(my_project):
+	'''Extract AADT from daily bank'''
+
+	# Add daily bank to current project
+	if 'daily' not in [db.title() for db in my_project.data_explorer.databases()]:
+		my_project.data_explorer.add_database('banks/daily/emmebank')
+	
+	my_project.change_active_database('daily')
+
+	# Create dataframe of daily link vehicles and length
+	network = my_project.current_scenario.get_network()
+	length_df = get_link_attribute('length', network)
+	daily_vol = get_link_attribute('@tveh', network) 
+	link_df = pd.merge(length_df, daily_vol)
+
+	# Change bike assignment time period
+	my_project.change_active_database(bike_assignment_tod)
+
+	return link_df   
+
+
 def main():
 	
-	tod = '7to8'
-	# Assigning one AM period for now
-	filepath = r'projects//' + tod + r'/' + tod + '.emp'
+	print 'running bike model'
+
+	# Check for daily bank; create if it does not exist
+	if not os.path.isfile('banks/daily/emmebank'):
+		subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
+
+	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
 
-	# Add the daily emmebank to the project to extract AADT
-	try:
-		my_project.data_explorer.add_database(r'\Banks\Daily\emmebank')
-	except:
-		print "daily bank already included in the project"
-
-	# Change active database to daily bank to extract link AADT
-	# the daily db has a title of 7to8 because its copied from 7to8
-	# we need to change this code in daily_bank.py sometime. For now it seems to recognize that 7to8
-	# is a separate bank
-	my_project.change_active_database('7to8')    
-	
-	# Extract link attributes to calculate generalized biking time
+	# Extract AADT from daily bank
 	link_df = get_aadt(my_project)
-	link_df['@tveh'] = link_df['@tveh']*12    # to get AADT
 
-	# Change back to AM time period
-	my_project.change_active_database('7to8')   
+	# Assigning one AM period for now
+	# filepath = r'projects/' + bike_assignment_tod + r'/' + bike_assignment_tod + '.emp'
+	# my_project = EmmeProject(filepath)
+
+	
 
 	# Calculate generalized biking travel time for each link
 	generalized_biking_time(my_project, link_df)
