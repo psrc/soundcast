@@ -30,7 +30,7 @@
     },
     "in_vehicle_cost": null,
     "aux_transit_time": {
-        "perception_factor": "@bkpgt"
+        "perception_factor": "@bkwt"
     },
     "aux_transit_cost": null,
     "flow_distribution_at_origins": {
