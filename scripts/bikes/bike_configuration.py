@@ -4,7 +4,7 @@ bike_assignment_tod = '7to8'
 # Distance perception penalties for link AADT from Broach et al., 2012
 # 1 is AADT 10k-20k, 2 is 20k-30k, 3 is 30k+
 # No penalty applied for AADT < 10k
-aadt_dict = {'volume_perception': {
+aadt_dict = {'volume_wt': {
 								1: 0.368, 
                                 2: 1.40, 
                                 3: 7.157}}
@@ -21,12 +21,12 @@ bike_facility_crosswalk = {'@bkfac': {  0:'none', 1:'standard', 2:'premium',
                                         7:'none', 8:'standard', 9:'none'}}  ## need to confirm these
 
 # Perception factor values corresponding to these tiers, from Broch et al., 2012
-facility_dict = {'facility_perception': { 'premium': -0.160,
-                                          'standard': -0.108, 
-                                          'none': 0}}
+facility_dict = {'facility_wt': {	'premium': -0.160,
+                                    'standard': -0.108, 
+                                    'none': 0}}
 
 # Perception factor values for 3-tiered measure of elevation gain per link
-slope_dict = {'slope_penalty': {1: .371,     # between 2-4% grade
+slope_dict = {'slope_wt': {1: .371,     # between 2-4% grade
                                 2: 1.203,    # between 4-6% grade
                                 3: 3.239}}   # greater than 6% grade
 
