@@ -147,7 +147,7 @@ def generalized_biking_time(my_project, link_df):
 
 	# calculate total weights
 	# add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
-	df['total_wt'] = -np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
+	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
 
 	# Write link data for analysis
 	df.to_csv(r'outputs/bike_attr.csv')
@@ -164,7 +164,7 @@ def bike_assignment(my_project):
 			my_project.current_scenario.create_extra_attribute('LINK',attr)   
 
 	# Create matrices for bike assignment and skim results
-	for matrix in ['biket', 'bivt', 'baux', 'pbiv']:
+	for matrix in ['bkpt', 'bkat', ]:
 		if matrix not in [i.name for i in my_project.bank.matrices()]:
 			my_project.create_matrix(matrix, '', 'FULL')
 
@@ -192,7 +192,7 @@ def bike_assignment(my_project):
 	bike_network_vol(bike_network_spec)
 
 	# Export skims to h5
-	for matrix in ["mfpbiv", "mfbaux", "mfbiket"]:
+	for matrix in ["mfbkpt", "mfbkat"]:
 		print 'exporting skim: ' + str(matrix)
 		export_skims(my_project, matrix_name=matrix)
 

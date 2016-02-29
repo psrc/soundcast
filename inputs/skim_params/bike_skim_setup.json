@@ -5,8 +5,7 @@
             "l",
             "q"
         ],        
-	"actual_aux_transit_times": "mfbaux",
-	"perceived_aux_transit_times": "mfpbiv"
+	"actual_aux_transit_times": "mfbkat"
     },
     "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
 }
