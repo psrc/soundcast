@@ -204,30 +204,68 @@ def get_aadt(my_project):
 	link_df = pd.merge(length_df, daily_vol)
 
 	# Change bike assignment time period
+	if bike_assignment_tod not in [db.title() for db in my_project.data_explorer.databases()]:
+		my_project.data_explorer.add_database('banks/' + bike_assignment_tod + '/emmebank')
 	my_project.change_active_database(bike_assignment_tod)
 
 	return link_df   
 
+def get_unique_screenlines(EmmeProject):
+    network = EmmeProject.current_scenario.get_network()
+    unique_screenlines = []
+    for link in network.links():
+        if link.type != 90 and link.type not in unique_screenlines:
+            unique_screenlines.append(str(link.type))
+    return unique_screenlines
+
+def get_screenline_volumes(screenline_dict, EmmeProject):
+
+    for screen_line in screenline_dict.iterkeys():
+        EmmeProject.network_calculator("link_calculation",result = None, expression = "@bvol", selections_by_link = screen_line)
+        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.network_calc_result['sum']
+
+def write_screenlines(my_project):
+	'''Write bike volumes across screenlines'''
+
+	#get a list of screenlines from the bank/scenario
+	screenline_list = get_unique_screenlines(my_project)
+	screenline_dict = {}
+
+	for item in screenline_list:
+		#dict where key is screen line id and value is 0
+		screenline_dict[item] = 0
+
+	get_screenline_volumes(screenline_dict, my_project)
+
+	screenline_df = pd.DataFrame({'Screenline': screenline_dict.keys(),
+    	'Volumes': screenline_dict.values()})
+
+	screenline_df.to_csv('outputs/bike_screenlines.csv')
+
+	print 'bike screenlines written to outputs directory'
 
 def main():
 	
-	print 'running bike model'
+	# print 'running bike model'
 
-	# Check for daily bank; create if it does not exist
-	if not os.path.isfile('banks/daily/emmebank'):
-		subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
+	# # Check for daily bank; create if it does not exist
+	# if not os.path.isfile('banks/daily/emmebank'):
+	# 	subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
 	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
 
-	# Extract AADT from daily bank
-	link_df = get_aadt(my_project)
+	# # Extract AADT from daily bank
+	# link_df = get_aadt(my_project)
 
-	# Calculate generalized biking travel time for each link
-	calc_bike_weight(my_project, link_df)
+	# # Calculate generalized biking travel time for each link
+	# calc_bike_weight(my_project, link_df)
 
-	# Assign trips using generalized biking time as a link weight
-	bike_assignment(my_project)
+	# # Assign trips using generalized biking time as a link weight
+	# bike_assignment(my_project)
+
+	# Write out screenline volumes
+	write_screenlines(my_project)
 
 if __name__ == "__main__":
 	main()
