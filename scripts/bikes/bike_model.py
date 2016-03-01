@@ -21,7 +21,7 @@ def bike_facility_weight(my_project, link_df):
        In the geodatabase, bike facility of 2=bicycle track and 8=separated path
        These are redefined as "premium" facilities
        Striped bike lanes receive a 2nd tier designatinon of "standard"
-       All other links remain unchanced'''
+       All other links remain unchanged'''
 
     network = my_project.current_scenario.get_network()
 
@@ -39,14 +39,13 @@ def bike_facility_weight(my_project, link_df):
     return df
 
 def volume_weight(my_project, df):
-    ''' For all links without bike lanes, apply a factor for the adjacent traffic (AADT) 
-        This is implying that links with standard or premium bike facilities are unaffected by'''
+    ''' For all links without bike lanes, apply a factor for the adjacent traffic (AADT).'''
 
-    # Separate the auto volume into bins with the penalties as indicator values
+    # Separate auto volume into bins
     df['volume_wt'] = pd.cut(df['@tveh'], bins=aadt_bins, labels=aadt_labels, right=False)
     df['volume_wt'] = df['volume_wt'].astype('int')
 
-    # Replace the existing AADT value with the estimated weights
+    # Replace bin label with weight value
     df = df.replace(to_replace=aadt_dict)
 
     return df
@@ -64,30 +63,6 @@ def process_attributes(my_project):
 	import_attributes(filename, 
 	                  scenario = my_project.current_scenario,
 	                  revert_on_error=False)
-
-def combine_facility_and_vol_weights(vol_df, bike_df):
-	''' Join volume and bike facility weight dataframes '''
-
-	vol_df = vol_df[['@bkfac', 'link_id', 'length', 'volume_wt']]
-    
-    # add zero values for facility weight on vol_df
-    # (no vol weights are assigned to links with notable bike facilities)
-	vol_df['facility_wt'] = np.zeros(len(vol_df))
-
-	# Add zero values for volume weight on bike_df
-	# (no facility perceptions are assigned to links with notable bike facilites)
-
-	# Evaluate links with bike records only
-	bike_df = bike_df[bike_df['@bkfac'] != "none"]
-
-	bike_df = bike_df[['@bkfac', 'link_id', 'length', 'facility_wt']]
-	bike_df['volume_wt'] = np.zeros(len(bike_df))
-	bike_df['volume_wt'] = bike_df['volume_wt'].astype('float')
-
-	# concatenate bike_df and vol_df
-	df_concat = pd.concat(objs=[vol_df, bike_df])
-
-	return df_concat
 
 def process_slope_weight(df, my_project):
     ''' Calcualte slope weights on an Emme network dataframe
@@ -110,11 +85,9 @@ def process_slope_weight(df, my_project):
     return upslope_df
 
 def write_generalized_time(df):
-	''' For assignment, generalized perceived time is a link constraint
-		This is computed as additional percieved distance (miles) divided by 
-		average bike speed, times 60 to convert to minutes'''
+	''' Export normalized link biking weights as Emme attribute file. '''
 
-	# Rename bike generalized time into a handle for import into Emme
+	# Rename total weight column for import as Emme attribute
 	df['@bkwt'] = df['total_wt']
 
 	# Reformat and save as a text file in Emme format
@@ -126,39 +99,37 @@ def write_generalized_time(df):
 
 	print "results written to inputs/bikes/bkwt.in"
 
-def generalized_biking_time(my_project, link_df):
-	''' Calculate perceived travel time for bikes
-	    based on facility attributes, slope, and vehicle traffic. '''
+def calc_bike_weight(my_project, link_df):
+	''' Calculate perceived travel time weight for bikes
+	    based on facility attributes, slope, and vehicle traffic.'''
 
 	# Import link attributes for elevation gain and bike facilities
 	process_attributes(my_project)
 
-	# Calcualte distance weight of bike facilities
-	# (Returns df of perceived distance for links with bike facilities)
+	# Calculate weight of bike facilities
 	bike_fac_df = bike_facility_weight(my_project, link_df)
 
-	# Distance weight from daily traffic volumes (
-	# (Returns df of perceived distance for links w/out bike facilites) 
+	# Calculate weight from daily traffic volumes
 	vol_df = volume_weight(my_project, bike_fac_df)
 
-
-	# Calcualte distance weight from elevation gain (for all links)
+	# Calculate weight from elevation gain (for all links)
 	df = process_slope_weight(df=vol_df, my_project=my_project)
 
-	# calculate total weights
+	# Calculate total weights
 	# add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
+	# add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
 	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
 
 	# Write link data for analysis
 	df.to_csv(r'outputs/bike_attr.csv')
 
 	# export total link weight as an Emme attribute file ('@bkwt.in')
-	# (Zero addtl. gen. time represents s link with premium bike facility [e.g., separated path])
 	write_generalized_time(df=df)
 
 def bike_assignment(my_project):
+	''' Assign bike trips using links weights based on slope, traffic, and facility type. '''
 
-	# Create attributes for perceived bike generalized time and bike volumes
+	# Create attributes for bike weights (inputs) and final bike link volumes (outputs)
 	for attr in ['@bkwt', '@bvol']:
 		if attr not in my_project.current_scenario.attributes('LINK'):
 			my_project.current_scenario.create_extra_attribute('LINK',attr)   
@@ -168,13 +139,14 @@ def bike_assignment(my_project):
 		if matrix not in [i.name for i in my_project.bank.matrices()]:
 			my_project.create_matrix(matrix, '', 'FULL')
 
-	# Load in the bkwt attributes
+	# Load in bike weight link attributes
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
 	filename = r'inputs\bikes\bkwt.in'
 	import_attributes(filename, 
 	                scenario = my_project.current_scenario,
 	                revert_on_error=False)
 
+	# Invoke the Emme assignment tool
 	extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
 	bike_spec = json.load(open(r'inputs\skim_params\bike_assignment.json'))
 	extended_assign_transit(bike_spec)
@@ -187,7 +159,8 @@ def bike_assignment(my_project):
 
 	# Add bike volumes to bvol network attribute
 	bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
-	# bike_network_spec = json.load(open(r'C:\Users\Brice\bike-model\soundcast\inputs\skim_params\bike_network_setup.json'))
+
+	# Skim for final bike assignment results
 	bike_network_spec = json.load(open(r'inputs\skim_params\bike_network_setup.json'))
 	bike_network_vol(bike_network_spec)
 
@@ -199,7 +172,7 @@ def bike_assignment(my_project):
 	print "bike assignment complete"
 
 def export_skims(my_project, matrix_name):
-	'''Write skim matrices to h5'''
+	'''Write skim matrix to h5 container'''
 
 	my_store = h5py.File(r'inputs/' + bike_assignment_tod + '.h5', "r+")
 
@@ -251,7 +224,7 @@ def main():
 	link_df = get_aadt(my_project)
 
 	# Calculate generalized biking travel time for each link
-	generalized_biking_time(my_project, link_df)
+	calc_bike_weight(my_project, link_df)
 
 	# Assign trips using generalized biking time as a link weight
 	bike_assignment(my_project)
