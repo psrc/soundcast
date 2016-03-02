@@ -246,23 +246,23 @@ def write_screenlines(my_project):
 
 def main():
 	
-	# print 'running bike model'
+	print 'running bike model'
 
-	# # Check for daily bank; create if it does not exist
-	# if not os.path.isfile('banks/daily/emmebank'):
-	# 	subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
+	# Check for daily bank; create if it does not exist
+	if not os.path.isfile('banks/daily/emmebank'):
+		subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
 	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
 
-	# # Extract AADT from daily bank
-	# link_df = get_aadt(my_project)
+	# Extract AADT from daily bank
+	link_df = get_aadt(my_project)
 
-	# # Calculate generalized biking travel time for each link
-	# calc_bike_weight(my_project, link_df)
+	# Calculate generalized biking travel time for each link
+	calc_bike_weight(my_project, link_df)
 
-	# # Assign trips using generalized biking time as a link weight
-	# bike_assignment(my_project)
+	# Assign trips using generalized biking time as a link weight
+	bike_assignment(my_project)
 
 	# Write out screenline volumes
 	write_screenlines(my_project)
