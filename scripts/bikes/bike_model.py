@@ -126,8 +126,10 @@ def calc_bike_weight(my_project, link_df):
 	# export total link weight as an Emme attribute file ('@bkwt.in')
 	write_generalized_time(df=df)
 
-def bike_assignment(my_project):
-	''' Assign bike trips using links weights based on slope, traffic, and facility type. '''
+def bike_assignment(my_project, tod):
+	''' Assign bike trips using links weights based on slope, traffic, and facility type, for a given TOD.'''
+
+	my_project.change_active_database(tod)
 
 	# Create attributes for bike weights (inputs) and final bike link volumes (outputs)
 	for attr in ['@bkwt', '@bvol']:
@@ -167,14 +169,14 @@ def bike_assignment(my_project):
 	# Export skims to h5
 	for matrix in ["mfbkpt", "mfbkat"]:
 		print 'exporting skim: ' + str(matrix)
-		export_skims(my_project, matrix_name=matrix)
+		export_skims(my_project, matrix_name=matrix, tod=tod)
 
 	print "bike assignment complete"
 
-def export_skims(my_project, matrix_name):
+def export_skims(my_project, matrix_name, tod):
 	'''Write skim matrix to h5 container'''
 
-	my_store = h5py.File(r'inputs/' + bike_assignment_tod + '.h5', "r+")
+	my_store = h5py.File(r'inputs/' + tod + '.h5', "r+")
 
 	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
 	
@@ -202,11 +204,6 @@ def get_aadt(my_project):
 	length_df = get_link_attribute('length', network)
 	daily_vol = get_link_attribute('@tveh', network) 
 	link_df = pd.merge(length_df, daily_vol)
-
-	# Change bike assignment time period
-	if bike_assignment_tod not in [db.title() for db in my_project.data_explorer.databases()]:
-		my_project.data_explorer.add_database('banks/' + bike_assignment_tod + '/emmebank')
-	my_project.change_active_database(bike_assignment_tod)
 
 	return link_df   
 
@@ -244,6 +241,43 @@ def write_screenlines(my_project):
 
 	print 'bike screenlines written to outputs directory'
 
+def write_link_counts(my_project):
+	'''Write bike link volumes to file for comparisons to counts '''
+
+	network = my_project.current_scenario.get_network()
+
+	# Load bike count data from file
+	bike_counts = pd.read_csv(r'D:\soundcast\soundcast\scripts\summarize\notebooks\bike_count_links.csv')
+
+    # Load edges file to join proper node IDs
+	edges_df = pd.read_csv(r'R:\Bike\Counts\edges_0.txt')
+
+	df_counts = bike_counts.merge(edges_df, on=['INode','JNode'])
+	df_counts.index = df_counts[['NewINode','NewJNode']]
+
+	list_model_vols = []
+
+	tod = bike_assignment_tod
+
+	for item in df_counts.index:
+		i = list(item)[0]
+		j = list(item)[1]
+		link = network.link(i, j)
+		x = {}
+		x['INode'] = i
+		x['JNode'] = j
+		if link != None:
+			x['vol' + tod] = link['@bvol']
+		else:
+			x['vol' + tod] = None
+		list_model_vols.append(x)
+	print len(list_model_vols)
+	df =  pd.DataFrame(list_model_vols)
+	# df = df.set_index(['NewINode', 'NewJNode'])
+	# return df
+
+	df.to_csv('bike_count_output.csv')
+
 def main():
 	
 	print 'running bike model'
@@ -261,11 +295,16 @@ def main():
 	# Calculate generalized biking travel time for each link
 	calc_bike_weight(my_project, link_df)
 
-	# Assign trips using generalized biking time as a link weight
-	bike_assignment(my_project)
+	# Assign all AM trips (unable to assign trips without transit networks)
+	for tod in bike_assignment_tod:
+		print 'assigning bike trips for: ' + str(tod)
+		bike_assignment(my_project, tod)
 
 	# Write out screenline volumes
-	write_screenlines(my_project)
+	# write_screenlines(my_project)
+
+	# Write link volumes
+	# write_link_counts(my_project)
 
 if __name__ == "__main__":
 	main()

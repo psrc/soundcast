@@ -1,6 +1,7 @@
 
 #################################### BIKE MODEL ####################################
-bike_assignment_tod = '7to8'
+bike_assignment_tod = ['6to7', '7to8','8to9','9to10', '10to14', '14to15']
+
 # Distance perception penalties for link AADT from Broach et al., 2012
 # 1 is AADT 10k-20k, 2 is 20k-30k, 3 is 30k+
 # No penalty applied for AADT < 10k
