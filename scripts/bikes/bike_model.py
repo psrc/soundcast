@@ -207,76 +207,46 @@ def get_aadt(my_project):
 
 	return link_df   
 
-def get_unique_screenlines(EmmeProject):
-    network = EmmeProject.current_scenario.get_network()
-    unique_screenlines = []
-    for link in network.links():
-        if link.type != 90 and link.type not in unique_screenlines:
-            unique_screenlines.append(str(link.type))
-    return unique_screenlines
-
-def get_screenline_volumes(screenline_dict, EmmeProject):
-
-    for screen_line in screenline_dict.iterkeys():
-        EmmeProject.network_calculator("link_calculation",result = None, expression = "@bvol", selections_by_link = screen_line)
-        screenline_dict[screen_line] = screenline_dict[screen_line] + EmmeProject.network_calc_result['sum']
-
-def write_screenlines(my_project):
-	'''Write bike volumes across screenlines'''
-
-	#get a list of screenlines from the bank/scenario
-	screenline_list = get_unique_screenlines(my_project)
-	screenline_dict = {}
-
-	for item in screenline_list:
-		#dict where key is screen line id and value is 0
-		screenline_dict[item] = 0
-
-	get_screenline_volumes(screenline_dict, my_project)
-
-	screenline_df = pd.DataFrame({'Screenline': screenline_dict.keys(),
-    	'Volumes': screenline_dict.values()})
-
-	screenline_df.to_csv('outputs/bike_screenlines.csv')
-
-	print 'bike screenlines written to outputs directory'
-
-def write_link_counts(my_project):
+def write_link_counts(my_project, tod):
 	'''Write bike link volumes to file for comparisons to counts '''
+
+	my_project.change_active_database(tod)
 
 	network = my_project.current_scenario.get_network()
 
 	# Load bike count data from file
-	bike_counts = pd.read_csv(r'D:\soundcast\soundcast\scripts\summarize\notebooks\bike_count_links.csv')
+	bike_counts = pd.read_csv(bike_count_data)
 
-    # Load edges file to join proper node IDs
-	edges_df = pd.read_csv(r'R:\Bike\Counts\edges_0.txt')
+	# Load edges file to join proper node IDs
+	edges_df = pd.read_csv(edges_file)
 
-	df_counts = bike_counts.merge(edges_df, on=['INode','JNode'])
-	df_counts.index = df_counts[['NewINode','NewJNode']]
+	df = bike_counts.merge(edges_df, on=['INode','JNode'])
 
 	list_model_vols = []
 
-	tod = bike_assignment_tod
-
-	for item in df_counts.index:
-		i = list(item)[0]
-		j = list(item)[1]
+	for row in df.index:
+		i = df.iloc[row]['NewINode']
+		j = df.loc[row]['NewJNode']
 		link = network.link(i, j)
 		x = {}
 		x['INode'] = i
 		x['JNode'] = j
 		if link != None:
-			x['vol' + tod] = link['@bvol']
+			x['bvol' + tod] = link['@bvol']
 		else:
-			x['vol' + tod] = None
+			x['bvol' + tod] = None
 		list_model_vols.append(x)
 	print len(list_model_vols)
-	df =  pd.DataFrame(list_model_vols)
-	# df = df.set_index(['NewINode', 'NewJNode'])
-	# return df
 
-	df.to_csv('bike_count_output.csv')
+	df_count =  pd.DataFrame(list_model_vols)
+
+	if os.path.exists(bike_link_vol):
+		'''append column to existing TOD results'''
+		df = pd.read_csv(bike_link_vol)
+		df['bvol'+tod] = df_count['bvol'+tod]
+		df.to_csv(bike_link_vol,index=False) 
+	else:
+		df_count.to_csv(bike_link_vol,index=False) 
 
 def main():
 	
@@ -285,6 +255,13 @@ def main():
 	# Check for daily bank; create if it does not exist
 	if not os.path.isfile('banks/daily/emmebank'):
 		subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
+
+	# Remove any existing results
+	if os.path.exists(bike_link_vol):
+		try:
+		    os.remove(bike_link_vol)
+		except OSError:
+		    pass
 
 	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
@@ -300,11 +277,8 @@ def main():
 		print 'assigning bike trips for: ' + str(tod)
 		bike_assignment(my_project, tod)
 
-	# Write out screenline volumes
-	# write_screenlines(my_project)
-
-	# Write link volumes
-	# write_link_counts(my_project)
+		# Write link volumes
+		write_link_counts(my_project, tod)
 
 if __name__ == "__main__":
 	main()

@@ -36,3 +36,8 @@ slope_bins = [-1,0.02,0.04,0.06,1]
 slope_labels = [0,1,2,3]                
 
 avg_bike_speed = 10 # miles per hour
+
+# Outputs directory
+bike_link_vol = 'outputs/bike_volumes.csv'
+bike_count_data = 'inputs/bikes/bike_counts.csv'
+edges_file = 'inputs/bikes/edges_0.txt'
