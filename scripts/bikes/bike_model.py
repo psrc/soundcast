@@ -229,8 +229,10 @@ def write_link_counts(my_project, tod):
 		j = df.loc[row]['NewJNode']
 		link = network.link(i, j)
 		x = {}
-		x['INode'] = i
-		x['JNode'] = j
+		x['EmmeINode'] = i
+		x['EmmeJNode'] = j
+		x['gdbINode'] = df.iloc[row]['INode']
+		x['gdbeJNode'] = df.iloc[row]['JNode']
 		if link != None:
 			x['bvol' + tod] = link['@bvol']
 		else:
