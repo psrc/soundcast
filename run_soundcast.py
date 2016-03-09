@@ -1,4 +1,4 @@
-#Copyright [2014] [Puget Sound Regional Council]
+﻿#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import datetime
+import pandas as pd
 import shutil 
 from input_configuration import *
 from data_wrangling import *
@@ -67,11 +68,12 @@ def parcel_buffering():
     os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
 
 @timed    
-def build_seed_skims():
+def build_seed_skims(max_iterations):
     print "Processing skims and paths."
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
+        str(max_iterations),
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
         sys.exit(1)
@@ -81,8 +83,16 @@ def build_seed_skims():
  
 @timed   
 def modify_config(config_vals):
-    config_template = open('configuration_template.properties','r')
-    config = open('configuration.properties','w')
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.split(script_path)[0] #<-- absolute dir the script is in
+    config_template_path = "daysim_configuration_template.properties"
+    config_path = "Daysim/daysim_configuration.properties"
+
+    abs_config_path_template = os.path.join(script_dir, config_template_path)
+    abs_config_path_out =os.path.join(script_dir, config_path)
+    print abs_config_path_template
+    config_template = open(abs_config_path_template,'r')
+    config = open(abs_config_path_out,'w')
   
     try:
         for line in config_template:
@@ -105,12 +115,12 @@ def build_shadow_only():
      for shad_iter in range(0, len(shadow_work)):
         modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
         logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
-        returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+        returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
         if returncode != 0:
             #send_error_email(recipients, returncode)
             sys.exit(1)
-        returncode = subprocess.call([sys.executable, 'scripts/summarize/shadow_pricing_check.py'])
+        returncode = subprocess.call([sys.executable, 'scripts/utils/shadow_pricing_check.py'])
         shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
         rmse_list = shadow_con_file.readlines()
         iteration_number = len(rmse_list)
@@ -118,6 +128,7 @@ def build_shadow_only():
         if current_rmse < shadow_con:
             print "done with shadow prices"
             shadow_con_file.close()
+            return
 
 def run_truck_supplemental(iteration):
       ### RUN Truck Model ################################################################
@@ -146,7 +157,7 @@ def daysim_assignment(iteration):
      ### RUN DAYSIM ################################################################
      if run_daysim:
          logger.info("Start of %s iteration of Daysim", str(iteration))
-         returncode = subprocess.call('./Daysim/Daysim.exe -c configuration.properties')
+         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
          logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)
@@ -159,9 +170,15 @@ def daysim_assignment(iteration):
      #### ###############################################################
      if run_skims_and_paths:
          logger.info("Start of %s iteration of Skims and Paths", str(iteration))
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py'])
+         num_iterations = str(max_iterations_list[iteration])
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations])
          logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
+         if returncode != 0:
+            sys.exit(1)
+
+     if run_bike_model:
+         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
          if returncode != 0:
             sys.exit(1)
 
@@ -169,7 +186,7 @@ def daysim_assignment(iteration):
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
-    if iteration > 0 and recipr_sample == 1:
+    if iteration > 0 and recipr_sample <= min_pop_sample_convergence_test:
             con_file = open('inputs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
@@ -179,23 +196,19 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
    if run_network_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/network_summary.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
       # this summary is producing erronous results, we don't want people to think they are correct.
-      subprocess.call([sys.executable, 'scripts/summarize/net_summary_simplify.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
 
    if run_soundcast_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/SCsummary.py'])
-
-   if run_travel_time_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/TravelTimeSummary.py'])
-
-   if run_network_summary and run_soundcast_summary and run_travel_time_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/topsheet.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
 
    #Create a daily network with volumes. Will add counts and summary emme project. 
    if run_create_daily_bank:
-      subprocess.call([sys.executable, 'scripts/summarize/daily_bank.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
+   if run_ben_cost:
+      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
@@ -206,7 +219,7 @@ def main():
         parcel_buffering()
 
     if run_parcel_buffer_summary:
-        subprocess.call([sys.executable, 'scripts/summarize/parcel_summary.py'])
+        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
@@ -240,38 +253,60 @@ def main():
 
 ### BUILD SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
-        build_seed_skims()
+        build_seed_skims(10)
 
     # Check all inputs have been created or copied
     check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
+    
     if(run_daysim or run_skims_and_paths or run_skims_and_paths_seed_trips):
+        
         for iteration in range(len(pop_sample)):
             print "We're on iteration %d" % (iteration)
             logger.info(("We're on iteration %d\r\n" % (iteration)))
             time_start = datetime.datetime.now()
             logger.info("starting run %s" % str((time_start)))
 
-            # Set up your Daysim Configration
-            modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+            # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
+            if not should_build_shadow_price:
+                print 'here'
+                if iteration == 0 or pop_sample[iteration-1] > 2:
+                    print 'here'
+                    try:
+                                                        
+                            if not os.path.exists('working'):
+                                os.makedirs('working')
+                            shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+                            print "copying shadow prices" 
+                    except:
+                            print ' error copying shadow pricing file from shadow_pricing at ' + base_inputs+'/shadow_pricing/shadow_prices.txt'
+                            sys.exit(1)
+                # Set up your Daysim Configration
+                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
 
-            # Run Skimming and/or Daysim
+            else:
+                # We are building shadow prices from scratch, only use shadow pricing if pop sample is 2 or less
+                if pop_sample[iteration-1] > 2:
+                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+                else:
+                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+            ## Run Skimming and/or Daysim
 
             daysim_assignment(iteration)
+           
             converge=check_convergence(iteration, pop_sample[iteration])
             if converge == 'stop':
                 print "System converged!"
                 break
             print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-## BUILDING WORK AND SCHOOL SHADOW PRICES, THEN DAYSIM + ASSIGNMENT ############################
-    if should_build_shadow_price:
-        build_shadow_only()
-        modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
-        #This function needs an iteration parameter. Value of 1 is fine. 
-        daysim_assignment(1)
+# UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
+    build_shadow_only()
+    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
+    #This function needs an iteration parameter. Value of 1 is fine. 
+    daysim_assignment(1)
 
 ### SUMMARIZE
 ### ##################################################################

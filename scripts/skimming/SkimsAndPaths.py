@@ -18,7 +18,7 @@ import logging
 import datetime
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
-from input_configuration import *
+from emme_configuration import *
 from EmmeProject import *
 
 #Create a logging file to report model progress
@@ -27,6 +27,9 @@ logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 #Report model starting
 current_time = str(time.strftime("%H:%M:%S"))
 logging.debug('----Began SkimsAndPaths script at ' + current_time)
+
+# Assignment Iterations:
+max_num_iterations = sys.argv[1]
 
 # When we start a model run, we want to start with seed trips to assign.  Usually this will be
 # an old daysim outputs, but sometimes you may want to use the expanded survey. On the second or
@@ -360,7 +363,7 @@ def traffic_assignment(my_project):
 
     # Modify the Assignment Specifications for the Closure Criteria and Perception Factors
     mod_assign = assignment_specification
-    mod_assign["stopping_criteria"]["max_iterations"]= max_iter
+    mod_assign["stopping_criteria"]["max_iterations"]= int(max_num_iterations)
     mod_assign["stopping_criteria"]["best_relative_gap"]= best_relative_gap 
     mod_assign["stopping_criteria"]["relative_gap"]= relative_gap
     mod_assign["stopping_criteria"]["normalized_gap"]= normalized_gap
