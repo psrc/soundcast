@@ -1,4 +1,4 @@
-﻿import array as _array
+import array as _array
 import os
 import shutil
 import json

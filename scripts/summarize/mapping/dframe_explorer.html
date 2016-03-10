@@ -50,7 +50,7 @@ JOINNAME = "{{join_name}}";
 HOST = "{{host}}";
 PORT = "{{port}}";
 ROOT = "http://" + HOST + ":" + PORT + "/";
-//ROOT = "http://10.10.11.173:8765/"    // IP address of server, currently set to PSRC 3827, needs to be dynamic
+
 console.log(HOST);
 
 MAP = null;
@@ -194,11 +194,11 @@ function controller($scope, $http) {
                 .success(function (data) {
                     console.log(data);
                     $scope.safeApply(function() {$scope["data"] = data;} );
-                    //$scope.safeApply(function() {$scope["input"] = data;} );
+                    // $scope.safeApply(function() {$scope["input"] = data;} );
                 })
                 .error(function (data, status) {
                     //console.log(data);
-                    console.log(status);
+                    // console.log(status);
                     alert("Query Failed!")
                 });
     };

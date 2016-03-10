@@ -44,6 +44,7 @@ from input_configuration import *
 from emme_configuration import *
 
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+daily_network_fname = 'outputs/daily_network_results.csv'
 fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
                  'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
                  'connectors' : 'ul3 = 5'}
@@ -468,6 +469,39 @@ def corridor_results(tod, my_project):
 
     return df_out
 
+def export_link_values(my_project):
+    ''' Extract link attribute values for a given scenario and emmebank (i.e., time period) '''
+
+    # Add the daily bank to the project
+    my_project.data_explorer.add_database(r'Banks\Daily\emmebank')
+
+    # Change active database to daily bank
+    my_project.change_active_database('daily')
+
+    network = my_project.current_scenario.get_network()
+    link_type = 'LINK'
+
+    # list of all link attributes
+    link_attr = network.attributes(link_type)
+
+    # Initialize a dataframe to store results
+    df = pd.DataFrame(np.zeros(len(link_attr)+1)).T    # column for each attr +1 for node id (used as merge field)
+    df.columns = np.insert(link_attr, 0, 'nodes')    # columns are attrs w/ node id inserted to front of array
+    
+    for attr in link_attr:
+        print "processing: " + str(attr)
+        
+        # store values and node id for a single attr in a temp df 
+        df_attr = pd.DataFrame([network.get_attribute_values(link_type, [attr])[1].keys(),
+                          network.get_attribute_values(link_type, [attr])[1].values()]).T
+        df_attr.columns = ['nodes',attr]
+        
+        # merge temp df with the 'master df' that is filled iteratively
+        df = pd.merge(df_attr,df,how='outer',on='nodes')
+
+            
+    df.to_csv(daily_network_fname)
+
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
@@ -475,6 +509,12 @@ def main():
 
     # Travel times on key corridors
     export_corridor_results(my_project)
+
+    # Export daily link measures if a daily bank exists
+    if os.path.exists(r'Banks\Daily\emmebank'):
+        export_link_values(my_project)
+    else:
+        print 'daily bank required to export link values'
 
     # Connect to sqlite3 db
     if run_tableau_db:
@@ -681,6 +721,8 @@ def main():
         found_openpyxl = False
     if found_openpyxl == True:
         xlautofit.run('outputs/network_summary_detailed.xlsx')
+
+
     #else:
     #    try:
     #        imp.find_module('pip')
