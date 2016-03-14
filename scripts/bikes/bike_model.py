@@ -179,12 +179,20 @@ def export_skims(my_project, matrix_name, tod):
 	my_store = h5py.File(r'inputs/' + tod + '.h5', "r+")
 
 	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
-	
+
+	# scale to store as integer
+	matrix_value = matrix_value * bike_skim_mult
+	matrix_value = matrix_value.astype('uint16')
+
+	# Remove unreasonably high values, replace with max allowed by numpy
+	max_value = np.iinfo('uint16').max
+	matrix_value = np.where(matrix_value > max_value, max_value, matrix_value)
+
 	if matrix_name in my_store['Skims'].keys():
 		my_store["Skims"][matrix_name][:] = matrix_value
 	else:
 		try:
-			my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value)
+			my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value, compression='gzip', dtype='uint16')
 		except:
 			'unable to export skim: ' + str(matrix_name)
 
