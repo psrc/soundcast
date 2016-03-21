@@ -335,8 +335,32 @@
       "Description": "medium truck daily o-d trips"
     },
     {
+      "Name": "medee",
+      "Description": "medium truck daily e-e trips"
+    },
+    {
+      "Name": "medie",
+      "Description": "medium truck daily i-e trips"
+    },
+    {
+      "Name": "medei",
+      "Description": "medium truck daily e-i trips"
+    },
+    {
       "Name": "hvyod",
       "Description": "heavy truck daily o-d trips"
+    },
+    {
+      "Name": "hvyee",
+      "Description": "heavy truck daily e-e trips"
+    },
+    {
+      "Name": "hvyie",
+      "Description": "heavy truck daily i-e trips"
+    },
+    {
+      "Name": "hvyei",
+      "Description": "heavy truck daily e-i trips"
     },
     {
       "Name": "alttrk",
