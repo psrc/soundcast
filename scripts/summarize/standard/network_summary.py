@@ -1,4 +1,4 @@
-#Copyright [2014] [Puget Sound Regional Council]
+﻿#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -582,11 +582,12 @@ def main():
         #screen lines
         get_screenline_volumes(screenline_dict, my_project)
         
-    
+    list_of_measures = ['vmt', 'vht', 'delay']
+
     # Write results to sqlite3 db (for Tableau)
     if run_tableau_db:
         facility_results = {}
-        list_of_measures = ['vmt', 'vht', 'delay']
+
         for measure in list_of_measures:
             facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
                                                     measure=measure)
