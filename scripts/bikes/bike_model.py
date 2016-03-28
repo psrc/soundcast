@@ -151,7 +151,7 @@ def bike_assignment(my_project, tod):
 	# Invoke the Emme assignment tool
 	extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
 	bike_spec = json.load(open(r'inputs\skim_params\bike_assignment.json'))
-	extended_assign_transit(bike_spec, add_volumes= rue)
+	extended_assign_transit(bike_spec, add_volumes=True)
 
 	print 'bike assignment complete, now skimming'
 
