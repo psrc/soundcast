@@ -1,6 +1,9 @@
 import sys
-from scripts.skimming.SkimsAndPaths import *
+from scripts.skimming.SkimsAndPaths import delete_matrices
+from multiprocessing import Pool
 from scripts.EmmeProject import *
+from emme_configuration import *
+import argparse
 
 def mummify(project_name):
 	'''Remove all matrix file types from Emme project.'''

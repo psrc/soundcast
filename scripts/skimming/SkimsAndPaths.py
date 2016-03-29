@@ -16,6 +16,7 @@ import subprocess
 from multiprocessing import Pool
 import logging
 import datetime
+import argparse
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from emme_configuration import *
@@ -28,8 +29,7 @@ logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 current_time = str(time.strftime("%H:%M:%S"))
 logging.debug('----Began SkimsAndPaths script at ' + current_time)
 
-# Assignment Iterations:
-max_num_iterations = sys.argv[1]
+
 
 # When we start a model run, we want to start with seed trips to assign.  Usually this will be
 # an old daysim outputs, but sometimes you may want to use the expanded survey. On the second or
@@ -85,6 +85,9 @@ destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 # Zone Index
 tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
 
+def parse_args():
+    """Parse command line arguments for max number of assignment iterations"""
+    return sys.argv[1]
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
@@ -887,6 +890,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
+        print mat_name
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
@@ -1395,9 +1399,9 @@ def main():
 
         
         #want pooled processes finished before executing more code in main:
-        #run_assignments_parallel('projects/7to8/7to8.emp')
+        run_assignments_parallel('projects/7to8/7to8.emp')
         
-        start_transit_pool(project_list)
+        # start_transit_pool(project_list)
        
         f = open('inputs/converge.txt', 'w')
        
@@ -1435,4 +1439,5 @@ def main():
 
 
 if __name__ == "__main__":
+    max_num_iterations = parse_args()
     main()
