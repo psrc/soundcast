@@ -3,10 +3,11 @@ import numpy as np
 import pandas as pd
 import os,sys
 import h5py
-from input_configuration import *
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
+from emme_configuration import *
 from EmmeProject import *
-
+from truck_configuration import *
 
 # Global variable to hold taz id/index; populated in main
 dictZoneLookup = {}

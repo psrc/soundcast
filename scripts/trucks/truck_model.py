@@ -15,15 +15,17 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
-from input_configuration import *
-from EmmeProject import *
+#from truck_model import *
+from EmmeProject import * 
+from truck_configuration import *
+from emme_configuration import *
 
 # Temp log file for de-bugging
 logfile = open("truck_log.txt", 'wb')
           
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
-            my_project.bank.delete_scenario(scenario)
+           EmmeProject.bank.delete_scenario(scenario)
         #create scenario
     EmmeProject.bank.create_scenario(1002)
     EmmeProject.change_scenario()
@@ -51,6 +53,7 @@ def skims_to_hdf5(EmmeProject):
             e = matrix_name in my_store[tod]
             if e:
                 del my_store[tod][matrix_name]
+                'deleted ' + str(e)
             #export to hdf5
             print 'exporting'
             matrix_name = tod[0] + name
@@ -101,10 +104,12 @@ def import_emp_matrices():
     truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
-                                 'heavy_trucks_reeb_ee', 'heavy_trucks_reeb_ei', 'heavy_trucks_reeb_ie']
-    for i in range(0, len(truck_emp_dict)):
-        print 'inputs/' + truck_matrix_import_list[i] + '.in'
-        my_project.import_matrices('inputs/trucks/' + truck_matrix_import_list[i] + '.in')
+                                 'heavy_trucks_ee', 'heavy_trucks_ei', 'heavy_trucks_ie',
+                                 'medium_trucks_ee', 'medium_trucks_ei', 'medium_trucks_ie',
+                                 'trucks']
+    for name in truck_matrix_import_list:
+        print 'importing: ' + str(name)
+        my_project.import_matrices('inputs/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information
@@ -132,14 +137,14 @@ def truck_productions():
     #Calculate Productions for 3 truck classes (Origin Matrices are populated)
     for key, value in truck_generation_dict['productions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        print "We're printing the productions part."
         logfile.write("We're printing the productions part.")
 
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
+
+   
     for key, value in truck_generation_dict['attractions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        print "We're printing the attractions part."
         logfile.write("We're printing the attractions part.")
 
     truck_dest_matrices = ['ltatt', 'mtatt', 'htatt']
@@ -155,12 +160,12 @@ def truck_attractions():
     for key, value in spec_gen_dict.iteritems():
         my_project.matrix_calculator(result = 'md' + key, expression = 'md' + key + '+ md' + value)
 
-    refactor_dict = {'moltprof' : 'moltpro * 0.554',
-                     'momtprof' : 'momtpro * 0.309',
-                     'mohtprof' : 'mohtpro * 0.413',
-                     'mdltattf' : 'mdltatt * 0.749',
-                     'mdmtattf' : 'mdmtatt * 0.500',
-                     'mdhtattf' : 'mdhtatt * 1.375'}
+    refactor_dict = {'moltprof' : 'moltpro * ' + str(truck_adjustment_factor['ltpro']),
+                     'momtprof' : 'momtpro * ' + str(truck_adjustment_factor['mtpro']),
+                     'mohtprof' : 'mohtpro * ' + str(truck_adjustment_factor['htpro']),
+                     'mdltattf' : 'mdltatt * ' + str(truck_adjustment_factor['ltatt']),
+                     'mdmtattf' : 'mdmtatt * ' + str(truck_adjustment_factor['mtatt']),
+                     'mdhtattf' : 'mdhtatt * ' + str(truck_adjustment_factor['htatt'])}
 
     for key, value in refactor_dict.iteritems():
         my_project.matrix_calculator(result = key, expression = value)
@@ -210,7 +215,7 @@ def import_skims():
         pm_skim_name = truck_type['dist_name'] + '_pm'
         bidir_skim_name = truck_type['dist_bidir_name']
         #distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
-        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100
+        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])/100.0
         bi_dir_skim = np.asarray(bi_dir_skim)
         #have sum, now get average
         bi_dir_skim *= .5
@@ -273,7 +278,7 @@ def calculate_impedance():
 
     # calculate heavy truck impedances:
     my_project.matrix_calculator(result = 'mfhvyimp', 
-                                 expression = 'exp(-0.008*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
+                                 expression = 'exp(-0.00001*(mfbhvycs+(mfbhvyds*mshvyop*.0120)))*mfintflg', 
                                  constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
                                  constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
@@ -306,9 +311,16 @@ def calculate_daily_trips():
     my_project.matrix_calculator(result = 'mfmedod', expression = '0.5*mfmeddis + 0.5*mfmeddis'+ "'")
     my_project.matrix_calculator(result = 'mfhvyod', expression = '0.5*mfhvydis + 0.5*mfhvydis'+ "'")
     
+    # convert annual external medium truck trips to daily and add to medium od
+    my_project.matrix_calculator(result = 'mfmedod', 
+                                 expression = 'mfmedod + (mfmedee + mfmedei + mfmedie)/264')
+
     #convert annual external heavy truck trips to daily and add to heavy od:
     my_project.matrix_calculator(result = 'mfhvyod', 
-                                 expression = 'mfhvyod + (mfreebee + mfreebei + mfreebie)/264')
+                                 expression = 'mfhvyod + (mfhvyee + mfhvyei + mfhvyie)/264')
+
+
+
     #apply vehicle-equivalency factors to medium and heavy trucks:
     my_project.matrix_calculator(result = 'mfmedod', expression = 'mfmedod * 1.5')
     my_project.matrix_calculator(result = 'mfhvyod', expression = 'mfhvyod * 2')
@@ -321,7 +333,42 @@ def calculate_daily_trips():
             my_project.matrix_calculator(result = 'mf' + tod[0] + key, 
                                          expression = value['daily_trips'] + '*' + value[tod])
 
+def landuse_correction():
+    '''Restrict truck trips by land use type.'''
+
+    #  Read in the csv files for Parcel ID and Taz and Parcel ID and Use Type for join
+    parcels = pd.read_csv(r'D:\soundcast\soundcast\inputs\buffered_parcels.dat', sep=' ')
+
+    # Ideally, we attach a land use code to the urbansim input and filter directly from there
+    # For now, we need to join in parcel land use info
+    parcel_lu = pd.read_csv(r'R:\Craig\Trucks\inputs\TripGen\Base\parcels\parcels_allowable_lu.txt')
+
+    df = parcels.merge(parcel_lu, left_on='parcelid',right_on='parcel_id')
+
+    # List of allowable truck land uses
+    truck_uses = ['Agriculture','Fisheries','Forest, harvestable','Forest, protected','Industrial','Military','Mining','Warehousing']
+
+    # select truck rows only, using the allowable truck land uses
+    truck_df = df[df["generic_land_use_1"].isin(truck_uses)]
+    # Add a flag for truck allowable field
+    truck_df['trucks_allowed_parcel'] = 1
+
+
+    # merge the truck_df back into the main df
+    df = df.merge(truck_df[['parcelid','trucks_allowed_parcel']], how='left')
+    df['trucks_allowed_parcel'].fillna(0,inplace=True)    # Truck restricted parcels get a 0
+
+    # Now, groupby TAZ and create new flag that allows trucks on TAZ with allowable land use
+    df_taz = pd.DataFrame(df.groupby('taz_p').sum()[['trucks_allowed_parcel']])
+    df_taz['trucks_allowed_taz'] = pd.cut(df_taz['trucks_allowed_parcel'], bins=[0,1,df_taz['trucks_allowed_parcel'].max()], labels=[0,1], include_lowest=True)
+
+    return df_taz
+
+
+
+
 def main():
+    #my_project = EmmeProject(truck_model_project)
     network_importer(my_project)
     my_project.delete_matrices("ALL")
     place_holder_scalar_matrix()
@@ -339,10 +386,10 @@ def main():
     calculate_daily_trips()
     skims_to_hdf5(my_project)
 
+my_project = EmmeProject(truck_model_project)
 input_skims = json_to_dictionary('input_skims')
 origin_destination_dict = json_to_dictionary('truck_matrices_dict')
 truck_generation_dict = json_to_dictionary('truck_gen_calc_dict')
-my_project = EmmeProject(truck_model_project)
 
 if __name__ == "__main__":
     main()

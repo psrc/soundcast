@@ -1,0 +1,10 @@
+{
+    "on_links": {
+        "aux_transit_volumes": "@bvol"
+    },
+    "on_segments": null,
+    "aggregated_from_segments": null,
+    "analyzed_demand": "mfbike",
+    "constraint": null,
+    "type": "EXTENDED_TRANSIT_NETWORK_RESULTS"
+}

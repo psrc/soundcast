@@ -10,6 +10,7 @@ import subprocess
 import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+from emme_configuration import *
 from input_configuration import *
 
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -187,7 +188,9 @@ def import_tolls(emmeProject):
     #@rdly:
     import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
              revert_on_error=True)
-    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
+    
+    #We are using the same rdly has 4k. No need to factor. 
+    #emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
 # set bridge/ferry flags
 
@@ -200,12 +203,13 @@ def import_tolls(emmeProject):
 
     
     # change modes on tolled network, but exclude some bridges/ferries
-    network = emmeProject.current_scenario.get_network()
-    for link in network.links():
-        if link['@toll1'] > 0 and link['@brfer'] == 0:
-            for i in no_toll_modes:
-                link.modes -= set([network.mode(i)])
-    emmeProject.current_scenario.publish_network(network)
+    if create_no_toll_network:
+        network = emmeProject.current_scenario.get_network()
+        for link in network.links():
+            if link['@toll1'] > 0 and link['@brfer'] == 0:
+                for i in no_toll_modes:
+                    link.modes -= set([network.mode(i)])
+        emmeProject.current_scenario.publish_network(network)
 
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
@@ -241,11 +245,10 @@ def run_importer(project_name):
 
         #import tolls
         import_tolls(my_project)
-        #No toll network- Not using right now
-        #create_noToll_network(my_project)
+        
 
 def main():
-    
+    print network_summary_project
     run_importer(network_summary_project)
     
     returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])

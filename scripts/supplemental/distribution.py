@@ -6,10 +6,12 @@ import csv
 import pandas as pd
 import h5py
 import numpy as np
-from input_configuration import *
+from emme_configuration import *
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 from EmmeProject import *
+from truck_configuration import *
 
 # Global variable to hold taz id/index; populated in main
 dictZoneLookup = {}
