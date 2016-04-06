@@ -28,6 +28,8 @@ from logcontroller import *
 from input_configuration import *
 import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
+from emme_configuration import *
+import emme_configuration
 import glob
 
 

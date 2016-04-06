@@ -1,5 +1,6 @@
 ﻿import pandana as pdna
 from accessibility_configuration import *
+from emme_configuration import *
 #from accessibility_utils import load_network, load_network_addons, assign_nodes_to_dataset
 import pandas as pd
 import numpy as np

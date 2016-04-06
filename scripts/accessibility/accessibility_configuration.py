@@ -4,7 +4,7 @@ transit_stops_name = 'inputs/accessibility/transit_stops.csv'
 network_name = 'inputs/accessibility/PugetSoundNetwork.h5'
 network_add_ons = 'inputs/accessibility/PugetSoundNetworkAddons.h5'
 
-max_dist = 4828 # 3 miles in meters
+max_dist = 24140.2 # 3 miles in meters
 
 distances = { # in meters; 
               # keys correspond to suffices of the resulting parcel columns
