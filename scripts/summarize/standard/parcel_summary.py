@@ -7,7 +7,7 @@ import input_configuration # Import as a module to access inputs as a dictionary
 
 print "running parcel summary"
 
-buffered_parcels = 'buffered_parcels.dat'   # Parcel data
+buffered_parcels = 'buffered_parcels.txt'   # Parcel data
 parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
 file_out = 'parcel_summary.xlsx'    # summary output file name
 

@@ -8,32 +8,34 @@ base_year = '2010'  # This should always be 2010 unless the base year changes
 scenario_name = '2010'
 daysim_code = 'R:/SoundCast/daysim' 
 master_project = 'LoadTripTables'
-base_inputs = 'R:/SoundCast/Inputs/' + scenario_name
-network_buffer_inputs = 'R:/SoundCast/Inputs/parcel_buffering_network/parcel_buff_network_inputs.7z'
-network_buffer_code = 'R:/SoundCast/util/parcel_buffering/'
+main_inputs_folder =  'R:/SoundCast/Inputs/'
+base_inputs = main_inputs_folder + scenario_name
+
 
 # Script and subprocess controls
  
 ##### Only update parking for future-year analysis!
 run_update_parking = False
-##### ***** #####
 run_convert_hhinc_2000_2010 = True
-run_parcel_buffering = True
+run_accessibility_calcs = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_large_inputs = True
 run_import_networks = True
+# if run copy seed skims is tru (intentional typo for find and replace), you don't need to run skims and paths seed trips
+# the model run will start with daysim
+run_copy_seed_skims = True
+run_skims_and_paths_seed_trips = False
 create_no_toll_network = True
 run_skims_and_paths_seed_trips = True
 ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
 should_build_shadow_price = True
-##### ***** #####
 run_skims_and_paths = True
 run_truck_model = True
 run_supplemental_trips = True
 run_daysim = True
-run_parcel_buffer_summary = True
+run_accessibility_summary = True
 run_network_summary = True
 run_soundcast_summary = True
 run_create_daily_bank = True
@@ -48,7 +50,7 @@ min_pop_sample_convergence_test = 10
 # start building shadow prices - only run work locations
 shadow_work = [1, 1, 1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
-parcel_decay_file = 'inputs/buffered_parcels.dat' #File with parcel data to be compared to
+parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
 main_log_file = 'soundcast_log.txt'
@@ -62,14 +64,14 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "snack", "nap"
 commonly_missing_files = ['buffered_parcels.dat', 'tazdata.in']
 
 # Specific reports to run
-run_daysim_report = True
-run_day_pattern_report = True
-run_mode_choice_report = True
-run_dest_choice_report = True
-run_long_term_report = True
-run_time_choice_report = True
-run_district_summary_report = True
-run_tableau_db = True
+run_daysim_report = False
+run_day_pattern_report = False
+run_mode_choice_report = False
+run_dest_choice_report = False
+run_long_term_report = False
+run_time_choice_report = False
+run_district_summary_report = False
+run_tableau_db = False
 
 # Calibration Summary Configuration
 h5_results_file = 'outputs/daysim_outputs.h5'

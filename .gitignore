@@ -2,9 +2,15 @@ Banks/
 working/
 outputs/
 projects/
+daysim/
 Daysim/last-run.log
+inputs/networks/
 *.pyc
 *.tsv
 *.tex
 *.alo
 *.Rhistory
+*.dll
+*.exe
+*.in
+*.ens
