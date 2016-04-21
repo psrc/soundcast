@@ -58,7 +58,8 @@ extra_attributes_dict = {'@tveh' : 'total vehicles',
                          '@ovol' : 'observed volume', 
                          '@bveh' : 'number of buses'}
 
-transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
+transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time',
+                                '@agency': 'transit agency', '@tline': 'transit line'}
 
 transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
@@ -292,20 +293,29 @@ def get_screenline_volumes(screenline_dict, EmmeProject):
 
 def calc_transit_line_atts(EmmeProject):
     #calc boardings and transit line time
-     EmmeProject.transit_line_calculator(result = '@board', expression = 'board')
-     EmmeProject.transit_line_calculator(result = '@timtr', expression = 'timtr')
+    print EmmeProject.tod
+
+    EmmeProject.transit_line_calculator(result = '@board', expression = 'board')
+    EmmeProject.transit_line_calculator(result = '@timtr', expression = 'timtr')
+    
+
+    EmmeProject.transit_line_definition(result = '@agency', expression = 'ut3')
+    EmmeProject.transit_line_definition(result = '@tline', expression = 'ut1')
 
 def get_transit_boardings_time(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
-    df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time'))
+    df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time',
+        EmmeProject.tod + '_line', EmmeProject.tod + '_agency'))
     line_list = []
     
     for transit_line in network.transit_lines():
         x = {}
         #company_code = transit_line['@ut3']
         x['id'] = transit_line.id
-        x[EmmeProject.tod + '_board'] = transit_line['@board']
-        x[EmmeProject.tod + '_time']= transit_line['@timtr']
+        x['board'] = transit_line['@board']
+        x['time']= transit_line['@timtr']
+        x['line']= transit_line['@tline']
+        x['agency']= transit_line['@agency']
         line_list.append(x)
     df = pd.DataFrame(line_list)
     df = df.set_index(['id'])
@@ -552,6 +562,7 @@ def main():
             my_project.create_extra_attribute('LINK', name, desc, 'True')
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
+            print my_project.tod
             for name, desc in transit_extra_attributes_dict.iteritems():
                 my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
             calc_transit_link_volumes(my_project)
@@ -620,41 +631,14 @@ def main():
             df = stamp(df, con=con, table=metric)
             df.to_sql(name=metric, con=con, if_exists='append', chunksize=1000)
 
-        # Transit Counts to db
-
-
-        # Mode Share to DB
-
    #write out transit:
     # print uc_vmt_dict
     col = 0
     transit_df = pd.DataFrame()
-
-    for tod, df in transit_summary_dict.iteritems():
-       #if transit_tod[tod] == 'am':
-       #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
-       #keys=None, levels=None, names=None, verify_integrity=False)
-        
-       workbook = writer.book
-       index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
-       transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
-       #transit_df[tod + '_board'] = df[tod + '_board']
-       #transit_df[tod + '_time'] = df[tod + '_time']
-    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
-    transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
-       
-       #if col == 0:
-       #    worksheet = writer.sheets['Transit Summaries']
-       #    routes = df.index.tolist()
-       #    for route_no in range(len(routes)):
-       #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
-       #    col = col + 1
-       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-       #    col = col + 2
-       #else:
-       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-       #    col = col + 2
-
+    for tod in transit_tod.keys():
+        transit_summary_dict[tod]['tod'] = tod    # add new TOD column
+        transit_df = pd.concat([transit_df, transit_summary_dict[tod]])    # concat all time periods to single dataframe
+    transit_df.to_excel(excel_writer=writer, sheet_name='Transit Summaries')
 
     #*******write out counts:
     for value in counts_dict.itervalues():
@@ -722,24 +706,6 @@ def main():
         found_openpyxl = False
     if found_openpyxl == True:
         xlautofit.run('outputs/network_summary_detailed.xlsx')
-
-
-    #else:
-    #    try:
-    #        imp.find_module('pip')
-    #        found_pip = True
-    #    except ImportError:
-    #        found_pip = False
-    #    if found_pip == True:
-    #        pip.main(['install','openpyxl'])
-    #    else:
-    #        print('Library openpyxl needed to autofit columns')
-    
-    #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
-    #for key, value in screenline_dict.iteritems():
-    #    print key, value
-    #    writer.writerow([key, value])
-    #writer = None
 
 if __name__ == "__main__":
     main()
