@@ -43,12 +43,12 @@ run_ben_cost = False
 run_bike_model = False
 
 # Model iterations, population sampling, log files, etc.
-pop_sample = [10, 5, 5, 2]
+pop_sample = [10, 5]
 # Assignment Iterations:
 max_iterations_list = [50, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
 # start building shadow prices - only run work locations
-shadow_work = [1, 1, 1, 1]
+shadow_work = [1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
