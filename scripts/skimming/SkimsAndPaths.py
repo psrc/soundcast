@@ -1,4 +1,4 @@
-
+﻿
 import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
@@ -366,6 +366,7 @@ def traffic_assignment(my_project):
 
     # Modify the Assignment Specifications for the Closure Criteria and Perception Factors
     mod_assign = assignment_specification
+    max_num_iterations = parse_args()
     mod_assign["stopping_criteria"]["max_iterations"]= int(max_num_iterations)
     mod_assign["stopping_criteria"]["best_relative_gap"]= best_relative_gap 
     mod_assign["stopping_criteria"]["relative_gap"]= relative_gap
@@ -1388,6 +1389,8 @@ def run_assignments_parallel(project_name):
     logging.debug(text)
 
 def main():
+
+        
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
@@ -1439,5 +1442,5 @@ def main():
 
 
 if __name__ == "__main__":
-    max_num_iterations = parse_args()
+
     main()
