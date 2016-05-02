@@ -1399,9 +1399,9 @@ def main():
 
         
         #want pooled processes finished before executing more code in main:
-        run_assignments_parallel('projects/7to8/7to8.emp')
+        #run_assignments_parallel('projects/7to8/7to8.emp')
         
-        # start_transit_pool(project_list)
+        start_transit_pool(project_list)
        
         f = open('inputs/converge.txt', 'w')
        
