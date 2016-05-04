@@ -306,11 +306,11 @@ def main():
                 break
             print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-# UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
-    build_shadow_only()
-    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
-    #This function needs an iteration parameter. Value of 1 is fine. 
-    daysim_assignment(1)
+# IF BUILDING SHADOW PRICES, UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
+    if should_build_shadow_price:
+           build_shadow_only()
+           #This function needs an iteration parameter. Value of 1 is fine. 
+           daysim_assignment(2)
 
 ### SUMMARIZE
 ### ##################################################################
