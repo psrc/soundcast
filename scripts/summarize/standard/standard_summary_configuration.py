@@ -1,4 +1,4 @@
-#################################### NETWORK SUMMARY ####################################
+﻿#################################### NETWORK SUMMARY ####################################
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 report_output_location = 'Outputs'
@@ -36,3 +36,6 @@ output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts
 map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
 
 results_db = 'R:\SoundCast\db\soundcastRuns.sl3'
+
+########## Land Use Summary ##################################################
+out_lu_summary = r'outputs/parcel_summary.xlsx'

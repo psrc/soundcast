@@ -1,4 +1,4 @@
-﻿#Copyright [2014] [Puget Sound Regional Council]
+#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -211,6 +211,9 @@ def run_all_summaries():
 
    if run_ben_cost:
       subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
+
+   if run_landuse_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
 
 ##################################################################################################### ###################################################################################################### 
 # Main Script:

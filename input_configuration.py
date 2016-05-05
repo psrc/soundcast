@@ -60,7 +60,7 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "snack", "nap"
 
 # These files are often missing from a run.  We want to check they are present and warn if not.
 # Please add to this list as you find files that are missing.
-commonly_missing_files = ['buffered_parcels.dat', 'tazdata.in']
+commonly_missing_files = ['buffered_parcels.txt', 'tazdata.in']
 
 # Specific reports to run
 run_daysim_report = False
@@ -71,6 +71,7 @@ run_long_term_report = False
 run_time_choice_report = False
 run_district_summary_report = False
 run_tableau_db = False
+run_landuse_summary = True
 
 # Calibration Summary Configuration
 h5_results_file = 'outputs/daysim_outputs.h5'
