@@ -19,7 +19,10 @@ parcels_military.dropna(subset = ['Parcel_ID'])
 #these are regular jobs that need to be redistributed to other JBLM taz's, which currently do not have parcels so we aree
 #making dummy ones. 
 jblm_govt_jobs = pd.read_csv(jblm_file)
-lone_jblm_parcel = 1500003
+if base_year == 2010:
+    lone_jblm_parcel == 1500003
+else:
+    lone_jblm_parcel == 2
 
 all_parcels = parcels_urbansim.merge(parcels_military, how='outer', left_on='PARCELID', right_on="Parcel_ID")
 all_parcels.fillna(0, inplace =True)
