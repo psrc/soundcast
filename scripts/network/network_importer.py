@@ -194,12 +194,12 @@ def import_tolls(emmeProject):
 
 # set bridge/ferry flags
 
-    bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
-    import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@brfer"},
-              revert_on_error=True)
+    #bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
+    #import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
+    #          column_labels={0: "inode",
+    #                         1: "jnode",
+    #                         2: "@brfer"},
+    #          revert_on_error=True)
 
     
     # change modes on tolled network, but exclude some bridges/ferries
