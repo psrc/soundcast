@@ -38,4 +38,5 @@ map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
 results_db = 'R:\SoundCast\db\soundcastRuns.sl3'
 
 ########## Land Use Summary ##################################################
-out_lu_summary = r'outputs/parcel_summary.xlsx'
+out_lu_summary = r'outputs/landuse_summary.xlsx'
+households_persons_file = r'inputs\hh_and_persons.h5'
