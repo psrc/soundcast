@@ -1,4 +1,4 @@
-import array as _array
+﻿import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
@@ -1388,6 +1388,8 @@ def run_assignments_parallel(project_name):
     logging.debug(text)
 
 def main(): 
+
+        
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.

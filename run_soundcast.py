@@ -314,7 +314,7 @@ def main():
            build_shadow_only()
            modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
            #This function needs an iteration parameter. Value of 1 is fine. 
-           daysim_assignment(2)
+           daysim_assignment(1)
 
 ### SUMMARIZE
 ### ##################################################################
