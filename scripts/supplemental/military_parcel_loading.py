@@ -21,9 +21,9 @@ parcels_military.dropna(subset = ['Parcel_ID'])
 #making dummy ones. 
 jblm_govt_jobs = pd.read_csv(jblm_file)
 if base_year == 2010:
-    lone_jblm_parcel == 1500003
+    lone_jblm_parcel = 1500003
 else:
-    lone_jblm_parcel == 2
+    lone_jblm_parcel = 2
 
 all_parcels = parcels_urbansim.merge(parcels_military, how='outer', left_on='PARCELID', right_on="Parcel_ID")
 all_parcels.fillna(0, inplace =True)
