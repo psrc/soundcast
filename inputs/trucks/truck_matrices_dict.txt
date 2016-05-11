@@ -255,6 +255,10 @@
     {
       "Name": "htattf",
       "Description": "heavy truck attractions - refactored"
+    },
+    {
+      "Name": "truck",
+      "Description": "truck-allowable land use flag"
     }
   ],
   "Full_Matrices": [

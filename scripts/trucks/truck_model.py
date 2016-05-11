@@ -6,6 +6,7 @@ import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
+import pandas as pd
 import time
 import os,sys
 import Tkinter, tkFileDialog
@@ -55,7 +56,7 @@ def skims_to_hdf5(EmmeProject):
                 del my_store[tod][matrix_name]
                 'deleted ' + str(e)
             #export to hdf5
-            print 'exporting'
+            print 'exporting' 
             matrix_name = tod[0] + name
             print matrix_name
             matrix_id = EmmeProject.bank.matrix(matrix_name).id
@@ -139,17 +140,22 @@ def truck_productions():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
         logfile.write("We're printing the productions part.")
 
+    # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
+    my_project.matrix_calculator(result = 'mohtpro', expression = 'mohtpro * motruck')
+
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
-
    
     for key, value in truck_generation_dict['attractions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
         logfile.write("We're printing the attractions part.")
 
+    # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
+    my_project.matrix_calculator(result = 'mohtatt', expression = 'mohtatt * motruck')
+
     truck_dest_matrices = ['ltatt', 'mtatt', 'htatt']
-    print 'done with productions and attractions'
-    logfile.write('done with productions and attractions')
+    print 'done with truck productions and attractions'
+    logfile.write('done with truck productions and attractions')
 
     #Transpose Attractions (Destination Matrices are populated)
     for item in truck_dest_matrices:
@@ -160,6 +166,7 @@ def truck_attractions():
     for key, value in spec_gen_dict.iteritems():
         my_project.matrix_calculator(result = 'md' + key, expression = 'md' + key + '+ md' + value)
 
+
     refactor_dict = {'moltprof' : 'moltpro * ' + str(truck_adjustment_factor['ltpro']),
                      'momtprof' : 'momtpro * ' + str(truck_adjustment_factor['mtpro']),
                      'mohtprof' : 'mohtpro * ' + str(truck_adjustment_factor['htpro']),
@@ -169,6 +176,8 @@ def truck_attractions():
 
     for key, value in refactor_dict.iteritems():
         my_project.matrix_calculator(result = key, expression = value)
+
+    
 
 def import_skims():
     # Import districts
@@ -333,7 +342,7 @@ def calculate_daily_trips():
             my_project.matrix_calculator(result = 'mf' + tod[0] + key, 
                                          expression = value['daily_trips'] + '*' + value[tod])
 
-def landuse_correction():
+def create_landuse_correction():
     '''Restrict truck trips by land use type.'''
 
     #  Read in the csv files for Parcel ID and Taz and Parcel ID and Use Type for join
@@ -364,7 +373,15 @@ def landuse_correction():
 
     return df_taz
 
+def write_summary():
+    # Write production and attraction totals
+    truck_pa = {'prod': {}, 'attr': {}}
 
+    for truck_type in ['lt','mt','ht']:
+        truck_pa['prod'][truck_type] = my_project.bank.matrix('mo' + truck_type + 'prof').get_numpy_data().sum()
+        truck_pa['attr'][truck_type] = my_project.bank.matrix('md' + truck_type + 'attf').get_numpy_data().sum()
+
+    pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/trucks.csv')
 
 
 def main():
@@ -385,6 +402,7 @@ def main():
     balance_matrices()
     calculate_daily_trips()
     skims_to_hdf5(my_project)
+    write_summary()
 
 my_project = EmmeProject(truck_model_project)
 input_skims = json_to_dictionary('input_skims')
