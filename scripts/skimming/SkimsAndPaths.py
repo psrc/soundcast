@@ -1,4 +1,5 @@
-﻿import array as _array
+
+import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
@@ -873,9 +874,12 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         #get the matrix name from matrix_dict. Throw out school bus (8) for now.
             if mode[x] <= 0: 
                  print x, mode[x]
-            if mode[x]<8:
+            if mode[x]<8 and mode[x]>0:
                 #Only want drivers, transit trips.
-                if dorp[x] <= 1:
+                # to do: this should probably be in the emme_configuration file, in case the ids change
+                auto_mode_ids = [3, 4, 5]
+                # using dorp to select out driver trips only for car trips; for non-auto trips, put all trips in the matrix                              
+                if dorp[x] <= 1 or mode[x] not in auto_mode_ids:
                     mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
                     myOtaz = dictZoneLookup[otaz[x]]
                     myDtaz = dictZoneLookup[dtaz[x]]
@@ -1387,7 +1391,7 @@ def run_assignments_parallel(project_name):
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod
     logging.debug(text)
 
-def main(): 
+def main():
 
         
     #Start Daysim-Emme Equilibration
@@ -1401,7 +1405,7 @@ def main():
 
         
         #want pooled processes finished before executing more code in main:
-        #run_assignments_parallel('projects/7to8/7to8.emp')
+        #run_assignments_parallel('projects/6to7/6to7.emp')
         
         start_transit_pool(project_list)
        
@@ -1441,4 +1445,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
