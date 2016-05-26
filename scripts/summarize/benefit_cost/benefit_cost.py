@@ -60,7 +60,10 @@ def auto_own_cost(output_df, max_income):
 
 def nonmotorized_benefits(trips, mode, max_income):
     nonmotorized_trips_dist=  trips.loc[(trips['mode']== mode) & (trips['hhincome']<max_income)]
-    trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'travtime' :[np.sum]})
+    if mode != 'Transit':
+        trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'travtime' :[np.sum]})
+    else:
+        trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'dorp' :[np.sum]})
     people_times = {'Time': trips_people.mean(), 'People': trips_people.count()}
     return  people_times
 
@@ -265,19 +268,22 @@ def main():
     print bc_costs
     walk_times = nonmotorized_benefits(trips, 'Walk', MAX_INC)
     bike_times = nonmotorized_benefits(trips, 'Bike', MAX_INC)
+    transit_walk_times = nonmotorized_benefits(trips, 'Transit', MAX_INC)
 
-    bc_health_outputs['Average Time Walked per Walker'] = walk_times['Time'].values[0]
-    bc_health_outputs['Total Number of Walkers'] = walk_times['People'].values[0]
+    bc_health_outputs['Average Time Walked per Walker or Person Walking to Transit'] = walk_times['Time'].values[0] + transit_walk_times['Time'].values[0]
+    bc_health_outputs['Total Number of Walkers or People Walking to Transit'] = walk_times['People'].values[0] + transit_walk_times['People'].values[0]
     bc_health_outputs['Average Time Biked per Biker'] = bike_times['Time'].values[0]
     bc_health_outputs['Total Number of Bikers'] = bike_times['People'].values[0]
 
     walk_times_low_inc = nonmotorized_benefits(trips, 'Walk', LOW_INC_MAX)
     bike_times_low_inc = nonmotorized_benefits(trips, 'Bike', LOW_INC_MAX)
+    transit_walk_times_low_inc = nonmotorized_benefits(trips, 'Transit', LOW_INC_MAX)
 
-    bc_health_outputs['Average Time Walked per Low Income Walker'] = walk_times_low_inc['Time'].values[0]
-    bc_health_outputs['Total Number of Low Income Walkers'] = walk_times_low_inc['People'].values[0]
+    bc_health_outputs['Average Time Walked per Low Income Walker or Person Walking to Transit'] = walk_times_low_inc['Time'].values[0] + transit_walk_times_low_inc['Time'].values[0]
+    bc_health_outputs['Total Number of Low Income Walkers or People Walking to Transit'] = walk_times_low_inc['People'].values[0] + transit_walk_times_low_inc['People'].values[0]
     bc_health_outputs['Average Time Biked per Low Income Biker'] = bike_times_low_inc['Time'].values[0]
     bc_health_outputs['Total Number of Low INcome Bikers'] = bike_times_low_inc['People'].values[0]
+    
     
     ### Get EMME project set up##############
     emme_project = EmmeProject(project)
