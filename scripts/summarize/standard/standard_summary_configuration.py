@@ -14,12 +14,13 @@ extra_attributes_dict = {'@tveh' : 'total vehicles',
                          '@ovol' : 'observed volume', 
                          '@bveh' : 'number of buses'}
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
-               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
-               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+
+#transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
+#               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+#               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
 counts_file = 'TrafficCounts_Mid.txt'
 # Output Files: 

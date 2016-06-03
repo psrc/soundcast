@@ -57,33 +57,36 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
-# Input values
-transit_submodes = ['b', 'c', 'f', 'p', 'r']
-transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
-                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
-                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
-                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
-                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
-transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
-                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
+## Input values
+#transit_submodes = ['b', 'c', 'f', 'p', 'r']
+#transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
+#                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
+#                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
+#transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
+#                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
+#                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
+#transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
+#                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
+#                            '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm',
+#                            '18to20' : 'ev'}                  
+                 
 
-# Transit Fare:
-zone_file = 'inputs/Fares/transit_fare_zones.grt'
-peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
-peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
-offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
-offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
-fare_matrices_tod = ['6to7', '9to10']
+## Transit Fare:
+#zone_file = 'inputs/Fares/transit_fare_zones.grt'
+#peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
+#peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
+#offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
+#offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+#fare_matrices_tod = ['6to7', '9to10']
 
-# Intrazonals
-intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
-taz_area_file = 'inputs/intrazonals/taz_acres.in'
-origin_tt_file = 'inputs/intrazonals/origin_tt.in'
-destination_tt_file = 'inputs/intrazonals/destination_tt.in'
+## Intrazonals
+#intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
+#taz_area_file = 'inputs/intrazonals/taz_acres.in'
+#origin_tt_file = 'inputs/intrazonals/origin_tt.in'
+#destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 
-# Zone Index
-tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+## Zone Index
+#tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
 
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
@@ -300,6 +303,11 @@ def intitial_extra_attributes(my_project):
 
     end_extra_attr = time.time()
 
+def calc_bus_pce(my_project):
+     total_hours = transit_tod[my_project.tod]['num_of_hours']
+     my_expression = str(total_hours) + ' * vauteq * (60/hdw)'
+     print my_expression
+     my_project.transit_segment_calculator(result = "@trnv3", expression = my_expression, aggregation = "+")
 
 def arterial_delay_calc(my_project):
 
@@ -1071,6 +1079,18 @@ def start_transit_pool(project_list):
     pool = Pool(processes=1)
     pool.map(run_transit,project_list[6:7])
 
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[7:8])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[8:9])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[9:10])
+
+    pool = Pool(processes=1)
+    pool.map(run_transit,project_list[10:11])
+
     pool.close()
 
 def run_transit(project_name):
@@ -1360,6 +1380,8 @@ def run_assignments_parallel(project_name):
 
     ##set up for assignments
     intitial_extra_attributes(my_project)
+    if my_project.tod in transit_tod:
+        calc_bus_pce(my_project)
 
     # ************arterial delay is being handled in network_importer for now. Leave commented!!!!!!!!!!!!!
     #arterial_delay_calc(my_project)
@@ -1408,6 +1430,7 @@ def main():
         #run_assignments_parallel('projects/6to7/6to7.emp')
         
         start_transit_pool(project_list)
+        #run_transit('projects/15to16/15to16.emp')
        
         f = open('inputs/converge.txt', 'w')
        

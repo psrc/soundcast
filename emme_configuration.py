@@ -6,7 +6,7 @@ sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am
                        '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
                        '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
                        '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
+load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 
 mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 
                       'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 
@@ -66,17 +66,40 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 bike_walk_skim_tod = ['5to6']
 
 # Transit Inputs:
-transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
+transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0897':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
+transit_node_constants = {'am':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
+                          'pm':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
+
 transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
-                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md'}                  
+                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
+                            '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm',
+                            '18to20' : 'ev'}                  
+
+transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
+               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1},
+               '15to16' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
+               '16to17' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
+               '17to18' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
+               '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}
+                
 
 # Transit Fare:
 zone_file = 'inputs/Fares/transit_fare_zones.grt'
