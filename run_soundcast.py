@@ -179,7 +179,6 @@ def daysim_assignment(iteration):
          if returncode != 0:
             sys.exit(1)
 
-     if run_bike_model:
          returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
          if returncode != 0:
             sys.exit(1)
@@ -259,6 +258,9 @@ def main():
 ### BUILD OR COPY SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
         build_seed_skims(10)
+        returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
+        if returncode != 0:
+            sys.exit(1)
     # either you build seed skims or you copy them, or neither, but it wouldn't make sense to do both
     elif run_copy_seed_skims:
         copy_seed_skims()
