@@ -1,3 +1,4 @@
+import pandas as pd
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
@@ -218,8 +219,20 @@ def multiwordReplace(text, replace_dict):
         return replace_dict.get(word, word)
     return rc.sub(translate, text)
 
+def update_headways(emmeProject, headways_df):
+    network = emmeProject.current_scenario.get_network()
+    for transit_line in network.transit_lines():
+        row = headways_df.loc[(headways_df.id == int(transit_line.id))]
+        if int(row['hdw_' + emmeProject.tod]) > 0:
+            transit_line.headway = int(row['hdw_' + emmeProject.tod])
+        else:
+            network.delete_transit_line(transit_line.id)
+    emmeProject.current_scenario.publish_network(network)
+
+
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
+    headway_df = pd.DataFrame.from_csv('inputs/networks/' + headway_file)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
@@ -242,9 +255,11 @@ def run_importer(project_name):
         if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
            my_project.process_transit('inputs/networks/' + value + transit_name)
-
+           update_headways(my_project, headway_df)
         #import tolls
         import_tolls(my_project)
+        #time_period_headway_df = headeway_df.loc[(headway_df['hdw_' + my_project.tod])]
+        #print len(time_period_headway_df)
         
 
 def main():
