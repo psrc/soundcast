@@ -23,8 +23,8 @@ if not(use_simple_configuration):
     base_inputs = main_inputs_folder + scenario_name
     # For Overriding the simple configuration, when you want to run things in more detail:
     ###### Only update parking for future-year analysis!
-    run_update_parking = False
-    run_convert_hhinc_2000_2010 = False
+    run_update_parking = True
+    run_convert_hhinc_2000_2010 = True
     run_accessibility_calcs = True
     run_copy_daysim_code = True
     run_setup_emme_project_folders = True
@@ -34,19 +34,20 @@ if not(use_simple_configuration):
     # if run copy seed skims is tru (intentional typo for find and replace), you don't need to run skims and paths seed trips
     # the model run will start with daysim
     run_copy_seed_skims = True
-    create_no_toll_network = True
-    run_skims_and_paths_seed_trips = True
+    create_no_toll_network = False
+    run_skims_and_paths_seed_trips = False
     ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
     should_build_shadow_price = True
     run_skims_and_paths = True
     run_truck_model = True
     run_supplemental_trips = True
     run_daysim = True
-    run_accessibility_summary = False
+    run_accessibility_summary = True
     run_network_summary = True
     run_soundcast_summary =  True
     run_create_daily_bank = True
-    run_ben_cost = False
+    run_ben_cost = True
+    run_truck_summary = True
 
     # Specific reports to run
     run_daysim_report = True
@@ -57,7 +58,7 @@ if not(use_simple_configuration):
     run_time_choice_report = True
     run_district_summary_report = False
 
-    run_landuse_summary = True
+    run_landuse_summary = False
 
     # Model iterations, population sampling, log files, etc.
     pop_sample = [10, 2]
