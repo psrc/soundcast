@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
 from input_configuration import *
 from emme_configuration import *
+from standard_summary_configuration import *
 
 extra_attributes_dict = {'@tveh' : 'total vehicles', 
                          '@mveh' : 'medium trucks', 
@@ -76,16 +77,19 @@ def get_aadt_trucks(my_project):
 
 def main():
    print 'running truck_summary'
-   truck_counts = pd.read_excel('scripts/summarize/inputs/network_summary/truck_counts_2014.xlsx')
+   truck_counts = pd.read_excel(truck_counts_file)
    filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
    my_project = EmmeProject(filepath)
    truck_volumes =get_aadt_trucks(my_project)
    truck_compare = pd.merge(truck_counts, truck_volumes, left_on = 'ij_id', right_on = 'link_id')
    truck_compare['med_hvy_tot'] = truck_compare['@mveh']+truck_compare['@hveh']
-   truck_compare['model-count'] = truck_compare['med_hvy_tot']- truck_compare['Observed']
-   truck_compare['percentdiff'] = truck_compare['model-count']/truck_compare['Observed']
+   truck_compare_grouped_sum = truck_compare.groupby(['CountID']).sum()[['med_hvy_tot', '@mveh', '@hveh']]
+   truck_compare_grouped_sum.reset_index(level=0, inplace=True)
+   truck_compare_grouped_min = truck_compare.groupby(['CountID']).min()[['Location', 'LocationDetail', 'length', 'TruckCount', 'FacilityType']]
+   truck_compare_grouped_min.reset_index(level=0, inplace=True)
+   trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
    writer = pd.ExcelWriter('outputs/trucks_vol_summary.xlsx')
-   truck_compare.to_excel(writer, 'Sheet1')
+   trucks_out.to_excel(writer, 'Sheet1')
 
 if __name__ == "__main__":
 	main()
