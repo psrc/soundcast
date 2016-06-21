@@ -24,10 +24,10 @@ run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_large_inputs = True
 run_import_networks = True
-create_no_toll_network = True
+create_no_toll_network = False
 run_skims_and_paths_seed_trips = True
 ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
-should_build_shadow_price = True
+should_build_shadow_price = False
 ##### ***** #####
 run_skims_and_paths = True
 run_truck_model = True
@@ -37,8 +37,8 @@ run_parcel_buffer_summary = True
 run_network_summary = True
 run_soundcast_summary = True
 run_create_daily_bank = True
-run_ben_cost = True
-run_bike_model = True
+run_ben_cost = False
+run_bike_model = False
 
 # Model iterations, population sampling, log files, etc.
 pop_sample = [10, 5, 5, 2]
@@ -69,7 +69,7 @@ run_dest_choice_report = True
 run_long_term_report = True
 run_time_choice_report = True
 run_district_summary_report = True
-run_tableau_db = True
+run_tableau_db = False
 
 # Calibration Summary Configuration
 h5_results_file = 'outputs/daysim_outputs.h5'
