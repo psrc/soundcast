@@ -387,7 +387,7 @@ def transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall
         
      #transit_df = transit_df.drop('id')
      # first get the model data group by RDCode and Agency
-    # transit_df = transit_df[transit_df.index != 'id'].fillna(0)
+    transit_df = transit_df[transit_df.index != 'id'].fillna(0)
     transit_df['id'] = transit_df.index.astype('float')
     transit_df['AM Code'] = transit_df['id'].map(am_agency_map)
     transit_df['MD Code'] = transit_df['id'].map(md_agency_map)
