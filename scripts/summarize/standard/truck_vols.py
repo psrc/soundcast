@@ -82,6 +82,7 @@ def main():
    my_project = EmmeProject(filepath)
    truck_volumes =get_aadt_trucks(my_project)
    truck_compare = pd.merge(truck_counts, truck_volumes, left_on = 'ij_id', right_on = 'link_id')
+
    truck_compare['modeledTot'] = truck_compare['@mveh']+truck_compare['@hveh']
    truck_compare['modeledMed'] = truck_compare['@mveh']
    truck_compare['modeledHvy'] = truck_compare['@hveh']

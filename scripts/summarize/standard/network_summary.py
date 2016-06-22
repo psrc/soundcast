@@ -304,7 +304,7 @@ def get_transit_boardings_time(EmmeProject):
         x = {}
         
         #company_code = transit_line['@ut3']
-        atts.append({'id' : transit_line.id, 'route_code' : transit_line.data1, 'mode' : str(transit_line.mode)})
+        atts.append({'id' : transit_line.id, 'route_code' : transit_line.data1, 'mode' : str(transit_line.mode), 'description' : transit_line.description})
         x['id'] = transit_line.id
         x[EmmeProject.tod + '_board'] = transit_line['@board']
         x[EmmeProject.tod + '_time']= transit_line['@timtr']
@@ -482,7 +482,7 @@ def main():
     # Travel times on key corridors
     # export_corridor_results(my_project)
 
-    
+    #export_corridor_results(my_project)
 
     # Connect to sqlite3 db
     if run_tableau_db:

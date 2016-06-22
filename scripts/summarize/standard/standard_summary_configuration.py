@@ -41,3 +41,6 @@ results_db = 'R:\SoundCast\db\soundcastRuns.sl3'
 ########## Land Use Summary ##################################################
 out_lu_summary = r'outputs/landuse_summary.xlsx'
 households_persons_file = r'inputs\hh_and_persons.h5'
+
+######## Truck Counts ########################################################
+truck_counts_file ='scripts/summarize/inputs/network_summary/truck_counts_2014.xlsx'
