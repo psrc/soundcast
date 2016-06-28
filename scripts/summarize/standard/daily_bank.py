@@ -1,11 +1,14 @@
 import inro.emme.database.emmebank as _emmebank
 import os
+import numpy as np
 from input_configuration import *
 from emme_configuration import *
 import json
 import shutil
 from distutils import dir_util
+from scripts.EmmeProject import *
 
+daily_network_fname = 'outputs/daily_network_results.csv'
 keep_atts = ['@type']
 def json_to_dictionary(dict_name):
 
@@ -68,6 +71,36 @@ def merge_networks(master_network, merge_network):
 
     return master_network
 
+def export_link_values(my_project):
+    ''' Extract link attribute values for a given scenario and emmebank (i.e., time period) '''
+
+    # Change active database to daily bank
+    my_project.change_active_database('daily')
+
+    network = my_project.current_scenario.get_network()
+    link_type = 'LINK'
+
+    # list of all link attributes
+    link_attr = network.attributes(link_type)
+
+    # Initialize a dataframe to store results
+    df = pd.DataFrame(np.zeros(len(link_attr)+1)).T    # column for each attr +1 for node id (used as merge field)
+    df.columns = np.insert(link_attr, 0, 'nodes')    # columns are attrs w/ node id inserted to front of array
+    
+    for attr in link_attr:
+        print "processing: " + str(attr)
+        
+        # store values and node id for a single attr in a temp df 
+        df_attr = pd.DataFrame([network.get_attribute_values(link_type, [attr])[1].keys(),
+                          network.get_attribute_values(link_type, [attr])[1].values()]).T
+        df_attr.columns = ['nodes',attr]
+        
+        # merge temp df with the 'master df' that is filled iteratively
+        df = pd.merge(df_attr,df,how='outer',on='nodes')
+
+            
+    df.to_csv(daily_network_fname)
+
 def main():
     print 'creating daily bank'
     #Use a copy of an existing bank for the daily bank
@@ -123,7 +156,7 @@ def main():
             time_period_list.append(time_period) #this line was repeated below
             daily_network = merge_networks(daily_network, network)
             time_period_list.append(time_period) #this line was repeated above
-    daily_scenario.publish_network(daily_network)
+    daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     # Write daily trip tables:
     for matrix in daily_emmebank.matrices():
@@ -157,7 +190,7 @@ def main():
     for link in daily_network.links():
         for item in tods:
             link['@tveh'] = link['@tveh'] + link['@v' + item[:4]]
-    daily_scenario.publish_network(daily_network)
+    daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     ######################## Validate results ##########################
 
@@ -181,6 +214,10 @@ def main():
 
 
     print 'daily bank created'
+
+    # Write daily link-level results
+    my_project = EmmeProject(network_summary_project)
+    export_link_values(my_project)
 
 if __name__ == '__main__':
     main()

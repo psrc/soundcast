@@ -82,14 +82,34 @@ def main():
    my_project = EmmeProject(filepath)
    truck_volumes =get_aadt_trucks(my_project)
    truck_compare = pd.merge(truck_counts, truck_volumes, left_on = 'ij_id', right_on = 'link_id')
-   truck_compare['med_hvy_tot'] = truck_compare['@mveh']+truck_compare['@hveh']
-   truck_compare_grouped_sum = truck_compare.groupby(['CountID']).sum()[['med_hvy_tot', '@mveh', '@hveh']]
+
+   truck_compare['modeledTot'] = truck_compare['@mveh']+truck_compare['@hveh']
+   truck_compare['modeledMed'] = truck_compare['@mveh']
+   truck_compare['modeledHvy'] = truck_compare['@hveh']
+   truck_compare_grouped_sum = truck_compare.groupby(['CountID']).sum()[['modeledTot', 'modeledMed', 'modeledHvy']]
    truck_compare_grouped_sum.reset_index(level=0, inplace=True)
-   truck_compare_grouped_min = truck_compare.groupby(['CountID']).min()[['Location', 'LocationDetail', 'length', 'TruckCount', 'FacilityType']]
+   truck_compare_grouped_min = truck_compare.groupby(['CountID']).min()[['Location', 'LocationDetail', 'FacilityType', 'length', 'observedMed',
+   																		'observedHvy', 'observedTot','county','LARGE_AREA']]
    truck_compare_grouped_min.reset_index(level=0, inplace=True)
    trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
+   # trucks_out['ModeledVolumes'] = trucks_out['med_hvy_tot']
    writer = pd.ExcelWriter('outputs/trucks_vol_summary.xlsx')
-   trucks_out.to_excel(writer, 'Sheet1')
+   trucks_out.to_excel(writer, 'AllCounts')
+
+   # Write out counts by facility type
+   facility_counts = trucks_out.groupby('FacilityType').sum()
+   facility_counts.drop(['CountID','length'], axis=1, inplace=True)
+   facility_counts.to_excel(writer, 'CountsByFacilityType')
+
+   # Write out counts by county
+   cnty_counts = trucks_out.groupby('county').sum()
+   cnty_counts.drop(['CountID', 'length'], axis=1, inplace=True)
+   cnty_counts.to_excel(writer, 'CountsByCounty')
+
+   # Write out counts by FAZ large area (district)
+   distr_counts = trucks_out.groupby('LARGE_AREA').sum()
+   distr_counts.drop(['CountID', 'length'], axis=1, inplace=True)
+   distr_counts.to_excel(writer, 'CountsByDistrict')
 
 if __name__ == "__main__":
 	main()
