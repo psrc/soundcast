@@ -44,7 +44,13 @@ def copy_daysim_code():
     print 'Copying Daysim executables...'
     if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
        os.makedirs(os.path.join(os.getcwd(), 'daysim'))
-    dir_util.copy_tree(daysim_code, 'daysim')
+    try:
+        dir_util.copy_tree(daysim_code, 'daysim')
+    except Exception as ex:
+        template = "An exception of type {0} occured. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print message
+        sys.exit(1)
 
 
 @timed
