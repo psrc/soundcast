@@ -29,6 +29,8 @@ Emme's Python libraries can conflict with the Anaconda install used to run Pytho
 Although the Anaconda Python package include many libraries, there are some specialized libraries required for Soundcast that are not included. Fortunately, these can easily be added from the command prompt. The required additional libraries are:
 
 	- pysal (used to read geodatabase files from ArcGIS)
+	- pandana (for Daysim accessibility calculations)
+	- zbox (for Daysim accessibility calculations)
 	- pandas_highcharts (for visualization of results in iPython notebooks)
 
 These can be added either by typing "pip install [library name]" or "conda install [library name]". If the model run crashes because of a missing library, it should be easy to quickly add the library and restart the model from the point of failure.
