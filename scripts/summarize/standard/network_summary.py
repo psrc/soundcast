@@ -612,7 +612,7 @@ def main():
        #transit_df[tod + '_board'] = df[tod + '_board']
        #transit_df[tod + '_time'] = df[tod + '_time']
     
-    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', \
+    transit_df = transit_df[['5to6_board', '5to6_time', '6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', \
         '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time', '15to16_board', '15to16_time', '16to17_board', '16to17_time', \
         '17to18_board', '17to18_time', '18to20_board', '18to20_time']]
     transit_atts_df = pd.DataFrame(transit_atts)

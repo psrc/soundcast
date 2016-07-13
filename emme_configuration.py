@@ -2,11 +2,11 @@
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
-sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
+sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
                        '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
                        '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
                        '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
+load_transit_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 
 mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 
                       'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 
@@ -67,7 +67,7 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 bike_walk_skim_tod = ['5to6']
 
 # Transit Inputs:
-transit_skim_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
+transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
@@ -85,12 +85,13 @@ transit_node_constants = {'am':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' :
                           '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
 
-transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
+transit_network_tod_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
                             '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
                             '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm',
                             '18to20' : 'ev'}                  
 
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
+               '6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
@@ -117,7 +118,7 @@ origin_tt_file = 'inputs/intrazonals/origin_tt.in'
 destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 
 # Zone Index
-tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+#tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
 
 # SUPPLEMENTAL#######################################################
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs

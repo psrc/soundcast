@@ -46,7 +46,6 @@ else:
     survey_seed_trips = False
     daysim_seed_trips= False
 
-
 if survey_seed_trips:
 	print 'Using SURVEY SEED TRIPS.'
 	hdf5_file_path = base_inputs + '/' + scenario_name + '/etc/survey_seed_trips.h5'
@@ -1061,35 +1060,41 @@ def start_delete_matrices_pool(project_list):
 def start_transit_pool(project_list):
     #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one
     #instance of modeler issue. Will change code to be more generalized later.
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[1:2])
+    pool = Pool(processes=11)
+    pool.map(run_transit,project_list[0:11])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[2:3])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[0:1])
+    
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[1:2])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[3:4])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[2:3])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[4:5])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[3:4])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[5:6])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[4:5])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[6:7])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[5:6])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[7:8])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[6:7])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[8:9])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[7:8])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[9:10])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[8:9])
 
-    pool = Pool(processes=1)
-    pool.map(run_transit,project_list[10:11])
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[9:10])
+
+    #pool = Pool(processes=1)
+    #pool.map(run_transit,project_list[10:11])
 
     pool.close()
 
@@ -1426,11 +1431,11 @@ def main():
             start_pool(l)
 
         
-        #want pooled processes finished before executing more code in main:
-        #run_assignments_parallel('projects/6to7/6to7.emp')
+        ##want pooled processes finished before executing more code in main:
+        ##run_assignments_parallel('projects/5to6/5to6.emp')
         
         start_transit_pool(project_list)
-        #run_transit('projects/15to16/15to16.emp')
+        #run_transit('projects/20to5/20to5.emp')
        
         f = open('inputs/converge.txt', 'w')
        
