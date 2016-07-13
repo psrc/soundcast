@@ -619,8 +619,8 @@ def main():
     transit_atts_df = transit_atts_df.drop_duplicates(['id'], take_last=True)
     print transit_atts_df.columns
     transit_df.reset_index(level=0, inplace=True)
-    transit_df.to_csv('D:/transit_df.csv')
-    transit_atts_df.to_csv('D:/transit_atts.csv')
+    # transit_df.to_csv('D:/transit_df.csv')
+    # transit_atts_df.to_csv('D:/transit_atts.csv')
     #transit_df = transit_df.merge(transit_atts_df, 'inner', right_on=['id'], left_on=['id'])
     transit_atts_df = transit_atts_df.merge(transit_df, 'inner', right_on=['id'], left_on=['id'])
   
