@@ -1,49 +1,16 @@
-﻿import pandana as pdna
+import pandana as pdna
 from accessibility_configuration import *
 from emme_configuration import *
-#from accessibility_utils import load_network, load_network_addons, assign_nodes_to_dataset
 import pandas as pd
 import numpy as np
 import os
 import re
-import misc
-#import dataset
-#import simulation as sim
 from pyproj import Proj, transform
 
-def load_network(precompute=None, file_name=network_name):
-    # load OSM from hdf5 file
-    store = pd.HDFStore(file_name, "r")
-    nodes = store.nodes
-    edges = store.edges
-    nodes.index.name = "index" # something that Synthicity wanted to fix
-    # create the network
-    net=pdna.Network(nodes["x"], nodes["y"], edges["from"], edges["to"], edges[["distance"]])
-    if precompute is not None:
-        for dist in precompute:
-            net.precompute(dist)
-    return net
-
-def load_network_addons(network, file_name=network_add_ons):
-    store = pd.HDFStore(file_name, "r")
-    network.addons = {}    
-    for attr in map(lambda x: x.replace('/', ''), store.keys()):
-        network.addons[attr] = pd.DataFrame({"node_id": network.node_ids.values}, index=network.node_ids.values)
-        tmp = store[attr].drop_duplicates("node_id")
-        tmp["has_poi"] = np.ones(tmp.shape[0], dtype="bool8")
-        network.addons[attr] = pd.merge(network.addons[attr], tmp, how='left', on="node_id")
-        network.addons[attr].set_index('node_id', inplace=True)
-    
-def assign_nodes_to_dataset(dataset, network, x_name="long", y_name="lat"):
+def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""
-    long, lat = reproject_to_wgs84(parcels.XCOORD_P.values, parcels.YCOORD_P.values)
-    parcels["long"] = pd.Series(long)
-    parcels["lat"] = pd.Series(lat)
-    x, y = dataset["long"], dataset["lat"]   
-    # set attributes to nodes
-    dataset["node_ids"] = network.get_node_ids(x, y)   
-    
-
+    dataset[column_name] = network.get_node_ids(dataset[x_name].values, dataset[y_name].values)
+   
 def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
     '''
     Converts the passed in coordinates from their native projection (default is state plane WA North-EPSG:2926)
@@ -76,14 +43,13 @@ def process_net_attribute(network, attr, fun):
 def process_dist_attribute(parcels, network, name, x, y):
     network.set_pois(name, x, y)
     res = network.nearest_pois(max_dist, name, num_pois=1, max_distance=999)
-    res[res <> 999] = (res[res <> 999]/1000. * 0.621371).astype(res.dtypes) # convert to miles
+    res[res <> 999] = (res[res <> 999]/5280.).astype(res.dtypes) # convert to miles
     res_name = "dist_%s" % name
     parcels[res_name] = res.loc[parcels.node_ids].values
     return parcels
 
 def process_parcels(parcels, transit_df):
     
-
     # Add a field so you can compute the weighted average number of spaces later
     parcels['daily_weighted_spaces'] = parcels['PARKDY_P']*parcels['PPRICDYP']
     parcels['hourly_weighted_spaces'] = parcels['PARKHR_P']*parcels['PPRICHRP']
@@ -99,13 +65,15 @@ def process_parcels(parcels, transit_df):
             else:
                 newdf = pd.merge(newdf, res, on="node_ids", copy=False)
 
-    for new_name, attr in network_attributes.iteritems():    
-        net.set(net.node_ids, variable=net.addons[attr]["has_poi"].values, name=new_name)
-        newdf = pd.merge(newdf, process_net_attribute(net, new_name, "sum"), on="node_ids", copy=False)
+    # sum of bus stops in buffer
+    for name in transit_attributes:    
+        net.set(transit_df['node_ids'].values, transit_df[name], name=name)
+        newdf = pd.merge(newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False)
     
-    for new_name, attr in intersections.iteritems():
-        net.set(net.node_ids, variable=net.addons["intersections"][attr].values, name=new_name)
-        newdf = pd.merge(newdf, process_net_attribute(net, new_name, "sum"), on="node_ids", copy=False)
+    # sum of intersections in buffer
+    for name in intersections:
+        net.set(intersections_df['node_ids'].values, intersections_df[name],  name=name)
+        newdf = pd.merge(newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False)
 
     # Parking prices are weighted average, weighted by the number of spaces in the buffer, divided by the total spaces
     newdf['PPRICDYP_1'] = newdf['daily_weighted_spaces_1']/newdf['PARKDY_P_1']
@@ -116,17 +84,19 @@ def process_parcels(parcels, transit_df):
     parcels.reset_index(level=0, inplace=True)
     parcels = pd.merge(parcels, newdf, on="node_ids", copy=False)
 
-    net.init_pois(len(pois)+1, max_dist, 1)
-
-    for new_name, attr in pois.iteritems():
+    # set the number of pois on the network for the distance variables (transit + 1 for parks)
+    net.init_pois(len(transit_modes)+1, max_dist, 1)
+  
+    # calc the distance from each parcel to nearest transit stop by type
+    for new_name, attr in transit_modes.iteritems():
         print new_name
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
-        parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["stop_lon"], transit_type_df["stop_lat"])
+        parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
 
     # distance to park
     parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
-    parcels=process_dist_attribute(parcels, net, "park", parcels.long[parcel_idx_park], parcels.lat[parcel_idx_park])
+    parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
 
     return parcels
   
@@ -149,7 +119,7 @@ def clean_up(parcels):
     parcels = parcels.rename(columns = rename)
     parcels = parcels.rename(columns ={'PPRICDYP_1': 'PPRICDY1', 'PPRICHRP_1': 'PPRICHR1','PPRICDYP_2': 'PPRICDY2','PPRICHRP_2': 'PPRICHR2'})
 
-    # Daysim needs the column names to be lower case
+    # daysim needs the column names to be lower case
     parcels.columns = map(str.lower, parcels.columns)
     parcels=parcels.fillna(0)
     parcels_final = pd.DataFrame()
@@ -166,20 +136,52 @@ def clean_up(parcels):
     return parcels_final
 
 
-#def main():
-    #read in data
+
+# read in data
 parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+# nodes must be indexed by node_id column, which is the first column
+nodes = pd.DataFrame.from_csv(nodes_file_name)
+nodes = pd.DataFrame.from_csv(r'R:\SoundCast\all_streets_2014\psrc_2014_nodes.csv')
+links = pd.DataFrame.from_csv(links_file_name, index_col = None )
+
+# get rid of circular links
+links = links.loc[(links.from_node_id <> links.to_node_id)]
+
+# assign impedance
+imp = pd.DataFrame(links.Shape_Length)
+imp = imp.rename(columns = {'Shape_Length':'distance'})
+
+# create pandana network
+net = pdna.network.Network(nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp)
+for dist in distances:
+            net.precompute(dist)
+
+# get transit stops
 transit_df = pd.DataFrame.from_csv(transit_stops_name,  index_col = False)
+transit_df['tstops'] = 1
 
-    # load network & the various addons and assign parcels to the network 
-net = load_network(precompute=distances)
-load_network_addons(network=net)
-assign_nodes_to_dataset(parcels, net)
+# intersections:
+# combine from and to columns
+all_nodes = pd.DataFrame(net.edges_df['from'].append(net.edges_df.to), columns = ['node_id'])
 
+# get the frequency of each node, which is the number of intersecting ways
+intersections_df = pd.DataFrame(all_nodes.node_id.value_counts(), columns = ['edge_count'])
+intersections_df.reset_index(0, inplace = True)
+intersections_df = intersections_df.rename(columns = {'index' : 'node_ids'})
+
+# add a column for each way count
+intersections_df['nodes1'] = np.where(intersections_df['edge_count']==1, 1, 0)
+intersections_df['nodes3'] = np.where(intersections_df['edge_count']==3, 1, 0)
+intersections_df['nodes4'] = np.where(intersections_df['edge_count']>3, 1, 0)
+
+# assign network nodes to parcels, for buffer variables
+assign_nodes_to_dataset(parcels, net, 'node_ids', 'XCOORD_P', 'YCOORD_P')
+
+# assign network nodes to transit stops, for buffer variable
+assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
+
+# run all accibility measures
 parcels = process_parcels(parcels, transit_df)
 
 parcels_done = clean_up(parcels)
 parcels_done.to_csv(output_parcels, index = False, sep = ' ')
-
-#if __name__ == "__main__":
-#    main()

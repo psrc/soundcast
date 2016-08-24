@@ -1,16 +1,16 @@
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 output_parcels = 'inputs/buffered_parcels.txt'
-transit_stops_name = 'inputs/accessibility/transit_stops.csv'
-network_name = 'inputs/accessibility/PugetSoundNetwork.h5'
-network_add_ons = 'inputs/accessibility/PugetSoundNetworkAddons.h5'
+transit_stops_name = 'inputs/accessibility/transit_stops_2014.csv'
+nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
+links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
 
 max_dist = 24140.2 # 3 miles in meters
 
 distances = { # in meters; 
               # keys correspond to suffices of the resulting parcel columns
               # ORIGINAL VALUES !!
-             1: 804.67, # 0.5 mile
-             2: 1609.34 # 1 mile
+             1: 2640, # 0.5 mile
+             2: 5280 # 1 mile
 
              }
 
@@ -46,9 +46,9 @@ col_order =[u'parcelid', u'xcoord_p', u'ycoord_p', u'sqft_p', u'taz_p', u'lutype
 # These are already on network (from add-ons).
 # Keys correspond to the resulting parcel columns (minus suffix).
 # Values correspond the names in the add-on dataset.
-network_attributes = {"tstops": "busstops"}
-intersections = {"nodes1": "1-way", "nodes3": "3-way", "nodes4": "4-way"}
+transit_attributes = ["tstops"]
+intersections = ["nodes1", "nodes3", "nodes4"]
 
 
-pois = {"lbus": "bus", "ebus": "express", 
+transit_modes = {"lbus": "bus", "ebus": "express", 
        "fry": "ferry", "crt": "commuter_rail", "lrt": "light_rail"} # will compute nearest distance to these
