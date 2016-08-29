@@ -682,7 +682,7 @@ def main():
             amtransitall = net_summary.add_worksheet('AMTransitAll')
             mdtransitall = net_summary.add_worksheet('MDTransitAll')
 
-        transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall)
+        #transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall)
 
         highway_summary(network, net_summary, format_sheet, times, screenlines, countstime, countsall)
 
