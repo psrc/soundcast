@@ -141,7 +141,6 @@ def clean_up(parcels):
 parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
 # nodes must be indexed by node_id column, which is the first column
 nodes = pd.DataFrame.from_csv(nodes_file_name)
-nodes = pd.DataFrame.from_csv(r'R:\SoundCast\all_streets_2014\psrc_2014_nodes.csv')
 links = pd.DataFrame.from_csv(links_file_name, index_col = None )
 
 # get rid of circular links

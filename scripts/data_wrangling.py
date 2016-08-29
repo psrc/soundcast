@@ -220,6 +220,10 @@ def copy_large_inputs():
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
+    # node to node short distance files:
+    shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
 
 @timed
 def copy_shadow_price_file():
