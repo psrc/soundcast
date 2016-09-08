@@ -7,6 +7,7 @@ import os
 import re
 from pyproj import Proj, transform
 
+
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""
     dataset[column_name] = network.get_node_ids(dataset[x_name].values, dataset[y_name].values)
@@ -164,7 +165,8 @@ transit_df['tstops'] = 1
 all_nodes = pd.DataFrame(net.edges_df['from'].append(net.edges_df.to), columns = ['node_id'])
 
 # get the frequency of each node, which is the number of intersecting ways
-intersections_df = pd.DataFrame(all_nodes.node_id.value_counts(), columns = ['edge_count'])
+intersections_df = pd.DataFrame(all_nodes.node_id.value_counts())
+intersections_df = intersections_df.rename(columns = {'node_id' : 'edge_count'})
 intersections_df.reset_index(0, inplace = True)
 intersections_df = intersections_df.rename(columns = {'index' : 'node_ids'})
 
