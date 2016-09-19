@@ -218,6 +218,7 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
+    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
     # node to node short distance files:
