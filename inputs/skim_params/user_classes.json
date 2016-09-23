@@ -29,5 +29,8 @@
 ],
 "Transit": [
 {"Name": "trnst", "Description": "Transit Trips","Mode": "t","Time": "@timau","Distance": "@dist"} 
+],
+"LightRail": [
+{"Name": "litrat", "Description": "Light Rail Trips","Mode": "t","Time": "@timau","Distance": "@dist"} 
 ]
 }

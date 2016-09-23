@@ -264,4 +264,8 @@ def json_to_dictionary(dict_name):
 
     return(my_dictionary)
 
+def close():
+    app.close()
+
+
 

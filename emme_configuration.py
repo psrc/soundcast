@@ -49,7 +49,7 @@ project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 ## HDF5 Groups and Subgroups
 hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
 hdf5_emme_subgroups = tods
-emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit"]
+emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit", 'LightRail']
 hdf5_urbansim_subgroups = ["Households","Parcels","Persons"]
 hdf5_freight_subgroups = ["Inputs","Outputs","Rates"]
 hdf5_daysim_subgroups = ["Household","Person","Trip","Tour"]
