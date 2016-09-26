@@ -1129,7 +1129,7 @@ def run_transit(project_name):
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
     my_bank.dispose()
-
+    app.close()
 def export_to_hdf5_pool(project_list):
 
     pool = Pool(processes=parallel_instances)
@@ -1148,7 +1148,7 @@ def start_export_to_hdf5(test):
     else:
         average_skims_to_hdf5_concurrent(my_project, True)
     
-
+    my_project.close()
 
 def bike_walk_assignment(my_project, assign_for_all_tods):
     #One bank
@@ -1413,6 +1413,7 @@ def run_assignments_parallel(project_name):
     my_project.bank.dispose()
     #app.App.close(my_desktop)
     print my_project.tod + " finished"
+    my_project.close()
     end_of_run = time.time()
     print 'It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + my_project.tod
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod

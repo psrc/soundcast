@@ -7,9 +7,10 @@
         "o",
         "p",
         "w",
-        "x"
+        "x",
+        "r"
     ],
-    "demand": "mf24",
+    "demand": "mf25",
     "waiting_time": {
         "headway_fraction": "@hdwfr",
         "effective_headways": "hdw",
@@ -54,31 +55,35 @@
     },
     "journey_levels": [
         {
-            "description": "not_on_transit_yet",
+            "description": "not_on_light_rail_yet",
             "boarding_cost": null,
             "transition_rules": [
                 {
                     "mode": "b",
-                    "next_journey_level": 1
+                    "next_journey_level": 0
                 },
                 {
                     "mode": "c",
-                    "next_journey_level": 1
+                    "next_journey_level": 0
                 },
                 {
                     "mode": "f",
-                    "next_journey_level": 1
+                    "next_journey_level": 0
                 },
                 {
                     "mode": "n",
-                    "next_journey_level": 1
+                    "next_journey_level": 0
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 1
+                    "next_journey_level": 0
                 },
                 {
                     "mode": "p",
+                    "next_journey_level": 0
+                },
+                {
+                    "mode": "r",
                     "next_journey_level": 1
                 }
             ],
@@ -87,7 +92,7 @@
             "waiting_time": null
         },
         {
-            "description": "on _transit",
+            "description": "on _light_rail",
             "boarding_cost": null,
             "transition_rules": [
                 {
@@ -112,6 +117,10 @@
                 },
                 {
                     "mode": "p",
+                    "next_journey_level": 1
+                },
+                {
+                    "mode": "r",
                     "next_journey_level": 1
                 }
             ],
