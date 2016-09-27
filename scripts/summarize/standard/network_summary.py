@@ -103,8 +103,8 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      #network_calc(mod_spec)
      
      #calc total vehicles, store in @tveh 
-     str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 +  @svnt2 + @svnt3 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
-                                + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk + @mveh + @hveh + @bveh'
+     str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1\
+                                + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
      EmmeProject.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
      #a dictionary to hold vmt/vht/delay values:
      results_dict = {}

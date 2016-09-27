@@ -50,7 +50,6 @@ class EmmeProject:
         return count
     def change_active_database(self, database_name):
         for database in self.data_explorer.databases():
-            #print database.title()
             if database.title() == database_name:
                 
                 database.open()
@@ -134,7 +133,6 @@ class EmmeProject:
     def create_matrix (self, matrix_name, matrix_description, matrix_type):
         NAMESPACE = "inro.emme.data.matrix.create_matrix"
         process = self.m.tool(NAMESPACE)
-        print self.current_scenario
         process (matrix_id= self.bank.available_matrix_identifier(matrix_type),
                           matrix_name= matrix_name,
                           matrix_description= matrix_description,
@@ -157,7 +155,6 @@ class EmmeProject:
                 spec['constraint']['by_zone']['destinations'] = value
             else:
                 spec[name] = value
-        #print spec
         NAMESPACE = "inro.emme.matrix_calculation.matrix_calculator"
         process = self.m.tool(NAMESPACE)
         report = process(spec) 

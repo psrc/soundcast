@@ -56,7 +56,6 @@ else:
 	print 'Using DAYSIM OUTPUTS'
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
-
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
     return sys.argv[1]
