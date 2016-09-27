@@ -9,7 +9,7 @@
         "w",
         "x"
     ],
-    "demand": "mf24",
+    "demand": "mftrnst",
     "waiting_time": {
         "headway_fraction": "@hdwfr",
         "effective_headways": "hdw",

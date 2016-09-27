@@ -10,7 +10,7 @@
         "x",
         "r"
     ],
-    "demand": "mf25",
+    "demand": "mflitrat",
     "waiting_time": {
         "headway_fraction": "@hdwfr",
         "effective_headways": "hdw",
