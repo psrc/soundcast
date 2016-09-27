@@ -57,38 +57,6 @@ else:
 	hdf5_file_path = 'outputs/daysim_outputs.h5'
 
 
-
-## Input values
-#transit_submodes = ['b', 'c', 'f', 'p', 'r']
-#transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
-#                           'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
-#                           'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-#transit_node_constants = {'am':{'0888':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}, 
-#                          '0889':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'},
-#                          '0892':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.60'}}}
-#transit_network_tod_dict = {'6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
-#                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
-#                            '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm',
-#                            '18to20' : 'ev'}                  
-                 
-
-## Transit Fare:
-#zone_file = 'inputs/Fares/transit_fare_zones.grt'
-#peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
-#peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
-#offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
-#offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
-#fare_matrices_tod = ['6to7', '9to10']
-
-## Intrazonals
-#intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
-#taz_area_file = 'inputs/intrazonals/taz_acres.in'
-#origin_tt_file = 'inputs/intrazonals/origin_tt.in'
-#destination_tt_file = 'inputs/intrazonals/destination_tt.in'
-
-## Zone Index
-#tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
-
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
     return sys.argv[1]
@@ -150,7 +118,6 @@ def vdf_initial(my_project):
     start_vdf_initial = time.time()
     
     #Point to input file for the VDF's and Read them in
-    #function_file = os.path.join(os.path.dirname(my_project.emmebank.path),"inputs/vdfs.txt").replace("\\","/")
     function_file = 'inputs/vdfs/vdfs' + my_project.tod + '.txt'
 
     #manage_vdfs(transaction_file = function_file,throw_on_error = True)
@@ -253,7 +220,6 @@ def populate_intrazonals(my_project):
     #populate origin matrix with zone areas:
 
     #taz area
-    print taz_area_file
     my_project.matrix_transaction(taz_area_file)
     
     #origin terminal times
@@ -309,7 +275,6 @@ def intitial_extra_attributes(my_project):
 def calc_bus_pce(my_project):
      total_hours = transit_tod[my_project.tod]['num_of_hours']
      my_expression = str(total_hours) + ' * vauteq * (60/hdw)'
-     print my_expression
      my_project.transit_segment_calculator(result = "@trnv3", expression = my_expression, aggregation = "+")
 
 def arterial_delay_calc(my_project):
@@ -476,9 +441,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
         mod_skim["path_analysis"]["link_component"] = my_extra
         #only need generalized cost skims for trucks and only doing it when skimming for time.
         if tod in generalized_cost_tod and skim_desig == 't':
-            print "here"
             if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
-                print "here now"
                 mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = my_user_classes["Highway"][x]["Name"] + 'g'
         #otherwise, make sure we do not skim for GC!
        
@@ -600,14 +563,6 @@ def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, m
      emme_matrix = emmebank.matrix(matrix_id)
      matrix_data = emme_matrix.get_data()
      np_matrix = np.matrix(matrix_data.raw_data) 
-     print np_matrix.max()
-    #if max_value <> None:
-    #    if np_matrix.max() >= max_value:
-    #        i,j = np.unravel_index(np_matrix.argmax(), np_matrix.shape)
-    #    #print matrix_name +  ' ' + str(i) + '-' + str(j)
-    #        print matrix_name + ' exceded max value of ' + str(max_value) + ' at ' +  str(i) + '-' + str(j) +'. Exiting Program!'
-    #        exit()
-
      np_matrix = np_matrix * multiplier
     
      if np_data_type == 'uint16':
@@ -621,7 +576,6 @@ def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, m
 def average_matrices(old_matrix, new_matrix):
     avg_matrix = old_matrix + new_matrix
     avg_matrix = avg_matrix * .5
-    print 'here'
     return avg_matrix
 
 def average_skims_to_hdf5_concurrent(my_project, average_skims):
@@ -640,7 +594,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
         for key in my_store['Skims'].keys():
             np_matrix = my_store['Skims'][key]
             np_matrix = np.matrix(np_matrix)
-            print str(key)
             np_old_matrices[str(key)] = np_matrix
 
     e = "Skims" in my_store
@@ -690,7 +643,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             else:
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             #delete old skim so new one can be written out to h5 container
@@ -703,7 +655,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= 'ivtwa' + item
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
@@ -725,7 +676,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= key
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
@@ -738,7 +688,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= bike_walk_matrix_dict[key]['time']
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
@@ -751,7 +700,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= 'mf' + value
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
@@ -762,7 +710,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name = value + 'g'
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
             #open old skim and average
-            print matrix_name
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
@@ -780,15 +727,11 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     start_time = time.time()
 
     #Determine the Path and Scenario File and Zone indicies that go with it
-    
-    #my_bank = current_scenario.emmebank
     zonesDim = len(my_project.current_scenario.zone_numbers)
     zones = my_project.current_scenario.zone_numbers
-    #bank_name = my_project.emmebank.title
  
-
     #load zones into a NumpyArray to index trips otaz and dtaz
-    #tazIndex = np.asarray(zones)
+ 
     #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
     dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
     #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
@@ -876,12 +819,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     #some missing Os&Ds in seed trips!
                     if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
                         myOtaz = dictZoneLookup[otaz[x]]
-                        myDtaz = dictZoneLookupd[dtaz[x]]
-                        print myOtaz, myDtaz 
+                        myDtaz = dictZoneLookupd[dtaz[x]] 
                         trips = np.asscalar(np.float32(trexpfac[x]))
                         trips = round(trips, 2)
-                        print trips
-                        #print trips
                         #if mode in supplemental_modes:
                         demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
         
@@ -892,8 +832,6 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             else: vot[x]=3
 
         #get the matrix name from matrix_dict. Throw out school bus (8) for now.
-            if mode[x] <= 0: 
-                 print x, mode[x]
             if mode[x]<8 and mode[x]>0:
                 #Only want drivers, transit trips.
                 # to do: this should probably be in the emme_configuration file, in case the ids change
@@ -914,13 +852,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         for matrix in demand_matrices.itervalues():
             matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
-        print mat_name
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
-        #emme_matrix.raw_data=[_array.array('f',row) for row in np_array]
-        print mat_name
-        print np_array.shape
         emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
     
@@ -968,7 +902,6 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
 
     # Copy truck trip tables with a time of day factor
     if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
-       print matrix_name + str(np_matrix_1.shape)
        sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
@@ -997,10 +930,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     # Extract specified array size and store as NumPy array 
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
     sub_demand_array = (np.asarray(sub_demand_matrix))
-    print sub_demand_array.shape
-    print zonesDim
     demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
-    #demand_matrix = np.squeeze(np.asarray(sub_demand_matrix))
 
     return demand_matrix
 
@@ -1015,7 +945,6 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
-     print hdf5_file_path
      my_store = h5py.File(hdf5_file_path, "r+")
      daysim_set = my_store["Trip"]
      #open departure time array
@@ -1071,44 +1000,11 @@ def start_delete_matrices_pool(project_list):
     pool.close()
 
 def start_transit_pool(project_list):
+    
     #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one
     #instance of modeler issue. Will change code to be more generalized later.
     pool = Pool(processes=11)
     pool.map(run_transit,project_list[0:11])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[0:1])
-    
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[1:2])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[2:3])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[3:4])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[4:5])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[5:6])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[6:7])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[7:8])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[8:9])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[9:10])
-
-    #pool = Pool(processes=1)
-    #pool.map(run_transit,project_list[10:11])
-
     pool.close()
 
 def run_transit(project_name):
@@ -1174,12 +1070,9 @@ def export_to_hdf5_pool(project_list):
 
 def start_export_to_hdf5(test):
 
-    #my_desktop = app.start_dedicated(True, "sc", test)
-    #m = _m.Modeller(my_desktop)
     my_project = EmmeProject(test)
     #do not average skims if using seed_trips because we are starting the first iteration
     if survey_seed_trips or daysim_seed_trips:
-        #skims_to_hdf5_concurrent(m)
         average_skims_to_hdf5_concurrent(my_project, False)
     else:
         average_skims_to_hdf5_concurrent(my_project, True)
@@ -1302,7 +1195,6 @@ def feedback_check(emmebank_path_list):
      matrix_dict = json_to_dictionary("user_classes")
      passed = True
      for emmebank_path in emmebank_path_list:
-        print emmebank_path
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
         my_store=h5py.File('inputs/' + tod + '.h5', "r+")
@@ -1352,7 +1244,6 @@ def create_node_attributes(node_attribute_dict, my_project):
         NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
         create_extra = my_project.tool(NAMESPACE)
         for key, value in node_attribute_dict.iteritems():
-            print key, value
             new_att = create_extra(extra_attribute_type="NODE",
                        extra_attribute_name=value['name'],
                        extra_attribute_description=key,
@@ -1364,14 +1255,11 @@ def create_node_attributes(node_attribute_dict, my_project):
         node_calculator_spec = json_to_dictionary("node_calculation")
         transit_tod = transit_network_tod_dict[tod]
         
-        print 'here'
         if transit_tod in transit_node_constants.keys():
             for line_id, attribute_dict in transit_node_constants[transit_tod].iteritems():
-                print 'here'
+
                 for attribute_name, value in attribute_dict.iteritems():
-                    print attribute_name, value
                 #Load in the necessary Dictionarie
-                #node_calculator_spec = json_to_dictionary("node_calculation")
                     mod_calc = node_calculator_spec
                     mod_calc["result"] = attribute_name
                     mod_calc["expression"] = value
@@ -1466,8 +1354,8 @@ def main():
             start_pool(l)
 
         
-        ##want pooled processes finished before executing more code in main:
-        ##run_assignments_parallel('projects/5to6/5to6.emp')
+        #want pooled processes finished before executing more code in main:
+        #run_assignments_parallel('projects/5to6/5to6.emp')
         
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')
