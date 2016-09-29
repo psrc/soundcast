@@ -82,6 +82,19 @@ def build_seed_skims(max_iterations):
                   
     time_skims = datetime.datetime.now()
     print '###### Finished skimbuilding:', str(time_skims - time_copy)
+
+def build_free_flow_skims(max_iterations):
+    print "Building free flow skims."
+    time_copy = datetime.datetime.now()
+    returncode = subprocess.call([sys.executable,
+        'scripts/skimming/SkimsAndPaths.py',
+        str(max_iterations),
+        '-build_free_flow_skims'])
+    if returncode != 0:
+        sys.exit(1)
+                  
+    time_skims = datetime.datetime.now()
+    print '###### Finished skimbuilding:', str(time_skims - time_copy)
  
 @timed   
 def modify_config(config_vals):
@@ -259,6 +272,11 @@ def main():
 ### BUILD OR COPY SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
         build_seed_skims(10)
+        returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
+        if returncode != 0:
+            sys.exit(1)
+    elif run_skims_and_paths_free_flow:
+        build_free_flow_skims(10)
         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
         if returncode != 0:
             sys.exit(1)

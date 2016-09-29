@@ -42,10 +42,15 @@ if '-use_survey_seed_trips' in sys.argv:
 elif '-use_daysim_output_seed_trips' in sys.argv:
     survey_seed_trips = False
     daysim_seed_trips= True
+    build_free_flow_skims = False
+elif '-build_free_flow_skims' in sys.argv:
+    survey_seed_trips = False
+    daysim_seed_trips= False
+    build_free_flow_skims = True
 else:
     survey_seed_trips = False
     daysim_seed_trips= False
-
+    build_free_flow_skims = False
 if survey_seed_trips:
 	print 'Using SURVEY SEED TRIPS.'
 	hdf5_file_path = base_inputs + '/' + scenario_name + '/etc/survey_seed_trips.h5'
@@ -357,7 +362,7 @@ def traffic_assignment(my_project):
 
     assign_extras(el1 = "@rdly", el2 = "@trnv3")
 
-    assign_traffic(mod_assign)
+    assign_traffic(mod_assign, warm_start = True)
 
     end_traffic_assignment = time.time()
 
@@ -1071,7 +1076,7 @@ def start_export_to_hdf5(test):
 
     my_project = EmmeProject(test)
     #do not average skims if using seed_trips because we are starting the first iteration
-    if survey_seed_trips or daysim_seed_trips:
+    if survey_seed_trips or daysim_seed_trips or build_free_flow_skims:
         average_skims_to_hdf5_concurrent(my_project, False)
     else:
         average_skims_to_hdf5_concurrent(my_project, True)
@@ -1288,8 +1293,9 @@ def run_assignments_parallel(project_name):
     define_matrices(my_project)
 
     ##import demand/trip tables to emme. this is actually quite fast con-currently.
-    hdf5_trips_to_Emme(my_project, hdf5_file_path)
-    matrix_controlled_rounding(my_project)
+    if not build_free_flow_skims:
+        hdf5_trips_to_Emme(my_project, hdf5_file_path)
+        matrix_controlled_rounding(my_project)
 
     ##tod = m.emmebank.title
     populate_intrazonals(my_project)
@@ -1362,7 +1368,7 @@ def main():
         f = open('inputs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
-        if (survey_seed_trips == False and daysim_seed_trips == False):
+        if (survey_seed_trips == False and daysim_seed_trips == False and build_free_flow_skims == False):
                #run feedback check 
               if feedback_check(feedback_list) == False:
                   go = 'continue'
