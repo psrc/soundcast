@@ -33,6 +33,9 @@ class EmmeProject:
     def __init__(self, filepath):
         self.desktop = app.start_dedicated(True, "cth", filepath)
         self.m = _m.Modeller(self.desktop)
+        for t in self.m.toolboxes:
+            t.connection.execute("PRAGMA busy_timeout=1000")
+
         #delete locki:
         self.m.emmebank.dispose()
         pathlist = filepath.split("/")

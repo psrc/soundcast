@@ -362,7 +362,13 @@ def traffic_assignment(my_project):
 
     assign_extras(el1 = "@rdly", el2 = "@trnv3")
 
-    assign_traffic(mod_assign, warm_start = True)
+    if my_project.current_scenario.has_traffic_results:
+        print 'using warm starts'
+        assign_traffic(mod_assign, warm_start = True)
+    else:
+        print 'not using warm starts'
+        assign_traffic(mod_assign, warm_start = False)
+    
 
     end_traffic_assignment = time.time()
 
@@ -1016,7 +1022,11 @@ def run_transit(project_name):
 
     my_desktop = app.start_dedicated(True, "sc", project_name)
     
+    
     m = _m.Modeller(my_desktop)
+    for t in m.toolboxes:
+        t.connection.execute("PRAGMA busy_timeout=1000")
+
     
     #delete locki if one exists
     m.emmebank.dispose()
