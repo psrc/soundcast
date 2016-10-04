@@ -22,34 +22,52 @@ if not(use_simple_configuration):
     main_inputs_folder =  'R:/SoundCast/Inputs/'
     base_inputs = main_inputs_folder + scenario_name
     # For Overriding the simple configuration, when you want to run things in more detail:
-    ###### Only update parking for future-year analysis!
+    
+    ###### Only update parking for future-year analysis!######
     run_update_parking = False
+    ##########################################################
+    
+    ###### Only Convert 2010 hhinc if using 2010 base year!######
     run_convert_hhinc_2000_2010 = False
+    #############################################################
+    
+    ######Set up:######
     run_accessibility_calcs = True
     run_copy_daysim_code = True
     run_setup_emme_project_folders = True
     run_setup_emme_bank_folders = True
     run_copy_large_inputs = True
     run_import_networks = True
-    # if run copy seed skims is tru (intentional typo for find and replace), you don't need to run skims and paths seed trips
-    # the model run will start with daysim
+    ###################
+
+    ###### Only one of the following should be Tru!!!!!!######
     run_copy_seed_skims = False
     run_skims_and_paths_seed_trips = False
     run_skims_and_paths_free_flow = True
+    ##########################################################
+    
     ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
     should_build_shadow_price = False
+    ##########################################################
+    
+    ###### Models to Run:######
     run_skims_and_paths = True
     run_truck_model = True
     run_supplemental_trips = True
     run_daysim = True
+    ###########################
+    
+    #Summaries to run:######
     run_accessibility_summary = False
     run_network_summary = True
     run_soundcast_summary = True
     run_create_daily_bank = True
     run_ben_cost = False
     run_truck_summary = False
+    run_landuse_summary = False
+    ########################
 
-    # Specific reports to run
+    ###### Specific reports to run######
     run_daysim_report = True
     run_day_pattern_report = True
     run_mode_choice_report = True
@@ -57,17 +75,18 @@ if not(use_simple_configuration):
     run_long_term_report = True
     run_time_choice_report = True
     run_district_summary_report = False
+    ####################################
+    
 
-    run_landuse_summary = False
-
-    # Model iterations, population sampling, log files, etc.
+    ###### Model iterations, population sampling, log files, etc.######
     pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
-    # Assignment Iterations:
-    max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100]
+    # Assignment Iterations (must be same length as pop_sample:
+    max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
     min_pop_sample_convergence_test = 10
     # start building shadow prices - only run work locations
-    shadow_work = [2, 1, 1]
+    shadow_work = [2, 1, 1, 1]
     shadow_con = 30 #%RMSE for shadow pricing to consider being converged
+    ###################################################################
 
  
 
