@@ -47,7 +47,7 @@ md_transit_key_df = pd.io.excel.read_excel('scripts/summarize/inputs/network_sum
 md_observed_df = pd.io.excel.read_excel('scripts/summarize/inputs/network_summary/ObservedBoardings.xlsx', 'MD')
 
 transit_df = pd.io.excel.read_excel(input_file, sheetname = 'Transit Summaries')
-observed_df = pd.read_csv(r'R:\2014_Base_Year\ValidationData\Transit\master_ridership2.csv')
+observed_df = pd.read_csv(observed_boardings_file)
 
 summary_by_tp_4k = net_summary_df.groupby('TP_4k').sum() #Group by 4k time
 totals = net_summary_df.sum()
