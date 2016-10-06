@@ -276,8 +276,27 @@ def write_link_counts(my_project, tod):
 	# Load edges file to join proper node IDs
 	edges_df = pd.read_csv(edges_file)
 
-	df = bike_counts.merge(edges_df, on=['INode','JNode'])
+	df = bike_counts.merge(edges_df, 
+		on=['INode','JNode'])
+	
+	# if the link is twoway, also get the other directoin IJ and JI and append to original df
+	twoway_links_df = df[df['Oneway'] == 2]
 
+	# Replace I with J node for twoway links, for Emme IJ and geodatabase IJ pairs
+	twoway_links_df.loc[:,'tempINode'] = twoway_links_df.loc[:,'JNode']
+	twoway_links_df.loc[:,'tempJNode'] = twoway_links_df.loc[:,'INode']
+	twoway_links_df.loc[:,'tempNewINode'] = twoway_links_df.loc[:,'NewJNode']
+	twoway_links_df.loc[:,'tempNewJNode'] = twoway_links_df.loc[:,'NewINode']
+	# remove old IJ values and replace with the new swapped values
+	twoway_links_df.drop(['INode','JNode','NewINode','NewJNode'],axis=1,inplace=True)
+	twoway_links_df.loc[:,'INode'] = twoway_links_df.loc[:,'tempINode']
+	twoway_links_df.loc[:,'JNode'] = twoway_links_df.loc[:,'tempJNode']
+	twoway_links_df.loc[:,'NewINode'] = twoway_links_df.loc[:,'tempNewINode']
+	twoway_links_df.loc[:,'NewJNode'] = twoway_links_df.loc[:,'tempNewJNode']
+	twoway_links_df.drop(['tempINode','tempJNode','tempNewINode','tempNewJNode'],axis=1,inplace=True)
+
+	df = pd.concat([df,twoway_links_df])
+	df = df.reset_index()
 	list_model_vols = []
 
 	for row in df.index:
@@ -289,6 +308,7 @@ def write_link_counts(my_project, tod):
 		x['EmmeJNode'] = j
 		x['gdbINode'] = df.iloc[row]['INode']
 		x['gdbJNode'] = df.iloc[row]['JNode']
+		x['LocationID'] = df.iloc[row]['LocationID']
 		if link != None:
 			x['bvol' + tod] = link['@bvol']
 		else:

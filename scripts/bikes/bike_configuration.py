@@ -39,7 +39,7 @@ avg_bike_speed = 10 # miles per hour
 
 # Outputs directory
 bike_link_vol = 'outputs/bike_volumes.csv'
-bike_count_data = 'inputs/bikes/bike_counts.csv'
+bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
 
 # Multiplier for storing skim results
