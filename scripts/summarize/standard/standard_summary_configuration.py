@@ -46,4 +46,4 @@ households_persons_file = r'inputs\hh_and_persons.h5'
 truck_counts_file ='scripts/summarize/inputs/network_summary/truck_counts_2014.xlsx' 
 
 ######## Observed Transit Boardings############################################
-observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_summary_2014.csv'
+observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_boardings_2014.csv'
