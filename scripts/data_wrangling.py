@@ -193,6 +193,7 @@ def setup_emme_project_folders():
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
     tod_list.append('Supplementals')
+    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)
@@ -201,6 +202,7 @@ def setup_emme_project_folders():
         database.open()
         desktop.project.save()
         desktop.close()
+        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))
         
    
 @timed    
@@ -214,6 +216,8 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/bikes','Inputs/bikes')
     dir_util.copy_tree(base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
     dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
+    dir_util.copy_tree(base_inputs+'supplemental/parameters','inputs/supplemental/parameters')
+    dir_util.copy_tree(base_inputs+'supplemental/input','inputs/supplemental/input')
     dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
     dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
