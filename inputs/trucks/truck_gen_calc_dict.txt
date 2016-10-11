@@ -5,7 +5,7 @@
       "results": "moltatt"
     },
     "heavy_trucks": {
-      "expression": "motruck * 0.0988 * moagffsh + 5.0897 * momining + 0.0290 * moconst + 0.0208 * (momanup + momanue) + 0.0378 * motcu + 0.0087 * mowhls + 0.0032 * moretail + 0.0088 * mofires + 0.0073 * mogovedu + 0.0071 * mohhlds",
+      "expression": "motruck * 0.0988 * moagffsh + 5.0897 * momining + 0.0290 * moconst + 0.0208 * (momanup + momanue) + 0.0378 * motcu + 0.0087 * mowhls + 0.0032 * moretail + 0.000 * mofires + 0.000 * mogovedu + 0.000 * mohhlds",
       "results": "mohtatt"
     },
     "medium_trucks": {
@@ -19,7 +19,7 @@
       "results": "moltpro"
     },
     "heavy_trucks": {
-      "expression": "0.2366 * moagffsh + 0.3405 * momining + 0.0856 * moconst + 0.2661 * momanup + 0.0953 * momanue + 0.1075 * motcu + 0.1337 * mowhls + 0.0463 * moretail + 0.0044 * mofires + 0.0068 * mogovedu + 0.0031 * mohhlds",
+      "expression": "0.2366 * moagffsh + 0.3405 * momining + 0.0856 * moconst + 0.2661 * momanup + 0.0953 * momanue + 0.1075 * motcu + 0.1337 * mowhls + 0.0463 * moretail + 0.0000 * mofires + 0.0000 * mogovedu + 0.0000 * mohhlds",
       "results": "mohtpro"
     },
     "medium_trucks": {

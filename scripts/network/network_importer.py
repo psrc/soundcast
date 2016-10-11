@@ -1,3 +1,4 @@
+import pandas as pd
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 import inro.emme.matrix as ematrix
@@ -12,22 +13,6 @@ from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 from emme_configuration import *
 from input_configuration import *
-
-project = 'Projects/LoadTripTables/LoadTripTables.emp'
-tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
-sound_cast_net_dict = {'5to6' : 'ni', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am', 
-                       '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
-                       '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
-                       '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['6to7', '7to8', '8to9', '9to10', '10to14', '14to15']
-
-mode_file = 'modes.txt'
-transit_vehicle_file = 'vehicles.txt' 
-base_net_name = '_roadway.in'
-turns_name = '_turns.in'
-transit_name = '_transit.in'
-shape_name = '_link_shape_1002.txt'
-no_toll_modes = ['s', 'h', 'i', 'j']
 
 class EmmeProject:
     def __init__(self, filepath):
@@ -192,24 +177,6 @@ def import_tolls(emmeProject):
     #We are using the same rdly has 4k. No need to factor. 
     #emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
-# set bridge/ferry flags
-
-    bridge_ferry_flag__file = function_file = 'inputs/tolls/bridge_ferry_flags.in'
-    import_attributes(bridge_ferry_flag__file, scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@brfer"},
-              revert_on_error=True)
-
-    
-    # change modes on tolled network, but exclude some bridges/ferries
-    if create_no_toll_network:
-        network = emmeProject.current_scenario.get_network()
-        for link in network.links():
-            if link['@toll1'] > 0 and link['@brfer'] == 0:
-                for i in no_toll_modes:
-                    link.modes -= set([network.mode(i)])
-        emmeProject.current_scenario.publish_network(network)
 
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
@@ -218,8 +185,20 @@ def multiwordReplace(text, replace_dict):
         return replace_dict.get(word, word)
     return rc.sub(translate, text)
 
+def update_headways(emmeProject, headways_df):
+    network = emmeProject.current_scenario.get_network()
+    for transit_line in network.transit_lines():
+        row = headways_df.loc[(headways_df.id == int(transit_line.id))]
+        if int(row['hdw_' + emmeProject.tod]) > 0:
+            transit_line.headway = int(row['hdw_' + emmeProject.tod])
+        else:
+            network.delete_transit_line(transit_line.id)
+    emmeProject.current_scenario.publish_network(network)
+
+
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
+    headway_df = pd.DataFrame.from_csv('inputs/networks/' + headway_file)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
@@ -227,24 +206,20 @@ def run_importer(project_name):
         #create scenario
         my_project.bank.create_scenario(1002)
         my_project.change_scenario()
-        #print key
         my_project.delete_links()
         my_project.delete_nodes()
       
         my_project.process_modes('inputs/networks/' + mode_file)
         
         my_project.process_base_network('inputs/networks/' + value + base_net_name)
-        my_project.process_base_network('inputs/networks/fixes/ferries/' + value + base_net_name)
-
         my_project.process_turn('inputs/networks/' + value + turns_name)
-    #my_project.process_shape('/inputs/network' + tod_network + shape_name)
-
         if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
            my_project.process_transit('inputs/networks/' + value + transit_name)
-
+           update_headways(my_project, headway_df)
         #import tolls
         import_tolls(my_project)
+        
         
 
 def main():

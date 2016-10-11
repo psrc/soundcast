@@ -1,6 +1,6 @@
 
 #################################### BIKE MODEL ####################################
-bike_assignment_tod = ['6to7', '7to8','8to9','9to10', '10to14', '14to15']
+bike_assignment_tod = ['7to8','8to9']
 
 # Distance perception penalties for link AADT from Broach et al., 2012
 # 1 is AADT 10k-20k, 2 is 20k-30k, 3 is 30k+
@@ -39,7 +39,7 @@ avg_bike_speed = 10 # miles per hour
 
 # Outputs directory
 bike_link_vol = 'outputs/bike_volumes.csv'
-bike_count_data = 'inputs/bikes/bike_counts.csv'
+bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
 
 # Multiplier for storing skim results

@@ -93,77 +93,31 @@ def DistrictSummary(data1, data2, name1, name2, location, districtfile):
     print('---District to District Summary compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
 
 
-def WorkDistrictSummary(data1, data2, name1, name2, location, districtfile):
+def WorkFAZSummary(data1, data2, name1, name2, location, districtfile):
     print('---Begin Work District to District Summary compilation---')
     start = time.time()
 
     merge_per_hh_1 = pd.merge(data1['Person'][['pwtaz', 'psexpfac', 'hhno', 'pwtyp']],
                               data1['Household'][['hhtaz', 'hhno']],
                               on = 'hhno')
-    merge_per_hh_2 = pd.merge(data2['Person'][['pwtaz', 'psexpfac', 'hhno', 'pwtyp']],
-                              data2['Household'][['hhtaz', 'hhno']],
-                              on = 'hhno')
-
     worker_1 = merge_per_hh_1.query('pwtyp>0')
-    worker_2 = merge_per_hh_2.query('pwtyp>0')
 
-    DistrictDict = {}
-    for i in range(len(districtfile['TAZ'])):
-        if districtfile['TAZ'][i] not in DistrictDict and math.isnan(districtfile['TAZ'][i]) is False:
-            DistrictDict.update({int(districtfile['TAZ'][i]):districtfile['District'][i]})
-    worker_1['Origin'] =  worker_1['hhtaz'].map(DistrictDict)
-    worker_2['Origin'] = worker_2['hhtaz'].map(DistrictDict)
-    worker_1['Destination'] = worker_1['pwtaz'].map(DistrictDict)
-    worker_2['Destination'] = worker_2['pwtaz'].map(DistrictDict)
-    work_od1 = worker_1[['Origin', 'Destination', 'psexpfac']].groupby(['Origin', 'Destination']).sum()['psexpfac'].round(0)
-    work_od2 = worker_2[['Origin', 'Destination', 'psexpfac']].groupby(['Origin', 'Destination']).sum()['psexpfac'].round(0)
-    work_od1 = pd.DataFrame.from_items([('Persons', work_od1)])
-    work_od2 = pd.DataFrame.from_items([('Persons', work_od2)])
-    work_od1 = work_od1.reset_index()
-    work_od2 = work_od2.reset_index()
-    workod1 = work_od1.pivot('Origin', 'Destination', 'Persons')
-    workod2 = work_od2.pivot('Origin', 'Destination', 'Persons')
-    workoddiff = workod1 - workod2
-    workodpd = workoddiff / workod2 * 100
-    for column in workodpd.columns:
-        workodpd[column] = workodpd[column].round(2)
+    FAZ_TAZ_lookup = pd.read_excel(FAZ_TAZ)
 
-    print('District to District data frames created in ' + str(round(time.time() - start, 1)) + ' seconds')
+    worker_1_h_FAZ = pd.merge(worker_1, FAZ_TAZ_lookup, left_on = 'hhtaz', right_on = 'zone_id')
+    worker_1_h_w_FAZ = pd.merge(worker_1_h_FAZ, FAZ_TAZ_lookup, left_on = 'pwtaz', right_on = 'zone_id')
+    worker_1_h_w_agg = worker_1_h_w_FAZ.groupby(['large_area_name_x', 'large_area_name_y']).sum()['psexpfac']
+    worker_1_h_w_agg = worker_1_h_w_agg.reset_index()
+    worker_1_h_w_agg.columns = ['HomeFAZ', 'WorkFAZ', 'NumWorkers']
 
-    writer = pd.ExcelWriter(location + '/WorkDistrictReport.xlsx', engine = 'xlsxwriter')
-    workod1.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 1)
-    workod2.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 16)
-    workoddiff.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 31)
-    workodpd.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 46)
-    writer.save()
-
-    colwidths = getmaxwidths(location + '/WorkDistrictReport.xlsx')
-
-    writer = pd.ExcelWriter(location + '/WorkDistrictReport.xlsx', engine = 'xlsxwriter')
-    workbook = writer.book
-    merge_format = workbook.add_format({'align': 'center', 'bold': True, 'border': 1})
-    cond_format = workbook.add_format({'font_color': '#880000', 'bold': 'True'})
-    workod1.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 1)
-    workod2.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 16)
-    workoddiff.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 31)
-    workodpd.to_excel(excel_writer = writer, sheet_name = 'Work Locations by District', na_rep = 0, startrow = 46)
-    sheet = 'Work Locations by District'
-    worksheet = writer.sheets[sheet]
-    worksheet.merge_range(0, 0, 0, 11, name1, merge_format)
-    worksheet.merge_range(15, 0, 15, 11, name2, merge_format)
-    worksheet.merge_range(30, 0, 30, 11, 'Difference', merge_format)
-    worksheet.merge_range(45, 0, 45, 11, '% Difference', merge_format)
-    worksheet.write(1, 0, 'Destination ->', merge_format)
-    worksheet.write(16, 0, 'Destination ->', merge_format)
-    worksheet.write(31, 0, 'Destination ->', merge_format)
-    worksheet.write(46, 0, 'Destination ->', merge_format)
-    for colnum in range(worksheet.dim_colmax + 1):
-        worksheet.set_column(colnum, colnum, colwidths[sheet][colnum])
-    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '>=', 'value': 100, 'format': cond_format})
-    worksheet.conditional_format('B49:L59', {'type': 'cell', 'criteria': '<=', 'value': -50, 'format': cond_format})
-    worksheet.freeze_panes(0, 1)
-    writer.save()
-    print('-- Work District to District Summary compiled in ' + str(round(time.time() - start, 1)) + ' seconds---')
+    LEHD_wrkrs = pd.read_excel(LEHD_work_flows)
+    LEHD_model = pd.merge(LEHD_wrkrs, worker_1_h_w_agg, how='right', on = ['HomeFAZ', 'WorkFAZ'])
+    LEHD_model['Difference (Model-LEHD)'] = LEHD_model['NumWorkers'] - LEHD_model['LEHDWorkers']
+    LEHD_model['Percent Difference (Model-LEHD)/LEHD'] = LEHD_model['Difference (Model-LEHD)']/LEHD_model['LEHDWorkers']
+    writer = pd.ExcelWriter(location + '/WorkFAZReport.xlsx', engine = 'xlsxwriter')
+    LEHD_model.to_excel(excel_writer = writer, sheet_name = 'Work Locations by FAZ', na_rep = 0, startrow = 1)
+    writer.close()
+ 
 
 
 def DayPattern(data1, data2, name1, name2, location):
@@ -484,19 +438,22 @@ def DaysimReport(data1, data2, name1, name2, location, districtfile):
     cp3 = time.time()
     print('Transit Pass Ownership data frame created in ' + str(round(cp3 - cp2, 1)) + ' seconds')
 
-    #Auto Ownership
+
     ao1 = 100 * data1['Household'][['hhvehs','hhexpfac']].groupby('hhvehs').sum()['hhexpfac'] / data1['Household']['hhexpfac'].sum()
     for i in range(5, len(ao1)):
         ao1[4] = ao1[4] + ao1[i]
         ao1 = ao1.drop([i])
-    ao2 = 100 * data2['Household'][['hhvehs','hhexpfac']].groupby('hhvehs').sum()['hhexpfac'] / data2['Household']['hhexpfac'].sum()
-    for i in range(5, len(ao2)):
-        ao2[4] = ao2[4] + ao2[i]
-        ao2 = ao2.drop([i])
+
     ao = pd.DataFrame()
+     #Auto Ownership
+
+    # read in ACS dataset
+    autos= pd.read_excel(acs_data,sheetname = 'AutosTotal')
+    acs_auto_share = pd.DataFrame(autos['Total'] * 100)
+
     ao['Percent of Households (' + name1 + ')'] = ao1
-    ao['Percent of Households (' + name2 + ')'] = ao2
-    ao = get_differences(ao, 'Percent of Households (' + name1 + ')','Percent of Households (' + name2 + ')', 1)
+    ao['Percent of Households (ACS)'] = acs_auto_share 
+    ao = get_differences(ao, 'Percent of Households (' + name1 + ')','Percent of Households (ACS)', 1)
     aonewcol = ['0', '1', '2', '3', '4+']
     ao['Number of Vehicles in Household'] = aonewcol
     ao = ao.reset_index()
@@ -1263,7 +1220,13 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
     ph[name1] = [tp1, th1, ahs1]
     ph[name2] = [tp2, th2, ahs2]
     ph = get_differences(ph, name1, name2, [0, 0, 2])
-    ph['2010 Census'] = [3616747, 1454695, round(float(3616747) / 1454695, 2)]
+
+    persons_hh_acs= pd.read_excel(acs_data,sheetname = 'Totals')
+    persons_hh_acs_df = pd.DataFrame(persons_hh_acs)
+    acs_persons = persons_hh_acs_df.loc[persons_hh_acs_df['DataItem']=='Persons']['Total']
+    acs_hh= persons_hh_acs_df.loc[persons_hh_acs_df['DataItem']=='Persons']['Total']
+    acs_per_hh= persons_hh_acs_df.loc[persons_hh_acs_df['DataItem']=='Persons']['Total']
+    ph['ACS'] = [acs_persons, acs_hh, acs_per_hh]
 
     cp2 = time.time()
     print('Total Households and Persons data frame created in ' + str(round(cp2 - cp1, 1)) + ' seconds')
@@ -1278,21 +1241,38 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
     total_workers_2 = wrkrs2['psexpfac'].sum()
     works_at_home_1 = wkr_1_hzone[['pwpcl', 'hhparcel', 'psexpfac', 'County', 'pwaudist', 'pwtyp', 'pgend', 'pagey']].query('pwpcl == hhparcel')
     works_at_home_2 = wkr_2_hzone[['pwpcl', 'hhparcel', 'psexpfac', 'County', 'pwaudist', 'pwtyp', 'pgend', 'pagey']].query('pwpcl == hhparcel')
-    work_home_county_1 = works_at_home_1[['County', 'psexpfac']].groupby('County').sum()['psexpfac']
+    work_home_county_1 = works_at_home_1.groupby('County').sum()['psexpfac']
     work_home_county_2 = works_at_home_2[['County', 'psexpfac']].groupby('County').sum()['psexpfac']
     work_home_1 = work_home_county_1.sum()
     work_home_2 = work_home_county_2.sum()
     wh = pd.DataFrame(index = ['Total Workers at Home', 'Total Workers', 'Share at Home (%)'])
     wh[name1] = [work_home_1, total_workers_1, work_home_1 / total_workers_1 * 100]
-    wh[name2] = [work_home_2, total_workers_2, work_home_2 / total_workers_2 * 100]
-    wh = get_differences(wh, name1, name2, [0, 0, 1])
-    wh['2006-2010 CTPP']=[91615, 1805125, 5.1]
-    #By county
+    work_at_home_acs= pd.read_excel(acs_data,sheetname = 'WorkAtHome')
+    region_wah = work_at_home_acs.loc[work_at_home_acs['County'] == 'Region']
+    region_wah_values = [region_wah['ACS'], region_wah['total'], region_wah['percent']]
+    wh['ACS'] = region_wah_values
+
+    
+    wh = get_differences(wh, name1, 'ACS', [0, 0, 1])
+    #By county\
+
+   
+    work_home_county_1 = work_home_county_1[0:]
+    work_home_county_1= work_home_county_1.reset_index() 
+    
+    work_home_county_1 = pd.DataFrame(work_home_county_1)
+    work_home_county_1.columns = ['County', 'Model']
+
     whbc = pd.DataFrame()
-    whbc[name1] = work_home_county_1
-    whbc[name2] = work_home_county_2
-    whbc = get_differences(whbc, name1, name2, 0)
-    whbc['2006-2010 CTPP'] = [53625, 6475, 15705, 15810]
+    whbc= work_home_county_1
+
+    county_wah = work_at_home_acs.loc[work_at_home_acs['County'] != 'Region']
+    whbc = pd.merge(whbc, county_wah, on = 'County')
+    del whbc['total']
+    del whbc['percent']
+
+    whbc = get_differences(whbc, 'Model', 'ACS', 0)
+
 
     cp3 = time.time()
     print('Workers at Home data frame created in ' + str(round(cp3 - cp2, 1)) + ' seconds')
@@ -1434,12 +1414,16 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
     hh_taz1 = pd.merge(districtfile, data1['Household'], left_on = 'TAZ', right_on = 'hhtaz')
     hh_taz2 = pd.merge(districtfile, data2['Household'], left_on = 'TAZ', right_on = 'hhtaz')
     aoc1 = hh_taz1[['County', 'hhvehs', 'hhexpfac']].groupby(['County', 'hhvehs']).sum()['hhexpfac']
-    aoc2 = hh_taz2[['County', 'hhvehs', 'hhexpfac']].groupby(['County', 'hhvehs']).sum()['hhexpfac']
+    autos_by_county= pd.read_excel(acs_data,sheetname = 'AutosCounty')
+    acs_auto_share = pd.DataFrame(autos_by_county)
+
+
+    #aoc2 = hh_taz2[['County', 'hhvehs', 'hhexpfac']].groupby(['County', 'hhvehs']).sum()['hhexpfac']
     counties = []
     for i in range(len(aoc1.index)):
         if aoc1.index[i][0] not in counties:
             counties.append(aoc1.index[i][0])
-    aoc = pd.DataFrame(columns = ['0 Cars (' + name1 + ') (%)', '0 Cars (' + name2 + ') (%)', '1 Car (' + name1 + ') (%)', '1 Car (' + name2 + ') (%)', '2 Cars (' + name1 + ') (%)', '2 Cars (' + name2 + ') (%)', '3 Cars (' + name1 + ') (%)', '3 Cars (' + name2 + ') (%)', '4+ Cars (' + name1 + ') (%)', '4+ Cars (' + name2 + ') (%)'], index = counties)
+    aoc = pd.DataFrame(columns = ['0 Cars (' + name1 + ') (%)', '0 Cars (' + 'ACS' + ') (%)', '1 Car (' + name1 + ') (%)', '1 Car (' + 'ACS' + ') (%)', '2 Cars (' + name1 + ') (%)', '2 Cars (' + 'ACS'+ ') (%)', '3 Cars (' + name1 + ') (%)', '3 Cars (' + 'ACS' + ') (%)', '4+ Cars (' + name1 + ') (%)', '4+ Cars (' +'ACS' + ') (%)'], index = counties)
     aoc = aoc.fillna(float(0))
     for i in range(len(aoc1.index)):
         aoc1[i] = aoc1[i] * 100 / hh_taz1[['County', 'hhexpfac']].groupby('County').sum().query('County == "' + aoc1.index[i][0] + '"')['hhexpfac']
@@ -1453,31 +1437,32 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
             aoc['3 Cars (' + name1 + ') (%)'][aoc1.index[i][0]] = round(aoc1[i], 2)
         else:
             aoc['4+ Cars (' + name1 + ') (%)'][aoc1.index[i][0]] = aoc['4+ Cars (' + name1 + ') (%)'][aoc1.index[i][0]] + round(aoc1[i], 2)
-    for i in range(len(aoc2.index)):
-        aoc2[i] = aoc2[i] * 100 / hh_taz2[['County', 'hhexpfac']].groupby('County').sum().query('County == "' + aoc2.index[i][0] + '"')['hhexpfac']
-        if aoc2.index[i][1] == 0:
-            aoc['0 Cars (' + name2 + ') (%)'][aoc2.index[i][0]] = round(aoc2[i], 2)
-        elif aoc2.index[i][1] == 1:
-            aoc['1 Car (' + name2 + ') (%)'][aoc2.index[i][0]] = round(aoc2[i], 2)
-        elif aoc2.index[i][1] == 2:
-            aoc['2 Cars (' + name2 + ') (%)'][aoc2.index[i][0]] = round(aoc2[i], 2)
-        elif aoc2.index[i][1] == 3:
-            aoc['3 Cars (' + name2 + ') (%)'][aoc2.index[i][0]] = round(aoc2[i], 2)
-        else:
-            aoc['4+ Cars (' + name2 + ') (%)'][aoc2.index[i][0]] = aoc['4+ Cars (' + name2 + ') (%)'][aoc2.index[i][0]] + round(aoc2[i], 2)
+
+    acs0cars = (acs_auto_share['0 Cars']*100).round(2).tolist()
+    acs1cars = (acs_auto_share['1 Car']*100).round(2).tolist()
+    acs2cars = (acs_auto_share['2 Cars']*100).round(2).tolist()
+    acs3cars = (acs_auto_share['3 Cars']*100).round(2).tolist()
+    acs4cars = (acs_auto_share['4+ Cars']*100).round(2).tolist()
+
+    aoc['0 Cars (' + 'ACS' + ') (%)'] = acs0cars
+    aoc['1 Car (' + 'ACS' + ') (%)'] = acs1cars
+    aoc['2 Cars (' + 'ACS' + ') (%)'] = acs2cars
+    aoc['3 Cars (' + 'ACS' + ') (%)'] = acs3cars
+    aoc['4+ Cars (' + 'ACS' + ') (%)'] = acs4cars
+
 
     cp8 = time.time()
     print('Share of Households by Auto Ownership data frame created in ' + str(round(cp8 - cp7, 1)) + ' seconds')
 
     #Households by income group by auto ownership
     incmap = {} #defining map to recode income
-    for i in range(0, 20000):
+    for i in range(0, 19999):
         incmap.update({i: 'Less than $20,000'})
-    for i in range(20000, 40000):
+    for i in range(20000, 39999):
         incmap.update({i: '$20,000-$39,999'})
-    for i in range(40000, 60000):
+    for i in range(35000, 59999):
         incmap.update({i: '$40,000-$59,999'})
-    for i in range(60000, 75000):
+    for i in range(60000, 74999):
         incmap.update({i: '$60,000-$74,999'})
     for i in range(75000, max([int(data1['Household']['hhincome'].max()), int(data2['Household']['hhincome'].max())]) + 1):
         incmap.update({i:'More than $75,000'})
@@ -1763,9 +1748,7 @@ def report_compile(h5_results_file,h5_results_name,
     if run_time_choice_report == True:
         TimeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     if run_district_summary_report == True:
-        WorkDistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
-        print 'start'
-        WorkDistrictSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
+        WorkFAZSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     totaltime = round(time.time() - timerstart, 1)
     if totaltime < 60:
         print('+-+-+-+Summary report compilation complete in ' + str(totaltime % 60) + ' seconds+-+-+-+')
@@ -1776,6 +1759,7 @@ def report_compile(h5_results_file,h5_results_name,
 
 
 def main():
+    
     report_compile(h5_results_file,h5_results_name,
                    h5_comparison_file,h5_comparison_name,
                    guidefile,districtfile,report_output_location)

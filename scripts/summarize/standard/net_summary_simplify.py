@@ -47,7 +47,7 @@ md_transit_key_df = pd.io.excel.read_excel('scripts/summarize/inputs/network_sum
 md_observed_df = pd.io.excel.read_excel('scripts/summarize/inputs/network_summary/ObservedBoardings.xlsx', 'MD')
 
 transit_df = pd.io.excel.read_excel(input_file, sheetname = 'Transit Summaries')
-
+observed_df = pd.read_csv(observed_boardings_file)
 
 summary_by_tp_4k = net_summary_df.groupby('TP_4k').sum() #Group by 4k time
 totals = net_summary_df.sum()
@@ -74,7 +74,7 @@ global cond_format
 global colors
 
 font = 'Times New Roman'
-title_format = net_summary.add_format({'bold': True, 'font_name': font, 'font_size': 14})
+title_format = net_summary.add_format({'bold': True, 'font_name': font, 'font_size': 12})
 header_format = net_summary.add_format({'bold': True, 'font_name': font, 'font_size': 11, 'align': 'center',    'bottom': True})
 index_format = net_summary.add_format({'bold': True, 'font_name': font, 'font_size': 11, 'align': 'left'})
 number_format = net_summary.add_format({'font_name': font, 'num_format': '#,##0', 'align': 'right'})
@@ -295,11 +295,9 @@ def write_transit_boarding_tables(worksheet, transit_df, start_row, time_abbr):
                 except TypeError:
                     worksheet.write_string(start_row + rownum + 2, colnum + 1, 'NA')
 
-    worksheet.conditional_format('E3:E13', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
-    worksheet.conditional_format('E3:E13', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
-    worksheet.conditional_format('E17:E27', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
-    worksheet.conditional_format('E17:E27', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
-
+    worksheet.conditional_format('E1:E100', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+    worksheet.conditional_format('E1:E100', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
+    
 def write_net_sum_tables(network, variable, tables, format_sheet): #Function to write a table to the file
         start_row = title_rows[variable]
         time_df = tables[variable]['time']
@@ -354,7 +352,179 @@ def write_net_sum_tables(network, variable, tables, format_sheet): #Function to 
         network.insert_chart(start_row + 1, 6, time_chart)
         network.insert_chart(start_row + 8, 6, facility_chart)
 
-def transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall):
+def transit_summary(transit_df, observed, net_summary, transit, amtransitall, mdtransitall):
+    modeled = transit_df
+    #Generating a new column with transit-type keys
+    modeled['key'] = (modeled['route_code']/1000).astype(int)
+    modeled.fillna(value=0, inplace=True)
+    observed['key'] = (observed['PSRC_Rte_ID']/1000).astype(int)
+    observed.fillna(value=0, inplace=True)
+
+    cols = ['Modeled Boardings','Observed Boardings','Diff','%Diff']
+    rows = ['Metro','Pierce','CT','Kitsap','WSF','ET','ST Express','ST LightRail - Tacoma', 
+    'ST LightRail - CentralLink','ST CommuterRail South (Sea-LKW)','ST CommuterRail North (Sea-EV)',
+    'Total','Rapid Ride A','Rapid Ride B','Rapid Ride C','Rapid Ride D','Rapid Ride E']
+    tot_mdlEA=0 ; tot_mdlAM=0 ; tot_mdlMD=0 ; tot_mdlPM=0; tot_mdlEV=0
+    tot_obsEA=0 ; tot_obsAM=0 ; tot_obsMD=0 ; tot_obsPM=0; tot_obsEV=0
+    AM = pd.DataFrame(); MD = pd.DataFrame(); PM = pd.DataFrame(); EA = pd.DataFrame(); EV = pd.DataFrame()
+
+    #Metro,Pierce,CT,Kitsap,WSF,ET
+    mdl = modeled.groupby(['key']).sum()
+    obs = observed.groupby(['key']).sum()
+    for i in [1,2,3,4,5,7]:
+        if i in mdl.index:
+            mdlEA = mdl.loc[i,'5to6_board']
+            mdlAM = mdl.loc[i,'6to7_board'] + mdl.loc[i,'7to8_board'] + mdl.loc[i,'8to9_board'] 
+            mdlMD = mdl.loc[i,'9to10_board'] + mdl.loc[i,'10to14_board'] + mdl.loc[i,'14to15_board'] 
+            mdlPM = mdl.loc[i,'15to16_board'] + mdl.loc[i,'16to17_board'] + mdl.loc[i,'17to18_board'] 
+            mdlEV = mdl.loc[i,'18to20_board']
+            tot_mdlEA += mdlEA; tot_mdlAM += mdlAM; tot_mdlMD += mdlMD; tot_mdlPM += mdlPM; tot_mdlEV += mdlEV
+        else:
+            mdlEA=0; mdlAM=0; mdlMD=0; mdlPM=0; mdlEV=0
+
+        if i in obs.index:
+            obsEA = obs.loc[i,'hour_5']
+            obsAM = obs.loc[i,'hour_6'] + obs.loc[i,'hour_7'] + obs.loc[i,'hour_8']
+            obsMD = obs.loc[i,'hour_9'] + obs.loc[i,'hour_10'] + obs.loc[i,'hour_11'] + obs.loc[i,'hour_12'] + obs.loc[i,'hour_13'] + obs.loc[i,'hour_14']
+            obsPM = obs.loc[i,'hour_15'] + obs.loc[i,'hour_16'] + obs.loc[i,'hour_17']
+            obsEV = obs.loc[i,'hour_18'] + obs.loc[i,'hour_19']
+            tot_obsEA += obsEA; tot_obsAM += obsAM; tot_obsMD += obsMD; tot_obsPM += obsPM; tot_obsEV += obsEV
+            str_EA = [(mdlEA, obsEA, mdlEA-obsEA, ((mdlEA-obsEA)*100)/obsEA)]
+            str_AM = [(mdlAM, obsAM, mdlAM-obsAM, ((mdlAM-obsAM)*100)/obsAM)]
+            str_MD = [(mdlMD, obsMD, mdlMD-obsMD, ((mdlMD-obsMD)*100)/obsMD)]
+            str_PM = [(mdlPM, obsPM, mdlAM-obsPM, ((mdlAM-obsPM)*100)/obsPM)]
+            str_EV = [(mdlEV, obsEV, mdlEV-obsEV, ((mdlEV-obsEV)*100)/obsEV)]
+        else:
+            str_EA = [(mdlEA,0,'NA','NA')]
+            str_AM = [(mdlAM,0,'NA','NA')]
+            str_MD = [(mdlMD,0,'NA','NA')]
+            str_PM = [(mdlPM,0,'NA','NA')]
+            str_EV = [(mdlEV,0,'NA','NA')]
+        AM = AM.append(str_AM); MD = MD.append(str_MD); PM = PM.append(str_PM); EA = EA.append(str_EA); EV = EV.append(str_EV)
+
+    #ST Express	
+    mdl = modeled.groupby(['key','mode']).sum()
+    obs = observed.groupby(['key']).sum()
+    mdlEA=0; mdlAM=0; mdlMD=0; mdlPM=0; mdlEV=0
+    if 6 in mdl.index:
+        for j in ['b','p']:
+            if j in mdl.loc[6,].index:
+                mdlEA += mdl.loc[(6,j),'5to6_board']
+                mdlAM += mdl.loc[(6,j),'6to7_board'] + mdl.loc[(6,j),'7to8_board'] + mdl.loc[(6,j),'8to9_board']
+                mdlMD += mdl.loc[(6,j),'9to10_board'] + mdl.loc[(6,j),'10to14_board'] + mdl.loc[(6,j),'14to15_board']
+                mdlPM += mdl.loc[(6,j),'15to16_board'] + mdl.loc[(6,j),'16to17_board'] + mdl.loc[(6,j),'17to18_board']
+                mdlEV += mdl.loc[(6,j),'18to20_board']
+        tot_mdlEA += mdlEA; tot_mdlAM += mdlAM; tot_mdlMD += mdlMD; tot_mdlPM += mdlPM; tot_mdlEV += mdlEV
+
+    if 6 in obs.index:
+        obsEA = obs.loc[6,'hour_5']
+        obsAM = obs.loc[6,'hour_6'] + obs.loc[6,'hour_7'] + obs.loc[6,'hour_8']
+        obsMD = obs.loc[6,'hour_9'] + obs.loc[6,'hour_10'] + obs.loc[6,'hour_11'] + obs.loc[6,'hour_12'] + obs.loc[6,'hour_13'] + obs.loc[6,'hour_14']
+        obsPM = obs.loc[6,'hour_15'] + obs.loc[6,'hour_16'] + obs.loc[(6,'hour_17')]
+        obsEV = obs.loc[6,'hour_18'] + obs.loc[6,'hour_19']
+        tot_obsEA += obsEA; tot_obsAM += obsAM; tot_obsMD += obsMD; tot_obsPM += obsPM; tot_obsEV += obsEV
+        str_EA = [(mdlEA, obsEA, mdlEA-obsEA, ((mdlEA-obsEA)*100)/obsEA)]
+        str_AM = [(mdlAM, obsAM, mdlAM-obsAM, ((mdlAM-obsAM)*100)/obsAM)]
+        str_MD = [(mdlMD, obsMD, mdlMD-obsMD, ((mdlMD-obsMD)*100)/obsMD)]
+        str_PM = [(mdlPM, obsPM, mdlAM-obsPM, ((mdlAM-obsPM)*100)/obsPM)]
+        str_EV = [(mdlEV, obsEV, mdlEV-obsEV, ((mdlEV-obsEV)*100)/obsEV)]
+    else:
+        str_EA = [(mdlEA,0,'NA','NA')]
+        str_AM = [(mdlAM,0,'NA','NA')]
+        str_MD = [(mdlMD,0,'NA','NA')]
+        str_PM = [(mdlPM,0,'NA','NA')]
+        str_EV = [(mdlEV,0,'NA','NA')]
+    AM = AM.append(str_AM); MD = MD.append(str_MD); PM = PM.append(str_PM); EA = EA.append(str_EA); EV = EV.append(str_EV)
+
+    #ST LightRail - Tacoma, ST LightRail - CentralLink, ST CommuterRail South (Sea-LKW), ST CommuterRail North (Sea-EV)
+    mdl = modeled.groupby(['route_code']).sum()
+    obs = observed.groupby(['PSRC_Rte_ID']).sum()
+    for i in [6995,6996,6998,6999]:
+        if i in mdl.index:
+            mdlEA = mdl.loc[i,'5to6_board']
+            mdlAM = mdl.loc[i,'6to7_board'] + mdl.loc[i,'7to8_board'] + mdl.loc[i,'8to9_board'] 
+            mdlMD = mdl.loc[i,'9to10_board'] + mdl.loc[i,'10to14_board'] + mdl.loc[i,'14to15_board'] 
+            mdlPM = mdl.loc[i,'15to16_board'] + mdl.loc[i,'16to17_board'] + mdl.loc[i,'17to18_board'] 
+            mdlEV = mdl.loc[i,'18to20_board']
+            tot_mdlEA += mdlEA; tot_mdlAM += mdlAM; tot_mdlMD += mdlMD; tot_mdlPM += mdlPM; tot_mdlEV += mdlEV
+        else:
+            mdlEA=0; mdlAM=0; mdlMD=0; mdlPM=0; mdlEV=0
+
+        if i in obs.index:
+            obsEA = obs.loc[i,'hour_5']
+            obsAM = obs.loc[i,'hour_6'] + obs.loc[i,'hour_7'] + obs.loc[i,'hour_8']
+            obsMD = obs.loc[i,'hour_9'] + obs.loc[i,'hour_10'] + obs.loc[i,'hour_11'] + obs.loc[i,'hour_12'] + obs.loc[i,'hour_13'] + obs.loc[i,'hour_14']
+            obsPM = obs.loc[i,'hour_15'] + obs.loc[i,'hour_16'] + obs.loc[i,'hour_17']
+            obsEV = obs.loc[i,'hour_18'] + obs.loc[i,'hour_19']
+            tot_obsEA += obsEA; tot_obsAM += obsAM; tot_obsMD += obsMD; tot_obsPM += obsPM; tot_obsEV += obsEV
+            str_EA = [(mdlEA, obsEA, mdlEA-obsEA, ((mdlEA-obsEA)*100)/obsEA)]
+            str_AM = [(mdlAM, obsAM, mdlAM-obsAM, ((mdlAM-obsAM)*100)/obsAM)]
+            str_MD = [(mdlMD, obsMD, mdlMD-obsMD, ((mdlMD-obsMD)*100)/obsMD)]
+            str_PM = [(mdlPM, obsPM, mdlAM-obsPM, ((mdlAM-obsPM)*100)/obsPM)]
+            str_EV = [(mdlEV, obsEV, mdlEV-obsEV, ((mdlEV-obsEV)*100)/obsEV)]
+        else:
+            str_EA = [(mdlEA,0,'NA','NA')]
+            str_AM = [(mdlAM,0,'NA','NA')]
+            str_MD = [(mdlMD,0,'NA','NA')]
+            str_PM = [(mdlPM,0,'NA','NA')]
+            str_EV = [(mdlEV,0,'NA','NA')]
+        AM = AM.append(str_AM); MD = MD.append(str_MD); PM = PM.append(str_PM); EA = EA.append(str_EA); EV = EV.append(str_EV)
+
+    #Total
+    str_EA = [(tot_mdlEA, tot_obsEA, tot_mdlEA-tot_obsEA, ((tot_mdlEA-tot_obsEA)*100)/tot_obsEA)]
+    EA = EA.append(str_EA)
+    str_AM = [(tot_mdlAM, tot_obsAM, tot_mdlAM-tot_obsAM, ((tot_mdlAM-tot_obsAM)*100)/tot_obsAM)]
+    AM = AM.append(str_AM)
+    str_MD = [(tot_mdlMD, tot_obsMD, tot_mdlMD-tot_obsMD, ((tot_mdlMD-tot_obsMD)*100)/tot_obsMD)]
+    MD = MD.append(str_MD)
+    str_PM = [(tot_mdlPM, tot_obsPM, tot_mdlPM-tot_obsPM, ((tot_mdlPM-tot_obsPM)*100)/tot_obsPM)]
+    PM = PM.append(str_PM)
+    str_EV = [(tot_mdlEV, tot_obsEV, tot_mdlEV-tot_obsEV, ((tot_mdlEV-tot_obsEV)*100)/tot_obsEV)]
+    EV = EV.append(str_EV)
+
+    #Rapid Ride A,B,C,D,E
+    for i in [1671,1672,1673,1674,1675]:
+        if i in mdl.index:
+            mdlEA = mdl.loc[i,'5to6_board']
+            mdlAM = mdl.loc[i,'6to7_board'] + mdl.loc[i,'7to8_board'] + mdl.loc[i,'8to9_board'] 
+            mdlMD = mdl.loc[i,'9to10_board'] + mdl.loc[i,'10to14_board'] + mdl.loc[i,'14to15_board'] 
+            mdlPM = mdl.loc[i,'15to16_board'] + mdl.loc[i,'16to17_board'] + mdl.loc[i,'17to18_board'] 
+            mdlEV = mdl.loc[i,'18to20_board']
+        else:
+            mdlEA=0; mdlAM=0; mdlMD=0; mdlPM=0; mdlEV=0
+
+        if i in obs.index:
+            obsEA = obs.loc[i,'hour_5']
+            obsAM = obs.loc[i,'hour_6'] + obs.loc[i,'hour_7'] + obs.loc[i,'hour_8']
+            obsMD = obs.loc[i,'hour_9'] + obs.loc[i,'hour_10'] + obs.loc[i,'hour_11'] + obs.loc[i,'hour_12'] + obs.loc[i,'hour_13'] + obs.loc[i,'hour_14']
+            obsPM = obs.loc[i,'hour_15'] + obs.loc[i,'hour_16'] + obs.loc[i,'hour_17']
+            obsEV = obs.loc[i,'hour_18'] + obs.loc[i,'hour_19']
+            str_EA = [(mdlEA, obsEA, mdlEA-obsEA, ((mdlEA-obsEA)*100)/obsEA)]
+            str_AM = [(mdlAM, obsAM, mdlAM-obsAM, ((mdlAM-obsAM)*100)/obsAM)]
+            str_MD = [(mdlMD, obsMD, mdlMD-obsMD, ((mdlMD-obsMD)*100)/obsMD)]
+            str_PM = [(mdlPM, obsPM, mdlAM-obsPM, ((mdlAM-obsPM)*100)/obsPM)]
+            str_EV = [(mdlEV, obsEV, mdlEV-obsEV, ((mdlEV-obsEV)*100)/obsEV)]
+        else:
+            str_EA = [(mdlEA,0,'NA','NA')]
+            str_AM = [(mdlAM,0,'NA','NA')]
+            str_MD = [(mdlMD,0,'NA','NA')]
+            str_PM = [(mdlPM,0,'NA','NA')]
+            str_EV = [(mdlEV,0,'NA','NA')]
+        AM = AM.append(str_AM); MD = MD.append(str_MD); PM = PM.append(str_PM); EA = EA.append(str_EA); EV = EV.append(str_EV)
+
+    EA.index = rows; AM.index = rows; MD.index = rows; PM.index = rows; EV.index = rows
+    EA.columns = cols; AM.columns = cols; MD.columns = cols; PM.columns = cols; EV.columns = cols
+    
+    # Write the results and format
+    write_transit_boarding_tables(transit, AM, 0, 'AM')
+    write_transit_boarding_tables(transit, MD, 20, 'MD')
+    write_transit_boarding_tables(transit, PM, 40, 'PM')
+    write_transit_boarding_tables(transit, EA, 60, 'EA (5-6am)')
+    write_transit_boarding_tables(transit, EV, 80, 'EV (18-20pm)')
+
+    
+    
+    # AMTransitAll, MDTransitAll
     am_line_id_map = {}
     am_agency_map = {}
     am_route_to_agency = {}
@@ -383,12 +553,12 @@ def transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall
             md_observed_map.update({md_observed_df.loc[item, 'RDCode']: md_observed_df.loc[item, 'MD Observed']})
 
      
-     # Group and Aggregate Model Results
+    # Group and Aggregate Model Results
         
-     #transit_df = transit_df.drop('id')
-     # first get the model data group by RDCode and Agency
+    #transit_df = transit_df.drop('id')
+    # first get the model data group by RDCode and Agency
     transit_df = transit_df[transit_df.index != 'id'].fillna(0)
-    transit_df['id'] = transit_df.index.astype('float')
+    transit_df['id'] = transit_df.index
     transit_df['AM Code'] = transit_df['id'].map(am_agency_map)
     transit_df['MD Code'] = transit_df['id'].map(md_agency_map)
     transit_df['AM Agency'] = transit_df['AM Code'].map(transit_agency_dict)
@@ -419,13 +589,8 @@ def transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall
     md_boardings_by_agency.loc['Total'] = [md_boardings_by_agency['Modeled MD Boardings'].sum(), md_boardings_by_agency['Observed MD Boardings'].sum()]
     md_boardings_by_agency = md_boardings_by_agency.fillna(0)
     md_boardings_by_agency = scf.get_differences(md_boardings_by_agency, 'Modeled MD Boardings', 'Observed MD Boardings', 0)
-
-
-    # Write the results and format
-    write_transit_boarding_tables(transit, am_boardings_by_agency, 0, 'Ante Meridian')
-    write_transit_boarding_tables(transit, md_boardings_by_agency, 14, 'Mid-Day')
-
-    # Workbook Creation AM -- This should be a function!!!!!!!!!!!!!!!!!
+	
+	# Workbook Creation AM -- This should be a function!!!!!!!!!!!!!!!!!
     
     am_transit_all = am_boardings_by_route[['AM Route', 'Modeled AM Boardings', 'Observed AM Boardings']]
     am_transit_all['Code'] = am_transit_all['AM Route'].map(am_route_to_agency)
@@ -495,10 +660,6 @@ def transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall
     mdtransitall.conditional_format('H2:H1000', {'type': 'cell', 'criteria': '<=', 'value': -0.5, 'format': cond_format})
     md_codes = md_transit_all['Code'].value_counts().index.tolist()
     get_boarding_plots(md_transit_all, 'MD', net_summary, mdtransitall, md_codes, transit_agency_dict)
-
-
-
-
 
 
 #######################HIGHWAY #################################################################################
@@ -682,7 +843,7 @@ def main():
             amtransitall = net_summary.add_worksheet('AMTransitAll')
             mdtransitall = net_summary.add_worksheet('MDTransitAll')
 
-        transit_summary(transit_df, net_summary, transit, amtransitall, mdtransitall)
+        transit_summary(transit_df, observed_df, net_summary, transit, amtransitall, mdtransitall)
 
         highway_summary(network, net_summary, format_sheet, times, screenlines, countstime, countsall)
 

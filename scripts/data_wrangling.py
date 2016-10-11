@@ -29,6 +29,9 @@ from input_configuration import *
 from emme_configuration import *
 import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
+from emme_configuration import *
+import emme_configuration
+import glob
 
 
 def multipleReplace(text, wordDict):
@@ -41,36 +44,24 @@ def copy_daysim_code():
     print 'Copying Daysim executables...'
     if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
        os.makedirs(os.path.join(os.getcwd(), 'daysim'))
-    dir_util.copy_tree(daysim_code, 'daysim')
+    try:
+        dir_util.copy_tree(daysim_code, 'daysim')
+    except Exception as ex:
+        template = "An exception of type {0} occured. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print message
+        sys.exit(1)
 
 
 @timed
-def copy_parcel_buffering_files():
-    if not os.path.exists('inputs/parcel_buffer'):
-        os.makedirs('inputs/parcel_buffer')
-    if not os.path.exists('scripts/parcel_buffer'):
-        os.makedirs('scripts/parcel_buffer')
-
-    print 'copying parcel buffering network inputs.  the file is about 2 gb so it could take a couple of minutes.'
-    try: 
-        shcopy(network_buffer_inputs, 'inputs/parcel_buffer')
-    except:
-        print 'error copying network_buffer inputs at ' + network_buffer_inputs
-        sys.exit(2)
- 
-    main_dir = os.path.abspath('')
-    print main_dir
-    unzip_net_ins = '7z.exe x  ' + main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z ' + "-o"+ main_dir+'/inputs/parcel_buffer/'
-    print unzip_net_ins
-    returncode= subprocess.call(unzip_net_ins)
-    if returncode!=0:
-        print 'could not unzip parcel buffer file from '+ main_dir+'/inputs/parcel_buffer/parcel_buff_network_inputs.7z' + ' to ' +main_dir+'/inputs/parcel_buffer/'
-        sys.exit(2)
+def copy_accessibility_files():
+    if not os.path.exists('inputs/accessibility'):
+        os.makedirs('inputs/accessibility')
     
     print 'Copying UrbanSim parcel file'
     try:
         if os.path.isfile(base_inputs+'/landuse/parcels_urbansim.txt'):
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
+            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
         # the file may need to be reformatted- like this coming right out of urbansim
         elif os.path.isfile(base_inputs+'/landuse/parcels.dat'):
             print 'the file is ' + base_inputs +'/landuse/parcels.dat'
@@ -84,7 +75,7 @@ def copy_parcel_buffering_files():
                 parcels=parcels.rename(columns = {col:new_col})
                 print new_col
             parcels.to_csv(base_inputs+'/landuse/parcels_urbansim.txt', sep = " ")
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','Inputs/parcel_buffer')
+            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accesibility')
 
     except Exception as ex:
         template = "An exception of type {0} occured. Arguments:\n{1!r}"
@@ -95,13 +86,13 @@ def copy_parcel_buffering_files():
 
     print 'Copying Military parcel file'
     try:
-        shcopy(base_inputs+'/landuse/parcels_military.csv','Inputs/parcel_buffer')
+        shcopy(base_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
     except:
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
     try:
-        shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/parcel_buffer')
+        shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
     except:
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
@@ -110,18 +101,20 @@ def copy_parcel_buffering_files():
     print 'Copying Hourly and Daily Parking Files'
     if run_update_parking: 
         try:
-            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/parcel_buffer')
-            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/parcel_buffer')
+            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
+            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
         except:
             print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
             sys.exit(1)
 
-    print 'Copying Parcel Buffering Code'
-    try:
-        dir_util.copy_tree(network_buffer_code,'scripts/parcel_buffer')
-    except:
-        print 'error copying parcel buffering code at ' + network_buffer_code
-        sys.exit(2)
+@timed
+def copy_seed_skims():
+    print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
+    if not(os.path.isdir(base_inputs+'/seed_skims')):
+           print 'It looks like you do not hava directory called' + base_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
+    for filename in glob.glob(os.path.join(base_inputs+'/seed_skims', '*.*')):
+        shutil.copy(filename, 'inputs')
+    print 'Done copying seed skims.'
 
 def text_to_dictionary(dict_name):
 
@@ -188,7 +181,7 @@ def setup_emme_project_folders():
 
     # Create master project, associate with all tod emmebanks
     project = app.create_project('projects', master_project)
-    desktop = app.start_dedicated(True, "cth", project)
+    desktop = app.start_dedicated(False, "cth", project)
     data_explorer = desktop.data_explorer()   
     for tod in tod_list:
         database = data_explorer.add_database('Banks/' + tod + '/emmebank')
@@ -200,6 +193,7 @@ def setup_emme_project_folders():
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
     tod_list.append('Supplementals')
+    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)
@@ -208,6 +202,7 @@ def setup_emme_project_folders():
         database.open()
         desktop.project.save()
         desktop.close()
+        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))
         
    
 @timed    
@@ -221,14 +216,20 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/bikes','Inputs/bikes')
     dir_util.copy_tree(base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
     dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
+    dir_util.copy_tree(base_inputs+'supplemental/parameters','inputs/supplemental/parameters')
+    dir_util.copy_tree(base_inputs+'supplemental/input','inputs/supplemental/input')
     dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
     dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
+    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
     shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
     shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
-    if run_parcel_buffering == False:
-        shcopy(base_inputs+'/landuse/buffered_parcels.dat','Inputs')
+    # node to node short distance files:
+    shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
+
 @timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
@@ -244,49 +245,14 @@ def rename_network_outs(iter):
         if os.path.isfile(csv_output):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
-@timed
-def create_buffer_xml():
-    try:
-     'Creating xml file for the parcel buffering script pointing to your inputs'
-     buffer_template= open('scripts\parcel_buffer\parc_buff_template.xml','r')
-     buffer_config = open('parc_buffer.xml', 'w+')
-     
-     main_dir = os.path.abspath('')
-     
-     in_dir = '\inputs\parcel_buffer'
-     out_dir = '\inputs'
-     code_dir = '\scripts\parcel_buffer'
 
-     replace_dirs = {"$INDIR": main_dir+in_dir,
-                     "$OUTDIR" : main_dir+out_dir,
-                     "$CODEDIR": main_dir+code_dir}
-
-     for line in buffer_template:
-         print line
-         for key in replace_dirs.keys():
-            if key in line:
-                line = line.replace(key, replace_dirs[key])
-         buffer_config.write(line)
-   
-     buffer_template.close()
-     buffer_config.close()
-
-    except:
-     print 'Error in Creating Parcel Buffer xml'
-     buffer_template.close()
-     buffer_config.close()
 
 @timed          
 def clean_up():
-    delete_files = ['outputs\\_tour.tsv', 'outputs\\_trip.tsv','outputs\\_household.tsv','outputs\\_household_day.tsv',
-                   'outputs\\_person.tsv', 'outputs\\_person_day.tsv','outputs\\tdm_trip_list.csv', 'outputs\\_full_half_tour.csv','outputs\\_joint_tour.csv',
-                   'outputs\\_partial_half_tour.csv', 'working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
+    delete_files = ['working\\household.bin', 'working\\household.pk', 'working\\parcel.bin',
                    'working\\parcel.pk', 'working\\parcel_node.bin', 'working\\parcel_node.pk', 'working\\park_and_ride.bin',
                    'working\\park_and_ride_node.pk', 'working\\person.bin', 'working\\person.pk', 'working\\zone.bin',
-                   'working\\zone.pk', 'inputs\\parcel_buffer\\intersection_node_correspondence.txt', 'inputs\\parcel_buffer\\open_spaces_correspondence.txt',
-                   'inputs\\parcel_buffer\\parcels_urbansim.txt','inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt',
-                   'inputs\\parcel_buffer\\psrc_node_node_shortest_path_out.txt.bin', 'psrc_node_node_shortest_path_out.txt.index',
-                   'inputs\\parcel_buffer\\stop_node_correspondence']
+                   'working\\zone.pk']
 
     for file in delete_files: 
         if(os.path.isfile(os.path.join(os.getcwd(), file))):

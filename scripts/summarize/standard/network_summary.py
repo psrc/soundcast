@@ -43,35 +43,35 @@ from standard_summary_configuration import *
 from input_configuration import *
 from emme_configuration import *
 
-network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+#network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 daily_network_fname = 'outputs/daily_network_results.csv'
-fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
-                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
-                 'connectors' : 'ul3 = 5'}
+#fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
+#                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
+#                 'connectors' : 'ul3 = 5'}
 
-extra_attributes_dict = {'@tveh' : 'total vehicles', 
-                         '@mveh' : 'medium trucks', 
-                         '@hveh' : 'heavy trucks', 
-                         '@vmt' : 'vmt',\
-                         '@vht' : 'vht', 
-                         '@trnv' : 'buses in auto equivalents',
-                         '@ovol' : 'observed volume', 
-                         '@bveh' : 'number of buses'}
+#extra_attributes_dict = {'@tveh' : 'total vehicles', 
+#                         '@mveh' : 'medium trucks', 
+#                         '@hveh' : 'heavy trucks', 
+#                         '@vmt' : 'vmt',\
+#                         '@vht' : 'vht', 
+#                         '@trnv' : 'buses in auto equivalents',
+#                         '@ovol' : 'observed volume', 
+#                         '@bveh' : 'number of buses'}
 
-transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
+#transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
 
-transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
-               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
-               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
-# Input Files:
+#transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+#               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
+#               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+#               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+## Input Files:
 aadt_counts_file = 'soundcast_aadt.csv'
 tptt_counts_file = 'soundcast_tptt.csv'
 
-uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
-           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
+#uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
+#           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
 def json_to_dictionary(dict_name):
 
@@ -91,10 +91,10 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      EmmeProject.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
      
      #heavy trucks:
-     EmmeProject.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2')
+     EmmeProject.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
      
      #busses:
-     EmmeProject.network_calculator("link_calculation", result = '@bveh', expression = '@trnv/2')
+     EmmeProject.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
      ####################still need to do*****************************
      #hdw- number of buses:
      #mod_spec = network_calc_spec
@@ -103,8 +103,8 @@ def calc_vmt_vht_delay_by_ft(EmmeProject):
      #network_calc(mod_spec)
      
      #calc total vehicles, store in @tveh 
-     str_expression = '@svtl1 + @svtl2 + @svtl3 + @svnt1 +  @svnt2 + @svnt3 + @h2tl1 + @h2tl2 + @h2tl3 + @h2nt1 + @h2nt2 + @h2nt3 + @h3tl1\
-                       + @h3tl2 + @h3tl3 + @h3nt1 + @h3nt2 + @h3nt3 + @lttrk + @mveh + @hveh + @bveh'
+     str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1\
+                                + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
      EmmeProject.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
      #a dictionary to hold vmt/vht/delay values:
      results_dict = {}
@@ -297,19 +297,21 @@ def calc_transit_line_atts(EmmeProject):
 
 def get_transit_boardings_time(EmmeProject):
     network = EmmeProject.current_scenario.get_network()
-    df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time'))
+    #df_transit_atts = pd.DataFrame(columns=('id', EmmeProject.tod + '_boardings', EmmeProject.tod + '_boardings''_time'))
     line_list = []
-    
+    atts = []
     for transit_line in network.transit_lines():
         x = {}
+        
         #company_code = transit_line['@ut3']
+        atts.append({'id' : transit_line.id, 'route_code' : transit_line.data1, 'mode' : str(transit_line.mode), 'description' : transit_line.description})
         x['id'] = transit_line.id
         x[EmmeProject.tod + '_board'] = transit_line['@board']
         x[EmmeProject.tod + '_time']= transit_line['@timtr']
         line_list.append(x)
     df = pd.DataFrame(line_list)
     df = df.set_index(['id'])
-    return df
+    return [df, atts]
 
 def calc_transit_link_volumes(EmmeProject):
     total_hours = transit_tod[EmmeProject.tod]['num_of_hours']
@@ -469,52 +471,18 @@ def corridor_results(tod, my_project):
 
     return df_out
 
-def export_link_values(my_project):
-    ''' Extract link attribute values for a given scenario and emmebank (i.e., time period) '''
 
-    # Add the daily bank to the project
-    my_project.data_explorer.add_database(r'Banks\Daily\emmebank')
-
-    # Change active database to daily bank
-    my_project.change_active_database('daily')
-
-    network = my_project.current_scenario.get_network()
-    link_type = 'LINK'
-
-    # list of all link attributes
-    link_attr = network.attributes(link_type)
-
-    # Initialize a dataframe to store results
-    df = pd.DataFrame(np.zeros(len(link_attr)+1)).T    # column for each attr +1 for node id (used as merge field)
-    df.columns = np.insert(link_attr, 0, 'nodes')    # columns are attrs w/ node id inserted to front of array
-    
-    for attr in link_attr:
-        print "processing: " + str(attr)
-        
-        # store values and node id for a single attr in a temp df 
-        df_attr = pd.DataFrame([network.get_attribute_values(link_type, [attr])[1].keys(),
-                          network.get_attribute_values(link_type, [attr])[1].values()]).T
-        df_attr.columns = ['nodes',attr]
-        
-        # merge temp df with the 'master df' that is filled iteratively
-        df = pd.merge(df_attr,df,how='outer',on='nodes')
-
-            
-    df.to_csv(daily_network_fname)
 
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
+    transit_atts = []
     my_project = EmmeProject(project)
 
     # Travel times on key corridors
-    export_corridor_results(my_project)
+    # export_corridor_results(my_project)
 
-    # Export daily link measures if a daily bank exists
-    if os.path.exists(r'Banks\Daily\emmebank'):
-        export_link_values(my_project)
-    else:
-        print 'daily bank required to export link values'
+    #export_corridor_results(my_project)
 
     # Connect to sqlite3 db
     if run_tableau_db:
@@ -554,10 +522,13 @@ def main():
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
                 my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-            calc_transit_link_volumes(my_project)
+            #calc_transit_link_volumes(my_project)
             calc_transit_line_atts(my_project)
-  
-            transit_summary_dict[key] = get_transit_boardings_time(my_project)
+            transit_results = get_transit_boardings_time(my_project)
+            transit_summary_dict[key] = transit_results[0]
+            transit_atts.extend(transit_results[1])
+            #transit_atts = list(set(transit_atts))
+
             #print transit_summary_dict
           
         net_stats = calc_vmt_vht_delay_by_ft(my_project)
@@ -640,8 +611,20 @@ def main():
        transit_df = pd.merge(transit_df, df, 'outer', left_index = True, right_index = True)
        #transit_df[tod + '_board'] = df[tod + '_board']
        #transit_df[tod + '_time'] = df[tod + '_time']
-    transit_df = transit_df[['6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time']]
-    transit_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
+    
+    transit_df = transit_df[['5to6_board', '5to6_time', '6to7_board', '6to7_time', '7to8_board', '7to8_time', '8to9_board', '8to9_time', '9to10_board', \
+        '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time', '15to16_board', '15to16_time', '16to17_board', '16to17_time', \
+        '17to18_board', '17to18_time', '18to20_board', '18to20_time']]
+    transit_atts_df = pd.DataFrame(transit_atts)
+    transit_atts_df = transit_atts_df.drop_duplicates(['id'], take_last=True)
+    print transit_atts_df.columns
+    transit_df.reset_index(level=0, inplace=True)
+    # transit_df.to_csv('D:/transit_df.csv')
+    # transit_atts_df.to_csv('D:/transit_atts.csv')
+    #transit_df = transit_df.merge(transit_atts_df, 'inner', right_on=['id'], left_on=['id'])
+    transit_atts_df = transit_atts_df.merge(transit_df, 'inner', right_on=['id'], left_on=['id'])
+  
+    transit_atts_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
        
        #if col == 0:
        #    worksheet = writer.sheets['Transit Summaries']

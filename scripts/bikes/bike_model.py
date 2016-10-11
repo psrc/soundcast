@@ -6,14 +6,28 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from EmmeProject import *
 from input_configuration import *
 from bike_configuration import *
+from emme_configuration import *
+#from standard_summary_configuration import *
 
 # Get the auto time and length of each link
+
+# To Do: Cant import standard_summary_configuration so putting this here for now. 
+extra_attributes_dict = {'@tveh' : 'total vehicles', 
+                         '@mveh' : 'medium trucks', 
+                         '@hveh' : 'heavy trucks', 
+                         '@vmt' : 'vmt',\
+                         '@vht' : 'vht', 
+                         '@trnv' : 'buses in auto equivalents',
+                         '@ovol' : 'observed volume', 
+                         '@bveh' : 'number of buses'}
+
 def get_link_attribute(attr, network):
     ''' Return dataframe of link attribute and link ID'''
     link_dict = {}
     for i in network.links():
         link_dict[i.id] = i[attr]
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
+    print df.head(4)
     return df
 
 def bike_facility_weight(my_project, link_df):
@@ -198,23 +212,57 @@ def export_skims(my_project, matrix_name, tod):
 
 	my_store.close()
 
+
+def calc_total_vehicles(my_project):
+     '''For a given time period, calculate link level volume, store as extra attribute on the link'''
+    
+     #medium trucks
+     my_project.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
+     
+     #heavy trucks:
+     my_project.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
+     
+     #busses:
+     my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
+     
+     #calc total vehicles, store in @tveh 
+     str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1\
+                                + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
+     my_project.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
+
+
 def get_aadt(my_project):
-	'''Extract AADT from daily bank'''
+    '''Calculate link level daily total vehicles/volume, store in a DataFrame'''
+    
+    link_list = []
 
-	# Add daily bank to current project
-	if 'daily' not in [db.title() for db in my_project.data_explorer.databases()]:
-		my_project.data_explorer.add_database('banks/daily/emmebank')
-	
-	my_project.change_active_database('daily')
-
-	# Create dataframe of daily link vehicles and length
-	network = my_project.current_scenario.get_network()
-	length_df = get_link_attribute('length', network)
-	daily_vol = get_link_attribute('@tveh', network) 
-	link_df = pd.merge(length_df, daily_vol)
-
-	return link_df   
-
+    for key, value in sound_cast_net_dict.iteritems():
+        my_project.change_active_database(key)
+        
+        # Create extra attributes to store link volume data
+        for name, desc in extra_attributes_dict.iteritems():
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
+        
+        # Calculate total vehicles for each link
+        calc_total_vehicles(my_project)
+        
+        # Loop through each link, store length and volume
+        network = my_project.current_scenario.get_network()
+        for link in network.links():
+            link_list.append({'link_id' : link.id, '@tveh' : link['@tveh'], 'length' : link.length})
+            
+    df = pd.DataFrame(link_list, columns = link_list[0].keys())       
+    
+    grouped = df.groupby(['link_id'])
+    
+    df = grouped.agg({'@tveh':sum, 'length':min})
+    
+    df.reset_index(level=0, inplace=True)
+    
+    return df
+    
+        
+   
 def write_link_counts(my_project, tod):
 	'''Write bike link volumes to file for comparisons to counts '''
 
@@ -228,8 +276,27 @@ def write_link_counts(my_project, tod):
 	# Load edges file to join proper node IDs
 	edges_df = pd.read_csv(edges_file)
 
-	df = bike_counts.merge(edges_df, on=['INode','JNode'])
+	df = bike_counts.merge(edges_df, 
+		on=['INode','JNode'])
+	
+	# if the link is twoway, also get the other directoin IJ and JI and append to original df
+	twoway_links_df = df[df['Oneway'] == 2]
 
+	# Replace I with J node for twoway links, for Emme IJ and geodatabase IJ pairs
+	twoway_links_df.loc[:,'tempINode'] = twoway_links_df.loc[:,'JNode']
+	twoway_links_df.loc[:,'tempJNode'] = twoway_links_df.loc[:,'INode']
+	twoway_links_df.loc[:,'tempNewINode'] = twoway_links_df.loc[:,'NewJNode']
+	twoway_links_df.loc[:,'tempNewJNode'] = twoway_links_df.loc[:,'NewINode']
+	# remove old IJ values and replace with the new swapped values
+	twoway_links_df.drop(['INode','JNode','NewINode','NewJNode'],axis=1,inplace=True)
+	twoway_links_df.loc[:,'INode'] = twoway_links_df.loc[:,'tempINode']
+	twoway_links_df.loc[:,'JNode'] = twoway_links_df.loc[:,'tempJNode']
+	twoway_links_df.loc[:,'NewINode'] = twoway_links_df.loc[:,'tempNewINode']
+	twoway_links_df.loc[:,'NewJNode'] = twoway_links_df.loc[:,'tempNewJNode']
+	twoway_links_df.drop(['tempINode','tempJNode','tempNewINode','tempNewJNode'],axis=1,inplace=True)
+
+	df = pd.concat([df,twoway_links_df])
+	df = df.reset_index()
 	list_model_vols = []
 
 	for row in df.index:
@@ -241,6 +308,7 @@ def write_link_counts(my_project, tod):
 		x['EmmeJNode'] = j
 		x['gdbINode'] = df.iloc[row]['INode']
 		x['gdbJNode'] = df.iloc[row]['JNode']
+		x['LocationID'] = df.iloc[row]['LocationID']
 		if link != None:
 			x['bvol' + tod] = link['@bvol']
 		else:
@@ -261,10 +329,6 @@ def write_link_counts(my_project, tod):
 def main():
 	
 	print 'running bike model'
-
-	# Check for daily bank; create if it does not exist
-	if not os.path.isfile('banks/daily/emmebank'):
-		subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
 	# Remove any existing results
 	if os.path.exists(bike_link_vol):

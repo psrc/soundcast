@@ -15,9 +15,9 @@ LOW_STATION = 3733
 HIGH_STATION = 3750
 EXTERNAL_DISTRICT = 'ga20'
 
-truck_adjustment_factor = {'ltpro': 0.554,
-							'mtpro': 0.309,
-							'htpro': 0.413,
+truck_adjustment_factor = {'ltpro': 0.544,
+							'mtpro': 0.545,
+							'htpro': 0.530,
 							'ltatt': 0.749,
-							'mtatt': 0.500,
-							'htatt': 1.375}
+							'mtatt': 0.75,
+							'htatt': 1.0}

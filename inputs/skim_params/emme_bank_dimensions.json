@@ -10,7 +10,7 @@
   "functions": 99,
   "destination_matrices": 125,
   "transit_segments": 640000,
-  "full_matrices": 125,
+  "full_matrices": 100,
   "scenarios": 10,
   "origin_matrices": 125,
   "transit_vehicles": 37

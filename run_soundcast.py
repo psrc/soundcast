@@ -37,11 +37,12 @@ import datetime
 import pandas as pd
 import shutil 
 from input_configuration import *
+from emme_configuration import *
 from data_wrangling import *
 
 @timed
-def parcel_buffering():
-    copy_parcel_buffering_files()
+def accessibility_calcs():
+    copy_accessibility_files()
     print 'adding military jobs to regular jobs'
     returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
     if returncode != 0:
@@ -61,11 +62,12 @@ def parcel_buffering():
                 sys.exit(1)
             print 'Finished updating parking data on parcel file'
 
-    create_buffer_xml()
-    print 'running buffer tool'
-    main_dir = os.path.abspath('')
-    returncode = subprocess.call(main_dir + '/scripts/parcel_buffer/DSBuffTool.exe')
-    os.remove(main_dir + '/inputs/parcel_buffer/parcel_buff_network_inputs.7z')
+    print 'Beginning Accessibility Calculations'
+    returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
+    if returncode != 0:
+        print 'Accessibility Calculations Failed For Some Reason :('
+        sys.exit(1)
+    print 'Done with accessibility calculations'
 
 @timed    
 def build_seed_skims(max_iterations):
@@ -75,6 +77,19 @@ def build_seed_skims(max_iterations):
         'scripts/skimming/SkimsAndPaths.py',
         str(max_iterations),
         '-use_daysim_output_seed_trips'])
+    if returncode != 0:
+        sys.exit(1)
+                  
+    time_skims = datetime.datetime.now()
+    print '###### Finished skimbuilding:', str(time_skims - time_copy)
+
+def build_free_flow_skims(max_iterations):
+    print "Building free flow skims."
+    time_copy = datetime.datetime.now()
+    returncode = subprocess.call([sys.executable,
+        'scripts/skimming/SkimsAndPaths.py',
+        str(max_iterations),
+        '-build_free_flow_skims'])
     if returncode != 0:
         sys.exit(1)
                   
@@ -177,7 +192,6 @@ def daysim_assignment(iteration):
          if returncode != 0:
             sys.exit(1)
 
-     if run_bike_model:
          returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
          if returncode != 0:
             sys.exit(1)
@@ -210,15 +224,19 @@ def run_all_summaries():
    if run_ben_cost:
       subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
+   if run_landuse_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
+   if run_truck_summary:
+       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
 def main():
 ## SET UP INPUTS ##########################################################
 
-    if run_parcel_buffering:
-        parcel_buffering()
+    if run_accessibility_calcs:
+        accessibility_calcs()
 
-    if run_parcel_buffer_summary:
+    if run_accessibility_summary:
         subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('outputs'):
@@ -251,10 +269,20 @@ def main():
         if returncode != 0:
            sys.exit(1)
 
-### BUILD SKIMS ###############################################################
+### BUILD OR COPY SKIMS ###############################################################
     if run_skims_and_paths_seed_trips:
         build_seed_skims(10)
-
+        returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
+        if returncode != 0:
+            sys.exit(1)
+    elif run_skims_and_paths_free_flow:
+        build_free_flow_skims(10)
+        returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
+        if returncode != 0:
+            sys.exit(1)
+    # either you build seed skims or you copy them, or neither, but it wouldn't make sense to do both
+    elif run_copy_seed_skims:
+        copy_seed_skims()
     # Check all inputs have been created or copied
     check_inputs()
     
@@ -302,12 +330,12 @@ def main():
                 break
             print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-# UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
+# IF BUILDING SHADOW PRICES, UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
     if should_build_shadow_price:
-        build_shadow_only()
-        modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
-        #This function needs an iteration parameter. Value of 1 is fine. 
-        daysim_assignment(1)
+           build_shadow_only()
+           modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
+           #This function needs an iteration parameter. Value of 1 is fine. 
+           daysim_assignment(1)
 
 ### SUMMARIZE
 ### ##################################################################
