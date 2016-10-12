@@ -131,31 +131,31 @@ screenline_dict = {'Primary': {
                                     71: 'Woodinville'}}
 
 #Create a dictionary to map from screenline names to the observed daily volumes
-observed_screenline_volumes = {'Tacoma - East of CBD': 271777,
-                                'Auburn': 534811,
-                                'Tukwila': 239527,
-                                'Renton': 81758,
-                                'Seattle - South of CBD': 490806,
-                                'Bellevue/Redmond': 354612,
-                                'TransLake': 250220,
-                                'Ship Canal': 521155,
-                                'Kirkland/Redmond': 381331,
-                                'Seattle - North': 327021,
-                                'Lynnwood/Bothell': 231368,
-                                'Bothell': 255590,
-                                'Mill Creek': 350492,
-                                'Parkland': 285859,
-                                'Puyallup': 118726,
-                                'Tacoma Narrows': 79000,
-                                'Maple Valley': 61921,
-                                'SeaTac': 71364,
-                                'Kent': 504607,
-                                'Gig Harbor': 58503,
-                                'Kitsap - North': 97177,
+observed_screenline_volumes = {'Tacoma - East of CBD': 283164,
+                                'Auburn': 540866,
+                                'Tukwila': 245433,
+                                'Renton': 85258,
+                                'Seattle - South of CBD': 469433,
+                                'Bellevue/Redmond': 362151,
+                                'TransLake': 234150,
+                                'Ship Canal': 507450,
+                                'Kirkland/Redmond': 375697,
+                                'Seattle - North': 338825,
+                                'Lynnwood/Bothell': 255467,
+                                'Bothell': 268625,
+                                'Mill Creek': 365342,
+                                'Parkland': 275733,
+                                'Puyallup': 119401,
+                                'Tacoma Narrows': 80000,
+                                'Maple Valley': 75982,
+                                'SeaTac': 72335,
+                                'Kent': 557842 ,
+                                'Gig Harbor': 61503,
+                                'Kitsap - North': 100890,
                                 'Agate Pass': 21000,
-                                'Cross-Sound': 17466,
-                                'Preston, Issaquah': 93227,
-                                'Woodinville': 98331}
+                                'Cross-Sound': 17412,
+                                'Preston, Issaquah': 91451,
+                                'Woodinville': 87944}
 
 transit_agency_dict = {'ET': 'Everett Transit',
                            'KT': 'Kitsap Transit',
@@ -557,7 +557,7 @@ def transit_summary(transit_df, observed, net_summary, transit, amtransitall, md
         
     #transit_df = transit_df.drop('id')
     # first get the model data group by RDCode and Agency
-    transit_df = transit_df[transit_df.index != 'id'].fillna(0)
+    # transit_df = transit_df[transit_df.index != 'id'].fillna(0)
     transit_df['id'] = transit_df.index
     transit_df['AM Code'] = transit_df['id'].map(am_agency_map)
     transit_df['MD Code'] = transit_df['id'].map(md_agency_map)
