@@ -3,7 +3,8 @@
         "modes": [
             "k",
             "l",
-            "q"
+            "q",
+            "f"
         ],        
 	"actual_aux_transit_times": "mfbkat"
     },

@@ -27,7 +27,7 @@ def get_link_attribute(attr, network):
     for i in network.links():
         link_dict[i.id] = i[attr]
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
-    print df.head(4)
+
     return df
 
 def bike_facility_weight(my_project, link_df):
@@ -71,6 +71,12 @@ def process_attributes(my_project):
 	for attr in ['@bkfac', '@upslp']:
 		if attr not in my_project.current_scenario.attributes('LINK'):
 			my_project.current_scenario.create_extra_attribute('LINK',attr)
+		else:
+			try:
+				my_project.current_scenario.delete_extra_attribute(attr)
+				my_project.current_scenario.create_extra_attribute('LINK',attr)
+			except:
+				print 'unable to recreate bike link attributes'
 
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
 	filename = r'inputs/bikes/emme_attr.in'

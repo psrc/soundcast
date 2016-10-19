@@ -1,8 +1,9 @@
 {
     "modes": [
         "k",
-        "l"
-,	"q"   ],
+        "l",
+	    "q",
+        "f"   ],
     "demand": "mfbike",
     "waiting_time": {
         "headway_fraction": 1,
