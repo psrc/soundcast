@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
+import sys
 from pyproj import Proj, transform
 
 
@@ -140,6 +141,17 @@ def clean_up(parcels):
 
 # read in data
 parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+# read in data
+parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+
+#check for missing data!
+for col_name in parcels.columns:
+    # daysim does not use EMPRSC_P
+	if col_name <> 'EMPRSC_P':
+		if parcels[col_name].sum() == 0:
+			print col_name + ' column sum is zero! Exiting program.'
+			sys.exit()
+
 # nodes must be indexed by node_id column, which is the first column
 nodes = pd.DataFrame.from_csv(nodes_file_name)
 links = pd.DataFrame.from_csv(links_file_name, index_col = None )
