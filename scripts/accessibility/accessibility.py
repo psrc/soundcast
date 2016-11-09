@@ -150,7 +150,7 @@ for col_name in parcels.columns:
 	if col_name <> 'EMPRSC_P':
 		if parcels[col_name].sum() == 0:
 			print col_name + ' column sum is zero! Exiting program.'
-			sys.exit()
+			sys.exit(1)
 
 # nodes must be indexed by node_id column, which is the first column
 nodes = pd.DataFrame.from_csv(nodes_file_name)
