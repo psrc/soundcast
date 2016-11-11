@@ -219,7 +219,6 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/bikes','Inputs/bikes')
     dir_util.copy_tree(base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
     dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
-    dir_util.copy_tree(base_inputs+'/supplemental/parameters','inputs/supplemental/parameters')
     dir_util.copy_tree(base_inputs+'/supplemental/input','inputs/supplemental/input')
     dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
     dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')

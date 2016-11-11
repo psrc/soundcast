@@ -20,7 +20,7 @@ zones = my_project.current_scenario.zone_numbers
 dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
 
 #Read External work trips
-work = pd.read_excel('inputs/supplemental/External_Work_NonWork_Inputs.xlsx','External_Workers')
+work = pd.read_excel('inputs/supplemental/distribution/External_Work_NonWork_Inputs.xlsx','External_Workers')
 #Keep only the needed columns
 work = work [['PSRC_TAZ','External_Station','Total_IE', 'Total_EI', 'SOV_Veh_IE', 'SOV_Veh_EI','HOV2_Veh_IE','HOV2_Veh_EI','HOV3_Veh_IE','HOV3_Veh_EI']]
 
