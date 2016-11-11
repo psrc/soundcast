@@ -163,9 +163,20 @@ def run_truck_supplemental(iteration):
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
             if returncode != 0:
                 sys.exit(1)
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
         if returncode != 0:
            sys.exit(1)
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
+        if returncode != 0:
+           sys.exit(1)
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
+        if returncode != 0:
+           sys.exit(1)
+
+
 @timed
 def daysim_assignment(iteration):
      
@@ -306,7 +317,7 @@ def main():
                                                         
                             if not os.path.exists('working'):
                                 os.makedirs('working')
-                            shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+                            #shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
                             print "copying shadow prices" 
                     except:
                             print ' error copying shadow pricing file from shadow_pricing at ' + base_inputs+'/shadow_pricing/shadow_prices.txt'
