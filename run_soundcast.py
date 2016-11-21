@@ -167,6 +167,10 @@ def run_truck_supplemental(iteration):
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
         if returncode != 0:
            sys.exit(1)
+        
+           returncode = subprocess.call([sys.executable,'scripts/supplemental/mode_choice_supplemental.py'])
+        if returncode != 0:
+           sys.exit(1)
 
         returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
         if returncode != 0:
