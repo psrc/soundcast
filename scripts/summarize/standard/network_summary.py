@@ -558,6 +558,7 @@ def main():
             
             df = pd.DataFrame()
             df['id'] = boardings.keys()
+            df['line'] = line.values()
             df['ons'] = boardings.values()
             df['tod'] = my_project.tod
 
