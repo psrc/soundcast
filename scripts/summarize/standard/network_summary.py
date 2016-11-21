@@ -504,6 +504,12 @@ def main():
     aadt_counts_dict = {}
     
     tptt_counts_dict = {}
+
+    # write out stop-level boardings
+    stop_df = pd.DataFrame()
+
+    # write out transit segment boardings (line and stop specific)
+    seg_df = pd.DataFrame()
     
     #get a list of screenlines from the bank/scenario
     screenline_list = get_unique_screenlines(my_project) 
@@ -528,6 +534,35 @@ def main():
             transit_summary_dict[key] = transit_results[0]
             transit_atts.extend(transit_results[1])
             #transit_atts = list(set(transit_atts))
+
+        
+            network = my_project.current_scenario.get_network()
+            ons = {}
+            offs = {}
+            
+            for node in network.nodes():
+                ons[int(node.id)] = node.initial_boardings
+                offs[int(node.id)] = node.final_alightings
+            
+            stop_df['id'] = ons.keys()
+            stop_df[my_project.tod+'_ons'] = ons.values()
+            stop_df[my_project.tod+'_offs'] = offs.values()
+
+            # Transit segment values
+            boardings = {}
+            line = {}
+
+            for tseg in network.transit_segments():
+                boardings[tseg.i_node.number] = tseg.transit_boardings
+                line[tseg.i_node.number] = tseg.line.id
+            
+            df = pd.DataFrame()
+            df['id'] = boardings.keys()
+            df['line'] = line.values()
+            df['ons'] = boardings.values()
+            df['tod'] = my_project.tod
+
+            seg_df = seg_df.append(df)
 
             #print transit_summary_dict
           
@@ -554,6 +589,10 @@ def main():
         get_screenline_volumes(screenline_dict, my_project)
         
     list_of_measures = ['vmt', 'vht', 'delay']
+
+    # write stop and transit segemnt results to csv
+    stop_df.to_excel(excel_writer = writer, sheet_name = 'Stop-Level Transit Boarding')
+    seg_df.to_excel(excel_writer = writer, sheet_name = 'Transit Segment Boarding')
 
     # Write results to sqlite3 db (for Tableau)
     if run_tableau_db:
