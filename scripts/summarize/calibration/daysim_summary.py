@@ -6,11 +6,13 @@ USAGE = """
 	python daysim_summary.py input_dir output_dir
 
 	Produces stacked csv summaries of h5-formatted h5 files.
-	All h5 file in input_dir are summarized. 
+	All h5 and xlsx files in input_dir are summarized. 
     Format must be soundcast output (daysim_outputs.h5) or survey files (survey.h5).
     Any number of h5 files may be included in a summary.
 
     Output is set of csv aggregations of h5 data, to be stored in output_dir. 
+
+    Rename h5 and xlsx files to represent secenario or survey name. These will be imported to the dataset.
 
 """
 
@@ -22,6 +24,34 @@ output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','per
 
 # Overwrite existing output?
 overwrite = True
+
+# look up psrc time of day 
+tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','16to17','17to18','18to20']
+
+tod_lookup = {  0:'20to5',
+                1:'20to5',
+                2:'20to5',
+                3:'20to5',
+                4:'20to5',
+                5:'5to6',
+                6:'6to7',
+                7:'7to8',
+                8:'8to9',
+                9:'9to10',
+                10:'10to14',
+                11:'10to14',
+                12:'10to14',
+                13:'10to14',
+                14:'14to15',
+                15:'15to16',
+                16:'16to17',
+                17:'17to18',
+                18:'18to20',
+                19:'18to20',
+                20:'18to20',
+                21:'20to5',
+                22:'20to5',
+                23:'20to5' }
 
 def h5_to_df(h5file, table_list, name=False):
     """
@@ -63,43 +93,29 @@ def apply_lables(h5data):
 def agg_measures(dataset):
     df = pd.DataFrame()
 
-    # Total Persons
-    df = add_row(df, row_name='total_persons', description='Total Persons', value=dataset['Person']['psexpfac'].sum())
-
-    # Total Households
-    df = add_row(df, row_name='total_hhs', description='Total Households', value=dataset['Household']['hhexpfac'].sum())
-
-    # Average Household Size
-    avg_hh_size = (dataset['Household']['hhsize']*dataset['Household']['hhexpfac']).sum()/dataset['Household']['hhexpfac'].sum()
-    df = add_row(df, row_name='avg_hh_size', description='Average Household Size', value=avg_hh_size)
-
-    # Average Trips per Person
-    trips_per_person = dataset['Trip']['trexpfac'].sum()/dataset['Person']['psexpfac'].sum()
-    df = add_row(df, row_name='trips_per_person', description='Average Trips per Person', value=trips_per_person)
-
-    # Average Trip Length
-    trip_len = (dataset['Trip']['travdist']*dataset['Trip']['trexpfac']).sum()/dataset['Trip']['trexpfac'].sum()
-    df = add_row(df, row_name='trip_len', description='Average Trips Length', value=trip_len)
-
     # VMT per capita
-    driver_trips = dataset['Trip'][dataset['Trip']['dorp'] == 'Driver']
+    driver_trips = dataset['Trip'][dataset['Trip']['dorp'] == 1]
     vmt_per_cap = (driver_trips['travdist']*driver_trips['trexpfac']).sum()/dataset['Person']['psexpfac'].sum()
     df = add_row(df, row_name='vmt_per_cap', description='VMT per Person', value=vmt_per_cap)
-
-    # Average distance to work
-    to_work_tours = dataset['Tour'][dataset['Tour']['pdpurp'] == 'Work']
-    dist_to_work = (to_work_tours['tautodist']*to_work_tours['toexpfac']).sum()/to_work_tours['toexpfac'].sum()
-    df = add_row(df, row_name='dist_to_work', description='Avg Distance to Work', value=dist_to_work)
-
-    # Average distance to school
-    to_school_tours = dataset['Tour'][dataset['Tour']['pdpurp'] == 'School']
-    dist_to_school = (to_school_tours['tautodist']*to_school_tours['toexpfac']).sum()/to_school_tours['toexpfac'].sum()
-    df = add_row(df, row_name='dist_to_school', description='Avg Distance to School', value=dist_to_school)
+    
+    # Average trips per person
+    trips_per_person = dataset['Trip']['trexpfac'].sum()/dataset['Person']['psexpfac'].sum()
+    df = add_row(df, row_name='trips_per_person', description='Average Trips per Person', value=trips_per_person)
     
     # add datasource field
     df['source'] = dataset['name']
     
     return df
+
+def household(dataset):
+    
+    hh = dataset['Household']
+    agg_fields = ['hhsize','hhvehs','hhftw']
+    hh_df = pd.DataFrame(hh.groupby(agg_fields)['hhexpfac'].sum())
+    
+    hh_df['source'] = dataset['name']
+    
+    return hh_df
 
 def person(dataset):
     
@@ -204,25 +220,31 @@ def tours(dataset):
 def trips(dataset):
     
     trip = dataset['Trip']
+    trip = trip[trip['travdist'] >= 0]
     person = dataset['Person']
         
     # total trips
     # join with person file and district names based on destination
-    trip_person = pd.merge(trip,person,on=['hhno','pno'])
+    trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
     
     trip_person['deptm_hr'] = trip_person['deptm'].apply(lambda row: int(math.floor(row/60)))
     
+   
     # Tours by person type, purpose, mode, and destination district
     agg_fields = ['pptyp','dpurp','mode','deptm_hr']
     trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
     
-    # average trip distance and time
-    trips_df = trips_df.join(pd.DataFrame(trip_person.groupby(agg_fields)['travdist'].mean()))
-    trips_df = trips_df.join(pd.DataFrame(trip_person.groupby(agg_fields)['travtime'].mean()))
-    # average trip 
+    # average trip distance and time (weighted)
+    trip_person['travdist_wt'] = trip_person['travdist']*trip_person['trexpfac']
+    trip_person['travtime_wt'] = trip_person['travtime']*trip_person['trexpfac']
     
-    trip_person = trip_person.join(pd.DataFrame(person.groupby('pptyp').sum()['psexpfac']),
-                                   lsuffix='_x', rsuffix='_y')
+    travdist_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travdist_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
+    travdist_df.rename(columns={0:'travdist'},inplace=True)
+    trips_df = trips_df.join(travdist_df)
+
+    travtime_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travtime_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
+    travtime_df.rename(columns={0:'travtime'},inplace=True)
+    trips_df = trips_df.join(travtime_df)    
     
     # add datasource field
     trips_df['source'] = dataset['name']
@@ -285,19 +307,123 @@ def time_of_day(dataset):
     
     return results_df 
 
+def net_summary(net_file, fname):
+    
+    net_summary_df = pd.read_excel(net_file, sheetname='Network Summary')
+    net_summary_df.index = net_summary_df['tod']
+    df = pd.DataFrame(net_summary_df.stack())
+    df.reset_index(inplace=True)
+    df.rename(columns={0:'value','level_1':'fieldname'}, inplace=True)
+
+    # Drop the rows with TP_4k column headers
+    df.drop(df[df['fieldname'] == 'TP_4k'].index, inplace=True)
+    df.drop(df[df['fieldname'] == 'tod'].index, inplace=True)
+
+    # Split the fields by vmt, vht, delay
+    df['facility_type'] = df.fieldname.apply(lambda row: row.split('_')[0])
+    df['metric'] = df.fieldname.apply(lambda row: row.split('_')[-1])
+
+    df['source'] = fname.split('.xlsx')[0]
+    
+    write_csv(df=df, fname='net_summary.csv')
+
+def traffic_counts(net_file, fname):
+    # note that for now network_summary_detailed is manually updated with soundcast_counts output
+    # for traffic counts - should be automated in future to do this immediately
+    
+    df = pd.read_excel(net_file, sheetname='Counts Output')
+        
+    # Get total of model @tveh
+    # take min of count value because it represents potentially multiple linkes
+    df = pd.DataFrame([df.groupby('@scrn').sum()['@tveh'].values,
+                       df.groupby('@scrn').min()['@count'].values,
+                       df.groupby('@scrn').min()['ul3'].values,
+                       df.groupby('@scrn').first()['i'].values,
+                       df.groupby('@scrn').first()['j'].values,]).T
+    df.columns = ['model','observed','facility','i','j']
+    df['source'] = fname.split('.xlsx')[0]
+    
+    # Add geography
+    geog = pd.read_csv(r'data/midpoint_edges_0.txt')
+    df = pd.merge(df,geog[['NewINode','NewJNode','lat','lon','county','LARGE_AREA']],
+                  left_on=['i','j'], right_on=['NewINode','NewJNode'], how='left')
+    
+    write_csv(df=df, fname='traffic_counts.csv')
+
+def transit_summary(net_file, fname):
+    
+    transit_df = pd.read_excel(net_file, sheetname='Transit Summaries')
+    transit_df.index = transit_df['route_code']
+    # fname = 'transit_boardings.csv'
+
+    # Add model results
+    dict_result = {}
+    for field in ['board','time']:
+        df = pd.DataFrame(transit_df[[tod+'_'+ field for tod in tod_list]].stack())
+        df.rename(columns={0:field}, inplace=True)
+        df['tod'] = [i.split('_')[0] for i in df.index.get_level_values(1)]
+        df['route_id'] = df.index.get_level_values(0)
+        df.reset_index(inplace=True, drop=True)
+
+        dict_result[field] = df
+
+    # Only keep the boardings for now - observed time data is not available at the route level
+    df = dict_result['board'].groupby(['route_id','tod']).sum()
+    df.reset_index(inplace=True)
+    df['source'] = fname.split('.xlsx')[0]
+
+    model = df
+
+    # Join observed data
+
+    df = pd.read_csv(r'C:\Users\Brice\soundcast-summary\daysim\data\transit_boardings_2014.csv')
+    df.index = df['PSRC_Rte_ID']
+    df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
+
+    df = pd.DataFrame(df.stack())
+    df.reset_index(inplace=True)
+    df.rename(columns={0:'board', 'level_1':'hour','PSRC_Rte_ID':'route_id'}, inplace=True)
+
+    # Convert hour to time of day definition
+    df['hour'] = df['hour'].apply(lambda row: row.split('_')[-1])
+    tod_df = pd.DataFrame(data=tod_lookup.values(),index=tod_lookup.keys(), columns=['tod'])
+    tod_df['hour'] = tod_df.index.astype('str')
+
+    df = pd.merge(df,tod_df,on='hour')
+    df.drop('hour', axis=1,inplace=True)
+
+    # Group by tod
+    df = df.groupby(['tod','route_id']).sum()
+    df['tod'] = df.index.get_level_values(0)
+    df['route_id'] = df.index.get_level_values(1)
+    df.reset_index(inplace=True, drop=True)
+
+    df = pd.merge(model, df, on=['route_id','tod'], suffixes=['_model','_observed'])
+    df.rename(columns={'board_model':'model','board_observed':'observed'}, inplace=True)
+    df['source'] = fname.split('.xlsx')[0]
+    fname_out = 'transit_boardings.csv'
+    
+    # Add the route description
+    df = pd.merge(df,transit_df[['route_code','description']],left_on='route_id',right_on='route_code',how='left')
+    df.drop_duplicates(inplace=True)
+    
+    write_csv(df=df, fname=fname_out)
+
 def process_dataset(h5file, scenario_name):
-    """
-    Process all daysim-formatted results
-    """
+    
+    # Process all daysim results
     
     # Load h5 data as dataframes
-    dataset = h5_to_df(h5file, table_list=table_list, name=scenario_name)
+    dataset = h5_to_df(h5file, table_list=['Household','Trip','Tour','Person','HouseholdDay','PersonDay'], name=scenario_name)
 
     dataset = apply_lables(dataset)
     
     # Calculate aggregate measures csv
     agg_df = agg_measures(dataset)
     write_csv(agg_df,fname='agg_measures.csv')
+
+    hh_df = household(dataset)
+    write_csv(hh_df, fname='household.csv')
 
     tours_df = tours(dataset)
     write_csv(tours_df,fname='tours.csv')
@@ -353,3 +479,22 @@ if __name__ == '__main__':
 
 			process_dataset(h5file=daysim_h5, scenario_name=fname.split('.')[0])
 			del daysim_h5 # drop from memory to save space for next comparison
+
+    # Create network summaries
+    output_csv_list = ['transit_boardings','traffic_counts','net_summary']
+
+
+    if overwrite:
+        for fname in output_csv_list:
+            if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
+                os.remove(os.path.join(output_dir,fname+'.csv'))
+
+    for fname in os.listdir(input_dir):
+        if fname.endswith('.xlsx'):
+            net_file = os.path.join(input_dir,fname)
+
+            print 'processing ' + fname
+
+            transit_summary(net_file, fname)
+            traffic_counts(net_file, fname)
+            net_summary(net_file, fname)
