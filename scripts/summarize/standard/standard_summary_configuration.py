@@ -43,7 +43,7 @@ out_lu_summary = r'outputs/landuse_summary.xlsx'
 households_persons_file = r'inputs\hh_and_persons.h5'
 
 ######## Truck Counts ########################################################
-truck_counts_file ='scripts/summarize/inputs/network_summary/truck_counts_2014.xlsx' 
+truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014.csv' 
 
 ######## Observed Transit Boardings############################################
 observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_boardings_2014.csv'
