@@ -525,7 +525,7 @@ def truck_summary(df_counts, my_project, writer):
     truck_compare_grouped_sum = truck_compare.groupby(['CountID']).sum()[['modeledTot', 'modeledMed', 'modeledHvy']]
     truck_compare_grouped_sum.reset_index(level=0, inplace=True)
     truck_compare_grouped_min = truck_compare.groupby(['CountID']).min()[['Location', 'LocationDetail', 'FacilityType', 'length', 'observedMed',
-                                                                        'observedHvy', 'observedTot','county','LARGE_AREA']]
+                                                                        'observedHvy', 'observedTot','county','LARGE_AREA','lat','lon']]
     truck_compare_grouped_min.reset_index(level=0, inplace=True)
     trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
     trucks_out.to_excel(excel_writer=writer, sheet_name='Truck Counts')
