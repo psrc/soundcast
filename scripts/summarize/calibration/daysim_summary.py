@@ -409,6 +409,28 @@ def transit_summary(net_file, fname):
     
     write_csv(df=df, fname=fname_out)
 
+def truck_summary(net_file, fname):
+    """Process medium and heavy truck counts where observed data is provided"""
+
+    df = pd.read_excel(net_file, sheetname='Truck Counts')
+    df['source'] = fname.split('.xlsx')[0]
+
+    # stack by medium, heavy, and total counts
+    med_df = df.drop(['observedHvy','modeledHvy','observedTot','modeledTot'], axis=1)
+    med_df.rename(columns={'modeledMed':'model','observedMed':'observed'},inplace=True)
+    med_df['truck_type'] = 'medium'
+
+    hvy_df = df.drop(['observedMed','modeledMed','observedTot','modeledTot'], axis=1)
+    hvy_df.rename(columns={'modeledHvy':'model','observedHvy':'observed'},inplace=True)
+    hvy_df['truck_type'] = 'heavy'
+
+    tot_df = df.drop(['observedMed','modeledMed','observedHvy','modeledHvy'], axis=1)
+    tot_df.rename(columns={'modeledTot':'model','observedTot':'observed'},inplace=True)
+    tot_df['truck_type'] = 'all'
+
+    df = med_df.append(hvy_df).append(tot_df)
+    write_csv(df=df, fname='trucks.csv')
+
 def process_dataset(h5file, scenario_name):
     
     # Process all daysim results
@@ -498,3 +520,4 @@ if __name__ == '__main__':
             transit_summary(net_file, fname)
             traffic_counts(net_file, fname)
             net_summary(net_file, fname)
+            truck_summary(net_file, fname)
