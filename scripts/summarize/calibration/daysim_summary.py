@@ -328,108 +328,112 @@ def net_summary(net_file, fname):
     write_csv(df=df, fname='net_summary.csv')
 
 def traffic_counts(net_file, fname):
-    # note that for now network_summary_detailed is manually updated with soundcast_counts output
-    # for traffic counts - should be automated in future to do this immediately
     
-    df = pd.read_excel(net_file, sheetname='Counts Output')
-        
-    # Get total of model @tveh
-    # take min of count value because it represents potentially multiple linkes
-    df = pd.DataFrame([df.groupby('@scrn').sum()['@tveh'].values,
-                       df.groupby('@scrn').min()['@count'].values,
-                       df.groupby('@scrn').min()['ul3'].values,
-                       df.groupby('@scrn').first()['i'].values,
-                       df.groupby('@scrn').first()['j'].values,]).T
-    df.columns = ['model','observed','facility','i','j']
-    df['source'] = fname.split('.xlsx')[0]
-    
-    # Add geography
-    geog = pd.read_csv(r'data/midpoint_edges_0.txt')
-    df = pd.merge(df,geog[['NewINode','NewJNode','lat','lon','county','LARGE_AREA']],
-                  left_on=['i','j'], right_on=['NewINode','NewJNode'], how='left')
-    
-    write_csv(df=df, fname='traffic_counts.csv')
+    sheetname = 'Daily Counts'
+    if sheetname not in pd.ExcelFile(net_file).sheet_names:
+        return
+    else:
+        df = pd.read_excel(net_file, sheetname=sheetname)
+            
+        # Get total of model @tveh
+        # take min of count value because it represents potentially multiple linkes
+        df = pd.DataFrame([df.groupby('@scrn').sum()['@tveh'].values,
+                           df.groupby('@scrn').min()['count'].values,
+                           df.groupby('@scrn').min()['ul3'].values,
+                           df.groupby('@scrn').first()['i'].values,
+                           df.groupby('@scrn').first()['j'].values,]).T
+        df.columns = ['model','observed','facility','i','j']
+        df['source'] = fname.split('.xlsx')[0]
+                
+        write_csv(df=df, fname='traffic_counts.csv')
 
 def transit_summary(net_file, fname):
-    
-    transit_df = pd.read_excel(net_file, sheetname='Transit Summaries')
-    transit_df.index = transit_df['route_code']
-    # fname = 'transit_boardings.csv'
 
-    # Add model results
-    dict_result = {}
-    for field in ['board','time']:
-        df = pd.DataFrame(transit_df[[tod+'_'+ field for tod in tod_list]].stack())
-        df.rename(columns={0:field}, inplace=True)
-        df['tod'] = [i.split('_')[0] for i in df.index.get_level_values(1)]
-        df['route_id'] = df.index.get_level_values(0)
+    sheetname = 'Transit Summaries'
+    if sheetname not in pd.ExcelFile(net_file).sheet_names:
+        return
+    else:
+        transit_df = pd.read_excel(net_file, sheetname=sheetname)
+        transit_df.index = transit_df['route_code']
+
+        # Add model results
+        dict_result = {}
+        for field in ['board','time']:
+            df = pd.DataFrame(transit_df[[tod+'_'+ field for tod in tod_list]].stack())
+            df.rename(columns={0:field}, inplace=True)
+            df['tod'] = [i.split('_')[0] for i in df.index.get_level_values(1)]
+            df['route_id'] = df.index.get_level_values(0)
+            df.reset_index(inplace=True, drop=True)
+
+            dict_result[field] = df
+
+        # Only keep the boardings for now - observed time data is not available at the route level
+        df = dict_result['board'].groupby(['route_id','tod']).sum()
+        df.reset_index(inplace=True)
+        df['source'] = fname.split('.xlsx')[0]
+
+        model = df
+
+        # Join observed data
+
+        df = pd.read_csv(r'C:\Users\Brice\soundcast-summary\daysim\data\transit_boardings_2014.csv')
+        df.index = df['PSRC_Rte_ID']
+        df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
+
+        df = pd.DataFrame(df.stack())
+        df.reset_index(inplace=True)
+        df.rename(columns={0:'board', 'level_1':'hour','PSRC_Rte_ID':'route_id'}, inplace=True)
+
+        # Convert hour to time of day definition
+        df['hour'] = df['hour'].apply(lambda row: row.split('_')[-1])
+        tod_df = pd.DataFrame(data=tod_lookup.values(),index=tod_lookup.keys(), columns=['tod'])
+        tod_df['hour'] = tod_df.index.astype('str')
+
+        df = pd.merge(df,tod_df,on='hour')
+        df.drop('hour', axis=1,inplace=True)
+
+        # Group by tod
+        df = df.groupby(['tod','route_id']).sum()
+        df['tod'] = df.index.get_level_values(0)
+        df['route_id'] = df.index.get_level_values(1)
         df.reset_index(inplace=True, drop=True)
 
-        dict_result[field] = df
-
-    # Only keep the boardings for now - observed time data is not available at the route level
-    df = dict_result['board'].groupby(['route_id','tod']).sum()
-    df.reset_index(inplace=True)
-    df['source'] = fname.split('.xlsx')[0]
-
-    model = df
-
-    # Join observed data
-
-    df = pd.read_csv(r'C:\Users\Brice\soundcast-summary\daysim\data\transit_boardings_2014.csv')
-    df.index = df['PSRC_Rte_ID']
-    df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
-
-    df = pd.DataFrame(df.stack())
-    df.reset_index(inplace=True)
-    df.rename(columns={0:'board', 'level_1':'hour','PSRC_Rte_ID':'route_id'}, inplace=True)
-
-    # Convert hour to time of day definition
-    df['hour'] = df['hour'].apply(lambda row: row.split('_')[-1])
-    tod_df = pd.DataFrame(data=tod_lookup.values(),index=tod_lookup.keys(), columns=['tod'])
-    tod_df['hour'] = tod_df.index.astype('str')
-
-    df = pd.merge(df,tod_df,on='hour')
-    df.drop('hour', axis=1,inplace=True)
-
-    # Group by tod
-    df = df.groupby(['tod','route_id']).sum()
-    df['tod'] = df.index.get_level_values(0)
-    df['route_id'] = df.index.get_level_values(1)
-    df.reset_index(inplace=True, drop=True)
-
-    df = pd.merge(model, df, on=['route_id','tod'], suffixes=['_model','_observed'])
-    df.rename(columns={'board_model':'model','board_observed':'observed'}, inplace=True)
-    df['source'] = fname.split('.xlsx')[0]
-    fname_out = 'transit_boardings.csv'
-    
-    # Add the route description
-    df = pd.merge(df,transit_df[['route_code','description']],left_on='route_id',right_on='route_code',how='left')
-    df.drop_duplicates(inplace=True)
-    
-    write_csv(df=df, fname=fname_out)
+        df = pd.merge(model, df, on=['route_id','tod'], suffixes=['_model','_observed'])
+        df.rename(columns={'board_model':'model','board_observed':'observed'}, inplace=True)
+        df['source'] = fname.split('.xlsx')[0]
+        fname_out = 'transit_boardings.csv'
+        
+        # Add the route description
+        df = pd.merge(df,transit_df[['route_code','description']],left_on='route_id',right_on='route_code',how='left')
+        df.drop_duplicates(inplace=True)
+        
+        write_csv(df=df, fname=fname_out)
 
 def truck_summary(net_file, fname):
     """Process medium and heavy truck counts where observed data is provided"""
 
-    df = pd.read_excel(net_file, sheetname='Truck Counts')
-    df['source'] = fname.split('.xlsx')[0]
+    sheetname = 'Truck Counts'
+    if sheetname not in pd.ExcelFile(net_file).sheet_names:
+        return
+    else:
+        df = pd.read_excel(net_file, sheetname='Truck Counts')
+        df['source'] = fname.split('.xlsx')[0]
 
-    # stack by medium, heavy, and total counts
-    med_df = df.drop(['observedHvy','modeledHvy','observedTot','modeledTot'], axis=1)
-    med_df.rename(columns={'modeledMed':'model','observedMed':'observed'},inplace=True)
-    med_df['truck_type'] = 'medium'
+        # stack by medium, heavy, and total counts
+        med_df = df.drop(['observedHvy','modeledHvy','observedTot','modeledTot'], axis=1)
+        med_df.rename(columns={'modeledMed':'model','observedMed':'observed'},inplace=True)
+        med_df['truck_type'] = 'medium'
 
-    hvy_df = df.drop(['observedMed','modeledMed','observedTot','modeledTot'], axis=1)
-    hvy_df.rename(columns={'modeledHvy':'model','observedHvy':'observed'},inplace=True)
-    hvy_df['truck_type'] = 'heavy'
+        hvy_df = df.drop(['observedMed','modeledMed','observedTot','modeledTot'], axis=1)
+        hvy_df.rename(columns={'modeledHvy':'model','observedHvy':'observed'},inplace=True)
+        hvy_df['truck_type'] = 'heavy'
 
-    tot_df = df.drop(['observedMed','modeledMed','observedHvy','modeledHvy'], axis=1)
-    tot_df.rename(columns={'modeledTot':'model','observedTot':'observed'},inplace=True)
-    tot_df['truck_type'] = 'all'
+        tot_df = df.drop(['observedMed','modeledMed','observedHvy','modeledHvy'], axis=1)
+        tot_df.rename(columns={'modeledTot':'model','observedTot':'observed'},inplace=True)
+        tot_df['truck_type'] = 'all'
 
-    df = med_df.append(hvy_df).append(tot_df)
-    write_csv(df=df, fname='trucks.csv')
+        df = med_df.append(hvy_df).append(tot_df)
+        write_csv(df=df, fname='trucks.csv')
 
 def process_dataset(h5file, scenario_name):
     
@@ -517,7 +521,7 @@ if __name__ == '__main__':
 
             print 'processing ' + fname
 
-            transit_summary(net_file, fname)
+            # transit_summary(net_file, fname)
             traffic_counts(net_file, fname)
             net_summary(net_file, fname)
             truck_summary(net_file, fname)
