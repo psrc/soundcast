@@ -517,6 +517,7 @@ def get_aadt_trucks(my_project):
     
 def truck_summary(df_counts, my_project, writer):
     """ Export medium and heavy truck results where observed data is available """
+    
     truck_volumes = get_aadt_trucks(my_project)
     truck_compare = pd.merge(df_counts, truck_volumes, left_on='ij_id', right_on='link_id')
     truck_compare['modeledTot'] = truck_compare['@mveh']+truck_compare['@hveh']
@@ -529,6 +530,63 @@ def truck_summary(df_counts, my_project, writer):
     truck_compare_grouped_min.reset_index(level=0, inplace=True)
     trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
     trucks_out.to_excel(excel_writer=writer, sheet_name='Truck Counts')
+
+def daily_counts(writer):
+    """Export daily network volumes and compare to observed."""
+
+    # Load observed data
+    count_id_df = pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
+
+    # add daily bank to project if it exists
+    if os.path.isfile(r'Banks/Daily/emmebank'):
+        bank = _eb.Emmebank(r'Banks/Daily/emmebank')
+        scenario = bank.scenario(1002)
+
+        # Add/refresh screenline ID link attribute
+        if scenario.extra_attribute('@scrn'):
+            scenario.delete_extra_attribute('@scrn')
+        attr = scenario.create_extra_attribute('LINK', '@scrn')
+
+        # Add/refresh screenline count value from assignment results
+        if scenario.extra_attribute('@count'):
+            scenario.delete_extra_attribute('@count')
+        attr_count = scenario.create_extra_attribute('LINK', '@count')
+
+        network = scenario.get_network()
+
+        inode_list = []
+        jnode_list = []
+        scrn_id = []
+        facility_list = []
+        observed_volume = []
+        model_volume = []
+
+        for row in count_id_df.iterrows():
+            inode = int(row[1].NewINode) 
+            jnode = int(row[1].NewJNode) 
+            if network.link(inode, jnode):
+                link = network.link(inode, jnode)
+                link['@scrn'] = row[1]['ScreenLineID']
+                link['@count'] = row[1]['Year_2014']
+
+                inode_list.append(inode)
+                jnode_list.append(jnode)
+                facility_list.append(link['data3'])
+                scrn_id.append(link['@scrn'])
+                observed_volume.append(link['@count'])
+                model_volume.append(link['@tveh'])
+
+        scenario.publish_network(network)
+
+        df = pd.DataFrame([inode_list,jnode_list,facility_list,model_volume,scrn_id,observed_volume]).T
+        df.columns=['i','j','ul3','@tveh','@scrn','count']
+
+        df.to_excel(excel_writer=writer, sheet_name='Daily Counts')
+
+    else:
+        raise Exception('no daily bank found')
+
+
 
 def main():
     ft_summary_dict = {}
@@ -550,8 +608,12 @@ def main():
     df_tptt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + tptt_counts_file)
     df_truck_counts = pd.read_csv(truck_counts_file)
 
+    daily_counts(writer)
+
     if run_truck_summary:
     	truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=writer)
+
+
 
     counts_dict = {}
     uc_vmt_dict = {}
