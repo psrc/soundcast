@@ -44,7 +44,10 @@ from data_wrangling import *
 def accessibility_calcs():
     copy_accessibility_files()
     print 'adding military jobs to regular jobs'
-    returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    print 'adding JBLM workers to external workers'
+    print 'adjusting non-work externals'
+    print 'creating ixxi file for Daysim'
+    returncode=subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
     if returncode != 0:
         print 'Military Job loading failed'
         sys.exit(1)
@@ -172,9 +175,9 @@ def run_truck_supplemental(iteration):
         if returncode != 0:
            sys.exit(1)
 
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
-        if returncode != 0:
-           sys.exit(1)
+        #returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
+        #if returncode != 0:
+        #   sys.exit(1)
 
         returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
         if returncode != 0:
@@ -248,11 +251,7 @@ def run_all_summaries():
 def main():
 ## SET UP INPUTS ##########################################################
 
-    if run_accessibility_calcs:
-        accessibility_calcs()
-
-    if run_accessibility_summary:
-        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
+    
 
     if not os.path.exists('outputs'):
         os.makedirs('outputs')
@@ -269,8 +268,14 @@ def main():
     if run_copy_large_inputs:
         copy_large_inputs()
 
-    if  run_convert_hhinc_2000_2010:
-        subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
+    if run_accessibility_calcs:
+        accessibility_calcs()
+
+    if run_accessibility_summary:
+        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
+
+    #if  run_convert_hhinc_2000_2010:
+    #    subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
 
 ### IMPORT NETWORKS
 ### ###############################################################
