@@ -101,7 +101,7 @@ def agg_measures(dataset):
     # Average trips per person
     trips_per_person = dataset['Trip']['trexpfac'].sum()/dataset['Person']['psexpfac'].sum()
     df = add_row(df, row_name='trips_per_person', description='Average Trips per Person', value=trips_per_person)
-    
+
     # add datasource field
     df['source'] = dataset['name']
     
@@ -496,7 +496,6 @@ if __name__ == '__main__':
 
 	# Process all files with h5 extension in input_dir
     for fname in os.listdir(input_dir):
-		print fname
 		if fname.endswith('.h5'):
 
 			daysim_h5 = h5py.File(os.path.join(input_dir,fname))
@@ -521,7 +520,7 @@ if __name__ == '__main__':
 
             print 'processing ' + fname
 
-            # transit_summary(net_file, fname)
+            transit_summary(net_file, fname)
             traffic_counts(net_file, fname)
             net_summary(net_file, fname)
             truck_summary(net_file, fname)
