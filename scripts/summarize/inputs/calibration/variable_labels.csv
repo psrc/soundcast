@@ -158,7 +158,3 @@ Trip,pathtype,4,Light Rail
 Trip,pathtype,5,Premium Bus
 Trip,pathtype,6,Commuter Rail
 Trip,pathtype,7,Ferry
-Trip,dorp,1,Driver
-Trip,dorp,2,Passenger
-Trip,dorp,3,N/A
-Trip,dorp,9,Missing
