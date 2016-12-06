@@ -63,6 +63,8 @@ def skims_to_hdf5(EmmeProject):
             print matrix_id
             matrix = EmmeProject.bank.matrix(matrix_id)
             matrix_value = np.matrix(matrix.raw_data)
+            if name == 'lttrk':
+                matrix_value = matrix_value * 0
             my_store[tod].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
             matrix_value = None
