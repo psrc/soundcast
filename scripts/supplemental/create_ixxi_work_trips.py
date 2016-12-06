@@ -171,9 +171,6 @@ parcel_grouped = parcel_df.groupby('TAZ_P')
 emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
 emp_by_taz.reset_index(inplace = True)
 
-
-
-
 person_df = h5_to_data_frame(hh_persons, 'Person')
 print len(person_df)
 person_df = person_df.loc[(person_df.pwtyp > 0)]
