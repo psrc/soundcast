@@ -376,7 +376,7 @@ def transit_summary(net_file, fname):
 
         # Join observed data
 
-        df = pd.read_csv(r'C:\Users\Brice\soundcast-summary\daysim\data\transit_boardings_2014.csv')
+        df = pd.read_csv(r'scripts\summarize\inputs\network_summary\transit_boardings_2014.csv')
         df.index = df['PSRC_Rte_ID']
         df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
 
@@ -434,6 +434,26 @@ def truck_summary(net_file, fname):
 
         df = med_df.append(hvy_df).append(tot_df)
         write_csv(df=df, fname='trucks.csv')
+
+def screenlines(net_file, fname):
+    """Process screenline results from model output"""
+
+    sheetname = 'Screenline Volumes'
+    if sheetname not in pd.ExcelFile(net_file).sheet_names:
+        return
+    else:
+        df = pd.read_excel(net_file, sheetname=sheetname)
+        df['source'] = fname.split('.xlsx')[0]
+
+    # Load observed data and join
+    obs = pd.read_csv(r'scripts\summarize\inputs\screenlines.csv')
+
+    obs_col = '2010'
+    df = pd.merge(df,obs,left_on='Screenline', right_on='id', how='inner')
+
+    df.rename(columns={'Volumes':'model',obs_col:'observed'}, inplace=True)
+
+    write_csv(df=df, fname='screenlines.csv')
 
 def process_dataset(h5file, scenario_name):
     
@@ -524,3 +544,4 @@ if __name__ == '__main__':
             traffic_counts(net_file, fname)
             net_summary(net_file, fname)
             truck_summary(net_file, fname)
+            screenlines(net_file, fname)
