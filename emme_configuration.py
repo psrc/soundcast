@@ -26,7 +26,7 @@ headway_file = 'sc_headways.csv'
 
 ################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
-STOP_THRESHOLD = 0.015
+STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50             # Assignment Convergence Criteria
 best_relative_gap = 0.01  # Assignment Convergence Criteria
