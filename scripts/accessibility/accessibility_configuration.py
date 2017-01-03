@@ -21,7 +21,7 @@ parcel_attributes = {
               "sum": ["HH_P", "STUGRD_P", "STUHGH_P", "STUUNI_P", 
                       "EMPMED_P", "EMPOFC_P", "EMPEDU_P", "EMPFOO_P", "EMPGOV_P", "EMPIND_P", 
                       "EMPSVC_P", "EMPOTH_P", "EMPTOT_P", "EMPRET_P",
-                      "PARKDY_P", "PARKHR_P", "NPARKS", "aparks", "daily_weighted_spaces", "hourly_weighted_spaces"],
+                      "PARKDY_P", "PARKHR_P", "NPARKS", "APARKS", "daily_weighted_spaces", "hourly_weighted_spaces"],
               "ave": [ "PPRICDYP", "PPRICHRP"],
               }
 
