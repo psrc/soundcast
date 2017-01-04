@@ -20,7 +20,9 @@ labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibr
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
-output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','person_day','person']
+output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','person_day','person','household',
+                    'tours_tardest','tours_tlvdest','tours_tlvorig','net_summary','screenlines','trucks',
+                    'transit_boardings','traffic_counts']
 
 # Overwrite existing output?
 overwrite = True
@@ -526,13 +528,6 @@ if __name__ == '__main__':
 			del daysim_h5 # drop from memory to save space for next comparison
 
     # Create network summaries
-    output_csv_list = ['transit_boardings','traffic_counts','net_summary']
-
-
-    if overwrite:
-        for fname in output_csv_list:
-            if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-                os.remove(os.path.join(output_dir,fname+'.csv'))
 
     for fname in os.listdir(input_dir):
         if fname.endswith('.xlsx'):
