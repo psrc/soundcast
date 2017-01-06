@@ -20,7 +20,11 @@ labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibr
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
-output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','person_day','person']
+
+output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','person_day','person','household',
+                    'tours_tardest','tours_tlvdest','tours_tlvorig','net_summary','screenlines','trucks',
+                    'transit_boardings','traffic_counts']
+
 
 # Overwrite existing output?
 overwrite = True
@@ -175,7 +179,10 @@ def person_day(dataset):
     
     return df
 
-def tours(dataset):
+def tours(dataset, time_field):
+    """
+    Specify a time field to segment the data (e.g., 'tlvorig' for time left the origin)
+    """
     
     tour = dataset['Tour']
     person = dataset['Person']
@@ -185,16 +192,21 @@ def tours(dataset):
     tour_person = pd.merge(tour,person,on=['hhno','pno'])
     tour_person = pd.merge(tour_person,districts[['taz','district_name']],left_on='tdtaz',right_on='taz',how='left')
     
-    
-    tour_person['tlvorig_hr'] = tour_person['tlvorig'].apply(lambda row: int(math.floor(row/60)))
+    # Convert time field to hour
+    tour_person[time_field+'_hr'] = tour_person[time_field].apply(lambda row: int(math.floor(row/60)))
+
+    # Calculate tour duration
+    tour_person.ix[tour_person.tlvorig > tour_person.tarorig, 'tarorig'] = tour_person.ix[tour_person.tlvorig > tour_person.tarorig, 'tarorig']+1440
+    tour_person['duration'] = tour_person.tarorig - tour_person.tlvorig
     
     # Tours by person type, purpose, mode, destination district, and time of day
-    agg_fields = ['pptyp','pdpurp','tmodetp','tlvorig_hr','district_name']
+    agg_fields = ['pptyp','pdpurp','tmodetp',time_field+'_hr','district_name']
     tours_df = pd.DataFrame(tour_person.groupby(agg_fields)['toexpfac'].sum())
     
     # average trip distance and time
     tours_df = tours_df.join(pd.DataFrame(tour_person.groupby(agg_fields)['tautodist'].mean()))
     tours_df = tours_df.join(pd.DataFrame(tour_person.groupby(agg_fields)['tautotime'].mean()))
+    tours_df = tours_df.join(pd.DataFrame(tour_person.groupby(agg_fields)['duration'].mean()))
     # average trip 
     
     tours_df = tours_df.join(pd.DataFrame(person.groupby('pptyp').sum()['psexpfac']))
@@ -203,7 +215,7 @@ def tours(dataset):
     tours_df['pptyp'] = tours_df.index.get_level_values(0)
     tours_df['pdpurp'] = tours_df.index.get_level_values(1)
     tours_df['tmodetp'] = tours_df.index.get_level_values(2)
-    tours_df['tlvorig_hr'] = tours_df.index.get_level_values(3)
+    tours_df[time_field+'_hr'] = tours_df.index.get_level_values(3)
     tours_df['district_name'] = tours_df.index.get_level_values(4)
     tours_df.reset_index(inplace=True, drop=True)
 
@@ -471,9 +483,16 @@ def process_dataset(h5file, scenario_name):
     hh_df = household(dataset)
     write_csv(hh_df, fname='household.csv')
 
-    tours_df = tours(dataset)
-    write_csv(tours_df,fname='tours.csv')
-    
+    # Tours based on time left origin
+    tours_df = tours(dataset,'tlvorig')
+    write_csv(tours_df,fname='tours_tlvorig.csv')
+
+    tours_df = tours(dataset, 'tardest')
+    write_csv(tours_df,fname='tours_tardest.csv')
+
+    tours_df = tours(dataset, 'tlvdest')
+    write_csv(tours_df,fname='tours_tlvdest.csv')
+
     taz_df = taz_tours(dataset)
     write_csv(taz_df,fname='taz_tours.csv')
     
@@ -526,13 +545,6 @@ if __name__ == '__main__':
 			del daysim_h5 # drop from memory to save space for next comparison
 
     # Create network summaries
-    output_csv_list = ['transit_boardings','traffic_counts','net_summary']
-
-
-    if overwrite:
-        for fname in output_csv_list:
-            if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-                os.remove(os.path.join(output_dir,fname+'.csv'))
 
     for fname in os.listdir(input_dir):
         if fname.endswith('.xlsx'):

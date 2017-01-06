@@ -63,7 +63,7 @@ if not(use_simple_configuration):
     run_soundcast_summary = True
     run_create_daily_bank = True
     run_ben_cost = False
-    run_truck_summary = False
+    run_truck_summary = True
     run_landuse_summary = False
     ########################
 
