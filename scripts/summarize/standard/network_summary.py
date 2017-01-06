@@ -535,8 +535,9 @@ def daily_counts(writer):
     """Export daily network volumes and compare to observed."""
 
     # Load observed data
-    count_id_df = pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
-
+    count_id_df = pd.read_csv(r'inputs/networks/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    observed_count_df =  pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
+    count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
     # add daily bank to project if it exists
     if os.path.isfile(r'Banks/Daily/emmebank'):
         bank = _eb.Emmebank(r'Banks/Daily/emmebank')
