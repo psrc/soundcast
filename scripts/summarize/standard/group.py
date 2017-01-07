@@ -1,20 +1,6 @@
 import os, sys, math, h5py
 import pandas as pd
-
-USAGE = """
-
-	python daysim_summary.py input_dir output_dir
-
-	Produces stacked csv summaries of h5-formatted h5 files.
-	All h5 and xlsx files in input_dir are summarized. 
-    Format must be soundcast output (daysim_outputs.h5) or survey files (survey.h5).
-    Any number of h5 files may be included in a summary.
-
-    Output is set of csv aggregations of h5 data, to be stored in output_dir. 
-
-    Rename h5 and xlsx files to represent secenario or survey name. These will be imported to the dataset.
-
-"""
+from standard_summary_configuration import *
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
@@ -520,40 +506,49 @@ def write_csv(df,fname):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 3:
-        print USAGE
-        print sys.argv
-        sys.exit(2)
+    # Use root directory name as run name
+    run_name = os.getcwd().split('\\')[-1]
 
-    input_dir = sys.argv[1]
-    output_dir = sys.argv[2]
+    output_dir = r'outputs/grouped'
+
+    h5_file_dict = {
+        run_name: r'outputs/daysim_outputs.h5', 
+        comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
+        'survey': r'scripts/summarize/survey.h5'
+                    }
+
+    network_file_dict = {
+        run_name: r'outputs/network_summary_detailed.xlsx',
+        comparison_name: os.path.join(r'outputs/network_summary_detailed.xlsx')
+    }
+
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     if overwrite:
 	    for fname in output_csv_list:
 	        if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
 	            os.remove(os.path.join(output_dir,fname+'.csv'))
 
-	# Process all files with h5 extension in input_dir
-    for fname in os.listdir(input_dir):
-		if fname.endswith('.h5'):
+	# Process all h5 files
+    for name, file_dir in h5_file_dict.iteritems():
 
-			daysim_h5 = h5py.File(os.path.join(input_dir,fname))
+		daysim_h5 = h5py.File(file_dir)
 
-			print 'processing ' + fname
+		print 'processing h5: ' + name
 
-			process_dataset(h5file=daysim_h5, scenario_name=fname.split('.')[0])
-			del daysim_h5 # drop from memory to save space for next comparison
+		process_dataset(h5file=daysim_h5, scenario_name=name)
+		del daysim_h5 # drop from memory to save space for next comparison
 
     # Create network summaries
 
-    for fname in os.listdir(input_dir):
-        if fname.endswith('.xlsx'):
-            net_file = os.path.join(input_dir,fname)
+    for name, file_dir in network_file_dict.iteritems():
 
-            print 'processing ' + fname
+        print 'processing excel: ' + name
 
-            transit_summary(net_file, fname)
-            traffic_counts(net_file, fname)
-            net_summary(net_file, fname)
-            truck_summary(net_file, fname)
-            screenlines(net_file, fname)
+        transit_summary(file_dir, name)
+        traffic_counts(file_dir, name)
+        net_summary(file_dir, name)
+        truck_summary(file_dir, name)
+        screenlines(file_dir, name)

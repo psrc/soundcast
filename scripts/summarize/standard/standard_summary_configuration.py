@@ -47,3 +47,7 @@ truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014
 
 ######## Observed Transit Boardings############################################
 observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_boardings_2014.csv'
+
+# Grouped outputs
+comparison_name = 'soundcast_base' # define in input_config
+comparison_run_dir = r'R:\SoundCast\releases\soundcast_2014'
