@@ -60,6 +60,7 @@ if not(use_simple_configuration):
     #Summaries to run:######
     run_accessibility_summary = False
     run_network_summary = True
+    run_grouped_summary = True
     run_soundcast_summary = True
     run_create_daily_bank = True
     run_ben_cost = False
@@ -199,7 +200,6 @@ else:
 ###########################################################################################################################################################
 # These files generally do not change and don't need to be toggled here usually
 master_project = 'LoadTripTables'
-run_tableau_db = False
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
@@ -212,9 +212,6 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "snack", "nap"
 # These files are often missing from a run.  We want to check they are present and warn if not.
 # Please add to this list as you find files that are missing.
 commonly_missing_files = ['buffered_parcels.txt', 'tazdata.in']
-
-
-run_tableau_db = False
 
 # Calibration Summary Configuration
 h5_results_file = 'outputs/daysim_outputs.h5'

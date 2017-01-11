@@ -398,79 +398,6 @@ def get_link_attribute(network, attr):
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
     return df
 
-def export_corridor_results(my_project):
-    ''' Evaluate corridor travel time for a single AM and PM period'''
-    tod = {'am': '7to8', 'pm': '16to17'}
-    am_df = corridor_results(tod=tod['am'], my_project=my_project)
-    pm_df = corridor_results(tod=tod['pm'], my_project=my_project)
-
-    # combine am and pm into single CSV and export
-    corridor_df = pd.concat(objs=[am_df, pm_df])
-    corridor_df.to_csv('outputs/corridor_summary.csv')
-
-def corridor_results(tod, my_project):
-    corridor_count = 12    # number of input corridor files
-
-    # filepath = r'projects\\' + tod + '\\' + tod + '.emp'
-    # my_project = EmmeProject(filepath)
-    my_project.change_active_database(tod)
-
-    # Access the nework link data
-    network = my_project.current_scenario.get_network()
-
-    # Get the auto time and length of each link
-    
-
-    # Get dataframes for time and length
-    time_df = get_link_attribute(network=network, attr='auto_time')
-    length_df = get_link_attribute(network=network, attr='length')    
-
-    # combine link time and length data into single dataframe
-    link_df = pd.merge(time_df, length_df)
-
-    corridor_flags_df = pd.DataFrame()
-    for i in range(1, corridor_count+1):    # +1 because python is zero-based
-        corridor_df = pd.read_table(r'inputs/corridors/corridor_' + str(i) + '.in', skiprows=1, skipinitialspace=True, sep=' ')
-        corridor_df['link_id'] = corridor_df['inode'].astype('str') + '-' + corridor_df['jnode'].astype('str')
-        corridor_flags_df = pd.concat(objs=[corridor_flags_df, corridor_df])
-
-    corridor_flags_df.fillna(0, inplace=True)
-
-    # join corridor flags to link travel time
-    corridor_times_df = pd.merge(link_df, corridor_flags_df)
-
-    # sum corridor travel time and length for each corridor
-    link_trav_time = pd.DataFrame()
-    for i in range(1, corridor_count+1):    # +1 because python is zero-based
-        if i < 10:
-            code = '@corr'
-        else:
-            code = '@cor'
-
-        corridor_sum = pd.DataFrame(corridor_times_df.groupby(code + str(i)).sum()[['auto_time', 'length']])
-        
-        # add a corridor id tag for analysis
-        corridor_sum['Corridor Input File'] = i
-        corridor_sum['Local ID'] = corridor_sum.index
-        link_trav_time = pd.concat([link_trav_time, corridor_sum])        
-
-    # remove all the 0-index results (these are travel times on non-tagged links)
-    link_trav_time = link_trav_time.query('index > 0')
-
-    # Add a column that concatenates the corridor file number and the corridor tag ID 
-    # for processessing in Excel
-    link_trav_time['full_id'] = link_trav_time['Corridor Input File'].astype('str') + link_trav_time['Local ID'].astype('str')
-    link_trav_time['full_id'] = link_trav_time['full_id'].astype('float')
-
-    # Add a column for time of day
-    link_trav_time['tod'] = tod
-
-    # Write out to CSV
-    df_out = link_trav_time[['tod', 'Corridor Input File', 'Local ID', 
-                'full_id', 'auto_time', 'length']]
-
-    return df_out
-
 def calc_total_vehicles(my_project):
      '''For a given time period, calculate link level volume, store as extra attribute on the link'''
     
@@ -594,12 +521,6 @@ def main():
     transit_summary_dict = {}
     transit_atts = []
     my_project = EmmeProject(project)
-
-    # Travel times on key corridors
-    # export_corridor_results(my_project)
-
-    #export_corridor_results(my_project)
-
     
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
        
@@ -613,8 +534,6 @@ def main():
 
     if run_truck_summary:
     	truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=writer)
-
-
 
     counts_dict = {}
     uc_vmt_dict = {}

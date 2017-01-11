@@ -222,7 +222,6 @@ def copy_large_inputs():
     dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
     dir_util.copy_tree(base_inputs+'/supplemental/input','inputs/supplemental/input')
     dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
-    dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')
     shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
