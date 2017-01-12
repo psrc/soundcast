@@ -507,51 +507,51 @@ def write_csv(df,fname):
 if __name__ == '__main__':
 
     # Use root directory name as run name
- #    run_name = os.getcwd().split('\\')[-1]
+    run_name = os.getcwd().split('\\')[-1]
 
- #    output_dir = r'outputs/grouped'
+    output_dir = r'outputs/grouped'
 
- #    h5_file_dict = {
- #        run_name: r'outputs/daysim_outputs.h5', 
- #        comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
- #        'survey': r'scripts/summarize/survey.h5'
- #                    }
+    h5_file_dict = {
+        run_name: r'outputs/daysim_outputs.h5', 
+        comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
+        'survey': r'scripts/summarize/survey.h5'
+                    }
 
- #    network_file_dict = {
- #        run_name: r'outputs/network_summary_detailed.xlsx',
- #        comparison_name: os.path.join(r'outputs/network_summary_detailed.xlsx')
- #    }
+    network_file_dict = {
+        run_name: r'outputs/network_summary_detailed.xlsx',
+        comparison_name: os.path.join(r'outputs/network_summary_detailed.xlsx')
+    }
 
- #    # Create output directory if it doesn't exist
- #    if not os.path.exists(output_dir):
- #        os.makedirs(output_dir)
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
- #    if overwrite:
-	#     for fname in output_csv_list:
-	#         if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-	#             os.remove(os.path.join(output_dir,fname+'.csv'))
+    if overwrite:
+	    for fname in output_csv_list:
+	        if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
+	            os.remove(os.path.join(output_dir,fname+'.csv'))
 
-	# # Process all h5 files
- #    for name, file_dir in h5_file_dict.iteritems():
+	# Process all h5 files
+    for name, file_dir in h5_file_dict.iteritems():
 
-	# 	daysim_h5 = h5py.File(file_dir)
+		daysim_h5 = h5py.File(file_dir)
 
-	# 	print 'processing h5: ' + name
+		print 'processing h5: ' + name
 
-	# 	process_dataset(h5file=daysim_h5, scenario_name=name)
-	# 	del daysim_h5 # drop from memory to save space for next comparison
+		process_dataset(h5file=daysim_h5, scenario_name=name)
+		del daysim_h5 # drop from memory to save space for next comparison
 
- #    # Create network summaries
+    # Create network summaries
 
- #    for name, file_dir in network_file_dict.iteritems():
+    for name, file_dir in network_file_dict.iteritems():
 
- #        print 'processing excel: ' + name
+        print 'processing excel: ' + name
 
- #        transit_summary(file_dir, name)
- #        traffic_counts(file_dir, name)
- #        net_summary(file_dir, name)
- #        truck_summary(file_dir, name)
- #        screenlines(file_dir, name)
+        transit_summary(file_dir, name)
+        traffic_counts(file_dir, name)
+        net_summary(file_dir, name)
+        truck_summary(file_dir, name)
+        screenlines(file_dir, name)
 
     # Write notebooks based on these outputs to HTML
     for nb in ['topsheet']:
