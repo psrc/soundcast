@@ -552,3 +552,12 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
+
+    # Write notebooks based on these outputs to HTML
+    for nb in ['topsheet']:
+        os.system("ipython nbconvert --to=html scripts/summarize/notebooks/"+nb+".ipynb")
+
+        # Move these files to output
+        if os.path.exists(r"outputs/"+nb+".html"):
+            os.remove(r"outputs/"+nb+".html")
+        os.rename(nb+".html", r"outputs/"+nb+".html")
