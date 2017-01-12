@@ -143,25 +143,35 @@ def vmt_by_user_class(EmmeProject):
         uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
 
-def get_link_counts(EmmeProject, df_counts, tod):
+def get_link_counts(EmmeProject, loop_id_df, tod):
     #get the network for the active scenario
      network = EmmeProject.current_scenario.get_network()
+     scenario = EmmeProject.current_scenario
      list_model_vols = []
-     for item in df_counts.index:
-         i = list(item)[0]
-         j = list(item)[1]
+     # Add/refresh screenline ID link attribute
+     if scenario.extra_attribute('@loop'):
+            scenario.delete_extra_attribute('@loop')
+     attr = scenario.create_extra_attribute('LINK', '@loop')
+     for row in loop_id_df.iterrows():
+         i = row[1].NewINode
+         j = row[1].NewJNode
          link = network.link(i, j)
          x = {}
-         x['loop_INode'] = i
-         x['loop_JNode'] = j
+         #x['NewINode'] = i
+         #x['NewJNode'] = j
+         x['CountID'] = row[1].CountID
          if link <> None:
+            #link['@loop'] = row[1].CountID
             x['vol' + tod] = link['@tveh']   
          else:
             x['vol' + tod] = None
          list_model_vols.append(x)
-     print len(list_model_vols)
+     #print len(list_model_vols)
+     #scenario.publish_network(network)
      df =  pd.DataFrame(list_model_vols)
-     df = df.set_index(['loop_INode', 'loop_JNode'])
+     df.set_index(['CountID'], inplace = True)
+     #df = df.set_index(['loop_INode', 'loop_JNode'])
+     #print df.head(10)
      return df
 
 def get_aadt_volumes(EmmeProject, df_aadt_counts, vol_dict):
@@ -398,6 +408,7 @@ def get_link_attribute(network, attr):
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
     return df
 
+
 def calc_total_vehicles(my_project):
      '''For a given time period, calculate link level volume, store as extra attribute on the link'''
     
@@ -521,10 +532,14 @@ def main():
     transit_summary_dict = {}
     transit_atts = []
     my_project = EmmeProject(project)
-    
+
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
        
     # Read observed count data
+    loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
+    loop_counts = pd.read_csv(r'inputs/observed/loop_counts_2014.csv')
+    loop_counts.set_index(['CountID_Type'], inplace = True)
+    #loop_ids = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_aadt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + aadt_counts_file)
     df_tptt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + tptt_counts_file)
@@ -534,6 +549,8 @@ def main():
 
     if run_truck_summary:
     	truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=writer)
+
+
 
     counts_dict = {}
     uc_vmt_dict = {}
@@ -610,7 +627,7 @@ def main():
         uc_vmt_dict[key] = vmt_by_user_class(my_project)
 
         #counts:
-        df_tod_vol = get_link_counts(my_project, df_counts, key)
+        df_tod_vol = get_link_counts(my_project, loop_ids, key)
         counts_dict[key] = df_tod_vol
         
         #AADT Counts:
@@ -656,12 +673,14 @@ def main():
 
     #*******write out counts:
     for value in counts_dict.itervalues():
-        df_counts = df_counts.merge(value, right_index = True, left_index = True)
-        df_counts = df_counts.drop_duplicates()
+        print value.head(4)
+        print loop_counts.head(4)
+        loop_counts = loop_counts.merge(value, left_index = True, right_index = True)
+    #loop_counts = loop_counts.drop_duplicates()
     
     #write counts out to xlsx:
     #loops
-    df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
+    loop_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
     
     #aadt:
     aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
