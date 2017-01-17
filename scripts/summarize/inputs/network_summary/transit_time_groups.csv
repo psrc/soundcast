@@ -1,0 +1,16 @@
+Hour,ModelPeriod,TimeGroup,BigTimeGroup,All
+5,5to6_board,EV/NT,Off-Peak,All
+6,6to7_board,AM,Peak,All
+7,7to8_board,AM,Peak,All
+8,8to9_board,AM,Peak,All
+9,9to10_board,MD,Off-Peak,All
+10,10to14_board,MD,Off-Peak,All
+11,10to14_board,MD,Off-Peak,All
+12,10to14_board,MD,Off-Peak,All
+13,10to14_board,MD,Off-Peak,All
+14,14to15_board,MD,Off-Peak,All
+15,15to16_board,PM,Peak,All
+16,16to17_board,PM,Peak,All
+17,17to18_board,PM,Peak,All
+18,18to20_board,EV/NT,Off-Peak,All
+19,18to20_board,EV/NT,Off-Peak,All

@@ -1,4 +1,4 @@
-﻿#################################### NETWORK SUMMARY ####################################
+#################################### NETWORK SUMMARY ####################################
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 report_output_location = 'Outputs'
@@ -48,6 +48,15 @@ truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014
 ######## Observed Transit Boardings############################################
 observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_boardings_2014.csv'
 
-# Grouped outputs
-comparison_name = 'soundcast_base' # define in input_config
-comparison_run_dir = r'R:\SoundCast\releases\soundcast_2014'
+
+#### Transit Groupings ###############################################################
+transit_time_group_file= 'scripts/summarize/inputs/network_summary/transit_time_groups.csv'
+route_group_file = 'scripts/summarize/inputs/network_summary/transit_route_groups.csv'
+special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_routes.csv'
+
+
+##### Output File Locations ######################################################
+net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
+net_summary_out = 'outputs/network_summary.xlsx'
+transit_summary_out = 'outputs/transit_summary.xlsx'
+
