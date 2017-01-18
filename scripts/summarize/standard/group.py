@@ -376,7 +376,7 @@ def transit_summary(net_file, fname):
 
         df = pd.read_csv(r'scripts\summarize\inputs\network_summary\transit_boardings_2014.csv')
         df.index = df['PSRC_Rte_ID']
-        df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
+       # df.drop([u'Unnamed: 0','PSRC_Rte_ID','SignRt'],axis=1,inplace=True)
 
         df = pd.DataFrame(df.stack())
         df.reset_index(inplace=True)
@@ -560,4 +560,4 @@ if __name__ == '__main__':
         # Move these files to output
         if os.path.exists(r"outputs/"+nb+".html"):
             os.remove(r"outputs/"+nb+".html")
-        os.rename(nb+".html", r"outputs/"+nb+".html")
+        os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")

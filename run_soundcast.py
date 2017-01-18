@@ -241,13 +241,15 @@ def run_all_summaries():
       subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
 
    if run_ben_cost:
-      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
+   	  print 'Benefit Cost code is not working currently. It will not be run.'
+	  # benefit cost code is not working
+      #subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
    
-   if run_truck_summary:
-       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
+#   if run_truck_summary:
+#       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
 
    if run_grouped_summary:
        subprocess.call([sys.executable, 'scripts/summarize/standard/group.py'])

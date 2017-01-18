@@ -201,24 +201,7 @@ def write_screenline_tables(workbook, worksheet, screenline_type, header_format,
     worksheet.conditional_format('G18:G29', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
 
 #Function to create a scatterplot for modeled vs.  observed boardings
-def create_boarding_scatter_plot(workbook, worksheet, range, lr_slope, lr_intercept, r2, title, position, size):
-    chart = workbook.add_chart({'type': 'scatter'})
-    chart.add_series({'name': 'Boardings',
-                      'categories': [worksheet.name, range[0], 3, range[1], 3],
-                      'values': [worksheet.name, range[0], 2, range[1], 2],
-                      'marker': {
-                                 'type': 'diamond',
-                                 'border': {'color': colors[0]},
-                                 'fill': {'color': colors[1]}},
-                      'trendline': {
-                                    'type': 'linear'}
-                      })
-    chart.set_title({'name': title + '\nModeled Boardings = ' + str(round(lr_slope, 3)) + u' \u00d7 Observed Boardings + ' + str(round(lr_intercept)) + '\n' + u'R\u00b2 = ' + str(round(r2, 3)), 'name_font': {'size': 12}})
-    chart.set_legend({'position': 'none'})
-    chart.set_x_axis({'name': 'Observed Boardings'})
-    chart.set_y_axis({'name': 'Modeled Boardings'})
-    chart.set_size({'width': size[0], 'height': size[1]})
-    worksheet.insert_chart(position[0], position[1], chart)
+
 
 
     
