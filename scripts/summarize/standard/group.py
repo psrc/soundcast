@@ -325,7 +325,7 @@ def net_summary(net_file, fname):
     
     write_csv(df=df, fname='net_summary.csv')
 
-def traffic_counts(net_file, fname):
+def daily_counts(net_file, fname):
     
     sheetname = 'Daily Counts'
     if sheetname not in pd.ExcelFile(net_file).sheet_names:
@@ -344,6 +344,39 @@ def traffic_counts(net_file, fname):
         df['source'] = fname.split('.xlsx')[0]
                 
         write_csv(df=df, fname='traffic_counts.csv')
+
+def hourly_counts(net_file, fname):
+
+	sheetname='Counts Output'
+	if sheetname not in pd.ExcelFile(net_file).sheet_names:
+		return
+	else:
+	    df = pd.read_excel(net_file, sheetname=sheetname)
+
+		# separate observed counts
+	    df_observed = df[df.columns[['obs' in i for i in df.columns]]]
+	    df_obs = pd.DataFrame(df_observed.stack()).reset_index()
+	    df_obs.columns=['count_id','tod','observed']
+		# Trim time period from tod field
+	    df_obs['tod'] = df_obs['tod'].apply(lambda row: str(row.split('_')[-1]))
+		# Drop total by time of day rows
+	    df_obs = df_obs[df_obs['tod'] != 'obs_total']
+
+		# separate model volumes
+	    df_model = df[df.columns[['vol' in i for i in df.columns]]]
+	    df_model = pd.DataFrame(df_model.stack()).reset_index()
+	    df_model.columns=['count_id','tod','model']
+	    df_model['tod'] = df_model['tod'].apply(lambda row: str(row.split('vol')[-1]))
+
+		# Join model and observed data
+	    df = pd.merge(df_obs, df_model, on =['count_id','tod'])
+
+		# Link type (hov or general purpose)
+	    df['link_type'] = df['count_id'].apply(lambda row: str(row)[-1])	
+
+	    df['source'] = fname.split('.xlsx')[0]
+
+	    write_csv(df=df, fname='hourly_counts.csv')
 
 def transit_summary(net_file, fname):
 
@@ -548,7 +581,8 @@ if __name__ == '__main__':
         print 'processing excel: ' + name
 
         transit_summary(file_dir, name)
-        traffic_counts(file_dir, name)
+        daily_counts(file_dir, name)
+        hourly_counts(file_dir, name)
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
