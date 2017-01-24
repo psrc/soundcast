@@ -374,6 +374,8 @@ def hourly_counts(net_file, fname):
 		# Link type (hov or general purpose)
 	    df['link_type'] = df['count_id'].apply(lambda row: str(row)[-1])	
 
+	    df['source'] = fname.split('.xlsx')[0]
+
 	    write_csv(df=df, fname='hourly_counts.csv')
 
 def transit_summary(net_file, fname):
@@ -542,35 +544,35 @@ if __name__ == '__main__':
 
     output_dir = r'outputs/grouped'
 
- #    h5_file_dict = {
- #        run_name: r'outputs/daysim_outputs.h5', 
- #        comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
- #        'survey': r'scripts/summarize/survey.h5'
- #                    }
+    h5_file_dict = {
+        run_name: r'outputs/daysim_outputs.h5', 
+        comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
+        'survey': r'scripts/summarize/survey.h5'
+                    }
 
     network_file_dict = {
         run_name: r'outputs/network_summary_detailed.xlsx',
         comparison_name: os.path.join(r'outputs/network_summary_detailed.xlsx')
     }
 
- #    # Create output directory if it doesn't exist
- #    if not os.path.exists(output_dir):
- #        os.makedirs(output_dir)
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
- #    if overwrite:
-	#     for fname in output_csv_list:
-	#         if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-	#             os.remove(os.path.join(output_dir,fname+'.csv'))
+    if overwrite:
+	    for fname in output_csv_list:
+	        if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
+	            os.remove(os.path.join(output_dir,fname+'.csv'))
 
-	# # Process all h5 files
- #    for name, file_dir in h5_file_dict.iteritems():
+	# Process all h5 files
+    for name, file_dir in h5_file_dict.iteritems():
 
-	# 	daysim_h5 = h5py.File(file_dir)
+		daysim_h5 = h5py.File(file_dir)
 
-	# 	print 'processing h5: ' + name
+		print 'processing h5: ' + name
 
-	# 	process_dataset(h5file=daysim_h5, scenario_name=name)
-	# 	del daysim_h5 # drop from memory to save space for next comparison
+		process_dataset(h5file=daysim_h5, scenario_name=name)
+		del daysim_h5 # drop from memory to save space for next comparison
 
     # Create network summaries
 
