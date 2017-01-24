@@ -228,6 +228,7 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
    if run_network_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
       # this summary is producing erronous results, we don't want people to think they are correct.
       subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
@@ -235,15 +236,9 @@ def run_all_summaries():
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
-
-   #Create a daily network with volumes. Will add counts and summary emme project. 
-   if run_create_daily_bank:
-      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
-
+      
    if run_ben_cost:
    	  print 'Benefit Cost code is not working currently. It will not be run.'
-	  # benefit cost code is not working
-      #subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])

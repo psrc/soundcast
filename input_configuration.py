@@ -62,7 +62,6 @@ if not(use_simple_configuration):
     run_network_summary = True
     run_grouped_summary = True
     run_soundcast_summary = True
-    run_create_daily_bank = True
     run_ben_cost = False
     run_truck_summary = True
     run_landuse_summary = False
