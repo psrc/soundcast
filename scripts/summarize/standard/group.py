@@ -550,9 +550,9 @@ if __name__ == '__main__':
         'survey': r'scripts/summarize/survey.h5'
                     }
 
-    network_file_dict = {
+network_file_dict = {
         run_name: r'outputs/network_summary_detailed.xlsx',
-        comparison_name: os.path.join(r'outputs/network_summary_detailed.xlsx')
+        comparison_name: os.path.join(comparison_run_dir,r'network_summary_detailed.xlsx')
     }
 
     # Create output directory if it doesn't exist
