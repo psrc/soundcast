@@ -16,7 +16,7 @@ output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','per
 overwrite = True
 
 # look up psrc time of day 
-tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','16to17','17to18','18to20']
+tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','15to16','16to17','17to18','18to20']
 
 tod_lookup = {  0:'20to5',
                 1:'20to5',
