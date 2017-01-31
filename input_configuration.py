@@ -17,6 +17,7 @@ if not(use_simple_configuration):
     # Scenario and input paths
     base_year = '2014'  # This should always be 2010 unless the base year changes
     scenario_name = '2014'
+    model_year = '2014'
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
     main_inputs_folder =  'R:/SoundCast/Inputs/'

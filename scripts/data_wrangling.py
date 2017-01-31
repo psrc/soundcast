@@ -60,30 +60,20 @@ def copy_accessibility_files():
     
     print 'Copying UrbanSim parcel file'
     try:
-        if os.path.isfile(base_inputs+'/landuse/parcels_urbansim.txt'):
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
-        # the file may need to be reformatted- like this coming right out of urbansim
-        elif os.path.isfile(base_inputs+'/landuse/parcels.dat'):
-            print 'the file is ' + base_inputs +'/landuse/parcels.dat'
-            print "Parcels file is being reformatted to Daysim format"
-            parcels = pd.DataFrame.from_csv(base_inputs+'/landuse/parcels.dat',sep=" " )
-            print 'Read in unformatted parcels file'
-            for col in parcels.columns:
-                print col
-                new_col = [x.upper() for x in col]
-                new_col = ''.join(new_col)
-                parcels=parcels.rename(columns = {col:new_col})
-                print new_col
-            parcels.to_csv(base_inputs+'/landuse/parcels_urbansim.txt', sep = " ")
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accesibility')
-
-    except Exception as ex:
-        template = "An exception of type {0} occured. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print message
+        shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
+    except:
+        print 'error copying urbansim parcel file at ' + base_inputs + '/landuse/parcels_urbansim.txt'
+        sys.exit(1)
+      
+    
+    print 'Copying Transit stop file'
+    try:      
+        shcopy(base_inputs+'/landuse/transit_stops_' + model_year + '.csv','inputs/accessibility')
+    except:
+        print 'error copying transit stops file at ' + base_inputs + '/landuse/transit_stops_' + model_year + '.csv'
         sys.exit(1)
 
-
+    
     print 'Copying Military parcel file'
     try:
         shcopy(base_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
@@ -91,13 +81,15 @@ def copy_accessibility_files():
         print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
+    
+    print 'Copying JBLM file'
     try:
         shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
     except:
-        print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
+        print 'error copying military parcel file at ' + base_inputs+'/landuse/distribute_jblm_jobs.csv'
         sys.exit(1)
 
-
+    
     print 'Copying Hourly and Daily Parking Files'
     if run_update_parking: 
         try:

@@ -56,6 +56,8 @@ parcels_urbansim = pd.read_csv(parcel_file, sep = " ")
 parcels_military = pd.read_csv(military_file)
 non_worker_external = pd.read_csv(non_worker_file)
 
+# Convert columns to upper case for now
+parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]
 
 ######## Add enlisted jobs to parcels:
 
@@ -166,6 +168,9 @@ observed_ixxi = observed_ixxi.reindex(zones, fill_value=0)
 observed_ixxi.reset_index(inplace = True)
 
 parcel_df = pd.read_csv(r'inputs\accessibility\parcels_urbansim.txt',  sep = ' ')
+# Convert columns to upper case for now
+parcel_df.columns = [i.upper() for i in parcel_df.columns]
+
 hh_persons = h5py.File(r'inputs\hh_and_persons.h5', "r")
 parcel_grouped = parcel_df.groupby('TAZ_P')
 emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
