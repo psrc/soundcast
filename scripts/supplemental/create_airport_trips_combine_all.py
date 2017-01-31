@@ -16,6 +16,9 @@ OUT_PUT = 'outputs/supplemental/AIRPORT_TRIPS.csv'
 daysim = h5py.File(DAYSIM,'r+')
 parcel = pd.read_csv(PARCEL, ' ')
 my_project = EmmeProject('projects/Supplementals/Supplementals.emp')
+zonesDim = len(my_project.current_scenario.zone_numbers)
+zones = my_project.current_scenario.zone_numbers
+
 # apply mode shares
 hbo_ratio = h5py.File('outputs/supplemental/hbo_ratio.h5', 'r')
 mode_dict = {'walk':'nwshwk', 'bike':'nwshbk','litrat':'nwshtw', 'sov': 'nwshda', 'hov2':'nwshs2', 'hov3':'nwshs3'}
@@ -182,7 +185,8 @@ daysim_sorted = daysim_sort(daysim)
 parcel_sorted = parcel_sort(parcel)
 trips = trips_estimation(parcel_sorted, daysim_sorted)
 airport_trips = trips_adjustion(trips)
-demand_matrix = create_demand_matrix(airport_trips, 3868, 3868)
+print zonesDim
+demand_matrix = create_demand_matrix(airport_trips, zonesDim, zonesDim)
 print 'create airport trip demand matrix, done'
 
 # split airport trips into different modes, by appling HBO ratios
