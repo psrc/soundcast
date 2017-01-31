@@ -41,7 +41,8 @@ tod_lookup = {  0:'20to5',
                 20:'18to20',
                 21:'20to5',
                 22:'20to5',
-                23:'20to5' }
+                23:'20to5',
+                24:'20to5'}
 
 def h5_to_df(h5file, table_list, name=False):
     """
