@@ -1,4 +1,4 @@
-from input_configuration_simple import *
+from input_configuration import *
 
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 output_parcels = 'inputs/buffered_parcels.txt'
