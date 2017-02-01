@@ -233,6 +233,7 @@ def run_all_summaries():
       # this summary is producing erronous results, we don't want people to think they are correct.
       subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/transit_summary.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_summary.py'])
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
