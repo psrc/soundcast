@@ -63,6 +63,8 @@ parcels_urbansim = pd.read_csv(parcel_file, sep = " ")
 parcels_military = pd.read_csv(military_file)
 non_worker_external = pd.read_csv(non_worker_file)
 
+# Convert columns to upper case for now
+parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]
 
 ######## Add enlisted jobs to parcels:
 
