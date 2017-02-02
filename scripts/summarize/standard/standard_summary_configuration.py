@@ -26,7 +26,8 @@ counts_file = 'TrafficCounts_Mid.txt'
 # Output Files: 
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
-screenlines_file = 'screenline_volumes.csv'
+screenlines = 'screenline_volumes.csv'
+screenlines_file = 'scripts/summarize/inputs/network_summary/screenlines_2014.csv'
 uc_list = ['@svtl1', '@svtl2', '@svtl3', '@h2tl1', '@h2tl2', '@h2tl3', 
            '@h3tl1', '@h3tl2', '@h3tl3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
