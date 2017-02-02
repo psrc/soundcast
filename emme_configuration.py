@@ -104,7 +104,7 @@ transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                 
 
 # Transit Fare:
-zone_file = 'inputs/Fares/transit_fare_zones.grt'
+zone_file = 'inputs/Fares/transit_fare_zones.ens'
 peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
 peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
 offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'

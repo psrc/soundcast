@@ -21,7 +21,8 @@ if not(use_simple_configuration):
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
     main_inputs_folder =  'R:/SoundCast/Inputs/'
-    base_inputs = main_inputs_folder + scenario_name
+    base_inputs = main_inputs_folder + base_year
+    scenario_inputs = main_inputs_folder + scenario_name
     # For Overriding the simple configuration, when you want to run things in more detail:
     
     ###### Only update parking for future-year analysis!######
@@ -33,12 +34,12 @@ if not(use_simple_configuration):
     #############################################################
     
     ######Set up:######
-    run_accessibility_calcs = True
-    run_copy_daysim_code = True
-    run_setup_emme_project_folders = True
-    run_setup_emme_bank_folders = True
-    run_copy_large_inputs = True
-    run_import_networks = True
+    run_accessibility_calcs = False
+    run_copy_daysim_code = False
+    run_setup_emme_project_folders = False
+    run_setup_emme_bank_folders = False
+    run_copy_large_inputs = False
+    run_import_networks = False
     ###################
 
     ###### Only one of the following should be Tru!!!!!!######

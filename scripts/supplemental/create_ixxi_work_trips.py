@@ -81,7 +81,7 @@ parcels_military = parcels_military.groupby('ParcelID').agg(f).reset_index()
 for row in parcels_military.iterrows():
     parcel_id = int(row[1]['ParcelID'])
     taz_id = int(row[1]['Zone'])
-    enlisted_jobs = float(row[1][scenario_name])
+    enlisted_jobs = float(row[1][model_year])
     if taz_id in jblm_taz_list:
         jbml_enlisted_taz_dict[taz_id] = enlisted_jobs
     # add enlisted jobs to existing gov jobs at the parcel
@@ -157,6 +157,8 @@ matrix_dict = {}
 matrix_dict = {'svtl' : sov, 'h2tl' : hov2, 'h3tl' : hov3}
 
 # create h5 files
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 for tod, factor in tod_factors.iteritems():
     my_store = h5py.File(output_dir + '/' + 'external_work_' + tod + '.h5', "w")

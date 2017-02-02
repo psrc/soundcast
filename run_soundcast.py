@@ -59,7 +59,7 @@ def accessibility_calcs():
         else:
             print 'Starting to update UrbanSim parcel data with 4k parking data file'
             returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/update_parking.py', base_inputs])
+                                      'scripts/utils/update_parking.py', scenario_inputs])
             if returncode != 0:
                 print 'Update Parking failed'
                 sys.exit(1)
@@ -286,7 +286,7 @@ def main():
         time_copy = datetime.datetime.now()
         logger.info("Start of network importer")
         returncode = subprocess.call([sys.executable,
-        'scripts/network/network_importer.py', base_inputs])
+        'scripts/network/network_importer.py', scenario_inputs])
         logger.info("End of network importer")
         time_network = datetime.datetime.now()
         if returncode != 0:
@@ -329,10 +329,10 @@ def main():
                                                         
                             if not os.path.exists('working'):
                                 os.makedirs('working')
-                            #shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+                            #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
                             print "copying shadow prices" 
                     except:
-                            print ' error copying shadow pricing file from shadow_pricing at ' + base_inputs+'/shadow_pricing/shadow_prices.txt'
+                            print ' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt'
                             sys.exit(1)
                 # Set up your Daysim Configration
                 modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])

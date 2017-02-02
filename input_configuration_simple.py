@@ -9,7 +9,8 @@ scenario_name = '2014'
 daysim_code = 'R:/SoundCast/daysim_2016' 
 main_inputs_folder =  'R:/SoundCast/Inputs/'
 master_project = 'LoadTripTables'
-base_inputs = main_inputs_folder + scenario_name
+base_inputs = main_inputs_folder + base_year
+scenario_inputs = main_inputs_folder + scenario_name
 
 run_setup = False
 run_daysim = False
