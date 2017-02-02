@@ -1,12 +1,5 @@
 import os
 import sys
-
-
-###########################
-
-# for testing!!!!!!!!!!!!!!!!!!!!!!!!!
-curr_dir = 'D:/soundcast_calib_1_2017/'
-
 import pandas as pd
 from standard_summary_configuration import *
 from input_configuration import *
@@ -115,14 +108,14 @@ def main():
 	order_df = pd.DataFrame({'Order': range(1,13), 
 						   'tod': ['5to6','6to7','7to8','8to9','9to10', '10to14', '14to15', '15to16', '16to17','17to18', '18to20', '20to5'])
 
-    net_summary = pd.ExcelWriter(curr_dir + net_summary_out,engine='xlsxwriter')
-    tod_df = pd.io.excel.read_excel(curr_dir + net_summary_detailed, sheetname='Counts Output', order_df=order_df)
-	obs_screenlines = pd.read_csv(curr_dir + screenlines)
-	screenline_df = pd.io.excel.read_excel(curr_dir + net_summary_detailed, sheetname='Screenline Volumes')
-	vmt_df_class = pd.io.excel.read_excel(curr_dir+net_summary_detailed, sheetname = 'UC VMT')
+    net_summary = pd.ExcelWriter(net_summary_out,engine='xlsxwriter')
+    tod_df = pd.io.excel.read_excel(net_summary_detailed, sheetname='Counts Output', order_df=order_df)
+	obs_screenlines = pd.read_csv(screenlines)
+	screenline_df = pd.io.excel.read_excel(net_summary_detailed, sheetname='Screenline Volumes')
+	vmt_df_class = pd.io.excel.read_excel(net_summary_detailed, sheetname = 'UC VMT')
 	#VMT')
-	daily_df = pd.io.excel.read_excel(curr_dir + net_summary_detailed, sheetname='Daily Counts')
-	vmt_df_fac = pd.io.excel.read_excel(curr_dir+net_summary_detailed, sheetname='Network Summary')
+	daily_df = pd.io.excel.read_excel(net_summary_detailed, sheetname='Daily Counts')
+	vmt_df_fac = pd.io.excel.read_excel(net_summary_detailed, sheetname='Network Summary')
 
 
 	compare_fac_type(daily_df, net_summary)
