@@ -105,6 +105,7 @@ def write_outputs(df_dict, sheet, out_book, spaces, index=True):
         n += len(value.index) + spaces
 
 def main():
+
     order_df = pd.DataFrame({'Order': range(1,13), 
                            'tod': ['5to6','6to7','7to8','8to9','9to10', '10to14', '14to15', '15to16', '16to17','17to18', '18to20', '20to5']})
 
@@ -117,13 +118,13 @@ def main():
     daily_df = pd.io.excel.read_excel(net_summary_detailed, sheetname = 'Daily Counts')
     vmt_df_fac = pd.io.excel.read_excel(net_summary_detailed, sheetname='Network Summary')
 
-
     compare_fac_type(daily_df, net_summary)
     compare_screenlines(screenline_df, obs_screenlines, net_summary)
     hourly_counts(tod_df = tod_df, out_summary = net_summary, order_df = order_df)
     sum_vmt_fac(vmt_df_fac=vmt_df_fac, vmt_df_class = vmt_df_class,net_summary=net_summary, order_df=order_df)
 
-    net_summary.close()
+
+	net_summary.close()
    
 
 if __name__ == "__main__":

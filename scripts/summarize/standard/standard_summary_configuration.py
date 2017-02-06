@@ -23,6 +23,7 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 #               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
 counts_file = 'TrafficCounts_Mid.txt'
+screenlines_in = r'inputs/observed/screenlines.csv'
 # Output Files: 
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
@@ -64,3 +65,7 @@ net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
 net_summary_out = 'outputs/network_summary.xlsx'
 transit_summary_out = 'outputs/transit_summary.xlsx'
 
+# Bikes
+bike_link_vol = 'outputs/bike_volumes.csv'
+bike_count_data = 'inputs/bikes/bike_count_links.csv'
+edges_file = 'inputs/bikes/edges_0.txt'

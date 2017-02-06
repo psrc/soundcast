@@ -230,8 +230,7 @@ def run_all_summaries():
    if run_network_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
-      # this summary is producing erronous results, we don't want people to think they are correct.
-      subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
+      # subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/transit_summary.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_summary.py'])
 

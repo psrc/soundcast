@@ -548,7 +548,7 @@ if __name__ == '__main__':
     h5_file_dict = {
         run_name: r'outputs/daysim_outputs.h5', 
         comparison_name: os.path.join(comparison_run_dir,'daysim_outputs.h5'),
-        'survey': r'scripts/summarize/survey.h5'
+        'survey': r'scripts/summarize/inputs/calibration/survey.h5'
                     }
 
     network_file_dict = {

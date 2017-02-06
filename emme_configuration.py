@@ -66,6 +66,9 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
 
+# Bike assignment periods
+bike_assignment_tod = ['7to8','8to9']
+
 # Transit Inputs:
 transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
@@ -104,7 +107,7 @@ transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                 
 
 # Transit Fare:
-zone_file = 'inputs/Fares/transit_fare_zones.ens'
+zone_file = 'inputs/Fares/transit_fare_zones.grt'
 peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
 peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
 offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'

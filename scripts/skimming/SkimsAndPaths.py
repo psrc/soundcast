@@ -1370,7 +1370,7 @@ def main():
 
         
         #want pooled processes finished before executing more code in main:
-        #run_assignments_parallel('projects/5to6/5to6.emp')
+        # run_assignments_parallel('projects/6to7/6to7.emp')
         
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')

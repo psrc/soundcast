@@ -34,18 +34,18 @@ if not(use_simple_configuration):
     #############################################################
     
     ######Set up:######
-    run_accessibility_calcs = True
-    run_copy_daysim_code = True
-    run_setup_emme_project_folders = True
-    run_setup_emme_bank_folders = True
-    run_copy_large_inputs = True
-    run_import_networks = True
+    run_accessibility_calcs = False
+    run_copy_daysim_code = False
+    run_setup_emme_project_folders = False
+    run_setup_emme_bank_folders = False
+    run_copy_large_inputs = False
+    run_import_networks = False
     ###################
 
     ###### Only one of the following should be Tru!!!!!!######
     run_copy_seed_skims = False
     run_skims_and_paths_seed_trips = False
-    run_skims_and_paths_free_flow = True
+    run_skims_and_paths_free_flow = False
     ##########################################################
     
     ##### Shadow prices now copied and are always used. Only Run this if building shadow prices from scratch!
@@ -53,17 +53,17 @@ if not(use_simple_configuration):
     ##########################################################
     
     ###### Models to Run:######
-    run_skims_and_paths = True
-    run_truck_model = True
-    run_supplemental_trips = True
-    run_daysim = True
+    run_skims_and_paths = False
+    run_truck_model = False
+    run_supplemental_trips = False
+    run_daysim = False
     ###########################
     
     #Summaries to run:######
     run_accessibility_summary = False
     run_network_summary = True
-    run_grouped_summary = True
-    run_soundcast_summary = True
+    run_grouped_summary = False
+    run_soundcast_summary = False
     run_ben_cost = False
     run_truck_summary = True
     run_landuse_summary = False
