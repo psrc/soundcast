@@ -123,8 +123,7 @@ def main():
     hourly_counts(tod_df = tod_df, out_summary = net_summary, order_df = order_df)
     sum_vmt_fac(vmt_df_fac=vmt_df_fac, vmt_df_class = vmt_df_class,net_summary=net_summary, order_df=order_df)
 
-
-	net_summary.close()
+    net_summary.close()
    
 
 if __name__ == "__main__":

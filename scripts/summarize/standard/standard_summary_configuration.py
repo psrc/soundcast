@@ -23,7 +23,6 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 #               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
 counts_file = 'TrafficCounts_Mid.txt'
-screenlines_in = r'inputs/observed/screenlines.csv'
 # Output Files: 
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'

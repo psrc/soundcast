@@ -581,9 +581,6 @@ def bike_volumes(writer, my_project, tod):
     if os.path.exists(summary_file_dir):
         xl = pd.ExcelFile(summary_file_dir)
         if sheet_name in xl.sheet_names:
-            print "-"*50
-            print key
-            print "-"*50
             '''append column to existing TOD results'''
             # df = pd.read_csv(bike_link_vol)
             df = pd.read_excel(io=xl, sheetname=sheet_name)
