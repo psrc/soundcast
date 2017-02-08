@@ -62,6 +62,7 @@ special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_
 ##### Output File Locations ######################################################
 net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
 net_summary_out = 'outputs/network_summary.xlsx'
+roadway_summary = 'outputs/roadway_summary.xlsx'
 transit_summary_out = 'outputs/transit_summary.xlsx'
 
 # Bikes

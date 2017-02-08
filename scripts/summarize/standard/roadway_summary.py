@@ -109,7 +109,7 @@ def main():
     order_df = pd.DataFrame({'Order': range(1,13), 
                            'tod': ['5to6','6to7','7to8','8to9','9to10', '10to14', '14to15', '15to16', '16to17','17to18', '18to20', '20to5']})
 
-    net_summary = pd.ExcelWriter(net_summary_out,engine = 'xlsxwriter')
+    net_summary = pd.ExcelWriter(roadway_summary,engine = 'xlsxwriter')
     tod_df = pd.io.excel.read_excel(net_summary_detailed, sheetname='Counts Output', order_df=order_df)
     obs_screenlines = pd.read_csv(screenlines_file)
     screenline_df = pd.io.excel.read_excel(net_summary_detailed, sheetname = 'Screenline Volumes')
