@@ -45,16 +45,18 @@ def json_to_dictionary(dict_name):
 def skims_to_hdf5(EmmeProject):
     truck_od_matrices = ['lttrk', 'mdtrk', 'hvtrk']
   
+    # if h5 exists, delete it and re-write
+    try:
+        os.remove(truck_trips_h5_filename)
+    except OSError:
+        pass
+
     #open h5 container, delete existing truck trip matrices:
-    my_store = h5py.File(truck_trips_h5_filename, "r+")
+    my_store = h5py.File(truck_trips_h5_filename, 'w')
     for tod in tod_list:
+    	my_store.create_group(tod)
         for name in truck_od_matrices:
             matrix_name = tod[0] + name       
-            #delete if matrix exists
-            e = matrix_name in my_store[tod]
-            if e:
-                del my_store[tod][matrix_name]
-                'deleted ' + str(e)
             #export to hdf5
             print 'exporting' 
             matrix_name = tod[0] + name

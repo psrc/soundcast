@@ -15,7 +15,6 @@ def compare_boardings(modeled, observed, time_groups, route_groups, time_group_n
 
     if type == 'grouped':
         line_by_line['RouteGroupID'] = (line_by_line['route_code'].astype(int) /1000).astype(int)
-        print line_by_line 
     else:
         line_by_line['RouteGroupID'] = line_by_line['route_code']
         route_groups['RouteGroupID'] = route_groups['route_code']

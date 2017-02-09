@@ -60,51 +60,51 @@ def copy_accessibility_files():
     
     print 'Copying UrbanSim parcel file'
     try:
-        shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
     except:
-        print 'error copying urbansim parcel file at ' + base_inputs + '/landuse/parcels_urbansim.txt'
+        print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
         sys.exit(1)
       
     
     print 'Copying Transit stop file'
     try:      
-        shcopy(base_inputs+'/landuse/transit_stops_' + model_year + '.csv','inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/transit_stops_' + model_year + '.csv','inputs/accessibility')
     except:
-        print 'error copying transit stops file at ' + base_inputs + '/landuse/transit_stops_' + model_year + '.csv'
+        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + model_year + '.csv'
         sys.exit(1)
 
     
     print 'Copying Military parcel file'
     try:
-        shcopy(base_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
     except:
-        print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
+        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
     
     print 'Copying JBLM file'
     try:
-        shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
     except:
-        print 'error copying military parcel file at ' + base_inputs+'/landuse/distribute_jblm_jobs.csv'
+        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
         sys.exit(1)
 
     
     print 'Copying Hourly and Daily Parking Files'
     if run_update_parking: 
         try:
-            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
-            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
         except:
-            print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
+            print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
             sys.exit(1)
 
 @timed
 def copy_seed_skims():
     print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
-    if not(os.path.isdir(base_inputs+'/seed_skims')):
-           print 'It looks like you do not hava directory called' + base_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
-    for filename in glob.glob(os.path.join(base_inputs+'/seed_skims', '*.*')):
+    if not(os.path.isdir(scenario_inputs+'/seed_skims')):
+           print 'It looks like you do not hava directory called' + scenario_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
+    for filename in glob.glob(os.path.join(scenario_inputs+'/seed_skims', '*.*')):
         shutil.copy(filename, 'inputs')
     print 'Done copying seed skims.'
 
@@ -203,22 +203,23 @@ def setup_emme_project_folders():
 @timed    
 def copy_large_inputs():
     print 'Copying large inputs...' 
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
-    dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
-    dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
-    dir_util.copy_tree(base_inputs+'/Fares','Inputs/Fares')
-    dir_util.copy_tree(base_inputs+'/bikes','Inputs/bikes')
+    if run_skims_and_paths_seed_trips:
+        shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
+    dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
+    dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
+    dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
+    dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
+    dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
     dir_util.copy_tree(base_inputs+'/observed','Inputs/observed')
-    dir_util.copy_tree(base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
-    dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
-    dir_util.copy_tree(base_inputs+'/supplemental/input','inputs/supplemental/input')
-    dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
-    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
+    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
+    # dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
+    # dir_util.copy_tree(base_inputs+'/supplemental/input','inputs/supplemental/input')
+    # dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
+    shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
+    # shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
-    shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
+    # shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
+    # shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
     # node to node short distance files:
     shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')

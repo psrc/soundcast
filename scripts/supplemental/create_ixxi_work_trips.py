@@ -18,7 +18,7 @@ tod_factors = {'5to6' : .04, '6to7' : .075, '7to8' : 0.115, '8to9' : 0.091, '9to
         '18to20' : 0.06, '20to5' : 0.055}
 
 # list of jblm taz's
-jblm_taz_list = [3061, 3070, 3348, 3349, 3352, 3353, 3355, 3356]
+jblm_taz_list = [3061, 3070, 3346, 3348, 3349, 3350, 3351, 3352, 3353, 3354, 3355, 3356]
 
 # dictionary to hold taz id and total enlisted to use to update externals
 jbml_enlisted_taz_dict = {}
@@ -28,6 +28,7 @@ parcel_file =  "inputs\\accessibility\\parcels_urbansim.txt"
 military_file = "inputs\\accessibility\\enlisted_personnel.csv"
 non_worker_file = r'inputs\supplemental\generation\externals_unadjusted.csv'
 
+parcel_emp_cols = parcel_attributes =["EMPMED_P", "EMPOFC_P", "EMPEDU_P", "EMPFOO_P", "EMPGOV_P", "EMPIND_P", "EMPSVC_P", "EMPOTH_P", "EMPTOT_P", "EMPRET_P"]
 
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
@@ -47,6 +48,12 @@ def h5_to_data_frame(h5_file, group_name):
         my_array = np.asarray(h5_file[group_name][col])
         col_dict[col] = my_array
     return pd.DataFrame(col_dict)
+
+def remove_employment_by_taz(df, taz_list, col_list):
+    for taz in taz_list:
+        for col in col_list:
+            df.loc[df['TAZ_P'] == taz, col] = 0
+    return df
 
 # bank needs a network
 network_importer(my_project)
@@ -74,7 +81,7 @@ parcels_military = parcels_military.groupby('ParcelID').agg(f).reset_index()
 for row in parcels_military.iterrows():
     parcel_id = int(row[1]['ParcelID'])
     taz_id = int(row[1]['Zone'])
-    enlisted_jobs = float(row[1][scenario_name])
+    enlisted_jobs = float(row[1][model_year])
     if taz_id in jblm_taz_list:
         jbml_enlisted_taz_dict[taz_id] = enlisted_jobs
     # add enlisted jobs to existing gov jobs at the parcel
@@ -102,25 +109,25 @@ work = work [['PSRC_TAZ','External_Station','Total_IE', 'Total_EI', 'SOV_Veh_IE'
 w_grp = work.groupby(['PSRC_TAZ','External_Station']).sum()
 
 # external enlisted are not included in worker flow file, so we are adding them in for JBML. assume that 30% jblm enlisted come from thurston county:
-for taz in jblm_taz_list:
-    # 30% come from the two thurston county externals
-    enlisted = jbml_enlisted_taz_dict[taz] * .3
+#for taz in jblm_taz_list:
+#    # 30% come from the two thurston county externals
+#    enlisted = jbml_enlisted_taz_dict[taz] * .3
     
-    # use 90% for I-5 external- 3733, put them all in SOV for now
-    if not (taz, 3733) in list(w_grp.index.values):
-        w_grp.ix[(taz,3733),:] = 0
-    w_grp.ix[(taz,3733),'Total_EI'] = w_grp.ix[(taz,3733),'Total_EI'] + (.90 * enlisted)
-    w_grp.ix[(taz,3733),'SOV_Veh_EI'] = w_grp.ix[(taz,3733),'SOV_Veh_EI'] + (.90 * enlisted)
+#    # use 90% for I-5 external- 3733, put them all in SOV for now
+#    if not (taz, 3733) in list(w_grp.index.values):
+#        w_grp.ix[(taz,3733),:] = 0
+#    w_grp.ix[(taz,3733),'Total_EI'] = w_grp.ix[(taz,3733),'Total_EI'] + (.90 * enlisted)
+#    w_grp.ix[(taz,3733),'SOV_Veh_EI'] = w_grp.ix[(taz,3733),'SOV_Veh_EI'] + (.90 * enlisted)
     
-    # use 90% for I-5 external- 3733, put them all in SOV for now
-    if not (taz, 3734) in list(w_grp.index.values):
-        w_grp.ix[(taz,3734),:] = 0
-    w_grp.ix[(taz,3734),'Total_EI'] = w_grp.ix[(taz,3734),'Total_EI'] + (.10 * enlisted)
-    w_grp.ix[(taz,3734),'SOV_Veh_EI'] = w_grp.ix[(taz,3734),'SOV_Veh_EI'] + (.10 * enlisted)
+#    # use 90% for I-5 external- 3733, put them all in SOV for now
+#    if not (taz, 3734) in list(w_grp.index.values):
+#        w_grp.ix[(taz,3734),:] = 0
+#    w_grp.ix[(taz,3734),'Total_EI'] = w_grp.ix[(taz,3734),'Total_EI'] + (.10 * enlisted)
+#    w_grp.ix[(taz,3734),'SOV_Veh_EI'] = w_grp.ix[(taz,3734),'SOV_Veh_EI'] + (.10 * enlisted)
 
-# update the exernal non worker inpout for the gravity model:
-non_worker_external.ix[non_worker_external.taz==3733, 'hsppro'] = float(non_worker_external.ix[non_worker_external.taz==3733, 'hsppro'] - (.90 * .30 * sum(jbml_enlisted_taz_dict.values())))
-non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] = float(non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] - (.10 * .30 * sum(jbml_enlisted_taz_dict.values())))
+## update the exernal non worker inpout for the gravity model:
+#non_worker_external.ix[non_worker_external.taz==3733, 'hsppro'] = float(non_worker_external.ix[non_worker_external.taz==3733, 'hsppro'] - (.90 * .30 * sum(jbml_enlisted_taz_dict.values())))
+#non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] = float(non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] - (.10 * .30 * sum(jbml_enlisted_taz_dict.values())))
 
 # export to .csv
 non_worker_external.to_csv(r'inputs\supplemental\generation\externals.csv', index = False)
@@ -150,6 +157,8 @@ matrix_dict = {}
 matrix_dict = {'svtl' : sov, 'h2tl' : hov2, 'h3tl' : hov3}
 
 # create h5 files
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 for tod, factor in tod_factors.iteritems():
     my_store = h5py.File(output_dir + '/' + 'external_work_' + tod + '.h5', "w")
@@ -168,9 +177,7 @@ observed_ixxi = observed_ixxi.reindex(zones, fill_value=0)
 observed_ixxi.reset_index(inplace = True)
 
 parcel_df = pd.read_csv(r'inputs\accessibility\parcels_urbansim.txt',  sep = ' ')
-# Convert columns to upper case for now
-parcel_df.columns = [i.upper() for i in parcel_df.columns]
-
+parcel_df = remove_employment_by_taz(parcel_df, jblm_taz_list, parcel_emp_cols)
 hh_persons = h5py.File(r'inputs\hh_and_persons.h5', "r")
 parcel_grouped = parcel_df.groupby('TAZ_P')
 emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
@@ -206,5 +213,5 @@ for col_name in final_df.columns:
 final_df = final_df.round(3)
 
 final_df.to_csv('inputs/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
-
+parcel_df.to_csv(r'inputs\accessibility\parcels_urbansim.txt',  sep = ' ', index = False)
 ###############

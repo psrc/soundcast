@@ -26,7 +26,8 @@ counts_file = 'TrafficCounts_Mid.txt'
 # Output Files: 
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
-screenlines_file = 'screenline_volumes.csv'
+screenlines = 'screenline_volumes.csv'
+screenlines_file = 'scripts/summarize/inputs/network_summary/screenlines_2014.csv'
 uc_list = ['@svtl1', '@svtl2', '@svtl3', '@h2tl1', '@h2tl2', '@h2tl3', 
            '@h3tl1', '@h3tl2', '@h3tl3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
@@ -61,5 +62,10 @@ special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_
 ##### Output File Locations ######################################################
 net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
 net_summary_out = 'outputs/network_summary.xlsx'
+roadway_summary = 'outputs/roadway_summary.xlsx'
 transit_summary_out = 'outputs/transit_summary.xlsx'
 
+# Bikes
+bike_link_vol = 'outputs/bike_volumes.csv'
+bike_count_data = 'inputs/bikes/bike_count_links.csv'
+edges_file = 'inputs/bikes/edges_0.txt'
