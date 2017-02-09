@@ -134,11 +134,13 @@ puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
 taz_data_loc = '/supplemental/generation/landuse/tazdata.in'
 pums_data_loc = '/supplemental/generation/pums/' 
 externals_loc = '/supplemental/generation/externals.csv'
+special_gen_trips = 'inputs/supplemental/generation/special_generators.csv'
+airport_zone_list = [983] # zone numbers for airport special generator
 # Special generator zones and demand (dictionary key is TAZ, value is demand)
-spg_general = {3110: 1682,    
-               631: 7567, 
-               438: 14013}    
-spg_airport = {983: 101838}
+# spg_general = {3110: 1682,    
+#                631: 7567, 
+#                438: 14013}    
+# spg_airport = {983: 101838}
 
 # Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'

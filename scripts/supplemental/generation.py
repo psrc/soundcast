@@ -161,25 +161,27 @@ def calc_hhs(master_taz):
 
 def add_special_gen(trip_table):
     ''' Loads additional productions and attraction values for special generator zones. '''
+
+    df = pd.read_csv(special_gen_trips)
+
     # Note: Airport trips are assumed 75% home-based and 25% work-based
     airport_hb_share = 0.75
     airport_wb_share = 1 - airport_hb_share
 
     # Add special generator home-based (spghbo) other and 75% of airport (spgapt) trips
     # to general home-based attractions (hboatt)
-    for key, value in spg_general.iteritems():
-        #trip_table.iloc[key - 1]["hboatt"] += value
-        trip_table.iloc[dictZoneLookup[key]]["hboatt"] += value
-
-    # Add 25% of airport trips to work-based attractions
-    #trip_table.iloc[spg_airport.keys()[0] - 1]["hboatt"] += airport_hb_share * spg_airport.values()[0]
-    trip_table.iloc[dictZoneLookup[spg_airport.keys()[0]]]["hboatt"] += airport_hb_share * spg_airport.values()[0]
-    #trip_table.iloc[spg_airport.keys()[0] - 1]["wkoatt"] += airport_wb_share * spg_airport.values()[0]
-    trip_table.iloc[dictZoneLookup[spg_airport.keys()[0]]]["wkoatt"] += airport_wb_share * spg_airport.values()[0]
-
+    for i in xrange(len(df)):
+        taz = df.iloc[i]['taz']
+        trips = df.iloc[i]['trips']
+        if i not in airport_zone_list:
+            trip_table.iloc[dictZoneLookup[taz]]["hboatt"] += trips
+        else:
+            # Add 25% of airport trips to work-based attractions
+            trip_table.iloc[dictZoneLookup[taz]]["hboatt"] += airport_hb_share * trips
+            trip_table.iloc[dictZoneLookup[taz]]["wkoatt"] += airport_wb_share * trips
+ 
     # Add (unbalanced) externals
     externals = pd.DataFrame(pd.read_csv(externals_loc, index_col="taz"))
-    #externals.index = [taz_num-1 for taz_num in externals.index]    # convert to index from TAZ?
     externals.columns = trip_col
     trip_table = trip_table.append(externals)
 
