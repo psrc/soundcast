@@ -60,10 +60,13 @@ def auto_own_cost(output_df, max_income):
 
 def nonmotorized_benefits(trips, mode, max_income):
     nonmotorized_trips_dist=  trips.loc[(trips['mode']== mode) & (trips['hhincome']<max_income)]
+
     if mode != 'Transit':
         trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'travtime' :[np.sum]})
     else:
+        nonmotorized_trips_dist['dorp']=pd.to_numeric(nonmotorized_trips_dist['dorp'], errors = coerce)
         trips_people = nonmotorized_trips_dist.groupby(['hhno', 'pno_x']).agg({'dorp' :[np.sum]})
+
     people_times = {'Time': trips_people.mean(), 'People': trips_people.count()}
     return  people_times
 
@@ -102,9 +105,8 @@ def group_vmt_speed(my_project):
              
             if speed > 0 and speed <100:
 
-               speed_dict[speed]['Car'] = speed_dict[speed]['Car'] + (link['@svtl1']+ link['@svtl2'] + link['@svtl3'] + link['@svnt1'] +  link['@svnt2'] + link['@svnt3'] + link['@h2tl1'] + link['@h2tl2'] +
-               link['@h2tl3'] + link['@h2nt1'] + link['@h2nt2'] + link['@h2nt3'] + link['@h3tl1'] +
-               link['@h3tl2'] + link['@h3tl3'] + link['@h3nt1'] + link['@h3nt2'] + link['@h3nt3'])*link['length']
+               speed_dict[speed]['Car'] = speed_dict[speed]['Car'] + (link['@svtl1']+ link['@svtl2'] + link['@svtl3'] + + link['@h2tl1'] + link['@h2tl2'] +
+               link['@h2tl3'] + link['@h3tl1'] +link['@h3tl2'] + link['@h3tl3'] )*link['length']
 
                speed_dict[speed]['Light Truck'] = speed_dict[speed]['Light Truck'] + link['@lttrk'] * link['length']
                speed_dict[speed]['Medium Truck'] = speed_dict[speed]['Medium Truck'] + link['@mveh'] * link['length']/MED_TRUCK_FACTOR
