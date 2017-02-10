@@ -591,6 +591,39 @@ def bike_volumes(writer, my_project, tod):
             # df_count.to_csv(bike_link_vol,index=False)
             df_count.to_excel(excel_writer=writer, sheet_name=sheet_name, index=False)
 
+def daily_boardings(stop_df, seg_df, writer):
+
+    # load lookup table
+    observed = pd.read_csv(light_rail_boardings)
+
+    # Sum initial boardings from node df (stop_df)
+    # reformat data to get total daily boardings for each stop
+    stop_df.index= stop_df.id   # stack to sum up across all time periods
+    stop_df = pd.DataFrame(stop_df.stack()).reset_index()
+    stop_df['tod'] = stop_df['level_1'].apply(lambda row: row.split('_')[0])    # store tod values
+    stop_df['record'] = stop_df['level_1'].apply(lambda row: row.split('_')[-1])    # whether on/off record
+    
+    stop_df = stop_df.drop('level_1',axis=1)    # clean up dataframe columns
+    stop_df.rename(columns={0:'value'}, inplace=True)
+    stop_df = stop_df[stop_df['tod'] != 'id']    # from the stack method, remove the useless header rows
+    stop_df = stop_df[stop_df['record'] == 'ons']
+    stop_df.rename(columns={'value':'total_boardings'}, inplace=True)
+    stop_df = stop_df.drop('record',axis=1)
+
+    # Sum total boardings from transit segment df (seg_df)
+    seg_df['initial_boardings'] = seg_df['ons']
+    
+    # Join total and initial boardings & sum for all hours
+    df = pd.merge(stop_df,seg_df,on=['id','tod'])
+    df = df.groupby('id').sum()
+    df.reset_index(inplace=True)
+
+    # Join station information for set of nodes
+    df = pd.merge(df, observed, on='id', how='inner')
+    df = df.drop('ons', axis=1)
+
+    df.to_excel(excel_writer=writer, sheet_name='Light Rail')
+
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
@@ -714,6 +747,9 @@ def main():
     # write stop and transit segemnt results to csv
     stop_df.to_excel(excel_writer = writer, sheet_name = 'Stop-Level Transit Boarding')
     seg_df.to_excel(excel_writer = writer, sheet_name = 'Transit Segment Boarding')
+
+    # report daily boardings for select set of stops
+    daily_boardings(stop_df=stop_df, seg_df=seg_df, writer=writer)
 
    #write out transit:
     # print uc_vmt_dict
