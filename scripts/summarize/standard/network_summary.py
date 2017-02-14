@@ -600,6 +600,7 @@ def daily_boardings(df, writer):
 
     # # Join station information for set of nodes; report only for station in observed file
     df = pd.merge(df, observed, left_on='inode', right_on='id', how='inner')
+    df['transfer_rate'] = df['transfers']/df['total_boardings']
 
     df.to_excel(excel_writer=writer, sheet_name='Light Rail')
 
