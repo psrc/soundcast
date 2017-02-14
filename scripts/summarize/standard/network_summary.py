@@ -591,36 +591,15 @@ def bike_volumes(writer, my_project, tod):
             # df_count.to_csv(bike_link_vol,index=False)
             df_count.to_excel(excel_writer=writer, sheet_name=sheet_name, index=False)
 
-def daily_boardings(stop_df, seg_df, writer):
+def daily_boardings(df, writer):
 
-    # load lookup table
+    # load lookup table for observed boardings and station names
     observed = pd.read_csv(light_rail_boardings)
-
-    # Sum initial boardings from node df (stop_df)
-    # reformat data to get total daily boardings for each stop
-    stop_df.index= stop_df.id   # stack to sum up across all time periods
-    stop_df = pd.DataFrame(stop_df.stack()).reset_index()
-    stop_df['tod'] = stop_df['level_1'].apply(lambda row: row.split('_')[0])    # store tod values
-    stop_df['record'] = stop_df['level_1'].apply(lambda row: row.split('_')[-1])    # whether on/off record
     
-    stop_df = stop_df.drop('level_1',axis=1)    # clean up dataframe columns
-    stop_df.rename(columns={0:'value'}, inplace=True)
-    stop_df = stop_df[stop_df['tod'] != 'id']    # from the stack method, remove the useless header rows
-    stop_df = stop_df[stop_df['record'] == 'ons']
-    stop_df.rename(columns={'value':'total_boardings'}, inplace=True)
-    stop_df = stop_df.drop('record',axis=1)
+    # # Join total and initial boardings & sum for all hours
 
-    # Sum total boardings from transit segment df (seg_df)
-    seg_df['initial_boardings'] = seg_df['ons']
-    
-    # Join total and initial boardings & sum for all hours
-    df = pd.merge(stop_df,seg_df,on=['id','tod'])
-    df = df.groupby('id').sum()
-    df.reset_index(inplace=True)
-
-    # Join station information for set of nodes
-    df = pd.merge(df, observed, on='id', how='inner')
-    df = df.drop('ons', axis=1)
+    # # Join station information for set of nodes; report only for station in observed file
+    df = pd.merge(df, observed, left_on='inode', right_on='id', how='inner')
 
     df.to_excel(excel_writer=writer, sheet_name='Light Rail')
 
@@ -684,7 +663,6 @@ def main():
             transit_summary_dict[key] = transit_results[0]
             transit_atts.extend(transit_results[1])
             #transit_atts = list(set(transit_atts))
-
         
             network = my_project.current_scenario.get_network()
             ons = {}
@@ -694,27 +672,40 @@ def main():
                 ons[int(node.id)] = node.initial_boardings
                 offs[int(node.id)] = node.final_alightings
             
-            stop_df['id'] = ons.keys()
-            stop_df[my_project.tod+'_ons'] = ons.values()
-            stop_df[my_project.tod+'_offs'] = offs.values()
+            df = pd.DataFrame() # temp dataFrame to append to stop_df
+            stop_df['inode'] = ons.keys()
+            stop_df['initial_boardings'] = ons.values()
+            stop_df['final_alightings'] = offs.values()
+            stop_df['tod'] = my_project.tod
+
+            stop_df = stop_df.append(df)
 
             # Transit segment values
-            boardings = {}
-            line = {}
+            # boardings = {}
+            # line = {}
+
+            boardings = []
+            line = []
+            inode = []
 
             for tseg in network.transit_segments():
-                boardings[tseg.i_node.number] = tseg.transit_boardings
-                line[tseg.i_node.number] = tseg.line.id
+                boardings.append(tseg.transit_boardings)
+                line.append(tseg.line.id)
+                inode.append(tseg.i_node.number)
+
+                # boardings[tseg.i_node.number] = tseg.transit_boardings
+                # line[tseg.i_node.number] = tseg.line.id
             
-            df = pd.DataFrame()
-            df['id'] = boardings.keys()
-            df['line'] = line.values()
-            df['ons'] = boardings.values()
+            df = pd.DataFrame([inode,boardings,line]).T
+            df.columns = ['inode','total_boardings','line']
             df['tod'] = my_project.tod
+            # df['inode'] = boardings.keys()
+            # df['line'] = line.values()
+            # df['total_boardings'] = boardings.values()
+            
 
             seg_df = seg_df.append(df)
 
-            #print transit_summary_dict
           
         net_stats = calc_vmt_vht_delay_by_ft(my_project)
 
@@ -744,12 +735,19 @@ def main():
         
     list_of_measures = ['vmt', 'vht', 'delay']
 
-    # write stop and transit segemnt results to csv
-    stop_df.to_excel(excel_writer = writer, sheet_name = 'Stop-Level Transit Boarding')
-    seg_df.to_excel(excel_writer = writer, sheet_name = 'Transit Segment Boarding')
+    # write total boardings by inode, transit line, and tod
+    # seg_df.to_excel(excel_writer=writer, sheet_name='Segments')
+    
+    # combine initial and final boardings for transfers
+    seg_df = seg_df.groupby('inode').sum().reset_index()
+    seg_df = seg_df.drop(['tod','line'], axis=1)
+    stop_df = stop_df.groupby('inode').sum().reset_index()
+    transfer_df = pd.merge(stop_df, seg_df, on='inode')
+    transfer_df['transfers'] = transfer_df['total_boardings'] - transfer_df['initial_boardings']
+    transfer_df.to_excel(excel_writer=writer, sheet_name='Transfers by Stop')
 
-    # report daily boardings for select set of stops
-    daily_boardings(stop_df=stop_df, seg_df=seg_df, writer=writer)
+    # Compute daily boardings for light-rail and major stops
+    daily_boardings(df=transfer_df, writer=writer)
 
    #write out transit:
     # print uc_vmt_dict
