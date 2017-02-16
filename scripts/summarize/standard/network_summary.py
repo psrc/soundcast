@@ -601,7 +601,8 @@ def daily_boardings(df, writer):
     # # Join station information for set of nodes; report only for station in observed file
     df = pd.merge(df, observed, left_on='inode', right_on='id', how='inner')
     df['transfer_rate'] = df['transfers']/df['total_boardings']
-
+    if model_year == base_year:
+        df = df.loc[(df.observed_boardings>0)]
     df.to_excel(excel_writer=writer, sheet_name='Light Rail')
 
 def main():
@@ -674,10 +675,10 @@ def main():
                 offs[int(node.id)] = node.final_alightings
             
             df = pd.DataFrame() # temp dataFrame to append to stop_df
-            stop_df['inode'] = ons.keys()
-            stop_df['initial_boardings'] = ons.values()
-            stop_df['final_alightings'] = offs.values()
-            stop_df['tod'] = my_project.tod
+            df['inode'] = ons.keys()
+            df['initial_boardings'] = ons.values()
+            df['final_alightings'] = offs.values()
+            df['tod'] = my_project.tod
 
             stop_df = stop_df.append(df)
 
@@ -742,6 +743,7 @@ def main():
     # combine initial and final boardings for transfers
     seg_df = seg_df.groupby('inode').sum().reset_index()
     seg_df = seg_df.drop(['tod','line'], axis=1)
+    print stop_df.columns
     stop_df = stop_df.groupby('inode').sum().reset_index()
     transfer_df = pd.merge(stop_df, seg_df, on='inode')
     transfer_df['transfers'] = transfer_df['total_boardings'] - transfer_df['initial_boardings']
