@@ -43,35 +43,11 @@ from standard_summary_configuration import *
 from input_configuration import *
 from emme_configuration import *
 
-#network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 daily_network_fname = 'outputs/daily_network_results.csv'
-#fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
-#                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
-#                 'connectors' : 'ul3 = 5'}
 
-#extra_attributes_dict = {'@tveh' : 'total vehicles', 
-#                         '@mveh' : 'medium trucks', 
-#                         '@hveh' : 'heavy trucks', 
-#                         '@vmt' : 'vmt',\
-#                         '@vht' : 'vht', 
-#                         '@trnv' : 'buses in auto equivalents',
-#                         '@ovol' : 'observed volume', 
-#                         '@bveh' : 'number of buses'}
-
-#transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
-
-#transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
-#               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
-#               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 ## Input Files:
 aadt_counts_file = 'soundcast_aadt.csv'
 tptt_counts_file = 'soundcast_tptt.csv'
-
-#uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
-#           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
 def json_to_dictionary(dict_name):
 
@@ -142,6 +118,15 @@ def vmt_by_user_class(EmmeProject):
         #total vmt by ft: 
         uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
+
+def delay_by_user_class(EmmeProject):
+    #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
+    uc_delay_list = []
+    link_selection = 'ul3 = 1 or ul3 = 2 or ul3 = 3 or ul3 = 4 or ul3 = 5 or ul3 = 6'
+    for item in uc_list:
+        EmmeProject.network_calculator("link_calculation", result = None, expression = item + "*(timau-(length*60/ul2))/60", selections_by_link=link_selection)
+        uc_delay_list.append(EmmeProject.network_calc_result['sum'])
+    return uc_delay_list
 
 def get_link_counts(EmmeProject, loop_id_df, tod):
     #get the network for the active scenario
@@ -605,15 +590,15 @@ def light_rail(df, writer):
         df = df.loc[(df.observed_boardings>0)]
     df.to_excel(excel_writer=writer, sheet_name='Light Rail')
 
-def export_corridor_results(my_project):
+def export_corridor_results(my_project, writer):
     ''' Evaluate corridor travel time for a single AM and PM period'''
     tod = {'am': '7to8', 'pm': '16to17'}
     am_df = corridor_results(tod=tod['am'], my_project=my_project)
     pm_df = corridor_results(tod=tod['pm'], my_project=my_project)
 
     # combine am and pm into single CSV and export
-    corridor_df = pd.concat(objs=[am_df, pm_df])
-    corridor_df.to_csv('outputs/corridor_summary.csv')
+    df = pd.concat(objs=[am_df, pm_df])
+    df.to_excel(excel_writer=writer, sheet_name='Corridors')
 
 def corridor_results(tod, my_project):
     corridor_count = 12    # number of input corridor files
@@ -686,11 +671,11 @@ def main():
     transit_atts = []
     my_project = EmmeProject(project)
 
-        # Travel times on key corridors
-    print 'calculating corridor results'
-    export_corridor_results(my_project)
+    
 
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
+
+    export_corridor_results(my_project, writer)
        
     # Read observed count data
     loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
@@ -711,6 +696,7 @@ def main():
 
     counts_dict = {}
     uc_vmt_dict = {}
+    uc_delay_dict = {}
     aadt_counts_dict = {}
     
     tptt_counts_dict = {}
@@ -794,6 +780,7 @@ def main():
         ft_summary_dict[key] = net_stats
         #store vmt by user class in dict:
         uc_vmt_dict[key] = vmt_by_user_class(my_project)
+        uc_delay_dict[key] = delay_by_user_class(my_project)
 
         #counts:
         df_tod_vol = get_link_counts(my_project, loop_ids, key)
@@ -910,6 +897,13 @@ def main():
             uc_vmt_df[uc_list[colnum]][index] = uc_vmt_dict[index][colnum]
     uc_vmt_df = uc_vmt_df.sort_index()
     uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
+
+    uc_delay_df = pd.DataFrame(columns = uc_list, index = uc_delay_dict.keys())
+    for colnum in range(len(uc_list)):
+        for index in uc_delay_dict.keys():
+            uc_delay_df[uc_list[colnum]][index] = uc_delay_dict[index][colnum]
+    uc_delay_df = uc_delay_df.sort_index()
+    uc_delay_df.to_excel(excel_writer = writer, sheet_name = 'UC Delay')
 
     writer.save()
 
