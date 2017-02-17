@@ -72,5 +72,5 @@ transit_summary_out = 'outputs/transit_summary.xlsx'
 
 # Bikes
 bike_link_vol = 'outputs/bike_volumes.csv'
-bike_count_data = 'inputs/bikes/bike_count_data.csv'
+bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
