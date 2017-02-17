@@ -15,6 +15,9 @@ extra_attributes_dict = {'@tveh' : 'total vehicles',
                          '@bveh' : 'number of buses'}
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
 
+income_bins = [-9999,25000,100000,9999999999]
+income_bin_labels = ['low','medium','high']
+
 #transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
 #               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
 #               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
@@ -69,5 +72,5 @@ transit_summary_out = 'outputs/transit_summary.xlsx'
 
 # Bikes
 bike_link_vol = 'outputs/bike_volumes.csv'
-bike_count_data = 'inputs/bikes/bike_count_links.csv'
+bike_count_data = 'inputs/bikes/bike_count_data.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
