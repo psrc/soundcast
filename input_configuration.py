@@ -33,6 +33,11 @@ if not(use_simple_configuration):
     run_convert_hhinc_2000_2010 = False
     #############################################################
     
+    ###### Distance-based pricing######
+    add_distance_pricing = False
+    distance_rate_dict = {'am' : 10, 'md' : 5, 'pm' : 10, 'ev' : 5, 'ni' : 5}
+    ###################################
+    
     ######Set up:######
     run_accessibility_calcs = True
     run_copy_daysim_code = True
