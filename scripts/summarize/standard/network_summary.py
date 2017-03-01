@@ -665,6 +665,40 @@ def corridor_results(tod, my_project):
 
     return df_out
 
+def freeflow_skims(my_project):
+    """
+    Attach "freeflow" (20to5) SOV skims to daysim_outputs
+    """
+
+    # Load daysim_outputs as dataframe
+    daysim = h5py.File('outputs/daysim_outputs.h5', 'r+')
+    df = pd.DataFrame()
+    for field in ['travtime','otaz','dtaz']:
+        df[field] = daysim['Trip'][field][:]
+    df['od']=df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
+
+    # Look up zone ID from index location
+    zones = my_project.current_scenario.zone_numbers
+    dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+
+    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl1t'][:]
+
+    skim_df = pd.DataFrame(skim_vals)
+    # Reset index and column headers to match zone ID
+    skim_df.columns = [dictZoneLookup[i] for i in skim_df.columns]
+    skim_df.index = [dictZoneLookup[i] for i in skim_df.index.values]
+
+    skim_df = skim_df.stack().reset_index()
+    skim_df.columns = ['otaz','dtaz','ff_travtime']
+    skim_df['od']=skim_df['otaz'].astype('str')+'-'+skim_df['dtaz'].astype('str')
+    skim_df.index = skim_df['od']
+
+    df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
+
+    # Write to h5
+    daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
+    daysim.close()
+
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
@@ -688,6 +722,8 @@ def main():
     df_truck_counts = pd.read_csv(truck_counts_file)
 
     daily_counts(writer)
+
+    freeflow_skims(my_project)
 
     if run_truck_summary:
     	truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=writer)
