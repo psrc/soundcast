@@ -681,7 +681,7 @@ def freeflow_skims(my_project):
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
-    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl1t'][:]
+    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -695,8 +695,11 @@ def freeflow_skims(my_project):
 
     df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
 
-    # Write to h5
-    daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
+    # Write to h5, create dataset if 
+    if 'mode' in daysim['Trip'].keys():
+        daysim['Trip']['sov_ff_time'][:] = df['ff_travtime'].values
+    else:
+        daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
     daysim.close()
 
 def main():
