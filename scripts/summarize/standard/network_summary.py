@@ -696,7 +696,7 @@ def freeflow_skims(my_project):
     df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
 
     # Write to h5, create dataset if 
-    if 'mode' in daysim['Trip'].keys():
+    if 'ff_travtime' in daysim['Trip'].keys():
         daysim['Trip']['sov_ff_time'][:] = df['ff_travtime'].values
     else:
         daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
