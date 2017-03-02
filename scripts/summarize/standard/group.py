@@ -246,7 +246,8 @@ def trips(dataset):
     # average trip distance, time, and delay (weighted)
     trip_person['travdist_wt'] = trip_person['travdist']*trip_person['trexpfac']
     trip_person['travtime_wt'] = trip_person['travtime']*trip_person['trexpfac']
-    trip_person['delay_wt'] = trip_person['delay']*trip_person['trexpfac']
+    if 'sov_ff_time' in trip.columns:
+        trip_person['delay_wt'] = trip_person['delay']*trip_person['trexpfac']
     
     travdist_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travdist_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
     travdist_df.rename(columns={0:'travdist'},inplace=True)
