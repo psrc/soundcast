@@ -225,17 +225,27 @@ def trips(dataset):
     # total trips
     # join with person file and district names based on destination
     trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
+
+    # join with household to add income
+    trip_person = pd.merge(trip_person, hh, on='hhno', how='left')
     
     trip_person['deptm_hr'] = trip_person['deptm'].apply(lambda row: int(math.floor(row/60)))
+
+    trip_person['income_group'] = pd.cut(trip_person['hhincome'],
+        bins=income_bins,
+        labels=income_bin_labels)
     
-   
+   # Calcualte delay field
+   trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+
     # Tours by person type, purpose, mode, and destination district
-    agg_fields = ['pptyp','dpurp','mode','deptm_hr']
+    agg_fields = ['pptyp','dpurp','mode','deptm_hr','income_group', 'hhtaz']
     trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
     
-    # average trip distance and time (weighted)
+    # average trip distance, time, and delay (weighted)
     trip_person['travdist_wt'] = trip_person['travdist']*trip_person['trexpfac']
     trip_person['travtime_wt'] = trip_person['travtime']*trip_person['trexpfac']
+    trip_person['delay_wt'] = trip_person['delay']*trip_person['trexpfac']
     
     travdist_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travdist_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
     travdist_df.rename(columns={0:'travdist'},inplace=True)
@@ -243,7 +253,11 @@ def trips(dataset):
 
     travtime_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travtime_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
     travtime_df.rename(columns={0:'travtime'},inplace=True)
-    trips_df = trips_df.join(travtime_df)    
+    trips_df = trips_df.join(travtime_df)
+
+    travtime_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['delay_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
+    travtime_df.rename(columns={0:'delay'},inplace=True)
+    trips_df = trips_df.join(travtime_df)        
     
     # add datasource field
     trips_df['source'] = dataset['name']
