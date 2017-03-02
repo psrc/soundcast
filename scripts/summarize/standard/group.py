@@ -235,8 +235,9 @@ def trips(dataset):
         bins=income_bins,
         labels=income_bin_labels)
     
-   # Calcualte delay field
-   trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+    # Calcualte delay field
+    if 'sov_ff_time' in trip.columns:
+        trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
 
     # Tours by person type, purpose, mode, and destination district
     agg_fields = ['pptyp','dpurp','mode','deptm_hr','income_group', 'hhtaz']
@@ -255,9 +256,12 @@ def trips(dataset):
     travtime_df.rename(columns={0:'travtime'},inplace=True)
     trips_df = trips_df.join(travtime_df)
 
-    travtime_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['delay_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
-    travtime_df.rename(columns={0:'delay'},inplace=True)
-    trips_df = trips_df.join(travtime_df)        
+    if 'sov_ff_time' in trip.columns:
+        travtime_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['delay_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
+        travtime_df.rename(columns={0:'delay'},inplace=True)
+        trips_df = trips_df.join(travtime_df)
+    else:
+        trips_df['delay'] = 0
     
     # add datasource field
     trips_df['source'] = dataset['name']
