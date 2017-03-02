@@ -195,7 +195,7 @@ def update_headways(emmeProject, headways_df):
             network.delete_transit_line(transit_line.id)
     emmeProject.current_scenario.publish_network(network)
 
-def add_distance_pricing(rate, emmeProject):
+def distance_pricing(rate, emmeProject):
    toll_atts = ["@toll1", "@toll2", "@toll3", "@trkc1", "@trkc2", "@trkc3"]
    network = emmeProject.current_scenario.get_network()
    for link in network.links():
@@ -230,7 +230,7 @@ def run_importer(project_name):
         #import tolls
         import_tolls(my_project)
         if add_distance_pricing:
-            add_distance_pricing(distance_rate_dict[value], my_project)
+            distance_pricing(distance_rate_dict[value], my_project)
         
         
 

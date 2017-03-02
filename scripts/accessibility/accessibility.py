@@ -95,7 +95,9 @@ def process_parcels(parcels, transit_df):
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
-
+        #Some parcels share the same network node and therefore have 0 distance. Recode this to .01.
+        field_name = "dist_%s" % new_name
+        parcels.ix[parcels[field_name]==0, field_name] = .01
     # distance to park
     parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
     parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
@@ -138,11 +140,12 @@ def clean_up(parcels):
     return parcels_final
 
 
+# read in data
+parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
 
-# read in data
-parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
-# read in data
-parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+# Move to SeaTac Parcel so that it is on the terminal. 
+parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
+parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
 
 #check for missing data!
 for col_name in parcels.columns:

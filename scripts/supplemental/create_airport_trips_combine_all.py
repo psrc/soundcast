@@ -8,6 +8,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 from emme_configuration import *
+from input_configuration import *
 from EmmeProject import *
 
 DAYSIM = 'inputs/hh_and_persons.h5'
@@ -23,10 +24,10 @@ zones = my_project.current_scenario.zone_numbers
 hbo_ratio = h5py.File('outputs/supplemental/hbo_ratio.h5', 'r')
 mode_dict = {'walk':'nwshwk', 'bike':'nwshbk','litrat':'nwshtw', 'sov': 'nwshda', 'hov2':'nwshs2', 'hov3':'nwshs3'}
 #Time of the day factors
-test = {'5to6' : {'sov' : .04, 'hov' : .035}, '6to7' : {'sov' : .053, 'hov' : .056}, '7to8' : {'sov' : .06, 'hov' : .061}, 
-        '8to9' : {'sov' : .057, 'hov' : .057}, '9to10' : {'sov' : .055, 'hov' : .051}, '10to14' : {'sov' : .2250, 'hov' : .1880}, 
-        '14to15' : {'sov' : .061, 'hov' : .07}, '15to16' : {'sov' : .061, 'hov' : .082}, '16to17' : {'sov' : .06, 'hov' : .084}, 
-        '17to18' : {'sov' : .06, 'hov' : .08}, '18to20' : {'sov' : .10, 'hov' : .108}, '20to5' : {'sov' : .169, 'hov' : .125}}
+test = {'5to6' : {'sov' : .04, 'hov' : .035, 'transit' : .04}, '6to7' : {'sov' : .053, 'hov' : .056, 'transit' : .053}, '7to8' : {'sov' : .06, 'hov' : .061, 'transit' : .06}, 
+        '8to9' : {'sov' : .057, 'hov' : .057, 'transit' : .057}, '9to10' : {'sov' : .055, 'hov' : .051, 'transit' : .055}, '10to14' : {'sov' : .2250, 'hov' : .1880, 'transit' : .2250}, 
+        '14to15' : {'sov' : .061, 'hov' : .07, 'transit' : .061}, '15to16' : {'sov' : .061, 'hov' : .082, 'transit' : .061}, '16to17' : {'sov' : .06, 'hov' : .084, 'transit' : .06}, 
+        '17to18' : {'sov' : .06, 'hov' : .08, 'transit' : .06}, '18to20' : {'sov' : .10, 'hov' : .108, 'transit' : .269}, '20to5' : {'sov' : .169, 'hov' : .125, 'transit' : 0.0}}
 
 output_dir = r'outputs/supplemental/'
 # Daysim trips = pop * 0.02112
@@ -74,16 +75,16 @@ def trips_estimation(parcel_sorted, daysim_sorted):
 
 
 # Adjust estimated trips by appling observed control total 
-def trips_adjustion(trips):
-    obs_trips = 101838
+def trips_adjustion(trips, control_total):
+    #obs_trips = 101838
     est_trips = trips['est_trips'].sum()
     print 'Total number of estimated trips is', est_trips
-    adj_factor = obs_trips/est_trips
+    adj_factor = control_total/est_trips
     print 'The adjusted factor of observe/estimate is:', adj_factor
     trips['adj_trips'] = trips['est_trips']*adj_factor
 
     # Trip number validation
-    if  0 < (trips['adj_trips'].sum() - obs_trips) < 1:
+    if  0 < (trips['adj_trips'].sum() - control_total) < 1:
         print 'Total number of adjusted trips is as same as observed trips '
     cols = ['TAZ', 'adj_trips']
     airport_trips = trips[cols]
@@ -148,7 +149,7 @@ def split_tod_internal(airport_trips, matrix_dict):
         hov3 = np.array(airport_trips['hov3']) * float(test[tod]['hov']) + np.array(ixxi_work_store['h3tl'])
         ixxi_work_store.close()
         ''' At this point, We determine to use SOV factors on transit, bike and walk '''
-        litrat = np.array(airport_trips['litrat']) * float(test[tod]['sov'])
+        litrat = np.array(airport_trips['litrat']) * float(test[tod]['transit'])
         walk = np.array(airport_trips['walk']) * float(test[tod]['sov'])
         bike = np.array(airport_trips['bike']) * float(test[tod]['sov'])
         matrix_dict[tod]= {'svtl' : sov, 'h2tl' : hov2, 'h3tl' : hov3, 'litrat': litrat, 'walk': walk, 'bike': bike}
@@ -184,7 +185,7 @@ def output_trips(path, matrix_dict):
 daysim_sorted = daysim_sort(daysim)
 parcel_sorted = parcel_sort(parcel)
 trips = trips_estimation(parcel_sorted, daysim_sorted)
-airport_trips = trips_adjustion(trips)
+airport_trips = trips_adjustion(trips, airport_control_total[model_year])
 print zonesDim
 demand_matrix = create_demand_matrix(airport_trips, zonesDim, zonesDim)
 print 'create airport trip demand matrix, done'

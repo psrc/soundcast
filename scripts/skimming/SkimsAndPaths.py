@@ -1264,21 +1264,6 @@ def create_node_attributes(node_attribute_dict, my_project):
                        extra_attribute_default_value = value['init_value'],
                        overwrite=True)
 
-        
-        network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")  
-        node_calculator_spec = json_to_dictionary("node_calculation")
-        transit_tod = transit_network_tod_dict[tod]
-        
-        if transit_tod in transit_node_constants.keys():
-            for line_id, attribute_dict in transit_node_constants[transit_tod].iteritems():
-
-                for attribute_name, value in attribute_dict.iteritems():
-                #Load in the necessary Dictionarie
-                    mod_calc = node_calculator_spec
-                    mod_calc["result"] = attribute_name
-                    mod_calc["expression"] = value
-                    mod_calc["selections"]["node"] = "Line = " + line_id
-                    network_calc(mod_calc)
 
 
 def delete_matrices_parallel(project_name):

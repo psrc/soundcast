@@ -169,7 +169,7 @@ def get_cost_time_distance_skim_data():
             #print sov_hov
             if skim_name == 'cost':
                 load_skim_data(input_skim[trip_purpose][skim_name][sov_hov],
-                               output_skim[skim_name][sov_hov], False)
+                               output_skim[skim_name][sov_hov], True)
             else:
                 load_skim_data(input_skim[trip_purpose][skim_name][sov_hov], 
                                output_skim[skim_name][sov_hov], True)
