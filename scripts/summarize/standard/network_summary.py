@@ -452,7 +452,7 @@ def truck_summary(df_counts, my_project, writer):
     trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
     trucks_out.to_excel(excel_writer=writer, sheet_name='Truck Counts')
 
-def daily_counts(writer):
+def daily_counts(writer, my_project):
     """Export daily network volumes and compare to observed."""
 
     # Load observed data
@@ -505,6 +505,21 @@ def daily_counts(writer):
 
         df.to_excel(excel_writer=writer, sheet_name='Daily Counts')
 
+        # Export truck trip tables
+        for matrix_name in ['mfmetrk','mfhvtrk']:
+            matrix_id = bank.matrix(matrix_name).id
+            emme_matrix = bank.matrix(matrix_id)
+            matrix_data = emme_matrix.get_data()
+            np_matrix = np.matrix(matrix_data.raw_data)
+            df = pd.DataFrame(np_matrix)
+            # Attach zone numbers
+            # Look up zone ID from index location
+            zones = my_project.current_scenario.zone_numbers
+            dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+            df.columns = [dictZoneLookup[i] for i in df.columns]
+            df.index = [dictZoneLookup[i] for i in df.index.values]
+
+            df.to_csv('outputs/'+matrix_name+'.csv')
     else:
         raise Exception('no daily bank found')
 
@@ -696,7 +711,7 @@ def freeflow_skims(my_project):
     df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
 
     # Write to h5, create dataset if 
-    if 'ff_travtime' in daysim['Trip'].keys():
+    if 'sov_ff_time' in daysim['Trip'].keys():
         daysim['Trip']['sov_ff_time'][:] = df['ff_travtime'].values
     else:
         daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
@@ -724,7 +739,7 @@ def main():
     df_tptt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + tptt_counts_file)
     df_truck_counts = pd.read_csv(truck_counts_file)
 
-    daily_counts(writer)
+    daily_counts(writer, my_project)
 
     freeflow_skims(my_project)
 
@@ -947,14 +962,14 @@ def main():
     writer.save()
 
     #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
-    import imp
-    try:
-        imp.find_module('openpyxl')
-        found_openpyxl = True
-    except ImportError:
-        found_openpyxl = False
-    if found_openpyxl == True:
-        xlautofit.run('outputs/network_summary_detailed.xlsx')
+    # import imp
+    # try:
+    #     imp.find_module('openpyxl')
+    #     found_openpyxl = True
+    # except ImportError:
+    #     found_openpyxl = False
+    # if found_openpyxl == True:
+    #     xlautofit.run('outputs/network_summary_detailed.xlsx')
 
 if __name__ == "__main__":
     main()
