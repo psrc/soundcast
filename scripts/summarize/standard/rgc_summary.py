@@ -107,7 +107,7 @@ def trip(dataset, geog):
 		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
 
 	# Tours by person type, purpose, mode, and destination district
-	agg_fields = ['pptyp','dpurp','mode', 'center']
+	agg_fields = ['pptyp','dpurp','mode', 'center','income_group']
 	trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
 
 	# average trip distance and time (weighted)
