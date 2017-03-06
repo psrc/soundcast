@@ -65,6 +65,9 @@ def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
     return sys.argv[1]
 
+def get_model_year():
+    return sys.argv[2]
+
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
@@ -1263,6 +1266,20 @@ def create_node_attributes(node_attribute_dict, my_project):
                        extra_attribute_description=key,
                        extra_attribute_default_value = value['init_value'],
                        overwrite=True)
+        
+        network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")  
+        node_calculator_spec = json_to_dictionary("node_calculation")
+        model_year = get_model_year()
+      
+        for line_id, attribute_dict in transit_node_constants[model_year].iteritems():
+
+            for attribute_name, value in attribute_dict.iteritems():
+            #Load in the necessary Dictionarie
+                mod_calc = node_calculator_spec
+                mod_calc["result"] = attribute_name
+                mod_calc["expression"] = value
+                mod_calc["selections"]["node"] = "Line = " + line_id
+                network_calc(mod_calc)
 
 
 

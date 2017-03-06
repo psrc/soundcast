@@ -75,18 +75,20 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-#transit_node_constants = {'am':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-#                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-#                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
-#                          'pm':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-#                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-#                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-#                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
+transit_node_constants = {'2014':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
+                          '2040':{'0041':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0042':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0043':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0044':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0055':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0056':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0057':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0058':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
 
 transit_network_tod_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
                             '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
@@ -159,7 +161,7 @@ bal_iters = 5
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
-airport_control_total = {'2014' : 101838, '2040' : 211228} 
+airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228} 
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
