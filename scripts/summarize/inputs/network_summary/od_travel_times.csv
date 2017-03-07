@@ -1,11 +1,15 @@
-time,dist,dtaz,time_cong,time_ff,otaz,description,date
-8,15.714473,1356,17.716667,19.5,532,Seattle-Renton,2/16/2017
-8,11.021257,1552,14.533333,16.033333,532,Seattle-Bellevue,2/16/2017
-8,29.367858,2266,31.2,33.366667,532,Seattle-Everett,2/16/2017
-8,32.096919,2899,31.2,33.283333,532,Seattle-Tacoma,2/16/2017
-8,11.171629,532,13.95,15.233333,1552,Bellevue-Seattle,2/16/2017
-8,10.222174,1356,13.55,14.95,1552,Bellevue-Renton,2/16/2017
-8,28.788118,2266,31.116667,33,1552,Bellevue-Everett,2/16/2017
-8,15.226075,532,17.233333,19.033333,1356,Renton-Seattle,2/16/2017
-8,10.523539,1552,14.5,16.683333,1356,Renton-Bellevue,2/16/2017
-8,25.413453,2899,26.033333,27.616667,1356,Renton-Tacoma,2/16/2017
+time,dist,dtaz,time_cong,time_cong_hov,time_ff,otaz,corridor,description,date
+pm,11,1552,28,18,,532,I-90,Seattle-Bellevue,2013
+pm,24,2286,39,35,,532,I-5,Seattle-Everett,2013
+,,3108,,,,532,,Seattle-Issaquah,2013
+am,10,532,26,18,,1552,I-90,Bellevue-Seattle,2013
+,,2266,,,,1552,,Bellevue-Everett,2013
+,,523,,,,2570,,Lynnwood-Seattle,2013
+,,2570,,,,532,,Seattle-Lynwood,2013
+am,23,532,50,39,,2286,I-5,Everett-Seattle,2013
+,,532,,,,3108,,Issaquah-Seattle,2013
+pm,22,1125,32,36,,532,I-5,Seattle-Federal Way,2013
+am,22,532,49,29,,1125,I-5,Federal Way-Seattle,2013
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
