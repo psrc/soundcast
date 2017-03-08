@@ -89,8 +89,6 @@ def group_vmt_speed(my_project):
 
     for key, value in sound_cast_net_dict.iteritems():
 
-        print 'Getting VMT by Speed bin for time period ' + key
-        
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
 
@@ -122,8 +120,6 @@ def group_vmt_class(my_project):
     vmt_func_class= {1 : 0, 3 : 0,  5 : 0, 7 : 0}
     
     for key, value in sound_cast_net_dict.iteritems():
-
-        print 'Getting VMT by Facility Type for Time Period ' + key
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
 
@@ -137,8 +133,12 @@ def group_vmt_class(my_project):
     return vmt_fc_df
 
 
-def emissions_calc(vmt_speed_dict):
-    pollutant_rates = pd.DataFrame.from_csv(pollutant_file)
+def emissions_calc(vmt_speed_dict, model_year):
+    if model_year == 2040:
+       pollutant_rates = pd.DataFrame.from_csv(pollutant_file_2040)
+    else:
+        pollutant_rates = pd.DataFrame.from_csv(pollutant_file)
+
     vehicle_type_tons = {'Car': {'Carbon Dioxide': 0, 'Carbon Monoxide': 0, 'Nitrogen Oxide':0 , 'Volatile Organic Compound': 0, 'Particulate Matter': 0},
                          'Light Truck':{'Carbon Dioxide': 0, 'Carbon Monoxide': 0, 'Nitrogen Oxide':0 , 'Volatile Organic Compound': 0, 'Particulate Matter': 0},
                          'Medium Truck': {'Carbon Dioxide': 0, 'Carbon Monoxide': 0, 'Nitrogen Oxide':0 , 'Volatile Organic Compound': 0, 'Particulate Matter': 0},
@@ -181,6 +181,34 @@ def injury_calc(injury_file, my_project):
     injury_rates_vmt['Injury Cost'] = injury_rates_vmt['Injury Rate']*injury_rates_vmt['VMT']*INJURY_COST
     injury_rates_vmt['Fatality Cost'] = injury_rates_vmt['Fatality Rate']*injury_rates_vmt['VMT']*FATALITY_COST
     return injury_rates_vmt
+
+def truck_costs(my_project):
+   
+    truck_dict = {}
+    #these are already in network_summary, but just repeating to make this a standalone script
+    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*timau/60')
+    truck_dict['Medium Truck VHT']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
+    my_project.network_calculator("link_calculation", result = None, expression = '@hveh*timau/60')
+    truck_dict['Heavy Truck VHT']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+
+    #get truck vmt to calculate truck operating costs
+    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*length')
+    truck_dict['Medium Truck VMT']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
+    my_project.network_calculator("link_calculation", result = None, expression = '@hveh*length')
+    truck_dict['Heavy Truck VMT']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+
+    #truck toll costs
+    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc2')
+    truck_dict['Medium Truck Tolls']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
+    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc3')
+    truck_dict['Heavy Truck Tolls']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+
+    return pd.DataFrame(truck_dict, index = [0])
+
+def write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs):
+    for df in output_dfs:
+        df.to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = start_row)
+        start_row = start_row + REPORT_ROW_GAP
 
 
 def main():
@@ -225,12 +253,6 @@ def main():
 
     bc_outputs_by_mode['Total Household Time Impedances'] = impedance_inc_mode(trips, MAX_INC,"travtime") / MINS_HR
     bc_outputs_by_mode[' Household Low-Income Time'] = impedance_inc_mode(trips, LOW_INC_MAX, "travtime") / MINS_HR
-
-
-
-   # Also break this down for Work only
-
-   # per Trips
  
     # Calculate Reliability Impacts
     # Reliability is already included in travel times in our vdfs - may want to
@@ -267,7 +289,6 @@ def main():
     # this. I think the problem is capturing the short walk trips and we should be able
     # to get this with the 2014 dataset.
 
-    print bc_costs
     walk_times = nonmotorized_benefits(trips, 'Walk', MAX_INC)
     bike_times = nonmotorized_benefits(trips, 'Bike', MAX_INC)
     transit_walk_times = nonmotorized_benefits(trips, 'Transit', MAX_INC)
@@ -291,54 +312,21 @@ def main():
     emme_project = EmmeProject(project)
     # Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
-    df_emissions = emissions_calc(vmt_speed_dict)
+    df_emissions = emissions_calc(vmt_speed_dict, model_year)
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
-   
-    # measures to add annual vehicle hours of delay
+    truck_outputs = truck_costs(emme_project)
 
-    # Average Distance and Travel Time to Work from Home Location
-
-    # Aggregate Logsum based Time measure
-
-    # Optionally calculate Project Costs, operating and maintenance cost
-
-    # Outputs and Visualization
-
-  
+    # Write it out
+    output_dfs = [pd.DataFrame(bc_people, index = [0]), pd.DataFrame(bc_outputs_by_mode), mode_users(trips, MAX_INC),mode_users(trips, LOW_INC_MAX),
+                 pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']),
+                 pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']),
+                 pd.DataFrame(bc_health_outputs.items(), columns= ['Measure', 'Value']),
+                 df_emissions, noise_vmt, injury_rates_vmt, truck_outputs]
 
     bc_writer = pd.ExcelWriter(bc_outputs_file, engine = 'xlsxwriter')
-    START_ROW = 1
-
-    pd.DataFrame(bc_people, index = [0]).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-
-    pd.DataFrame(bc_outputs_by_mode).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-
-    mode_users(trips, MAX_INC).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-    mode_users(trips, LOW_INC_MAX).to_excel(excel_writer = bc_writer, sheet_name =  'Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-    pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']).to_excel(excel_writer = bc_writer, sheet_name ='Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-    pd.DataFrame(bc_health_outputs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']).to_excel(excel_writer = bc_writer, sheet_name ='Raw Costs', na_rep = 0, startrow = START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-    df_emissions.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
-    START_ROW = START_ROW + REPORT_ROW_GAP
-
-    noise_vmt.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
-
-    START_ROW = START_ROW + REPORT_ROW_GAP
-    injury_rates_vmt.to_excel(excel_writer = bc_writer, sheet_name = 'Raw Costs', na_rep = 0, startrow =START_ROW)
-
-
+    start_row = 1
+    write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs)
     bc_writer.close()
 
 if __name__ == "__main__":

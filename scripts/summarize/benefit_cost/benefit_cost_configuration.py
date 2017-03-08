@@ -2,6 +2,7 @@
 output_name = 'TransFu2010'
 
 pollutant_file = 'scripts/summarize/inputs/benefit_cost/pollutant_rates.csv'
+pollutant_file_2040 = 'scripts/summarize/inputs/benefit_cost/pollutant_rates_2040.csv'
 injury_file ='scripts/summarize/inputs/benefit_cost/injury_rates.csv'
 
 #truck_file =somewhere
