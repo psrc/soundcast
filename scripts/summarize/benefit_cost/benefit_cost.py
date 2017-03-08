@@ -107,8 +107,8 @@ def group_vmt_speed(my_project):
                link['@h2tl3'] + link['@h3tl1'] +link['@h3tl2'] + link['@h3tl3'] )*link['length']
 
                speed_dict[speed]['Light Truck'] = speed_dict[speed]['Light Truck'] + link['@lttrk'] * link['length']
-               speed_dict[speed]['Medium Truck'] = speed_dict[speed]['Medium Truck'] + link['@mveh'] * link['length']/MED_TRUCK_FACTOR
-               speed_dict[speed]['Heavy Truck'] = speed_dict[speed]['Heavy Truck'] + link['@hveh'] * link['length']/HV_TRUCK_FACTOR
+               speed_dict[speed]['Medium Truck'] = speed_dict[speed]['Medium Truck'] + link['@mveh'] * link['length']
+               speed_dict[speed]['Heavy Truck'] = speed_dict[speed]['Heavy Truck'] + link['@hveh'] * link['length']
 
                     
     return speed_dict
@@ -184,24 +184,27 @@ def injury_calc(injury_file, my_project):
 
 def truck_costs(my_project):
    
-    truck_dict = {}
-    #these are already in network_summary, but just repeating to make this a standalone script
-    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*timau/60')
-    truck_dict['Medium Truck VHT']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
-    my_project.network_calculator("link_calculation", result = None, expression = '@hveh*timau/60')
-    truck_dict['Heavy Truck VHT']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+    truck_dict = {'Truck Medium VHT': 0, 'Truck Heavy VHT': 0, 'Truck Medium VMT': 0, 'Truck Heavy VMT': 0, 'Truck Medium Tolls': 0, 'Truck Heavy Tolls': 0}
 
-    #get truck vmt to calculate truck operating costs
-    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*length')
-    truck_dict['Medium Truck VMT']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
-    my_project.network_calculator("link_calculation", result = None, expression = '@hveh*length')
-    truck_dict['Heavy Truck VMT']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+    for key, value in sound_cast_net_dict.iteritems():
+        my_project.change_active_database(key)
+        #these are already in network_summary, but just repeating to make this a standalone script
+        my_project.network_calculator("link_calculation", result = None, expression = '@mveh*timau/60')
+        truck_dict['Truck Medium VHT']+= my_project.network_calc_result['sum']
+        my_project.network_calculator("link_calculation", result = None, expression = '@hveh*timau/60')
+        truck_dict['Truck Heavy VHT']+= my_project.network_calc_result['sum']
 
-    #truck toll costs
-    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc2')
-    truck_dict['Medium Truck Tolls']= my_project.network_calc_result['sum']/MED_TRUCK_FACTOR
-    my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc3')
-    truck_dict['Heavy Truck Tolls']= my_project.network_calc_result['sum']/HV_TRUCK_FACTOR
+        #get truck vmt to calculate truck operating costs
+        my_project.network_calculator("link_calculation", result = None, expression = '@mveh*length')
+        truck_dict['Truck Medium VMT']+= my_project.network_calc_result['sum']
+        my_project.network_calculator("link_calculation", result = None, expression = '@hveh*length')
+        truck_dict['Truck Heavy VMT']+= my_project.network_calc_result['sum']
+
+        #truck toll costs
+        my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc2/100')
+        truck_dict['Truck Medium Tolls']+= my_project.network_calc_result['sum']
+        my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc3/100')
+        truck_dict['Truck Heavy Tolls']+= my_project.network_calc_result['sum']
 
     return pd.DataFrame(truck_dict, index = [0])
 
@@ -319,7 +322,6 @@ def main():
 
     # Write it out
     output_dfs = [pd.DataFrame(bc_people, index = [0]), pd.DataFrame(bc_outputs_by_mode), mode_users(trips, MAX_INC),mode_users(trips, LOW_INC_MAX),
-                 pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']),
                  pd.DataFrame(bc_costs.items(), columns= ['Measure', 'Value']).sort_index(by=['Measure']),
                  pd.DataFrame(bc_health_outputs.items(), columns= ['Measure', 'Value']),
                  df_emissions, noise_vmt, injury_rates_vmt, truck_outputs]
