@@ -6,5 +6,6 @@ D Line test,5299,b,1674,RapidRideD
 E-Line E-Line Rapid*,4093,b,1675,RapidRideE
 LITE RL TCOMA CBD,4946,r,6995,ST Light Rail - Tacoma
 LightRail SeaTac-Sea,4950,r,6996,ST Light Rail -Central Link
-COMMTR RL TAC-SEA NB,4945,c,6998,ST Commuter Rail South
-COMMTR RL SEA-EV NB,4944,c,6999,ST Commuter Rail North
+COMMTR RL TAC-SEA NB,4944,c,6998,ST Commuter Rail South
+COMMTR RL SEA-EV NB,4945,c,6999,ST Commuter Rail North
+Swift,4985,b,3701,Swift
