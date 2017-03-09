@@ -4,7 +4,7 @@ from standard_summary_configuration import *
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
-mic_taz = pd.read_csv(r'R:\Brice\maps\geography\mic_taz.csv')
+mic_taz = pd.read_csv(r'scripts/summarize/inputs/mic_taz.csv')
 # Get MIC data from land use file
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']

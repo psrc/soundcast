@@ -4,7 +4,8 @@ from standard_summary_configuration import *
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
-rgc_taz = pd.read_csv(r'scripts\summarize\inputs\rgc_taz.csv')
+county_taz = pd.read_csv(r'scripts/summarize/inputs/county_taz.csv')
+rgc_taz = pd.read_csv(r'scripts/summarize/inputs/rgc_taz.csv')
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
 
@@ -49,16 +50,19 @@ def apply_lables(h5data):
     
     return h5data
 
-def hh(dataset):
+def hh(dataset, geog_file):
+	"""
+	geog_file: TAZ-based geography lookup, e.g., district, county, RGC
+	"""
 
 	hh = dataset['Household']
 
 	# Join RGC geography based on household TAZ location
-	hh = pd.merge(hh,rgc_taz,left_on='hhtaz', right_on='taz')
+	hh = pd.merge(hh,geog_file,left_on='hhtaz', right_on='taz')
 
 	hh['income_bins'] = pd.cut(hh['hhincome'],bins=income_bins,labels=income_bin_labels)
 
-	agg_fields = ['center','hhsize','income_bins','hhvehs','hownrent','hrestype']
+	agg_fields = ['geog_name','hhsize','income_bins','hhvehs','hownrent','hrestype']
 
 	# Sums
 	df = pd.DataFrame(hh.groupby(agg_fields).sum()['hhexpfac'])
@@ -78,14 +82,19 @@ def hh(dataset):
 	df = df.fillna(0)
 	df = df.reset_index()
 
-	# Join with rgc_taz to get lat and lon
-	df = pd.merge(df, rgc_taz[['center','lat_1','lon_1']], on='center', how='left')
+	# Join with taz lookup to get lat and lon of desired geog_field
+	df = pd.merge(df, geog_file[['geog_name','lat_1','lon_1']], on='geog_name', how='left')
 
 	df['source'] = dataset['name']
 
 	return df
 
-def trip(dataset, geog):
+def trip(dataset, geog_file, geog_field):
+	"""
+	geog_file: TAZ-based geography lookup, e.g., district, county, RGC
+	geog_field: join field, e.g., hhtaz to summarize trips for households in RGC or dtaz 
+	            for trips ending in RGC
+	"""
 
 	trip = dataset['Trip']
 	trip = trip[trip['travdist'] >= 0]
@@ -97,7 +106,7 @@ def trip(dataset, geog):
 	trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
 	trip_person = pd.merge(trip_person,hh,on='hhno',how='left')
 
-	trip_person = pd.merge(trip_person,rgc_taz,left_on=geog, right_on='taz')
+	trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
 
 	trip_person['income_group'] = pd.cut(trip_person['hhincome'],
 	    bins=income_bins,
@@ -107,7 +116,7 @@ def trip(dataset, geog):
 		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
 
 	# Tours by person type, purpose, mode, and destination district
-	agg_fields = ['pptyp','dpurp','mode', 'center','income_group']
+	agg_fields = ['pptyp','dpurp','mode', 'geog_name','income_group']
 	trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
 
 	# average trip distance and time (weighted)
@@ -141,7 +150,7 @@ def trip(dataset, geog):
 	# add datasource field
 	trips_df['source'] = dataset['name']
 
-	trips_df = pd.merge(trips_df, rgc_taz[['center','lat_1','lon_1']], on='center', how='left')
+	trips_df = pd.merge(trips_df, geog_file[['geog_name','lat_1','lon_1']], on='geog_name', how='left')
     
 	return trips_df
 
@@ -151,15 +160,18 @@ def process_dataset(h5file, scenario_name):
 
     dataset = apply_lables(dataset)
     
-    hh_df = hh(dataset)
-    write_csv(hh_df,fname='hh_rgc.csv')
+    hh_county = hh(dataset, geog_file=county_taz)
+    write_csv(hh_county,fname='hh_county.csv')
+
+    hh_rgc = hh(dataset, geog_file=rgc_taz)
+    write_csv(hh_rgc,fname='hh_rgc.csv')
 
     # Trips based on location in regional center
-    trip_df = trip(dataset, geog='hhtaz')
+    trip_df = trip(dataset, geog_file=rgc_taz, geog_field='hhtaz')
     write_csv(trip_df,fname='trip_rgc_homeloc.csv')
 
-    # Trips based on destination location in regional center
-    trip_df = trip(dataset, geog='dtaz')
+    # # Trips based on destination location in regional center
+    trip_df = trip(dataset, geog_file=rgc_taz, geog_field='dtaz')
     write_csv(trip_df,fname='trip_rgc_dest.csv')
 
 def write_csv(df,fname):
@@ -178,7 +190,7 @@ if __name__ == '__main__':
     # Use root directory name as run name
     run_name = os.getcwd().split('\\')[-1]
 
-    output_dir = r'outputs/rgc'
+    output_dir = r'outputs/geog'
 
     comparison_run_dir = r'P:\Stefan\soundcast_20peak_2offpeak\outputs'
 
