@@ -203,7 +203,7 @@ def truck_costs(my_project):
         #truck toll costs
         my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc2/100')
         truck_dict['Truck Medium Tolls']+= my_project.network_calc_result['sum']
-        my_project.network_calculator("link_calculation", result = None, expression = '@mveh*@trkc3/100')
+        my_project.network_calculator("link_calculation", result = None, expression = '@hveh*@trkc3/100')
         truck_dict['Truck Heavy Tolls']+= my_project.network_calc_result['sum']
 
     return pd.DataFrame(truck_dict, index = [0])
