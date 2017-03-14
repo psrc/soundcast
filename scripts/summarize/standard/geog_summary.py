@@ -6,6 +6,7 @@ labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibr
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
 county_taz = pd.read_csv(r'scripts/summarize/inputs/county_taz.csv')
 rgc_taz = pd.read_csv(r'scripts/summarize/inputs/rgc_taz.csv')
+lu = pd.read_csv(r'inputs/accessibility/parcels_urbansim.txt', sep=' ')
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
 
@@ -62,7 +63,7 @@ def hh(dataset, geog_file):
 
 	hh['income_bins'] = pd.cut(hh['hhincome'],bins=income_bins,labels=income_bin_labels)
 
-	agg_fields = ['geog_name','hhsize','income_bins','hhvehs','hownrent','hrestype']
+	agg_fields = ['geog_name','income_bins','hrestype']
 
 	# Sums
 	df = pd.DataFrame(hh.groupby(agg_fields).sum()['hhexpfac'])
@@ -83,7 +84,9 @@ def hh(dataset, geog_file):
 	df = df.reset_index()
 
 	# Join with taz lookup to get lat and lon of desired geog_field
-	df = pd.merge(df, geog_file[['geog_name','lat_1','lon_1']], on='geog_name', how='left')
+	geog_lat_lon = geog_file.groupby('geog_name').min()[['lat_1','lon_1']]
+	geog_lat_lon.reset_index(inplace=True)
+	df = pd.merge(df, geog_lat_lon, on='geog_name', how='left')
 
 	df['source'] = dataset['name']
 
@@ -107,6 +110,16 @@ def trip(dataset, geog_file, geog_field):
 	trip_person = pd.merge(trip_person,hh,on='hhno',how='left')
 
 	trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
+
+	# # Attach parking costs
+	# if 'PARCEL_ID' in trip_person.columns:
+	# 	trip_person = pd.merge(trip_person, lu[['PARCEL_ID','PPRICHRP']], left_on='dpcl', right_on='PARCEL_ID', how='left')
+	# else:
+	# 	trip_person = pd.merge(trip_person, lu[['parcel_id','pprichrp']], left_on='dpcl', right_on='parcel_id', how='left')
+
+	# Calculate parking costs based on time at destination
+	# trip_person['dur']	 = trip_person['endacttm']-trip_person['arrtm']
+	# trip_person['park_cost'] = trip_person['PPRICHRP']*(trip_person['dur']/60)    # for drive modes only!
 
 	trip_person['income_group'] = pd.cut(trip_person['hhincome'],
 	    bins=income_bins,
@@ -150,9 +163,121 @@ def trip(dataset, geog_file, geog_field):
 	# add datasource field
 	trips_df['source'] = dataset['name']
 
-	trips_df = pd.merge(trips_df, geog_file[['geog_name','lat_1','lon_1']], on='geog_name', how='left')
+	# Attach geog lookup
+	geog_lat_lon = geog_file.groupby('geog_name').min()[['lat_1','lon_1']]
+	geog_lat_lon.reset_index(inplace=True)
+	df = pd.merge(trips_df, geog_lat_lon, on='geog_name', how='left')
     
 	return trips_df
+
+def costs(dataset, geog_file, geog_field):
+	"""
+	Calculate daily travel costs for each household
+	"""
+
+	trip = dataset['Trip']
+	trip = trip[trip['travdist'] >= 0]
+	person = dataset['Person']
+	hh = dataset['Household']
+	    
+	# total trips
+	# join with person file and rgc based on destination
+	trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
+	trip_person = pd.merge(trip_person,hh,on='hhno',how='left')
+
+	# trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
+
+	hh['income_group'] = pd.cut(hh['hhincome'],
+	    bins=income_bins,
+	    labels=income_bin_labels)
+
+	if 'sov_ff_time' in trip.columns:
+		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+
+	# Total travcost for each household
+	tot_by_hh = pd.DataFrame(trip_person.groupby('hhno').sum()[['travcost','travtime','delay']])
+	tot_by_hh.reset_index(inplace=True)
+
+	df = pd.merge(tot_by_hh, hh[['hhno','hhincome','income_group','hhtaz']], on='hhno')
+
+	# calculate share of income spent on 
+	# total weekday household travel
+
+	# Replace income <= 1 with 1 to avoid negative and div/0
+	df.ix[df['hhincome'] < 1, 'hhincome'] = 1
+
+	df['travcost_inc_share'] = (df['travcost']*262)/df['hhincome']
+
+	# Average 
+	df = df.groupby(['hhtaz','income_group']).mean()[['travcost_inc_share','hhincome','travcost']]
+	df.reset_index(inplace=True)
+
+	# Attach geog lookup
+	# geog_lat_lon = geog_file.groupby('geog_name').min()
+	# geog_lat_lon.reset_index(inplace=True)
+	df = pd.merge(df, geog_file, left_on='hhtaz', right_on='taz', how='left')
+
+	df['source'] = dataset['name']
+
+	return df
+
+def income(dataset, geog_file, geog_field):
+	'''
+	income distribution by geography
+	'''
+	trip = dataset['Trip']
+	trip = trip[trip['travdist'] >= 0]
+	person = dataset['Person']
+	hh = dataset['Household']
+	    
+	# total trips
+	# join with person file and rgc based on destination
+	trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
+	trip_person = pd.merge(trip_person,hh,on='hhno',how='left')
+
+	trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
+
+	# Attach parking costs
+	# trip_person = pd.merge(trip_person, lu[['PARCEL_ID','PPRICHRP']], left_on='dpcl', right_on='PARCEL_ID', how='left')
+	# trip_person = pd.merge(trip_person, lu[['parcel_id','pprichrp']], left_on='dpcl', right_on='parcel_id', how='left')
+
+	# Calculate parking costs based on time at destination
+	# trip_person['dur'] = trip_person['endacttm']-trip_person['arrtm']
+	# trip_person['park_cost'] = trip_person['PPRICHRP']*(trip_person['dur']/60)    # for drive modes only!
+
+	income_bins = [-99999999]+[i*10000 for i in xrange(21)]+[999999999]
+	income_bin_labels = [str(i*10000) for i in xrange(21)]+['+']
+
+	hh['income_group'] = pd.cut(hh['hhincome'],
+	    bins=income_bins,
+	    labels=income_bin_labels)
+
+	if 'sov_ff_time' in trip.columns:
+		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+
+	# Sum of travel costs by household
+	tot_by_hh = pd.DataFrame(trip_person.groupby('hhno').sum()[['travcost','travtime','delay']])
+	tot_by_hh.reset_index(inplace=True)
+
+	df = pd.merge(tot_by_hh, hh[['hhno','hhincome','income_group','hhtaz']], on='hhno')
+
+	# Replace income <= 1 with 1 to avoid negative and div/0
+	# df.ix[df['hhincome'] < 1, 'hhincome'] = 1
+
+	# df['travcost_inc_share'] = (df['travcost']*262)/df['hhincome']
+
+	# # Average 
+	# df = df.groupby(['hhtaz','income_group']).mean()[['travcost_inc_share','hhincome','travcost']]
+	# df.reset_index(inplace=True)
+
+	# # Attach geog lookup
+	# # geog_lat_lon = geog_file.groupby('geog_name').min()
+	# # geog_lat_lon.reset_index(inplace=True)
+	# df = pd.merge(df, geog_file, left_on='hhtaz', right_on='taz', how='left')
+
+	df['source'] = dataset['name']
+
+	return df
 
 def process_dataset(h5file, scenario_name):
 	# Load h5 data as dataframes
@@ -170,9 +295,22 @@ def process_dataset(h5file, scenario_name):
     trip_df = trip(dataset, geog_file=rgc_taz, geog_field='hhtaz')
     write_csv(trip_df,fname='trip_rgc_homeloc.csv')
 
-    # # Trips based on destination location in regional center
+    trip_df = trip(dataset, geog_file=county_taz, geog_field='hhtaz')
+    write_csv(trip_df,fname='trip_county_homeloc.csv')
+
+    # Trips based on destination location in regional center
     trip_df = trip(dataset, geog_file=rgc_taz, geog_field='dtaz')
     write_csv(trip_df,fname='trip_rgc_dest.csv')
+
+    trip_df = trip(dataset, geog_file=county_taz, geog_field='dtaz')
+    write_csv(trip_df,fname='trip_county_dest.csv')
+
+    # TAZ Costs
+    df = costs(dataset, geog_file=county_taz, geog_field='hhtaz')
+    write_csv(df, fname='costs.csv')
+
+    df = income(dataset, geog_file=county_taz, geog_field='hhtaz')
+    write_csv(df, fname='income.csv')
 
 def write_csv(df,fname):
     '''
@@ -197,7 +335,6 @@ if __name__ == '__main__':
     h5_file_dict = {
         '2014': r'outputs/daysim_outputs.h5', 
         '2040_tolling': os.path.join(comparison_run_dir,'daysim_outputs.h5'),
-        'survey': r'scripts/summarize/inputs/calibration/survey.h5'
                     }
 
     # Create output directory if it doesn't exist
@@ -205,9 +342,9 @@ if __name__ == '__main__':
         os.makedirs(output_dir)
 
     if overwrite:
-	    for fname in output_csv_list:
-	        if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-	            os.remove(os.path.join(output_dir,fname+'.csv'))
+	    for fname in os.listdir(output_dir):
+	        if os.path.isfile(os.path.join(output_dir,fname)):
+	            os.remove(os.path.join(output_dir,fname))
 
 	# Process all h5 files
     for name, file_dir in h5_file_dict.iteritems():
