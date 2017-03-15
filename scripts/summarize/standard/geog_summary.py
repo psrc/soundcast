@@ -7,6 +7,7 @@ districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/cal
 county_taz = pd.read_csv(r'scripts/summarize/inputs/county_taz.csv')
 rgc_taz = pd.read_csv(r'scripts/summarize/inputs/rgc_taz.csv')
 lu = pd.read_csv(r'inputs/accessibility/parcels_urbansim.txt', sep=' ')
+income_tiers = pd.read_csv(r'scripts/summarize/inputs/income_tiers.csv')
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
 
@@ -170,6 +171,45 @@ def trip(dataset, geog_file, geog_field):
     
 	return trips_df
 
+def person(dataset, geog_file, geog_field):
+
+	trip = dataset['Trip']
+	trip = trip[trip['travdist'] >= 0]
+	person = dataset['Person']
+	hh = dataset['Household']
+
+	hh = pd.merge(hh, income_tiers, on='hhsize', how='left')
+	hh['income_group'] = '0'
+	hh.ix[hh['hhincome'] <= hh['income_threshold'], 'income_group'] = 'lower'
+	hh.ix[hh['hhincome'] > hh['income_threshold'], 'income_group'] = 'higher'
+
+	trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
+	trip_person = pd.merge(trip_person,hh,on='hhno',how='left')
+
+	trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
+
+	if 'sov_ff_time' in trip.columns:
+		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+
+	# Don't double count household travcost - only sum travcost for drive trips
+	trip_person.ix[(trip_person.dorp != 1) & (trip_person['mode'].isin(['SOV','HOV2','HOV3+'])), 'travcost'] = 0
+
+	# Total travel time, cost, and delay per person
+	df = trip_person.groupby(['pno','hhno']).sum()[['travcost','delay','travtime']]
+	df = df.reset_index()
+
+	df = pd.merge(df, trip_person[['pno','hhno','geog_name','income_group','pptyp','hhincome']], on=['pno','hhno'], how='left')
+
+	# Results by geography
+	agg_fields = ['geog_name','income_group','pptyp']
+
+	# Sums
+	df = pd.DataFrame(df.groupby(agg_fields).mean()[['hhincome','travcost','travtime','delay']])
+
+	df['source'] = dataset['name']
+
+	return df
+
 def costs(dataset, geog_file, geog_field):
 	"""
 	Calculate daily travel costs for each household
@@ -187,12 +227,21 @@ def costs(dataset, geog_file, geog_field):
 
 	# trip_person = pd.merge(trip_person,geog_file,left_on=geog_field, right_on='taz')
 
-	hh['income_group'] = pd.cut(hh['hhincome'],
-	    bins=income_bins,
-	    labels=income_bin_labels)
+	# hh['income_group'] = pd.cut(hh['hhincome'],
+	#     bins=income_bins,
+	#     labels=income_bin_labels)
+
+	# Calculate low income as 200% of state povery level, which is based on hhsize
+	hh = pd.merge(hh, income_tiers, on='hhsize', how='left')
+	hh['income_group'] = '0'
+	hh.ix[hh['hhincome'] <= hh['income_threshold'], 'income_group'] = 'lower'
+	hh.ix[hh['hhincome'] > hh['income_threshold'], 'income_group'] = 'higher'
 
 	if 'sov_ff_time' in trip.columns:
 		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
+
+	# Don't double count household travcost - only sum travcost for drive trips
+	trip_person.ix[(trip_person.dorp != 1) & (trip_person['mode'].isin(['SOV','HOV2','HOV3+'])), 'travcost'] = 0
 
 	# Total travcost for each household
 	tot_by_hh = pd.DataFrame(trip_person.groupby('hhno').sum()[['travcost','travtime','delay']])
@@ -208,8 +257,8 @@ def costs(dataset, geog_file, geog_field):
 
 	df['travcost_inc_share'] = (df['travcost']*262)/df['hhincome']
 
-	# Average 
-	df = df.groupby(['hhtaz','income_group']).mean()[['travcost_inc_share','hhincome','travcost']]
+	# Average of the daily total for each TAZ
+	df = df.groupby(['hhtaz','income_group']).mean()[['travcost_inc_share','hhincome','travcost','travtime','delay']]
 	df.reset_index(inplace=True)
 
 	# Attach geog lookup
@@ -248,9 +297,10 @@ def income(dataset, geog_file, geog_field):
 	income_bins = [-99999999]+[i*10000 for i in xrange(21)]+[999999999]
 	income_bin_labels = [str(i*10000) for i in xrange(21)]+['+']
 
-	hh['income_group'] = pd.cut(hh['hhincome'],
-	    bins=income_bins,
-	    labels=income_bin_labels)
+	hh = pd.merge(hh, income_tiers, on='hhsize', how='left')
+	hh['income_group'] = '0'
+	hh.ix[hh['hhincome'] <= hh['income_threshold'], 'income_group'] = 'lower'
+	hh.ix[hh['hhincome'] > hh['income_threshold'], 'income_group'] = 'higher'
 
 	if 'sov_ff_time' in trip.columns:
 		trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
@@ -279,38 +329,70 @@ def income(dataset, geog_file, geog_field):
 
 	return df
 
+def landuse(landuse_file, fname):
+
+	lu_df = pd.read_csv(landuse_file, sep=' ')
+
+	if 'taz_p' in lu_df.columns:
+
+		sums_df = lu_df.groupby('taz_p').sum()
+		sums_df = sums_df.drop(['ppricdyp','pprichrp','xcoord_p','ycoord_p'], axis=1)
+		sums_df.reset_index(inplace=True)
+
+		means_df = lu_df.groupby('taz_p').mean()[['ppricdyp','pprichrp']]
+		means_df.reset_index(inplace=True)
+
+	else:
+
+		sums_df = lu_df.groupby('TAZ_P').sum()
+		sums_df = sums_df.drop(['PPRICDYP','PPRICHRP','XCOORD_P','YCOORD_P'], axis=1)
+		sums_df.reset_index(inplace=True)
+
+		means_df = lu_df.groupby('TAZ_P').mean()[['PPRICDYP','PPRICHRP']]
+		means_df.reset_index(inplace=True)
+
+	df = pd.merge(sums_df, means_df)
+
+	df['source'] = fname
+
+	return df
+
 def process_dataset(h5file, scenario_name):
 	# Load h5 data as dataframes
     dataset = h5_to_df(h5file, table_list=['Household','Trip','Tour','Person','HouseholdDay','PersonDay'], name=scenario_name)
 
     dataset = apply_lables(dataset)
     
-    hh_county = hh(dataset, geog_file=county_taz)
-    write_csv(hh_county,fname='hh_county.csv')
+    # hh_county = hh(dataset, geog_file=county_taz)
+    # write_csv(hh_county,fname='hh_county.csv')
 
-    hh_rgc = hh(dataset, geog_file=rgc_taz)
-    write_csv(hh_rgc,fname='hh_rgc.csv')
+    # hh_rgc = hh(dataset, geog_file=rgc_taz)
+    # write_csv(hh_rgc,fname='hh_rgc.csv')
 
-    # Trips based on location in regional center
-    trip_df = trip(dataset, geog_file=rgc_taz, geog_field='hhtaz')
-    write_csv(trip_df,fname='trip_rgc_homeloc.csv')
+    # # Trips based on location in regional center
+    # trip_df = trip(dataset, geog_file=rgc_taz, geog_field='hhtaz')
+    # write_csv(trip_df,fname='trip_rgc_homeloc.csv')
 
-    trip_df = trip(dataset, geog_file=county_taz, geog_field='hhtaz')
-    write_csv(trip_df,fname='trip_county_homeloc.csv')
+    # trip_df = trip(dataset, geog_file=county_taz, geog_field='hhtaz')
+    # write_csv(trip_df,fname='trip_county_homeloc.csv')
 
-    # Trips based on destination location in regional center
-    trip_df = trip(dataset, geog_file=rgc_taz, geog_field='dtaz')
-    write_csv(trip_df,fname='trip_rgc_dest.csv')
+    # # Trips based on destination location in regional center
+    # trip_df = trip(dataset, geog_file=rgc_taz, geog_field='dtaz')
+    # write_csv(trip_df,fname='trip_rgc_dest.csv')
 
-    trip_df = trip(dataset, geog_file=county_taz, geog_field='dtaz')
-    write_csv(trip_df,fname='trip_county_dest.csv')
+    # trip_df = trip(dataset, geog_file=county_taz, geog_field='dtaz')
+    # write_csv(trip_df,fname='trip_county_dest.csv')
 
     # TAZ Costs
-    df = costs(dataset, geog_file=county_taz, geog_field='hhtaz')
-    write_csv(df, fname='costs.csv')
+    # df = costs(dataset, geog_file=county_taz, geog_field='hhtaz')
+    # write_csv(df, fname='costs.csv')
 
-    df = income(dataset, geog_file=county_taz, geog_field='hhtaz')
-    write_csv(df, fname='income.csv')
+    # df = income(dataset, geog_file=county_taz, geog_field='hhtaz')
+    # write_csv(df, fname='income.csv')
+
+    # Person totals
+    df = person(dataset, geog_file=county_taz, geog_field='hhtaz')
+    write_csv(df, fname='person_mean.csv')
 
 def write_csv(df,fname):
     '''
@@ -330,11 +412,11 @@ if __name__ == '__main__':
 
     output_dir = r'outputs/geog'
 
-    comparison_run_dir = r'P:\Stefan\soundcast_20peak_2offpeak\outputs'
+    comparison_run_dir = r'D:\Brice\sc_real_income_2040'
 
-    h5_file_dict = {
-        '2014': r'outputs/daysim_outputs.h5', 
-        '2040_tolling': os.path.join(comparison_run_dir,'daysim_outputs.h5'),
+    file_dict = {
+        '2014': os.getcwd(), 
+        '2040_tolling': os.path.join(comparison_run_dir),
                     }
 
     # Create output directory if it doesn't exist
@@ -347,11 +429,14 @@ if __name__ == '__main__':
 	            os.remove(os.path.join(output_dir,fname))
 
 	# Process all h5 files
-    for name, file_dir in h5_file_dict.iteritems():
+    for name, file_dir in file_dict.iteritems():
 
-		daysim_h5 = h5py.File(file_dir)
+		daysim_h5 = h5py.File(os.path.join(file_dir,r'outputs/daysim_outputs.h5'))
 
 		print 'processing h5: ' + name
 
-		process_dataset(h5file=daysim_h5, scenario_name=name)
-		del daysim_h5 # drop from memory to save space for next comparison
+		# process_dataset(h5file=daysim_h5, scenario_name=name)
+		# del daysim_h5 # drop from memory to save space for next comparison
+
+		df = landuse(landuse_file=os.path.join(file_dir,r'inputs/accessibility/parcels_urbansim.txt'), fname=name)
+		write_csv(df, fname='landuse.csv')
