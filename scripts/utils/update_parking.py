@@ -29,12 +29,14 @@ join_ensemble_to_parcel = pd.merge(left = df_parcels, right=df_ensemble,left_on=
 merged_df = pd.merge(left=join_ensemble_to_parcel,
                                 right=df_daily_parking_cost, 
                                 left_on="ENS",
-                                right_on="ENS")
+                                right_on="ENS",
+                                how='left')
 # Join hourly costs with parcel data
 merged_df = pd.merge(left = merged_df,
                                 right = df_hourly_parking_cost,
                                 left_on="ENS",
-                                right_on="ENS")
+                                right_on="ENS",
+                                how='left')
 
 
 # Clean up the results and store in same format as original parcel.txt file
