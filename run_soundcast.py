@@ -53,17 +53,14 @@ def accessibility_calcs():
         sys.exit(1)
     print 'military jobs loaded'
 
-    if run_update_parking:
-        if base_year == scenario_name:
-            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
-        else:
-            print 'Starting to update UrbanSim parcel data with 4k parking data file'
-            returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/update_parking.py', scenario_inputs])
-            if returncode != 0:
-                print 'Update Parking failed'
-                sys.exit(1)
-            print 'Finished updating parking data on parcel file'
+    if base_year != model_year:
+        print 'Starting to update UrbanSim parcel data with 4k parking data file'
+        returncode = subprocess.call([sys.executable,
+                                  'scripts/utils/update_parking.py', scenario_inputs])
+        if returncode != 0:
+            print 'Update Parking failed'
+            sys.exit(1)
+        print 'Finished updating parking data on parcel file'
 
     print 'Beginning Accessibility Calculations'
     returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])

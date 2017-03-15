@@ -14,10 +14,10 @@ import numpy as np
 from input_configuration import *
 
 
-daily_parking_cost = "inputs\\parcel_buffer\\daily_parking_costs.csv"
-hourly_parking_cost = "inputs\\parcel_buffer\\hourly_parking_costs.csv"
-input_ensemble = "inputs\\parking_gz.csv"
-input_parcels = "inputs\\parcel_buffer\\parcels_urbansim.txt"
+daily_parking_cost = r'inputs\parking\daily_parking_costs.csv'
+hourly_parking_cost = r'inputs\parking\hourly_parking_costs.csv'
+input_ensemble = r'inputs\parking_gz.csv'
+input_parcels = r'inputs\accessibility\parcels_urbansim.txt'
 
 # Combine data columns
 df_parcels = pd.read_csv(input_parcels, delim_whitespace=True)
