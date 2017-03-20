@@ -712,9 +712,11 @@ def freeflow_skims(my_project):
 
     # Write to h5, create dataset if 
     if 'sov_ff_time' in daysim['Trip'].keys():
-        daysim['Trip']['sov_ff_time'][:] = df['ff_travtime'].values
-    else:
+        del daysim['Trip']['sov_ff_time']
+    try:
         daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
+    except:
+        print 'could not write freeflow skim to h5'
     daysim.close()
 
 def main():
