@@ -221,6 +221,7 @@ def trips(dataset):
     trip = dataset['Trip']
     trip = trip[trip['travdist'] >= 0]
     person = dataset['Person']
+    hh = dataset['Household']
         
     # total trips
     # join with person file and district names based on destination
@@ -240,7 +241,7 @@ def trips(dataset):
         trip_person['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
 
     # Tours by person type, purpose, mode, and destination district
-    agg_fields = ['pptyp','dpurp','mode','deptm_hr','income_group', 'hhtaz']
+    agg_fields = ['pptyp','dpurp','mode','deptm_hr']
     trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
     
     # average trip distance, time, and delay (weighted)
@@ -248,7 +249,7 @@ def trips(dataset):
     trip_person['travtime_wt'] = trip_person['travtime']*trip_person['trexpfac']
     if 'sov_ff_time' in trip.columns:
         trip_person['delay_wt'] = trip_person['delay']*trip_person['trexpfac']
-    
+
     travdist_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['travdist_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
     travdist_df.rename(columns={0:'travdist'},inplace=True)
     trips_df = trips_df.join(travdist_df)
@@ -264,6 +265,37 @@ def trips(dataset):
     else:
         trips_df['delay'] = 0
     
+    # add datasource field
+    trips_df['source'] = dataset['name']
+    
+    return trips_df
+
+def taz_trips(dataset):
+    """
+    Trips based on otaz
+    """
+    trip = dataset['Trip']
+    trip = trip[trip['travdist'] >= 0]
+    person = dataset['Person']
+    hh = dataset['Household']
+        
+    # total trips
+    # join with person file and district names based on destination
+    trip_person = pd.merge(trip,person,on=['hhno','pno'], how='left')
+
+    # join with household to add income
+    trip_person = pd.merge(trip_person, hh, on='hhno', how='left')
+
+    # Tours by person type, purpose, mode, and destination district
+    agg_fields = ['pathtype','pptyp','dpurp','mode','otaz']
+    trips_df = pd.DataFrame(trip_person.groupby(agg_fields)['trexpfac'].sum())
+
+    # Median income
+    trip_person['inc_wt'] = trip_person['hhincome']*trip_person['trexpfac']
+    inc_df = pd.DataFrame(trip_person.groupby(agg_fields).sum()['inc_wt']/trip_person.groupby(agg_fields).sum()['trexpfac'])
+    inc_df.rename(columns={0:'inc_wt'},inplace=True)
+    trips_df = trips_df.join(inc_df)
+
     # add datasource field
     trips_df['source'] = dataset['name']
     
@@ -537,6 +569,9 @@ def process_dataset(h5file, scenario_name):
     
     trips_df = trips(dataset)
     write_csv(trips_df, fname='trips.csv')
+
+    trip_taz_df = taz_trips(dataset)
+    write_csv(trip_taz_df, fname='trips_taz.csv')
     
     person_day_df = person_day(dataset)
     write_csv(person_day_df, fname='person_day.csv')
