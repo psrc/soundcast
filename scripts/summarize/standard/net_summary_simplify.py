@@ -265,7 +265,7 @@ def write_net_sum_tables(network, variable, tables, format_sheet): #Function to 
 #######################HIGHWAY #################################################################################
 
 
-def highway_summary(network, net_summary, format_sheet, times, screenlines, countstime, countsall):
+def highway_summary(network, net_summary, format_sheet, times, screenlines):
 
         tables = {}
 
@@ -332,97 +332,97 @@ def highway_summary(network, net_summary, format_sheet, times, screenlines, coun
         write_screenline_tables(net_summary, screenlines, 'Primary', header_format, index_format, number_format, percent_format, decimal_format, cond_format)
         write_screenline_tables(net_summary, screenlines, 'Secondary', header_format, index_format, number_format, percent_format, decimal_format, cond_format)
 
-        counts_output = pd.io.excel.read_excel(input_file, sheetname = 'Counts Output')
-        counts_by_tod = pd.DataFrame(columns = ['Counts (' + model_run_name + ')', 'Counts (Observed)'],
-                                 index = ['5 to 6', '6 to 7', '7 to 8', '8 to 9',
-                                          '9 to 10', '10 to 14', '14 to 15', '15 to 16',
-                                          '16 to 17', '17 to 18', '18 to 20', '20 to 5'])
-        for tod in counts_by_tod.index:
+        #counts_output = pd.io.excel.read_excel(input_file, sheetname = 'Counts Output')
+        #counts_by_tod = pd.DataFrame(columns = ['Counts (' + model_run_name + ')', 'Counts (Observed)'],
+        #                         index = ['5 to 6', '6 to 7', '7 to 8', '8 to 9',
+        #                                  '9 to 10', '10 to 14', '14 to 15', '15 to 16',
+        #                                  '16 to 17', '17 to 18', '18 to 20', '20 to 5'])
+        #for tod in counts_by_tod.index:
             
-            counts_by_tod.loc[tod, 'Counts (Observed)'] = scf.get_counts(counts_output, tod)
-            # hack to fix double counting of 5 to 6 period in 20 to 5
-            if tod == '20 to 5':
-                counts_by_tod.loc[tod, 'Counts (Observed)'] =  counts_by_tod.loc[tod, 'Counts (Observed)'] - counts_by_tod.loc['5 to 6', 'Counts (Observed)']
-            counts_by_tod.loc[tod, 'Counts (' + model_run_name + ')'] = counts_output['vol' + tod.replace(' ', '')].sum()
+        #    counts_by_tod.loc[tod, 'Counts (Observed)'] = scf.get_counts(counts_output, tod)
+        #    # hack to fix double counting of 5 to 6 period in 20 to 5
+        #    if tod == '20 to 5':
+        #        counts_by_tod.loc[tod, 'Counts (Observed)'] =  counts_by_tod.loc[tod, 'Counts (Observed)'] - counts_by_tod.loc['5 to 6', 'Counts (Observed)']
+        #    counts_by_tod.loc[tod, 'Counts (' + model_run_name + ')'] = counts_output['vol' + tod.replace(' ', '')].sum()
 
-        countstime.write_string(0, 0, 'Time Period', header_format)
+        #countstime.write_string(0, 0, 'Time Period', header_format)
 
 
-        counts_by_tod = scf.get_differences(counts_by_tod, 'Counts (' + model_run_name + ')', 'Counts (Observed)', -2)
+        #counts_by_tod = scf.get_differences(counts_by_tod, 'Counts (' + model_run_name + ')', 'Counts (Observed)', -2)
 
-        columns = counts_by_tod.columns.tolist()
-        times = counts_by_tod.index.tolist()
+        #columns = counts_by_tod.columns.tolist()
+        #times = counts_by_tod.index.tolist()
 
-        for colnum in range(len(columns)):
-            countstime.write_string(0, colnum + 1, columns[colnum], header_format)
-            for rownum in range(len(times)):
-                countstime.write_string(rownum + 1, 0, times[rownum], index_format)
-                for colnum in range(len(columns)):
-                    if columns[colnum] <> '% Difference':
-                        countstime.write_number(rownum + 1, colnum + 1, counts_by_tod.loc[times[rownum], columns[colnum]], number_format)
-                    else:
-                        try:
-                            countstime.write_number(rownum + 1, colnum + 1, counts_by_tod.loc[times[rownum], columns[colnum]] / 100, percent_format)
-                        except TypeError:
-                            countstime.write_string(rownum + 1, colnum + 1, 'NA', index_format)
+        #for colnum in range(len(columns)):
+        #    countstime.write_string(0, colnum + 1, columns[colnum], header_format)
+        #    for rownum in range(len(times)):
+        #        countstime.write_string(rownum + 1, 0, times[rownum], index_format)
+        #        for colnum in range(len(columns)):
+        #            if columns[colnum] <> '% Difference':
+        #                countstime.write_number(rownum + 1, colnum + 1, counts_by_tod.loc[times[rownum], columns[colnum]], number_format)
+        #            else:
+        #                try:
+        #                    countstime.write_number(rownum + 1, colnum + 1, counts_by_tod.loc[times[rownum], columns[colnum]] / 100, percent_format)
+        #                except TypeError:
+        #                    countstime.write_string(rownum + 1, colnum + 1, 'NA', index_format)
 
-        countstime.conditional_format('E2:E13', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
-        countstime.conditional_format('E2:E13', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
+        #countstime.conditional_format('E2:E13', {'type': 'cell', 'criteria': '>=', 'value': 1, 'format': cond_format})
+        #countstime.conditional_format('E2:E13', {'type': 'cell', 'criteria': '<=', 'value': -.5, 'format': cond_format})
     
-        counts_time_chart = net_summary.add_chart({'type': 'line'})
-        counts_time_chart.add_series({'name': [countstime.name, 0, 1],
-                     'categories': [countstime.name, 2, 0, 12, 0],
-                     'values': [countstime.name, 2, 1, 12, 1],
-                     'line': {'color': colors[0]}})
-        counts_time_chart.add_series({'name': [countstime.name, 0, 2],
-                     'categories': [countstime.name, 2, 0, 12, 0],
-                     'values': [countstime.name, 2, 2, 12, 2],
-                     'line': {'color': colors[1]}})
-        counts_time_chart.set_legend({'position': 'top'})
-        counts_time_chart.set_x_axis({'name': 'Time of Day', 'name_font': {'size': 18}})
-        counts_time_chart.set_y_axis({'name': 'Number of Vehicles', 'name_font': {'size': 18}, 'major_gridlines': {'visible': False}})
-        counts_time_chart.set_size({'width': 606 + 9 * 64, 'height': 22 * 20})
-        counts_time_chart.set_high_low_lines()
+        #counts_time_chart = net_summary.add_chart({'type': 'line'})
+        #counts_time_chart.add_series({'name': [countstime.name, 0, 1],
+        #             'categories': [countstime.name, 2, 0, 12, 0],
+        #             'values': [countstime.name, 2, 1, 12, 1],
+        #             'line': {'color': colors[0]}})
+        #counts_time_chart.add_series({'name': [countstime.name, 0, 2],
+        #             'categories': [countstime.name, 2, 0, 12, 0],
+        #             'values': [countstime.name, 2, 2, 12, 2],
+        #             'line': {'color': colors[1]}})
+        #counts_time_chart.set_legend({'position': 'top'})
+        #counts_time_chart.set_x_axis({'name': 'Time of Day', 'name_font': {'size': 18}})
+        #counts_time_chart.set_y_axis({'name': 'Number of Vehicles', 'name_font': {'size': 18}, 'major_gridlines': {'visible': False}})
+        #counts_time_chart.set_size({'width': 606 + 9 * 64, 'height': 22 * 20})
+        #counts_time_chart.set_high_low_lines()
 
-        countstime.insert_chart('A15', counts_time_chart)
-
-        
+        #countstime.insert_chart('A15', counts_time_chart)
 
         
-        counts_all = pd.io.excel.read_excel(input_file, sheetname = 'Counts Output')
-        counts_all = counts_all.reset_index()
-        counts_all = counts_all.fillna(0)
-        counts_all['Total'] = counts_all['vol5to6'] + counts_all['vol6to7'] + counts_all['vol7to8'] + counts_all['vol8to9'] + counts_all['vol9to10'] + counts_all['vol10to14'] + counts_all['vol14to15'] + counts_all['vol15to16'] + counts_all['vol16to17'] + counts_all['vol17to18'] + counts_all['vol18to20'] + counts_all['vol20to5']
-        r2 = (counts_all[['Vol_Daily', 'Total']].corr() ** 2).loc['Vol_Daily', 'Total']
-        slope = (counts_all[['Vol_Daily', 'Total']].cov()).loc['Vol_Daily', 'Total'] / counts_all['Vol_Daily'].var()
-        intercept = counts_all['Total'].mean() - slope * counts_all['Vol_Daily'].mean()
-        columns = counts_all.columns.tolist()
-        index = counts_all.index.tolist()
-        for colnum in range(len(columns)):
-            countsall.write(0, colnum, columns[colnum])
-            for rownum in range(len(index)):
-                try:
-                    countsall.write(rownum + 1, colnum, counts_all.loc[index[rownum], columns[colnum]])
-                except TypeError:
-                    countsall.write(rownum + 1, colnum, 'NA')
+
         
-        counts_chart = net_summary.add_chart({'type': 'scatter'})
-        counts_chart.add_series({'name': 'Total',
-                      'categories': [countsall.name, 2, 38, 297, 38],
-                      'values': [countsall.name, 2, 59, 297, 59],
-                      'marker': {
-                                 'type': 'diamond',
-                                 'border': {'color': colors[0]},
-                                 'fill': {'color': colors[1]}},
-                      'trendline': {
-                                    'type': 'linear'}
-                      })
-        counts_chart.set_size({'width': 11 * 96, 'height': 36 * 20})
-        counts_chart.set_title({'name': 'Modeled vs. Observed Counts\nModeled Counts = ' + str(round(slope, 3)) + u' \u00d7 Observed Counts + ' + str(round(intercept, 3)) + '\n' + u'R\u00b2 = ' + str(round(r2, 3))})
-        counts_chart.set_legend({'position': 'none'})
-        counts_chart.set_x_axis({'name': 'Observed Counts'})
-        counts_chart.set_y_axis({'name': 'Modeled Counts'})
-        countsall.insert_chart('B2', counts_chart)
+        #counts_all = pd.io.excel.read_excel(input_file, sheetname = 'Counts Output')
+        #counts_all = counts_all.reset_index()
+        #counts_all = counts_all.fillna(0)
+        #counts_all['Total'] = counts_all['vol5to6'] + counts_all['vol6to7'] + counts_all['vol7to8'] + counts_all['vol8to9'] + counts_all['vol9to10'] + counts_all['vol10to14'] + counts_all['vol14to15'] + counts_all['vol15to16'] + counts_all['vol16to17'] + counts_all['vol17to18'] + counts_all['vol18to20'] + counts_all['vol20to5']
+        #r2 = (counts_all[['Vol_Daily', 'Total']].corr() ** 2).loc['Vol_Daily', 'Total']
+        #slope = (counts_all[['Vol_Daily', 'Total']].cov()).loc['Vol_Daily', 'Total'] / counts_all['Vol_Daily'].var()
+        #intercept = counts_all['Total'].mean() - slope * counts_all['Vol_Daily'].mean()
+        #columns = counts_all.columns.tolist()
+        #index = counts_all.index.tolist()
+        #for colnum in range(len(columns)):
+        #    countsall.write(0, colnum, columns[colnum])
+        #    for rownum in range(len(index)):
+        #        try:
+        #            countsall.write(rownum + 1, colnum, counts_all.loc[index[rownum], columns[colnum]])
+        #        except TypeError:
+        #            countsall.write(rownum + 1, colnum, 'NA')
+        
+        #counts_chart = net_summary.add_chart({'type': 'scatter'})
+        #counts_chart.add_series({'name': 'Total',
+        #              'categories': [countsall.name, 2, 38, 297, 38],
+        #              'values': [countsall.name, 2, 59, 297, 59],
+        #              'marker': {
+        #                         'type': 'diamond',
+        #                         'border': {'color': colors[0]},
+        #                         'fill': {'color': colors[1]}},
+        #              'trendline': {
+        #                            'type': 'linear'}
+        #              })
+        #counts_chart.set_size({'width': 11 * 96, 'height': 36 * 20})
+        #counts_chart.set_title({'name': 'Modeled vs. Observed Counts\nModeled Counts = ' + str(round(slope, 3)) + u' \u00d7 Observed Counts + ' + str(round(intercept, 3)) + '\n' + u'R\u00b2 = ' + str(round(r2, 3))})
+        #counts_chart.set_legend({'position': 'none'})
+        #counts_chart.set_x_axis({'name': 'Observed Counts'})
+        #counts_chart.set_y_axis({'name': 'Modeled Counts'})
+        #countsall.insert_chart('B2', counts_chart)
 
 
 
@@ -437,12 +437,13 @@ def main():
         if format_sheet == 0:
             network = net_summary.add_worksheet('Network')
             screenlines = net_summary.add_worksheet('Screenlines')
-            countstime = net_summary.add_worksheet('CountsTime')
-            countsall = net_summary.add_worksheet('CountsAll')
+            # this isn't working
+            #countstime = net_summary.add_worksheet('CountsTime')
+            #countsall = net_summary.add_worksheet('CountsAll')
             
 
 
-        highway_summary(network, net_summary, format_sheet, times, screenlines, countstime, countsall)
+        highway_summary(network, net_summary, format_sheet, times, screenlines)
 
         if format_sheet == 1:
             colwidths = xlautofit.even_widths_single_index(output_file) 

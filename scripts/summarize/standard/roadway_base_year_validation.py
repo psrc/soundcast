@@ -64,36 +64,7 @@ def compare_screenlines(screenline_df, obs_screenlines, net_summary):
     comp_screens.sort(['Primary', 'Screenline'], inplace=True)
     comp_screens.to_excel(net_summary, sheet_name ='Screenlines', index=False)
 
-def sum_vmt_fac(vmt_df_fac, vmt_df_class, net_summary, order_df):
 
-    time_group_field = 'TP_4k'
-
-    vmt_g_tod = vmt_df_fac.groupby(time_group_field).sum()[['arterial_vmt','highway_vmt','connectors_vmt']]
-    vmt_g_tod.reset_index(inplace=True)
-    vmt_g_tod.set_index(time_group_field, inplace=True)
-    vmt_tod_s = pd.DataFrame(vmt_g_tod.sum(axis=1))
-    vmt_tod_s.reset_index(inplace=True)
-    vmt_tod_s.rename(columns={0: 'VMT', 'TP_4k': 'Time Period'}, inplace=True)
-    vmt_tod_s.loc[''] = vmt_tod_s.sum(axis=0)
-    vmt_tod_s.ix['','Time Period'] = 'Total'
-
-    vmt_tot = pd.DataFrame(vmt_df_class.sum()).T
-    vmt_tot['SOV'] = vmt_tot['@svtl1'] + vmt_tot['@svtl2'] + vmt_tot['@svtl3']
-    vmt_tot['HOV2'] = vmt_tot['@h2tl1'] + vmt_tot['@h2tl2'] + vmt_tot['@h2tl3']
-    vmt_tot['HOV3'] = vmt_tot['@h3tl1'] + vmt_tot['@h3tl2'] + vmt_tot['@h3tl3']
-    vmt_tot.rename(columns={'@mveh':'Medium Trucks',
-                         '@hveh':'Heavy Trucks',
-                         '@bveh':'Buses'}, inplace = True)
-
-    vmt_tot['SOV Income Class 1'] = vmt_tot['@svtl1'] + vmt_tot['@h2tl1'] + vmt_tot['@h3tl1']
-    vmt_tot['SOV Income Class 2'] = vmt_tot['@svtl2'] + vmt_tot['@h2tl2'] + vmt_tot['@h3tl2']
-    vmt_tot['SOV Income Class 3'] = vmt_tot['@svtl3'] + vmt_tot['@h2tl3'] + vmt_tot['@h3tl3']
-    
-    vmt_tot_mode = vmt_tot[['SOV', 'HOV2', 'HOV3', 'Medium Trucks', 'Heavy Trucks', 'Buses']]
-    vmt_tot_inc = vmt_tot[['SOV Income Class 1', 'SOV Income Class 2', 'SOV Income Class 3']]
-
-    vmt_out = {'VMT by Time Period': vmt_tod_s, 'VMT by Mode': vmt_tot_mode,'VMT by Income': vmt_tot_inc}
-    write_outputs(vmt_out, 'VMT by User Class', net_summary, 4, index=True)
 
 def write_outputs(df_dict, sheet, out_book, spaces, index=True):
     n = 0
@@ -105,7 +76,6 @@ def write_outputs(df_dict, sheet, out_book, spaces, index=True):
         n += len(value.index) + spaces
 
 def main():
-
     order_df = pd.DataFrame({'Order': range(1,13), 
                            'tod': ['5to6','6to7','7to8','8to9','9to10', '10to14', '14to15', '15to16', '16to17','17to18', '18to20', '20to5']})
 
@@ -122,6 +92,7 @@ def main():
     compare_screenlines(screenline_df, obs_screenlines, net_summary)
     hourly_counts(tod_df = tod_df, out_summary = net_summary, order_df = order_df)
 
+    net_summary.close()
     net_summary.close()
    
 
