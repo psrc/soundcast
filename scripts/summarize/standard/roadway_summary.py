@@ -121,7 +121,6 @@ def main():
     compare_fac_type(daily_df, net_summary)
     compare_screenlines(screenline_df, obs_screenlines, net_summary)
     hourly_counts(tod_df = tod_df, out_summary = net_summary, order_df = order_df)
-    sum_vmt_fac(vmt_df_fac=vmt_df_fac, vmt_df_class = vmt_df_class,net_summary=net_summary, order_df=order_df)
 
     net_summary.close()
    
