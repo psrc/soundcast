@@ -213,6 +213,9 @@ def run_all_summaries():
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
       # this summary is producing erronous results, we don't want people to think they are correct.
       subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
+      if scenario_name == '2014':
+         subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
+         subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
