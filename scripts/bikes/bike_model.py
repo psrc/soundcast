@@ -59,8 +59,11 @@ def volume_weight(my_project, df):
     df['volume_wt'] = pd.cut(df['@tveh'], bins=aadt_bins, labels=aadt_labels, right=False)
     df['volume_wt'] = df['volume_wt'].astype('int')
 
-    # Replace bin label with weight value
-    df = df.replace(to_replace=aadt_dict)
+    # Replace bin label with weight value, only for links with no bike facilities
+    over_df = df[df['facility_wt'] < 0].replace(to_replace=aadt_dict)
+    over_df['volume_wt'] = 0
+    under_df = df[df['facility_wt'] >= 0]
+    df = over_df.append(under_df)
 
     return df
 
