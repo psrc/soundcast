@@ -456,7 +456,7 @@ distance,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,d
 fare,transit,local-bus,all,0,1439,maxzone,hdf5,9to10.h5/Skims/mfmfarbx,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
 premtime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwap,1,FALSE,null,null,null,TRUE
@@ -464,7 +464,7 @@ lrttime,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwar,1,FALSE,
 nboard,transit,local-bus,all,300,359,maxzone,hdf5,5to6.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
 premtime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwap,1,FALSE,null,null,null,TRUE
@@ -472,7 +472,7 @@ lrttime,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwar,1,FALSE,
 nboard,transit,local-bus,all,360,419,maxzone,hdf5,6to7.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
 premtime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwap,1,FALSE,null,null,null,TRUE
@@ -480,7 +480,7 @@ lrttime,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwar,1,FALSE,
 nboard,transit,local-bus,all,420,479,maxzone,hdf5,7to8.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
 premtime,transit,local-bus,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwap,1,FALSE,null,null,null,TRUE
@@ -493,7 +493,7 @@ premtime,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwap,1,FALS
 lrttime,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,540,599,maxzone,hdf5,9to10.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -501,7 +501,7 @@ premtime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwap,1,FAL
 lrttime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,600,839,maxzone,hdf5,10to14.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -509,7 +509,7 @@ premtime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwap,1,FAL
 lrttime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,840,899,maxzone,hdf5,14to15.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -517,7 +517,7 @@ premtime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwap,1,FAL
 lrttime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,900,959,maxzone,hdf5,15to16.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -525,7 +525,7 @@ premtime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwap,1,FA
 lrttime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,960,1019,maxzone,hdf5,16to17.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -533,7 +533,7 @@ premtime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwap,1,F
 lrttime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwa,1,FALSE,null,null,null,TRUE
 comtime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwac,1,FALSE,null,null,null,TRUE
 ferrtime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwaf,1,FALSE,null,null,null,TRUE
@@ -541,7 +541,7 @@ premtime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwap,1,F
 lrttime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwar,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/iwtwa,1,FALSE,null,null,null,TRUE
 nboard,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ndbwa,1,FALSE,null,null,null,TRUE
-xwaittime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/twtwa,1,FALSE,null,null,null,TRUE
+xwaittime,transit,local-bus,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/xfrwa,1,FALSE,null,null,null,TRUE
 ivtime,transit,local-bus,all,1320,299,maxzone,null,null,1,FALSE,null,null,null,TRUE
 iwaittime,transit,local-bus,all,1320,299,maxzone,null,null,1,FALSE,null,null,null,TRUE
 xwaittime,transit,local-bus,all,1320,299,maxzone,null,null,1,FALSE,null,null,null,TRUE
@@ -553,7 +553,7 @@ ferrtime,transit,local-bus,all,1320,299,maxzone,null,null,1,FALSE,null,null,null
 fare,transit,light-rail,all,0,1439,maxzone,hdf5,9to10.h5/Skims/mfmfarbx,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -561,7 +561,7 @@ lrttime,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ivtwrr,1,FALSE
 nboard,transit,light-rail,all,300,359,maxzone,hdf5,5to6.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -569,7 +569,7 @@ lrttime,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ivtwrr,1,FALSE
 nboard,transit,light-rail,all,360,419,maxzone,hdf5,6to7.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -577,7 +577,7 @@ lrttime,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ivtwrr,1,FALSE
 nboard,transit,light-rail,all,420,479,maxzone,hdf5,7to8.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -585,7 +585,7 @@ lrttime,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ivtwrr,1,FALSE
 nboard,transit,light-rail,all,480,539,maxzone,hdf5,8to9.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -593,7 +593,7 @@ lrttime,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ivtwrr,1,FALS
 nboard,transit,light-rail,all,540,599,maxzone,hdf5,9to10.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -601,7 +601,7 @@ lrttime,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ivtwrr,1,FAL
 nboard,transit,light-rail,all,600,839,maxzone,hdf5,10to14.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -609,7 +609,7 @@ lrttime,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ivtwrr,1,FAL
 nboard,transit,light-rail,all,840,899,maxzone,hdf5,14to15.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -617,7 +617,7 @@ lrttime,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ivtwrr,1,FAL
 nboard,transit,light-rail,all,900,959,maxzone,hdf5,15to16.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -625,7 +625,7 @@ lrttime,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ivtwrr,1,FA
 nboard,transit,light-rail,all,960,1019,maxzone,hdf5,16to17.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
@@ -633,7 +633,7 @@ lrttime,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ivtwrr,1,F
 nboard,transit,light-rail,all,1020,1079,maxzone,hdf5,17to18.h5/Skims/ndbwr,1,FALSE,null,null,null,TRUE
 ivtime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwr,1,FALSE,null,null,null,TRUE
 iwaittime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/iwtwr,1,FALSE,null,null,null,TRUE
-xwaittime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/twtwr,1,FALSE,null,null,null,TRUE
+xwaittime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/xfrwr,1,FALSE,null,null,null,TRUE
 comtime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwrc,1,FALSE,null,null,null,TRUE
 ferrtime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwrf,1,FALSE,null,null,null,TRUE
 premtime,transit,light-rail,all,1080,1319,maxzone,hdf5,18to20.h5/Skims/ivtwrp,1,FALSE,null,null,null,TRUE
