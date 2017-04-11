@@ -139,13 +139,22 @@ def clean_up(parcels):
     parcels_final[u'xcoord_p'] = parcels_final[u'xcoord_p'].astype(int)
     return parcels_final
 
-
 # read in data
 parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
 
-# Move to SeaTac Parcel so that it is on the terminal. 
+# Move SeaTac Parcel so that it is on the terminal. 
 parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
 parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
+
+# Update UW Emp parcel with parking costs
+parcels.ix[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
+parcels.ix[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
+parcels.ix[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
+parcels.ix[parcels.PARCELID==751794, 'PPRICHRP'] = 300
+
+# This UW parcel is in the wrong zone. 
+parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
+
 
 #check for missing data!
 for col_name in parcels.columns:
@@ -199,5 +208,14 @@ assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
 # run all accibility measures
 parcels = process_parcels(parcels, transit_df)
 
+# reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
+parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
+parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
 parcels_done = clean_up(parcels)
+
+if int(model_year) > 2014:
+    #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
+    parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
+    parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
+
 parcels_done.to_csv(output_parcels, index = False, sep = ' ')
