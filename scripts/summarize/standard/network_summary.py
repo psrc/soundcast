@@ -719,6 +719,33 @@ def freeflow_skims(my_project):
         print 'could not write freeflow skim to h5'
     daysim.close()
 
+def jobs_transit(writer):
+    buf = pd.read_csv(r'inputs\buffered_parcels.txt', sep=' ')
+    buf.index = buf.parcelid
+
+    # distance to any transit stop
+    df = buf[['parcelid','dist_lbus','dist_crt','dist_fry','dist_lrt',
+              u'hh_p', u'stugrd_p', u'stuhgh_p', u'stuuni_p', u'empedu_p',
+           u'empfoo_p', u'empgov_p', u'empind_p', u'empmed_p', u'empofc_p',
+           u'empret_p', u'empsvc_p', u'empoth_p', u'emptot_p']]
+
+    # Use minimum distance to any transit stop
+    newdf = pd.DataFrame(df[['dist_lbus','dist_crt','dist_fry','dist_lrt']].min(axis=1))
+    newdf['parcelid'] = newdf.index
+    newdf.rename(columns={0:'nearest_transit'}, inplace=True)
+    df = pd.merge(df,newdf[['parcelid','nearest_transit']])
+
+    # only sum for parcels closer than quarter mile to stop
+    quarter_mile_jobs = pd.DataFrame(df[df['nearest_transit'] <= 0.25].sum())
+    quarter_mile_jobs.rename(columns={0:'quarter_mile_transit'}, inplace=True)
+    all_jobs = pd.DataFrame(df.sum())
+    all_jobs.rename(columns={0:'total'}, inplace=True)
+
+    df = pd.merge(all_jobs,quarter_mile_jobs, left_index=True, right_index=True)
+    df.drop(['parcelid','dist_lbus','dist_crt','dist_fry','dist_lrt','nearest_transit'], inplace=True)
+
+    df.to_excel(excel_writer=writer, sheet_name='Transit Job Access')
+
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
@@ -730,6 +757,7 @@ def main():
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
     export_corridor_results(my_project, writer)
+    jobs_transit(writer)
        
     # Read observed count data
     loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
