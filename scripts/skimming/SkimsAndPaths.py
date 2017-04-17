@@ -668,8 +668,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= 'ivtwa' + item
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
@@ -678,8 +678,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             print matrix_name
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
         #Transit, All Modes:
@@ -689,8 +689,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= key
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
