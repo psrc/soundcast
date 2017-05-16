@@ -1,0 +1,739 @@
+{
+  "description": "example soundcast use",
+  "year": 2040,
+  "outputpath": "d:/bca_outputs/soundcast_bc_test_2040.csv",
+  "constantdollars": 2014,
+  "max_zone_id": 3700,
+
+  "baseline": {
+    "description": "Test 5 and 10 cent tolls",
+    "filepath": "d:/bca_outputs/2040_5_10.h5"
+  },
+
+  "alternative": {
+    "description": "Test just friends",
+    "filepath": "d:/bca_outputs/2040_just_friends.h5"
+  },
+
+
+  "timeperiods": {
+    "description": "Conversion of time periods to skim/triptable code",
+    "periods": [
+      {
+        "period": "5to6",
+        "trperiod": "5to6",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "5to6",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "6to7",
+        "trperiod": "6to7",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "6to7",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "7to8",
+        "trperiod": "7to8",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "7to8",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "bikeper": "7to8",
+        "walkper": "5to6"
+      },
+      {
+        "period": "8to9",
+        "trperiod": "8to9",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "8to9",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "9to10",
+        "trperiod": "9to10",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "9to10",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "10to14",
+        "trperiod": "10to14",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "10to14",
+        "fareper": "9to10",
+        "distper": "7to8",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "14to15",
+        "trperiod": "14to15",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "14to15",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "15to16",
+        "trperiod": "15to16",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "15to16",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "16to17",
+        "trperiod": "16to17",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "16to17",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "17to18",
+        "trperiod": "17to18",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "17to18",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "18to20",
+        "trperiod": "18to20",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "18to20",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      },
+      {
+        "period": "20to5",
+        "trperiod": "10to14",
+        "code": "a",
+        "trcode": "a",
+        "assignper": "20to5",
+        "fareper": "9to10",
+        "distper": "17to18",
+        "walkper": "5to6",
+        "bikeper": "7to8"
+      }
+    ]
+  },
+
+  "benefits-by-period": [
+    {
+      "userclass": "SOV Toll Income Level 1 Time",
+      "costpath": "/${PER}/svtl1t",
+      "volumepath": "/${PER}/svtl1",
+       "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "SOV Toll Income Level 2 Time",
+      "costpath": "/${PER}/svtl2t",
+      "volumepath": "/${PER}/svtl2",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "SOV Toll Income Level 3 Time",
+      "costpath": "/${PER}/svtl3t",
+      "volumepath": "/${PER}/svtl3",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 1 Time",
+      "costpath": "/${PER}/h2tl1t",
+      "volumepath": "/${PER}/h2tl1",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 2 Time",
+      "costpath": "/${PER}/h2tl2t",
+      "volumepath": "/${PER}/h2tl2",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 3 Time",
+      "costpath": "/${PER}/h2tl3t",
+      "volumepath": "/${PER}/h2tl3",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 1 Time",
+      "costpath": "/${PER}/h3tl1t",
+      "volumepath": "/${PER}/h3tl1",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 2 Time",
+      "costpath": "/${PER}/h3tl2t",
+      "volumepath": "/${PER}/h3tl2",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 3 Time",
+      "costpath": "/${PER}/h3tl3t",
+      "volumepath": "/${PER}/h3tl3",
+      "reportgroup": "Auto Time"
+    },
+    {
+      "userclass": "Transit In-Vehicle Time",
+      "costpath": "/${TRPER}/ivtwa",
+      "volumepath": "/${PER}/trnst",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Light Rail Transit In-Vehicle Time",
+      "costpath": "/${TRPER}/ivtwr",
+      "volumepath": "/${PER}/litrat",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Medium Trucks Time",
+      "costpath": "/${PER}/metrkt",
+      "volumepath": "/${PER}/metrk",
+      "reportgroup": "Truck Time"
+    },
+    {
+      "userclass": "Heavy Trucks Time",
+      "costpath": "/${PER}/hvtrkt",
+      "volumepath": "/${PER}/hvtrk",
+      "reportgroup": "Truck Time"
+    },
+    {
+      "userclass": "Transit Initial Wait Time",
+      "costpath": "/${TRPER}/iwtwa",
+      "volumepath": "/${PER}/trnst",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Transit Transfer Wait Time",
+      "costpath": "/${TRPER}/xfrwa",
+      "volumepath": "/${PER}/trnst",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Transit Walk Time",
+      "costpath": "/${TRPER}/auxwa",
+      "volumepath": "/${PER}/trnst",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Light Rail Transit Initial Wait Time",
+      "costpath": "/${TRPER}/iwtwr",
+      "volumepath": "/${PER}/litrat",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Light Rail Transit Transfer Wait Time",
+      "costpath": "/${TRPER}/xfrwr",
+      "volumepath": "/${PER}/litrat",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "Light Rail Transit Walk Time",
+      "costpath": "/${TRPER}/auxwr",
+      "volumepath": "/${PER}/litrat",
+      "reportgroup": "Transit Time"
+    },
+    {
+      "userclass": "SOV Toll Income Level 1 Tolls",
+      "costpath": "/${PER}/svtl1c",
+      "volumepath": "/${PER}/svtl1",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "SOV Toll Income Level 2 Tolls",
+      "costpath": "/${PER}/svtl2c",
+      "volumepath": "/${PER}/svtl2",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "SOV Toll Income Level 3 Tolls",
+      "costpath": "/${PER}/svtl3c",
+      "volumepath": "/${PER}/svtl3",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 1 Tolls",
+      "costpath": "/${PER}/h2tl1c",
+      "volumepath": "/${PER}/h2tl1",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 2 Tolls",
+      "costpath": "/${PER}/h2tl2c",
+      "volumepath": "/${PER}/h2tl2",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 3 Tolls",
+      "costpath": "/${PER}/h2tl3c",
+      "volumepath": "/${PER}/h2tl3",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 1 Tolls",
+      "costpath": "/${PER}/h3tl1c",
+      "volumepath": "/${PER}/h3tl1",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 2 Tolls",
+      "costpath": "/${PER}/h3tl2c",
+      "volumepath": "/${PER}/h3tl2",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 3 Tolls",
+      "costpath": "/${PER}/h3tl3c",
+      "volumepath": "/${PER}/h3tl3",
+      "costunits": "cents",
+      "reportgroup": "Auto Tolls"
+    },
+    {
+      "userclass": "Medium Trucks Tolls",
+      "costpath": "/${PER}/metrkc",
+      "volumepath": "/${PER}/metrk",
+      "costunits": "cents",
+      "reportgroup": "Truck Tolls"
+    },
+    {
+      "userclass": "Heavy Trucks Tolls",
+      "costpath": "/${PER}/hvtrkc",
+      "volumepath": "/${PER}/hvtrk",
+      "costunits": "cents",
+      "reportgroup": "Truck Tolls"
+    },
+    {
+      "userclass": "SOV Toll Income Level 1 Operating Cost",
+      "costpath": "/${DISTPER}/svtl1d",
+      "volumepath": "/${PER}/svtl1",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "SOV Toll Income Level 2 Operating Cost",
+      "costpath": "/${DISTPER}/svtl2d",
+      "volumepath": "/${PER}/svtl2",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "SOV Toll Income Level 3 Operating Cost",
+      "costpath": "/${DISTPER}/svtl3d",
+      "volumepath": "/${PER}/svtl3",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 1 Operating Cost",
+      "costpath": "/${DISTPER}/h2tl1d",
+      "volumepath": "/${PER}/h2tl1",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 2 Operating Cost",
+      "costpath": "/${DISTPER}/h2tl2d",
+      "volumepath": "/${PER}/h2tl2",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 3 Operating Cost",
+      "costpath": "/${DISTPER}/h2tl3d",
+      "volumepath": "/${PER}/h2tl3",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 1 Operating Cost",
+      "costpath": "/${DISTPER}/h3tl1d",
+      "volumepath": "/${PER}/h3tl1",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 2 Operating Cost",
+      "costpath": "/${DISTPER}/h3tl2d",
+      "volumepath": "/${PER}/h3tl2",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 3 Operating Cost",
+      "costpath": "/${DISTPER}/h3tl3d",
+      "volumepath": "/${PER}/h3tl3",
+      "costunits": "distance",
+      "reportgroup": "Auto Operating Cost"
+    },
+    {
+      "userclass": "Medium Trucks Operating Cost",
+      "costpath": "/${DISTPER}/metrkd",
+      "volumepath": "/${PER}/metrk",
+      "costunits": "distance",
+      "reportgroup": "Trucks Operating Cost"
+    },
+    {
+      "userclass": "Heavy Trucks Operating Cost",
+      "costpath": "/${DISTPER}/hvtrkd",
+      "volumepath": "/${PER}/hvtrk",
+      "costunits": "distance",
+      "reportgroup": "Trucks Operating Cost"
+    }
+  ],
+
+  "vot": {
+    "description": "Value of time in Dollars per hour",
+    "SOV Toll Income Level 1 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "SOV Toll Income Level 2 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "SOV Toll Income Level 3 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 1 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 2 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 3 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 1 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 2 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 3 Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Transit In-Vehicle Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Light Rail Transit In-Vehicle Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Medium Trucks Time": {
+      "5to6": 49.000,
+      "6to7": 49.000,
+      "7to8": 49.000,
+      "8to9": 49.000,
+      "9to10": 49.000,
+      "10to14": 49.000,
+      "14to15": 49.000,
+      "15to16": 49.000,
+      "16to17": 49.000,
+      "17to18": 49.000,
+      "18to20": 49.000,
+      "20to5": 49.000
+    },
+    "Heavy Trucks Time": {
+      "5to6": 54.450,
+      "6to7": 54.450,
+      "7to8": 54.450,
+      "8to9": 54.450,
+      "9to10": 54.450,
+      "10to14": 54.450,
+      "14to15": 54.450,
+      "15to16": 54.450,
+      "16to17": 54.450,
+      "17to18": 54.450,
+      "18to20": 54.450,
+      "20to5": 54.450
+    },
+    "Transit Initial Wait Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Transit Walk Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Transit Transfer Wait Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Light Rail Transit Initial Wait Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Light Rail Transit Transfer Wait Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Light Rail Transit Walk Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Walk Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Bike Time": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    }
+  },
+  "operating cost": {
+    "description": "Operating Cost per mile",
+    "SOV Toll Income Level 1 Operating Cost": 0.15,
+    "SOV Toll Income Level 2 Operating Cost": 0.15,
+    "SOV Toll Income Level 3 Operating Cost": 0.15,
+    "HOV2 Toll Income Level 1 Operating Cost": 0.15,
+    "HOV2 Toll Income Level 2 Operating Cost": 0.15,
+    "HOV2 Toll Income Level 3 Operating Cost": 0.15,
+    "HOV3 Toll Income Level 1 Operating Cost": 0.15,
+    "HOV3 Toll Income Level 2 Operating Cost": 0.15,
+    "HOV3 Toll Income Level 3 Operating Cost": 0.15,
+    "Medium Trucks Operating Cost": 0.99,
+    "Heavy Trucks Operating Cost": 0.99
+    }
+}
