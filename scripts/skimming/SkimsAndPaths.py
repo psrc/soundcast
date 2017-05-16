@@ -1346,6 +1346,8 @@ def run_assignments_parallel(project_name):
     attribute_based_toll_cost_skims(my_project, "@toll1")
     attribute_based_toll_cost_skims(my_project, "@toll2")
     attribute_based_toll_cost_skims(my_project, "@toll3")
+    attribute_based_toll_cost_skims(my_project, "@trkc2")
+    attribute_based_toll_cost_skims(my_project, "@trkc3")
     class_specific_volumes(my_project)
 
     ##dispose emmebank
