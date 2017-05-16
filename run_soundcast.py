@@ -234,9 +234,6 @@ def run_all_summaries():
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
-      
-   if run_ben_cost:
-      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
 
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])

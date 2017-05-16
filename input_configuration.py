@@ -69,7 +69,6 @@ if not(use_simple_configuration):
     run_network_summary = True
     run_grouped_summary = True
     run_soundcast_summary = True
-    run_ben_cost = False
     run_truck_summary = True
     run_landuse_summary = False
     ########################
@@ -100,7 +99,7 @@ if not(use_simple_configuration):
 else:
 
     create_no_toll_network = False
-    run_ben_cost = False
+
     min_pop_sample_convergence_test = 10
     
     if run_setup:
@@ -227,4 +226,3 @@ h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/inputs/calibration/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/inputs/calibration/TAZ_TAD_County.csv'
 report_output_location = 'outputs'
-bc_outputs_file = 'outputs/BenefitCost.xlsx'
