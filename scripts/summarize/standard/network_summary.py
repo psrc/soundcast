@@ -36,6 +36,7 @@ import sqlite3 as lite
 from datetime import datetime
 from EmmeProject import *
 from multiprocessing import Pool
+from pyproj import Proj, transform
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
@@ -746,13 +747,70 @@ def jobs_transit(writer):
 
     df.to_excel(excel_writer=writer, sheet_name='Transit Job Access')
 
+
+def project_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
+    '''
+    Converts the passed in coordinates from their native projection (default is state plane WA North-EPSG:2926)
+    to wgs84. Returns a two item tuple containing the longitude (x) and latitude (y) in wgs84. Coordinates
+    must be in meters hence the default conversion factor- PSRC's are in state plane feet.  
+    '''
+    #print longitude, latitude
+    # Remember long is x and lat is y!
+    prj_wgs = Proj(init='epsg:4326')
+    prj_sp = Proj(ESPG)
+    
+    # Need to convert feet to meters:
+    longitude = longitude * conversion
+    latitude = latitude * conversion
+    x, y = transform(prj_sp, prj_wgs, longitude, latitude)
+    
+    return x, y
+
+def export_network_shape(tod):
+    """
+    Loop through network components and export shape points
+    """
+
+    if os.path.isfile(r'Banks/'+tod+'/emmebank'):
+        bank = _eb.Emmebank(r'Banks/'+tod+'/emmebank')
+        scenario = bank.scenario(1002)
+        network = scenario.get_network()
+
+        inode_list = []
+        jnode_list = []
+        shape_x = []
+        shape_y = []
+        shape_loc = []
+
+        for link in network.links():
+            local_index = 0
+            for point in link.shape:
+                inode_list.append(link.i_node)
+                jnode_list.append(link.j_node)
+                shape_x.append(point[0])
+                shape_y.append(point[1])
+                shape_loc.append(local_index)
+                local_index += 1
+
+        df = pd.DataFrame([inode_list,jnode_list,shape_loc,shape_x,shape_y]).T
+        df.columns=['i','j','shape_local_index','x','y']
+
+        df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
+
+        # convert to lat-lon
+        df['lat_lon'] = df[['x','y']].apply(lambda row: project_to_wgs84(row['x'], row['y']), axis=1)
+        df['lon'] = df['lat_lon'].apply(lambda row: row[0])
+        df['lat'] = df['lat_lon'].apply(lambda row: row[-1])
+
+        df.to_csv('outputs/network_shape.csv', index=False)
+
 def main():
     ft_summary_dict = {}
     transit_summary_dict = {}
     transit_atts = []
     my_project = EmmeProject(project)
 
-    
+    export_network_shape('Daily')
 
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
@@ -799,11 +857,47 @@ def main():
         #dict where key is screen line id and value is 0
         screenline_dict[item] = 0
 
-    #loop through all tod banks and get network summaries
+   #  #loop through all tod banks and get network summaries
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for name, desc in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, desc, 'True')
+
+        network = my_project.current_scenario.get_network()
+
+        tveh = []
+        i_list = []
+        j_list = []
+        speed_limit = []
+        facility_type = []
+        capacity = []
+        length = []
+        metrk = []
+        hvtrk = []
+
+        # Link volumes
+        for link in network.links():
+            i_list.append(link.i_node)
+            j_list.append(link.j_node)
+            tveh.append(link.auto_volume)
+            metrk.append(link['@metrk'])
+            hvtrk.append(link['@hvtrk'])
+            speed_limit.append(link.data2)
+            facility_type.append(link.data3)
+            capacity.append(link.data1)
+            length.append(link['length'])
+
+        df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,capacity,length]).T
+        df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type','capacity','ij_length']
+        df['tod'] = key
+        df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
+
+        network_results_path = r'outputs/network_results.csv'
+        if os.path.exists(network_results_path):
+            df.to_csv(network_results_path, mode='a', index=False)
+        else:
+            df.to_csv(network_results_path, index=False)
+
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
@@ -990,16 +1084,6 @@ def main():
     uc_delay_df.to_excel(excel_writer = writer, sheet_name = 'UC Delay')
 
     writer.save()
-
-    #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
-    # import imp
-    # try:
-    #     imp.find_module('openpyxl')
-    #     found_openpyxl = True
-    # except ImportError:
-    #     found_openpyxl = False
-    # if found_openpyxl == True:
-    #     xlautofit.run('outputs/network_summary_detailed.xlsx')
 
 if __name__ == "__main__":
     main()
