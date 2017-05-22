@@ -872,6 +872,7 @@ def main():
         facility_type = []
         capacity = []
         length = []
+        time = []
         metrk = []
         hvtrk = []
 
@@ -886,9 +887,12 @@ def main():
             facility_type.append(link.data3)
             capacity.append(link.data1)
             length.append(link['length'])
+            time.append(link.auto_time)
 
-        df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,capacity,length]).T
-        df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type','capacity','ij_length']
+        df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
+            capacity,length,time]).T
+        df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type',
+        'capacity','ij_length','time']
         df['tod'] = key
         df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
 
