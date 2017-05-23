@@ -875,6 +875,7 @@ def main():
         time = []
         metrk = []
         hvtrk = []
+        bvol = []
 
         # Link volumes
         for link in network.links():
@@ -888,11 +889,15 @@ def main():
             capacity.append(link.data1)
             length.append(link['length'])
             time.append(link.auto_time)
+            try:
+                bike.append(link['@bvol'])
+            except:
+                pass
 
         df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
-            capacity,length,time]).T
+            capacity,length,time,bvol]).T
         df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type',
-        'capacity','ij_length','time']
+        'capacity','ij_length','time','bvol']
         df['tod'] = key
         df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
 
