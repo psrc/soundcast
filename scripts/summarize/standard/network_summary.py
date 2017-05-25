@@ -810,7 +810,7 @@ def main():
     transit_atts = []
     my_project = EmmeProject(project)
 
-    export_network_shape('Daily')
+    export_network_shape('7to8')
 
     writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
@@ -890,8 +890,9 @@ def main():
             length.append(link['length'])
             time.append(link.auto_time)
             try:
-                bike.append(link['@bvol'])
+                bvol.append(link['@bvol'])
             except:
+                # print 'no bvol ' + key
                 pass
 
         df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
@@ -903,7 +904,7 @@ def main():
 
         network_results_path = r'outputs/network_results.csv'
         if os.path.exists(network_results_path):
-            df.to_csv(network_results_path, mode='a', index=False)
+            df.to_csv(network_results_path, mode='a', index=False, header=False)
         else:
             df.to_csv(network_results_path, index=False)
 
@@ -985,7 +986,9 @@ def main():
         get_screenline_volumes(screenline_dict, my_project)
 
         # bike volumes
-        if key in bike_assignment_tod:
+        if key in ['5to6','7to8','8to9','9to10','10to14','14to15','15to16','16to17',
+                        '17to18']:
+            print key
             bike_volumes(writer=writer, my_project=my_project, tod=key)
         
     list_of_measures = ['vmt', 'vht', 'delay']
