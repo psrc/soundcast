@@ -63,6 +63,10 @@ if not(use_simple_configuration):
     run_supplemental_trips = True
     run_daysim = True
     ###########################
+
+    ###### Additional skims for Benefit Cost:######
+    should_run_reliability_skims = True
+    ###########################
     
     #Summaries to run:######
     run_accessibility_summary = False

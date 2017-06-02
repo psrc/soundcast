@@ -234,7 +234,7 @@ def run_all_summaries():
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
-
+      
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
    
@@ -353,6 +353,12 @@ def main():
            modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
            #This function needs an iteration parameter. Value of 1 is fine. 
            daysim_assignment(1)
+
+
+    if should_run_reliability_skims:
+        returncode = subprocess.call([sys.executable,'scripts/skimming/reliability_skims.py'])
+        if returncode != 0:
+            sys.exit(1)
 
 ### SUMMARIZE
 ### ##################################################################
