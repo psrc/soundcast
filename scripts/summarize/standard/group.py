@@ -538,6 +538,37 @@ def screenlines(net_file, fname):
 
     write_csv(df=df, fname='screenlines.csv')
 
+def logsums(name, dir_name):
+    # 
+
+    logsum = 'CFULL/SHO'
+    logsum_output = 'outputs/grouped/logsums.csv'
+
+    df = pd.read_csv(os.path.join(dir_name, 'aggregate_logsums.1.dat'), delim_whitespace=True, skipinitialspace=True)
+    df = df.reset_index()
+    df = pd.DataFrame(df[['level_0',logsum]])
+    df['source'] = name
+
+    # Separate into accessibility bins
+    df['accessibility'] = pd.qcut(df[logsum],5,labels=['lowest','low','moderate','high','highest'])
+    bins = pd.qcut(df[logsum],5,retbins=True)[1]
+
+    df.columns = ['taz','logsum','source','accessibility']
+
+    # Attach population
+    hh = pd.read_csv(os.path.join(dir_name,'_household.tsv'), sep='\t')
+    df_pop = pd.DataFrame(hh.groupby('hhtaz').sum()['hhsize'])
+    df_pop['taz'] = df_pop.index
+    df = pd.merge(df,df_pop,on='taz',how='left')
+    df.columns = [['taz','logsum','source','accessibility','population']]
+
+    # Write to file
+    if os.path.exists(logsum_output):
+        df_current = pd.read_csv(logsum_output)
+        df_current.append(df).to_csv(logsum_output, index=False)
+    else:
+        df.to_csv(logsum_output, index=False)
+
 def process_dataset(h5file, scenario_name):
     
     # Process all daysim results
@@ -595,7 +626,8 @@ def write_csv(df,fname):
 if __name__ == '__main__':
 
     # Use root directory name as run name
-    run_name = os.getcwd().split('\\')[-1]
+    # run_name = os.getcwd().split('\\')[-1]
+    run_name = '2040 no build'
 
     output_dir = r'outputs/grouped'
 
@@ -641,6 +673,11 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
+
+    # Logsum accessibilities
+    for name, dir_name in { run_name: os.path.join(os.getcwd(),'outputs'),
+                            comparison_name: comparison_run_dir}.iteritems():
+        logsums(name, dir_name)
 
     # Write notebooks based on these outputs to HTML
     for nb in ['topsheet']:
