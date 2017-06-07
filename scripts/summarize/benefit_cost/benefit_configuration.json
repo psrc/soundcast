@@ -6,13 +6,13 @@
   "max_zone_id": 3700,
 
   "baseline": {
-    "description": "Test 5 and 10 cent tolls",
-    "filepath": "d:/bca_outputs/2040_5_10.h5"
+    "description": "2040_no_build",
+    "filepath": "d:/bca_outputs/2040_no_build.h5"
   },
 
   "alternative": {
-    "description": "Test just friends",
-    "filepath": "d:/bca_outputs/2040_just_friends.h5"
+    "description": "2040 build",
+    "filepath": "d:/bca_outputs/2040_build.h5"
   },
 
 
@@ -232,6 +232,72 @@
       "costpath": "/${PER}/hvtrkt",
       "volumepath": "/${PER}/hvtrk",
       "reportgroup": "Truck Time"
+    },
+	{
+      "userclass": "SOV Toll Income Level 1 Reliability",
+      "costpath": "/${PER}/svtl1r",
+      "volumepath": "/${PER}/svtl1",
+       "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "SOV Toll Income Level 2 Reliability",
+      "costpath": "/${PER}/svtl2r",
+      "volumepath": "/${PER}/svtl2",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "SOV Toll Income Level 3 Reliability",
+      "costpath": "/${PER}/svtl3r",
+      "volumepath": "/${PER}/svtl3",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 1 Reliability",
+      "costpath": "/${PER}/h2tl1r",
+      "volumepath": "/${PER}/h2tl1",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 2 Reliability",
+      "costpath": "/${PER}/h2tl2r",
+      "volumepath": "/${PER}/h2tl2",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV2 Toll Income Level 3 Reliability",
+      "costpath": "/${PER}/h2tl3r",
+      "volumepath": "/${PER}/h2tl3",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 1 Reliability",
+      "costpath": "/${PER}/h3tl1r",
+      "volumepath": "/${PER}/h3tl1",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 2 Reliability",
+      "costpath": "/${PER}/h3tl2r",
+      "volumepath": "/${PER}/h3tl2",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "HOV3 Toll Income Level 3 Reliability",
+      "costpath": "/${PER}/h3tl3r",
+      "volumepath": "/${PER}/h3tl3",
+      "reportgroup": "Auto Reliability"
+    },
+    {
+      "userclass": "Medium Trucks Reliability",
+      "costpath": "/${PER}/metrkr",
+      "volumepath": "/${PER}/metrk",
+      "reportgroup": "Truck Reliability"
+    },
+    {
+      "userclass": "Heavy Trucks Reliability",
+      "costpath": "/${PER}/hvtrkr",
+      "volumepath": "/${PER}/hvtrk",
+      "reportgroup": "Truck Reliability"
     },
     {
       "userclass": "Transit Initial Wait Time",
@@ -720,6 +786,160 @@
       "17to18": 25.000,
       "18to20": 25.000,
       "20to5": 25.000
+    },
+    "SOV Toll Income Level 1 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "SOV Toll Income Level 2 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "SOV Toll Income Level 3 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 1 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 2 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV2 Toll Income Level 3 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 1 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 2 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "HOV3 Toll Income Level 3 Reliability": {
+      "5to6": 25.000,
+      "6to7": 25.000,
+      "7to8": 25.000,
+      "8to9": 25.000,
+      "9to10": 25.000,
+      "10to14": 25.000,
+      "14to15": 25.000,
+      "15to16": 25.000,
+      "16to17": 25.000,
+      "17to18": 25.000,
+      "18to20": 25.000,
+      "20to5": 25.000
+    },
+    "Medium Trucks Reliability": {
+      "5to6": 49.000,
+      "6to7": 49.000,
+      "7to8": 49.000,
+      "8to9": 49.000,
+      "9to10": 49.000,
+      "10to14": 49.000,
+      "14to15": 49.000,
+      "15to16": 49.000,
+      "16to17": 49.000,
+      "17to18": 49.000,
+      "18to20": 49.000,
+      "20to5": 49.000
+    },
+    "Heavy Trucks Reliability": {
+      "5to6": 54.450,
+      "6to7": 54.450,
+      "7to8": 54.450,
+      "8to9": 54.450,
+      "9to10": 54.450,
+      "10to14": 54.450,
+      "14to15": 54.450,
+      "15to16": 54.450,
+      "16to17": 54.450,
+      "17to18": 54.450,
+      "18to20": 54.450,
+      "20to5": 54.450
     }
   },
   "operating cost": {
