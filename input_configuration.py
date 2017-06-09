@@ -22,7 +22,7 @@ if not(use_simple_configuration):
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
     main_inputs_folder =  'R:/SoundCast/Inputs'
-    base_inputs = main_inputs_folder + base_year
+    base_inputs = os.path.join(main_inputs_folder, base_year)
     scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
     
