@@ -1,3 +1,4 @@
+import os
 from input_configuration_simple import *
 
 # This file contains model input parameters imported by SoundCast scripts.   
@@ -15,14 +16,14 @@ from input_configuration_simple import *
 if not(use_simple_configuration):
     
     # Scenario and input paths
-    base_year = '2014'  # This should always be 2010 unless the base year changes
+    base_year = '2014'  # This should always be 2014 unless the base year changes
     scenario_name = '2014'
     model_year = '2014'
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
-    main_inputs_folder =  'R:/SoundCast/Inputs/'
+    main_inputs_folder =  'R:/SoundCast/Inputs'
     base_inputs = main_inputs_folder + base_year
-    scenario_inputs = main_inputs_folder + scenario_name
+    scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
     
     ###### Only update parking for future-year analysis!######
