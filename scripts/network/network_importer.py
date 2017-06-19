@@ -174,8 +174,8 @@ def import_tolls(emmeProject):
     import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
              revert_on_error=False)
     
-    #We are using the same rdly has 4k. No need to factor. 
-    #emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
+    #We are using 1/4 rdly now. Input values are factored by half so we need to half again.  
+    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
 
 def multiwordReplace(text, replace_dict):
