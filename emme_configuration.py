@@ -21,6 +21,7 @@ transit_name = '_transit.in'
 shape_name = '_link_shape_1002.txt'
 no_toll_modes = ['s', 'h', 'i', 'j']
 unit_of_length = 'mi'    # units of miles in Emme
+rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 headway_file = 'sc_headways.csv'
 
