@@ -67,9 +67,6 @@ gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
 
-# Bike assignment periods
-bike_assignment_tod = ['7to8','8to9']
-
 # Transit Inputs:
 transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
