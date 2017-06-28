@@ -12,7 +12,6 @@ import xlsxwriter
 import numpy as np
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
-import input_configuration
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 from EmmeProject import *
@@ -126,7 +125,11 @@ def injury_calc(injury_file, my_project):
     injury_rates_vmt['Fatality Cost'] = injury_rates_vmt['Fatality Rate']*injury_rates_vmt['VMT']*FATALITY_COST
     return injury_rates_vmt
 
-
+def auto_own_cost_calc(daysim_outputs):
+    hh_auto = daysim_outputs['Household'][['hhvehs','hhtaz']]
+    hh_auto['hhvehs'].loc[hh_auto['hhvehs']==4] = FOUR_PLUS_CAR_AVG
+    hh_auto_zone = hh_auto.groupby(['hhtaz']).sum()*ANNUAL_OWNERSHIP_COST/ANNUALIZATION
+    return hh_auto_zone
 
 def write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs):
     for df in output_dfs:
@@ -135,20 +138,21 @@ def write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs):
 
 
 def main():
-
-
     
-    
-    ### Get EMME project set up##############
+    #### Get EMME project set up##############
     emme_project = EmmeProject(project)
-    # Calculate link level benefits
+    ## Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
     df_emissions = emissions_calc(vmt_speed_dict, model_year)
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
 
+    ### Get auto ownership data###
+    daysim_outputs = convert(h5_results_file,guidefile, output_name)
+    auto_own_cost = auto_own_cost_calc(daysim_outputs)
+
     # Write it out
-    output_dfs = [df_emissions, noise_vmt, injury_rates_vmt]
+    output_dfs = [df_emissions, noise_vmt, injury_rates_vmt, auto_own_cost]
 
     bc_writer = pd.ExcelWriter(bc_outputs_file, engine = 'xlsxwriter')
     start_row = 1
