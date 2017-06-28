@@ -16,107 +16,6 @@ from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *
 
-#class EmmeProject:
-#    def __init__(self, filepath):
-#        self.desktop = app.start_dedicated(True, "cth", filepath)
-#        self.m = _m.Modeller(self.desktop)
-#        pathlist = filepath.split("/")
-#        self.fullpath = filepath
-#        self.filename = pathlist.pop()
-#        self.dir = "/".join(pathlist) + "/"
-#        self.bank = self.m.emmebank
-#        self.tod = self.bank.title
-#        self.current_scenario = list(self.bank.scenarios())[0]
-#        self.data_explorer = self.desktop.data_explorer()
-#    def network_counts_by_element(self, element):
-#        network = self.current_scenario.get_network()
-#        d = network.element_totals
-#        count = d[element]
-#        return count
-#    def change_active_database(self, database_name):
-#        for database in self.data_explorer.databases():
-#            #print database.title()
-#            if database.title() == database_name:
-                
-#                database.open()
-#                print 'changed'
-#                self.bank = self.m.emmebank
-#                self.tod = self.bank.title
-#                print self.tod
-#                self.current_scenario = list(self.bank.scenarios())[0]
-#    def process_modes(self, mode_file):
-#        NAMESPACE = "inro.emme.data.network.mode.mode_transaction"
-#        process_modes = self.m.tool(NAMESPACE)
-#        process_modes(transaction_file = mode_file,
-#              revert_on_error = True,
-#              scenario = self.current_scenario)
-                
-#    def create_scenario(self, scenario_number, scenario_title = 'test'):
-#        NAMESPACE = "inro.emme.data.scenario.create_scenario"
-#        create_scenario = self.m.tool(NAMESPACE)
-#        create_scenario(scenario_id=scenario_number,
-#                        scenario_title= scenario_title)
-#    def network_calculator(self, type, **kwargs):
-#        spec = json_to_dictionary(type)
-#        for name, value in kwargs.items():
-#            if name == 'selections_by_link':
-#                spec['selections']['link'] = value
-#            else:
-#                spec[name] = value
-#        NAMESPACE = "inro.emme.network_calculation.network_calculator"
-#        network_calc = self.m.tool(NAMESPACE)
-#        self.network_calc_result = network_calc(spec)
-
-   
-#    def delete_links(self):
-#        if self.network_counts_by_element('links') > 0:
-#            NAMESPACE = "inro.emme.data.network.base.delete_links"
-#            delete_links = self.m.tool(NAMESPACE)
-#            #delete_links(selection="@dist=9", condition="cascade")
-#            delete_links(condition="cascade")
-
-#    def delete_nodes(self):
-#        if self.network_counts_by_element('regular_nodes') > 0:
-#            NAMESPACE = "inro.emme.data.network.base.delete_nodes"
-#            delete_nodes = self.m.tool(NAMESPACE)
-#            delete_nodes(condition="cascade")
-#    def process_vehicles(self,vehicle_file):
-#          NAMESPACE = "inro.emme.data.network.transit.vehicle_transaction"
-#          process = self.m.tool(NAMESPACE)
-#          process(transaction_file = vehicle_file,
-#            revert_on_error = True,
-#            scenario = self.current_scenario)
-
-#    def process_base_network(self, basenet_file):
-#        NAMESPACE = "inro.emme.data.network.base.base_network_transaction"
-#        process = self.m.tool(NAMESPACE)
-#        process(transaction_file = basenet_file,
-#              revert_on_error = True,
-#              scenario = self.current_scenario)
-#    def process_turn(self, turn_file):
-#        NAMESPACE = "inro.emme.data.network.turn.turn_transaction"
-#        process = self.m.tool(NAMESPACE)
-#        process(transaction_file = turn_file,
-#            revert_on_error = False,
-#            scenario = self.current_scenario)
-
-#    def process_transit(self, transit_file):
-#        NAMESPACE = "inro.emme.data.network.transit.transit_line_transaction"
-#        process = self.m.tool(NAMESPACE)
-#        process(transaction_file = transit_file,
-#            revert_on_error = True,
-#            scenario = self.current_scenario)
-#    def process_shape(self, linkshape_file):
-#        NAMESPACE = "inro.emme.data.network.base.link_shape_transaction"
-#        process = self.m.tool(NAMESPACE)
-#        process(transaction_file = linkshape_file,
-#            revert_on_error = True,
-#            scenario = self.current_scenario)
-#    def change_scenario(self):
-
-#        self.current_scenario = list(self.bank.scenarios())[0]
-
-
     
 def json_to_dictionary(dict_name):
 
@@ -145,7 +44,7 @@ def import_tolls(emmeProject):
 
     tod_4k = sound_cast_net_dict[emmeProject.tod]
 
-    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in', 'inputs/networks/rdly/' + tod_4k + '_rdly.txt']
+    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in']
 
     # set tolls
     #for file in attr_file:
@@ -171,13 +70,6 @@ def import_tolls(emmeProject):
                              7: "@trkc3"},
               revert_on_error=True)
 
-    
-    #@rdly:
-    import_attributes(attr_file[2], scenario = emmeProject.current_scenario,
-             revert_on_error=False)
-    
-    #We are using 1/4 rdly now. Input values are factored by half so we need to half again.  
-    emmeProject.network_calculator("link_calculation", result = "@rdly", expression = "@rdly * .50")
 
 
 def multiwordReplace(text, replace_dict):

@@ -55,8 +55,10 @@ light_rail_boardings = r'scripts/summarize/inputs/network_summary/light_rail_boa
 
 
 # Grouped outputs
-comparison_name = 'soundcast_base' # define in input_config
-comparison_run_dir = r'R:\SoundCast\releases\soundcast_2014'
+# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
+# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
+#                          'soundcast_2040': 'C:/user/soundcast_2040'}
+comparison_runs = {}
 
 #### Transit Groupings ###############################################################
 transit_time_group_file= 'scripts/summarize/inputs/network_summary/transit_time_groups.csv'
