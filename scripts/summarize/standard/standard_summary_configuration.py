@@ -59,6 +59,7 @@ light_rail_boardings = r'scripts/summarize/inputs/network_summary/light_rail_boa
 # e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
 #                          'soundcast_2040': 'C:/user/soundcast_2040'}
 comparison_runs = {}
+compare_survey = True    # compare daysim results in Tableau and topsheet outputs
 
 #### Transit Groupings ###############################################################
 transit_time_group_file= 'scripts/summarize/inputs/network_summary/transit_time_groups.csv'

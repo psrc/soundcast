@@ -1,4 +1,4 @@
-import os, sys, math, h5py
+import os, sys, shutil, math, h5py
 import pandas as pd
 from standard_summary_configuration import *
 
@@ -6,14 +6,6 @@ labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibr
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
 
 table_list = ['Household','Trip','Tour','Person','HouseholdDay','PersonDay']
-
-output_csv_list = ['agg_measures','trips','taz_tours','tours','time_of_day','person_day','person','household',
-                    'tours_tardest','tours_tlvdest','tours_tlvorig','net_summary','screenlines','trucks',
-                    'transit_boardings','traffic_counts']
-
-
-# Overwrite existing output?
-overwrite = True
 
 # look up psrc time of day 
 tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','15to16','16to17','17to18','18to20']
@@ -628,15 +620,11 @@ if __name__ == '__main__':
     # Use root directory name as run name
     run_name = os.getcwd().split('\\')[-1]
 
-    # Create output directory if it doesn't exist
+    # Create output directory, overwrite existing results
     output_dir = r'outputs/grouped'
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    if overwrite:
-        for fname in output_csv_list:
-            if os.path.isfile(os.path.join(output_dir,fname+'.csv')):
-                os.remove(os.path.join(output_dir,fname+'.csv'))
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)
 
     # Create list of runs to compare, starting with current run
     run_dir_dict = {
@@ -656,6 +644,10 @@ if __name__ == '__main__':
 		process_dataset(h5file=daysim_h5, scenario_name=name)
 		del daysim_h5 # drop from memory to save space for next comparison
 
+    # Compare daysim to survey if set in standard_summary_configuration.py
+    if compare_survey:
+        process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
+
     # Create network and accessibility summaries
     for name, run_dir in run_dir_dict.iteritems():
         file_dir = os.path.join(run_dir,r'outputs/network_summary_detailed.xlsx')
@@ -666,13 +658,15 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
-
         file_dir = os.path.join(run_dir,r'outputs')
         logsums(name, file_dir)
 
     # Write notebooks based on these outputs to HTML
     for nb in ['topsheet']:
-        os.system("ipython nbconvert --to=html scripts/summarize/notebooks/"+nb+".ipynb")
+        try:
+            os.system("jupyter nbconvert --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
+        except:
+            print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
         # Move these files to output
         if os.path.exists(r"outputs/"+nb+".html"):
