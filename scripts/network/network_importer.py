@@ -250,6 +250,7 @@ def run_importer(project_name):
         my_project.process_modes('inputs/networks/' + mode_file)
         
         my_project.process_base_network('inputs/networks/' + value + base_net_name)
+        my_project.process_shape('inputs/networks/' + value + shape_name)
         my_project.process_turn('inputs/networks/' + value + turns_name)
         if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
