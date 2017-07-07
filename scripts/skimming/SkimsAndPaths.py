@@ -59,7 +59,7 @@ elif daysim_seed_trips:
 	hdf5_file_path = 'inputs/daysim_outputs_seed_trips.h5'
 else:
 	print 'Using DAYSIM OUTPUTS'
-	hdf5_file_path = 'outputs/daysim_outputs.h5'
+	hdf5_file_path = 'outputs/daysim/daysim_outputs.h5'
 
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
