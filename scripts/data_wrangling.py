@@ -279,3 +279,8 @@ def check_inputs():
         for file in missing_list:
             logger.info('- ' + file)
             print file
+
+def build_output_dirs():
+    for path in ['outputs',r'outputs/daysim']:
+        if not os.path.exists(path):
+            os.makedirs(path)

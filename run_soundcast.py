@@ -250,8 +250,7 @@ def main():
 
     
 
-    if not os.path.exists('outputs'):
-        os.makedirs('outputs')
+    build_output_dirs()
 
     if run_copy_daysim_code:
         copy_daysim_code()
