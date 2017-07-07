@@ -1,3 +1,5 @@
+import os, sys
+sys.path.append(os.getcwd())
 from input_configuration import *
 
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
