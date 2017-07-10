@@ -91,7 +91,6 @@ def process_parcels(parcels, transit_df):
   
     # calc the distance from each parcel to nearest transit stop by type
     for new_name, attr in transit_modes.iteritems():
-        print new_name
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])

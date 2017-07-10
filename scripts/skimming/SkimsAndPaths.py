@@ -74,7 +74,7 @@ def create_hdf5_skim_container2(hdf5_name):
     start_time = time.time()
 
     hdf5_filename = os.path.join('inputs/', hdf5_name +'.h5').replace("\\","/")
-    print hdf5_filename
+
     my_user_classes = json_to_dictionary('user_classes')
 
     # IOError will occur if file already exists with "w-", so in this case

@@ -989,7 +989,6 @@ def main():
         # bike volumes
         if key in ['5to6','7to8','8to9','9to10','10to14','14to15','15to16','16to17',
                         '17to18']:
-            print key
             bike_volumes(writer=writer, my_project=my_project, tod=key)
         
     list_of_measures = ['vmt', 'vht', 'delay']
@@ -1002,7 +1001,6 @@ def main():
 
     seg_df = seg_df.groupby('inode').sum().reset_index()
     seg_df = seg_df.drop(['tod','line'], axis=1)
-    print stop_df.columns
     stop_df = stop_df.groupby('inode').sum().reset_index()
     transfer_df = pd.merge(stop_df, seg_df, on='inode')
     transfer_df['transfers'] = transfer_df['total_boardings'] - transfer_df['initial_boardings']

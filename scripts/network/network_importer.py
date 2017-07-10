@@ -267,14 +267,14 @@ def run_importer(project_name):
         
 
 def main():
-    print network_summary_project
+
     run_importer(network_summary_project)
     
     returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
     if returncode != 0:
         sys.exit(1)
     
-    print 'done'
+    print 'networks imported'
 
 if __name__ == "__main__":
     main()
