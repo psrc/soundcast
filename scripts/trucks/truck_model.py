@@ -16,6 +16,7 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 #from truck_model import *
 from EmmeProject import * 
 from truck_configuration import *

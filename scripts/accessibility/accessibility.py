@@ -7,7 +7,7 @@ import os
 import re
 import sys
 from pyproj import Proj, transform
-
+sys.path.append(os.getcwd())
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""

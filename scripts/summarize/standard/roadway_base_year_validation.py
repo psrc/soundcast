@@ -1,6 +1,6 @@
-import os
-import sys
+import os, sys
 import pandas as pd
+sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 from input_configuration import *
 from pandas import ExcelWriter

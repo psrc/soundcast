@@ -26,6 +26,7 @@ import time
 import summary_functions as scf
 from standard_summary_configuration import *
 from input_configuration import *
+sys.path.append(os.getcwd())
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 

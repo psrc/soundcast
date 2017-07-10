@@ -1,7 +1,8 @@
 ﻿# Load buffered parcel data and summarize by Regional Growth Center
 import pandas as pd
 import numpy as np
-import os
+import os, sys
+sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 import input_configuration # Import as a module to access inputs as a dictionary
 

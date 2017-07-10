@@ -11,6 +11,7 @@ from emme_configuration import *
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
+sys.path.append(os.getcwd())
 from EmmeProject import *
 from truck_configuration import *
 #from mode_choice_supplemental import *

@@ -3,6 +3,7 @@ import numpy as np
 import os, sys
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 from EmmeProject import *
 from input_configuration import *
 from bike_configuration import *

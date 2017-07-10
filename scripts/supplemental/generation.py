@@ -5,6 +5,7 @@ import os,sys
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
+sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 from truck_configuration import *

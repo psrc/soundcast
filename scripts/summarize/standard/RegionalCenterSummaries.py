@@ -5,8 +5,9 @@ import h5toDF
 import xlautofit
 import math
 import xlrd
-import sys
+import os, sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 
 def get_total(exp_fac):
     total = exp_fac.sum()

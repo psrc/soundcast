@@ -7,6 +7,7 @@ import os
 #os.chdir('D:/soundcast_mode_choice/soundcast/')
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *

@@ -12,6 +12,7 @@ import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *

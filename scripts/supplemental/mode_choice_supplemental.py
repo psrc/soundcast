@@ -17,6 +17,7 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
+sys.path.append(os.getcwd())
 #os.chdir('D:\\soundcast_mode_choice\\soundcast')
 from emme_configuration import *
 from EmmeProject import *

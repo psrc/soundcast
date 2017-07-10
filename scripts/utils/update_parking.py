@@ -8,11 +8,12 @@
 # Run this script from the same location as the parcels.txt file
 # Parcels.txt can be converted from .dbf format with ArcGIS.
 
+import os, sys
 import pandas as pd
 import h5py
 import numpy as np
 from input_configuration import *
-
+sys.path.append(os.getcwd())
 
 daily_parking_cost = r'inputs\parking\daily_parking_costs.csv'
 hourly_parking_cost = r'inputs\parking\hourly_parking_costs.csv'

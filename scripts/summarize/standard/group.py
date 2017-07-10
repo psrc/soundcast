@@ -1,5 +1,6 @@
 import os, sys, shutil, math, h5py
 import pandas as pd
+sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))

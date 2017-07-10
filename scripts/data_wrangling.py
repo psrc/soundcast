@@ -23,6 +23,7 @@ import inro.emme.database.emmebank as _eb
 import random
 import shutil
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.getcwd())
 from input_configuration import *
 from logcontroller import *
 from input_configuration import *
