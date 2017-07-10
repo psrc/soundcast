@@ -1,4 +1,5 @@
 ﻿##################################### NETWORK IMPORTER ####################################
+import_shape = False    # use network shape
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
