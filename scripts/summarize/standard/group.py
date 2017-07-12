@@ -640,7 +640,7 @@ if __name__ == '__main__':
 	# Create daysim summaries
     for name, run_dir in run_dir_dict.iteritems():
 
-		daysim_h5 = h5py.File(os.path.join(run_dir,r'outputs/daysim_outputs.h5'))
+		daysim_h5 = h5py.File(os.path.join(run_dir,r'outputs/daysim/daysim_outputs.h5'))
 		print 'processing h5: ' + name
 		process_dataset(h5file=daysim_h5, scenario_name=name)
 		del daysim_h5 # drop from memory to save space for next comparison
@@ -659,7 +659,7 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
-        file_dir = os.path.join(run_dir,r'outputs')
+        file_dir = os.path.join(run_dir,r'outputs/daysim')
         logsums(name, file_dir)
 
     # Write notebooks based on these outputs to HTML
