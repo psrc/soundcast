@@ -688,7 +688,7 @@ def freeflow_skims(my_project):
     """
 
     # Load daysim_outputs as dataframe
-    daysim = h5py.File('outputs/daysim_outputs.h5', 'r+')
+    daysim = h5py.File('outputs/daysim/daysim_outputs.h5', 'r+')
     df = pd.DataFrame()
     for field in ['travtime','otaz','dtaz']:
         df[field] = daysim['Trip'][field][:]
