@@ -1,6 +1,4 @@
 import pandana as pdna
-from accessibility_configuration import *
-from emme_configuration import *
 import pandas as pd
 import numpy as np
 import os
@@ -8,6 +6,8 @@ import re
 import sys
 from pyproj import Proj, transform
 sys.path.append(os.getcwd())
+from accessibility_configuration import *
+from emme_configuration import *
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""

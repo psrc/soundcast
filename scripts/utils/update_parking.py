@@ -12,8 +12,8 @@ import os, sys
 import pandas as pd
 import h5py
 import numpy as np
-from input_configuration import *
 sys.path.append(os.getcwd())
+from input_configuration import *
 
 daily_parking_cost = r'inputs\parking\daily_parking_costs.csv'
 hourly_parking_cost = r'inputs\parking\hourly_parking_costs.csv'

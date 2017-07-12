@@ -1,9 +1,9 @@
 import pandas as pd
 import sys
 import os
-from input_configuration import *
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
+from input_configuration import *
 
 #it might make sense to put these file locations in a config somewhere
 parcel_file =  "inputs\\accessibility\\parcels_urbansim.txt"

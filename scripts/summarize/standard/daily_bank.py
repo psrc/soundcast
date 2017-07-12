@@ -1,13 +1,13 @@
 import inro.emme.database.emmebank as _emmebank
 import os, sys
 import numpy as np
-from input_configuration import *
-from emme_configuration import *
 import json
 import shutil
 from distutils import dir_util
-from scripts.EmmeProject import *
 sys.path.append(os.getcwd())
+from input_configuration import *
+from emme_configuration import *
+from scripts.EmmeProject import *
 
 daily_network_fname = 'outputs/daily_network_results.csv'
 keep_atts = ['@type']

@@ -6,11 +6,11 @@ import csv
 import pandas as pd
 import h5py
 import numpy as np
-from emme_configuration import *
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
+from emme_configuration import *
 from EmmeProject import *
 from truck_configuration import *
 
