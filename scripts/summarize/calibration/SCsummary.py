@@ -25,7 +25,7 @@ import math
 from input_configuration import *
 from summary_functions import *
 from calibration_summary_configuration import *
-
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):

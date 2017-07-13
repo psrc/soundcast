@@ -4,6 +4,7 @@ sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 from input_configuration import *
 from pandas import ExcelWriter
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
    
 def compare_fac_type(daily_df, out_summary):
     daily_df = pd.DataFrame([daily_df.groupby('@scrn').sum()['@tveh'].values,

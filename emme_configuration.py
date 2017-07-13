@@ -149,11 +149,11 @@ airport_zone_list = [983] # zone numbers for airport special generator
 # Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'
 pm_skim_file_loc = 'inputs/17to18.h5'
-trip_table_loc = 'outputs/prod_att.csv'
+trip_table_loc = 'outputs/supplemental/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/gq_prod_att.csv'
+gq_trips_loc = 'outputs/supplemental/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5

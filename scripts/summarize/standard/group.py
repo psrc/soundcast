@@ -651,7 +651,7 @@ if __name__ == '__main__':
 
     # Create network and accessibility summaries
     for name, run_dir in run_dir_dict.iteritems():
-        file_dir = os.path.join(run_dir,r'outputs/network_summary_detailed.xlsx')
+        file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
         print 'processing excel: ' + name
         transit_summary(file_dir, name)
         daily_counts(file_dir, name)

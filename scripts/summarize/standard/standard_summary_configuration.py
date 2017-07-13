@@ -1,7 +1,7 @@
 #################################### NETWORK SUMMARY ####################################
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
-report_output_location = 'Outputs'
+report_output_location = 'Outputs/network'
 fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
                  'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
                  'connectors' : 'ul3 = 5'}
@@ -68,12 +68,12 @@ special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_
 
 
 ##### Output File Locations ######################################################
-net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
-net_summary_out = 'outputs/network_summary.xlsx'
-roadway_summary = 'outputs/roadway_summary.xlsx'
-transit_summary_out = 'outputs/transit_summary.xlsx'
+net_summary_detailed = 'outputs/network/network_summary_detailed.xlsx'
+net_summary_out = 'outputs/network/network_summary.xlsx'
+roadway_summary = 'outputs/network/roadway_summary.xlsx'
+transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 
 # Bikes
-bike_link_vol = 'outputs/bike_volumes.csv'
+bike_link_vol = 'outputs/bike/bike_volumes.csv'
 bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'

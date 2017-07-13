@@ -44,8 +44,9 @@ sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 from input_configuration import *
 from emme_configuration import *
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 
-daily_network_fname = 'outputs/daily_network_results.csv'
+daily_network_fname = 'outputs/network/daily_network_results.csv'
 
 ## Input Files:
 aadt_counts_file = 'soundcast_aadt.csv'
@@ -508,20 +509,20 @@ def daily_counts(writer, my_project):
         df.to_excel(excel_writer=writer, sheet_name='Daily Counts')
 
         # Export truck trip tables
-        for matrix_name in ['mfmetrk','mfhvtrk']:
-            matrix_id = bank.matrix(matrix_name).id
-            emme_matrix = bank.matrix(matrix_id)
-            matrix_data = emme_matrix.get_data()
-            np_matrix = np.matrix(matrix_data.raw_data)
-            df = pd.DataFrame(np_matrix)
-            # Attach zone numbers
-            # Look up zone ID from index location
-            zones = my_project.current_scenario.zone_numbers
-            dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
-            df.columns = [dictZoneLookup[i] for i in df.columns]
-            df.index = [dictZoneLookup[i] for i in df.index.values]
+        # for matrix_name in ['mfmetrk','mfhvtrk']:
+        #     matrix_id = bank.matrix(matrix_name).id
+        #     emme_matrix = bank.matrix(matrix_id)
+        #     matrix_data = emme_matrix.get_data()
+        #     np_matrix = np.matrix(matrix_data.raw_data)
+        #     df = pd.DataFrame(np_matrix)
+        #     # Attach zone numbers
+        #     # Look up zone ID from index location
+        #     zones = my_project.current_scenario.zone_numbers
+        #     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+        #     df.columns = [dictZoneLookup[i] for i in df.columns]
+        #     df.index = [dictZoneLookup[i] for i in df.index.values]
 
-            df.to_csv('outputs/'+matrix_name+'.csv')
+        #     df.to_csv('outputs/'+matrix_name+'.csv')
     else:
         raise Exception('no daily bank found')
 
@@ -579,7 +580,7 @@ def bike_volumes(writer, my_project, tod):
 
     df_count =  pd.DataFrame(list_model_vols)
     sheet_name = 'Bike Volumes'
-    summary_file_dir = 'outputs/network_summary_detailed.xlsx'
+    summary_file_dir = 'outputs/network/network_summary_detailed.xlsx'
     if os.path.exists(summary_file_dir):
         xl = pd.ExcelFile(summary_file_dir)
         if sheet_name in xl.sheet_names:
@@ -803,7 +804,7 @@ def export_network_shape(tod):
         df['lon'] = df['lat_lon'].apply(lambda row: row[0])
         df['lat'] = df['lat_lon'].apply(lambda row: row[-1])
 
-        df.to_csv('outputs/network_shape.csv', index=False)
+        df.to_csv('outputs/network/network_shape.csv', index=False)
 
 def main():
     ft_summary_dict = {}
@@ -813,7 +814,7 @@ def main():
 
     export_network_shape('7to8')
 
-    writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine='xlsxwriter')    
+    writer = pd.ExcelWriter('outputs/network/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
     export_corridor_results(my_project, writer)
     jobs_transit(writer)
@@ -903,7 +904,7 @@ def main():
         df['tod'] = key
         df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
 
-        network_results_path = r'outputs/network_results.csv'
+        network_results_path = r'outputs/network/network_results.csv'
         if os.path.exists(network_results_path):
             df.to_csv(network_results_path, mode='a', index=False, header=False)
         else:

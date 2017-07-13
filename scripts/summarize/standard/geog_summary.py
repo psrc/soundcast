@@ -467,7 +467,7 @@ if __name__ == '__main__':
 	# Process all h5 files
     for name, file_dir in file_dict.iteritems():
 
-		daysim_h5 = h5py.File(os.path.join(file_dir,r'outputs/daysim_outputs.h5'))
+		daysim_h5 = h5py.File(os.path.join(file_dir,r'outputs/daysim/daysim_outputs.h5'))
 
 		print 'processing h5: ' + name
 

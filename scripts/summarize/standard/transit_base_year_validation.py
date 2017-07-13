@@ -4,7 +4,7 @@ sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 from input_configuration import *
 from pandas import ExcelWriter
-
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
    
 
 def compare_boardings(modeled, observed, time_groups, route_groups, time_group_name, type):
