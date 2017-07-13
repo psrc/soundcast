@@ -1,6 +1,0 @@
-# requirements.txt: list of required python libraries
-# (used by pip in install.bat)
-
-pandas
-pandas_highcharts
-pysal
