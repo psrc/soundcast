@@ -145,7 +145,7 @@ def calc_bike_weight(my_project, link_df):
 	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
 
 	# Write link data for analysis
-	df.to_csv(r'outputs/bike_attr.csv')
+	df.to_csv(r'outputs/bike/bike_attr.csv')
 
 	# export total link weight as an Emme attribute file ('@bkwt.in')
 	write_generalized_time(df=df)
