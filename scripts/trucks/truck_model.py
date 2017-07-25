@@ -389,11 +389,11 @@ def write_summary():
     # Write production and attraction totals
     truck_pa = {'prod': {}, 'attr': {}}
 
-    for truck_type in ['lt','mt','ht']:
+    for truck_type in ['mt','ht']:
         truck_pa['prod'][truck_type] = my_project.bank.matrix('mo' + truck_type + 'prof').get_numpy_data().sum()
         truck_pa['attr'][truck_type] = my_project.bank.matrix('md' + truck_type + 'attf').get_numpy_data().sum()
 
-    # pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/trucks.csv')
+    pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/network/trucks.csv')
 
 
 def main():
