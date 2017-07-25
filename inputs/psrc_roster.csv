@@ -21,8 +21,8 @@ distance,sov,full-network,very-high,0,1439,maxzone,hdf5,7to8.h5/Skims/svtl3d,1,F
 distance,sov,full-network,very-low,0,1439,maxzone,hdf5,7to8.h5/Skims/svtl1d,1,FALSE,distance,null,null,TRUE
 fare,transit,local-bus,all,0,1439,maxzone,hdf5,9to10.h5/Skims/mfmfarbx,1,FALSE,null,null,null,TRUE
 fare,transit,light-rail,all,0,1439,maxzone,hdf5,9to10.h5/Skims/mfmfarbx,1,FALSE,null,null,null,TRUE
-distance,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,0.1,TRUE
-time,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,2,TRUE
+distance,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,0.05,TRUE
+time,walk,full-network,all,0,1439,maxzone,hdf5,5to6.h5/Skims/walkt,1,FALSE,distance,null,null,TRUE
 ivtime,hov2,full-network,high,300,359,maxzone,hdf5,5to6.h5/Skims/h2tl3t,1,FALSE,distance,null,null,TRUE
 toll,hov2,full-network,high,300,359,maxzone,hdf5,5to6.h5/Skims/h2tl3c,1,FALSE,distance,null,null,TRUE
 ivtime,hov2,full-network,low,300,359,maxzone,hdf5,5to6.h5/Skims/h2tl1t,1,FALSE,distance,null,null,TRUE
