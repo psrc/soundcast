@@ -90,13 +90,26 @@ def update_headways(emmeProject, headways_df):
             network.delete_transit_line(transit_line.id)
     emmeProject.current_scenario.publish_network(network)
 
-def distance_pricing(rate, emmeProject):
+def distance_pricing(distance_rate, hot_rate, emmeProject):
    toll_atts = ["@toll1", "@toll2", "@toll3", "@trkc1", "@trkc2", "@trkc3"]
    network = emmeProject.current_scenario.get_network()
    for link in network.links():
         if link.data3 > 0:
-            for att in toll_atts:
-                link[att] = link[att] + (link.length * rate)
+            if add_distance_pricing:
+                for att in toll_atts:
+                    link[att] = link[att] + (link.length * distance_rate)
+            if add_hot_lane_tolls:
+                # is the link a managed lane:
+                if int(link.i_node.id) > min_hov_node and int(link.j_node.id) > min_hov_node:
+                    # get the modes allowed
+                    test = [i[1].id for i in enumerate(link.modes)]
+                    # if sov modes are allowed, they should be tolled
+                    if 's' in test or 'e' in test:
+                        print hot_rate
+                        link['@toll1'] = link['@toll1'] + (link.length * hot_rate)
+                       
+               
+
             
     
    emmeProject.current_scenario.publish_network(network)
@@ -261,11 +274,10 @@ def run_importer(project_name):
         #import tolls
         import_tolls(my_project)
         arterial_delay(my_project, rdly_factor)
-        if add_distance_pricing:
-            distance_pricing(distance_rate_dict[value], my_project)
+        if add_distance_pricing or add_hot_lane_tolls:
+            distance_pricing(distance_rate_dict[value], hot_rate_dict[value], my_project)
         
-        
-
+       
 def main():
 
     run_importer(network_summary_project)

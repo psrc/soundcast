@@ -36,15 +36,21 @@ if not(use_simple_configuration):
     
     ###### Distance-based pricing######
     add_distance_pricing = False
-    distance_rate_dict = {'am' : 10, 'md' : 5, 'pm' : 10, 'ev' : 5, 'ni' : 5}
+    # rate below includes 3.5 cent carbon tax
+    distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
+    # HOT Lanes
+    add_hot_lane_tolls = False
+    hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
+    # in the junctions shapefile in the inputs/networks folder, this is the minimum scene_node value where facility type = 99
+    min_hov_node = 199203
     ###################################
     
     ######Set up:######
-    run_accessibility_calcs = True
-    run_copy_daysim_code = True
-    run_setup_emme_project_folders = True
-    run_setup_emme_bank_folders = True
-    run_copy_large_inputs = True
+    run_accessibility_calcs = False
+    run_copy_daysim_code = False
+    run_setup_emme_project_folders = False
+    run_setup_emme_bank_folders = False
+    run_copy_large_inputs = False
     run_import_networks = True
     ###################
 
