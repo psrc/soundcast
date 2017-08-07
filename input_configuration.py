@@ -46,11 +46,11 @@ if not(use_simple_configuration):
     ###################################
     
     ######Set up:######
-    run_accessibility_calcs = False
-    run_copy_daysim_code = False
-    run_setup_emme_project_folders = False
-    run_setup_emme_bank_folders = False
-    run_copy_large_inputs = False
+    run_accessibility_calcs = True
+    run_copy_daysim_code = True
+    run_setup_emme_project_folders = True
+    run_setup_emme_bank_folders = True
+    run_copy_large_inputs = True
     run_import_networks = True
     ###################
 
@@ -76,7 +76,7 @@ if not(use_simple_configuration):
     ###########################
     
     #Summaries to run:######
-    run_accessibility_summary = False
+    run_accessibility_summary = True
     run_network_summary = True
     run_grouped_summary = True
     run_soundcast_summary = True

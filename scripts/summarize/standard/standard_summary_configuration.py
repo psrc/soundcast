@@ -77,3 +77,13 @@ transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 bike_link_vol = 'outputs/bike/bike_volumes.csv'
 bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
+
+# Parcel Summary
+buffered_parcels = 'buffered_parcels.txt'   # Parcel data
+parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
+parcel_file_out = 'parcel_summary.xlsx'    # summary output file name
+parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
+nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
+links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
+transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
+max_dist = 24140.2
