@@ -663,7 +663,7 @@ if __name__ == '__main__':
         logsums(name, file_dir)
 
     # Write notebooks based on these outputs to HTML
-    for nb in ['topsheet']:
+    for nb in ['topsheet','metrics']:
         try:
             os.system("jupyter nbconvert --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
         except:
