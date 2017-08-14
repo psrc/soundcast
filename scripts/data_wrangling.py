@@ -32,6 +32,7 @@ import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
 from emme_configuration import *
 import emme_configuration
+import input_configuration
 import glob
 
 
@@ -69,9 +70,9 @@ def copy_accessibility_files():
     
     print 'Copying Transit stop file'
     try:      
-        shcopy(scenario_inputs+'/landuse/transit_stops_' + model_year + '.csv','inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
     except:
-        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + model_year + '.csv'
+        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
         sys.exit(1)
 
     

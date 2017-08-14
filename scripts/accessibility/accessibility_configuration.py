@@ -4,7 +4,7 @@ from input_configuration import *
 
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 output_parcels = 'inputs/buffered_parcels.txt'
-transit_stops_name = 'inputs/accessibility/transit_stops_' + model_year + '.csv'
+transit_stops_name = 'inputs/accessibility/transit_stops_' + scenario_name + '.csv'
 nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
 links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
 

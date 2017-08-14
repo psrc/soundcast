@@ -1,4 +1,5 @@
-﻿##################################### NETWORK IMPORTER ####################################
+﻿from input_configuration import *
+##################################### NETWORK IMPORTER ####################################
 import_shape = False    # use network shape
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -24,7 +25,7 @@ no_toll_modes = ['s', 'h', 'i', 'j']
 unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
-headway_file = 'sc_headways.csv'
+headway_file = ''.join(['sc_headways_', scenario_name, '.csv'])
 
 ################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
