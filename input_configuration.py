@@ -26,10 +26,6 @@ if not(use_simple_configuration):
     scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
     
-    ###### Only update parking for future-year analysis!######
-    run_update_parking = False
-    ##########################################################
-    
     ###### Only Convert 2010 hhinc if using 2010 base year!######
     run_convert_hhinc_2000_2010 = False
     #############################################################
