@@ -48,6 +48,7 @@ if not(use_simple_configuration):
     run_setup_emme_bank_folders = True
     run_copy_large_inputs = True
     run_import_networks = True
+    run_daysim_zone_inputs = True
     ###################
 
     ###### Only one of the following should be Tru!!!!!!######

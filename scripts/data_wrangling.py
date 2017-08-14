@@ -93,7 +93,7 @@ def copy_accessibility_files():
 
     
     print 'Copying Hourly and Daily Parking Files'
-    if run_update_parking: 
+    if base_year != model_year: 
         try:
             shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
             shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
