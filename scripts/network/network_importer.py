@@ -107,6 +107,7 @@ def distance_pricing(distance_rate, hot_rate, emmeProject):
                     if 's' in test or 'e' in test:
                         print hot_rate
                         link['@toll1'] = link['@toll1'] + (link.length * hot_rate)
+                        link['@toll2'] = link['@toll2'] + (link.length * hot_rate)
                        
                
 

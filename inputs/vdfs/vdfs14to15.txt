@@ -27,6 +27,7 @@ a ft13 =1.230715 * timau .min. (length * 12)
 a ft14 =1.013045 * timau
 a ft15 =1.109141 * timau .min. (length * 12)
 a ft16 =1.10514 * timau .min. (length * 12)
+a ft17 =0.95 * timau .min. (length * 12)
 a fp1  =up1 / 100
 a fp2  =0
 
