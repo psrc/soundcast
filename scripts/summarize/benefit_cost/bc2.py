@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import collections
 
-h5filters = tables.Filters(complevel=1, complib='zlib')
+
 
 def read_zz_components(config):
     """Returns a generator that returns a dictionary of each zone-to-zone
@@ -211,47 +211,8 @@ def write_benefits(outputpath, benefits, benefittype="dollarben"):
 
 if __name__ == '__main__':
 
-    # Set up some command line options
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output",
-                        help="Optional output file")
-
-    parser.add_argument("-a", "--alternative",
-                        help="""Optional alternative scenario;
-                        overrides config.""")
-
-    parser.add_argument("-b", "--baseline",
-                        help="Optional baseline scenario; overrides config.")
-
-    parser.add_argument("-c", "--config", required=True,
-                        help="""JSON configuration file; defines scenario
-                        parameters and user benefit components.""")
-
-    parser.add_argument("-z", "--max_zone_id",
-                        help="""Maximum Zone ID; this is the max internal zone.""")
-
-
-    parser.add_argument("-t", "--tabular",
-                        help="""Write benefits in tabular format.""")
-
-    args = parser.parse_args()
-
-    with open(args.config) as f:
-        config = json.load(f)
-
-    if args.output:
-        config["outputpath"] = args.output
-    else: pass
-
-    if args.alternative:
-        config["alternative"]["filepath"] = args.alternative
-    else: pass
-
-    if args.baseline:
-        config["baseline"]["filepath"] = args.baseline
-
-    if args.max_zone_id:
-        config["max_zone_id"] = args.max_zone_id
+    with open('scripts/summarize/benefit_cost/benefit_configuration.json') as config_file:
+      config = json.load(config_file)
 
     bens = all_dollar_benefits(config)
 

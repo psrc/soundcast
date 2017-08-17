@@ -1,7 +1,11 @@
 ﻿import os
 import sys
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
+import argparse
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+sys.path.append(dname)
+sys.path.append(os.path.join(os.getcwd(),"scripts\summarize"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import pandas as pd
 import time
 import h5py
@@ -10,8 +14,6 @@ import itertools
 import collections
 import xlsxwriter
 import numpy as np
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
-sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 from EmmeProject import *
@@ -126,9 +128,8 @@ def injury_calc(injury_file, my_project):
     return injury_rates_vmt
 
 def auto_own_cost_calc(daysim_outputs):
-    hh_auto = daysim_outputs['Household'][['hhvehs','hhtaz']]
-    hh_auto['hhvehs'].loc[hh_auto['hhvehs']==4] = FOUR_PLUS_CAR_AVG
-    hh_auto_zone = hh_auto.groupby(['hhtaz']).sum()*ANNUAL_OWNERSHIP_COST/ANNUALIZATION
+    daysim_outputs['hhvehs'].loc[daysim_outputs['hhvehs']==4] = FOUR_PLUS_CAR_AVG
+    hh_auto_zone = daysim_outputs.groupby(['hhtaz']).sum()['hhvehs']*ANNUAL_OWNERSHIP_COST/ANNUALIZATION
     return hh_auto_zone
 
 def write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs):
@@ -138,23 +139,36 @@ def write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs):
 
 
 def main():
-    
+
+    with open('scripts/summarize/benefit_cost/benefit_configuration.json') as config_file:
+      config = json.load(config_file)
+      parser = argparse.ArgumentParser()
+
+    parser.add_argument("outputfile")
+    parser.add_argument("inputpath")
+
+    args = parser.parse_args()
+
+
     #### Get EMME project set up##############
-    emme_project = EmmeProject(project)
+    filepath = args.inputpath +'/'+ project
+    emme_project = EmmeProject(filepath)
     ## Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
     df_emissions = emissions_calc(vmt_speed_dict, model_year)
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
-
+    print 'injury calcs'
     ### Get auto ownership data###
-    daysim_outputs = convert(h5_results_file,guidefile, output_name)
-    auto_own_cost = auto_own_cost_calc(daysim_outputs)
-
+    daysim_outputs = pd.read_csv(args.inputpath +'/outputs/daysim/_household.tsv', sep = '\t')
+    print daysim_outputs.columns
+    auto_own_cost = pd.DataFrame(auto_own_cost_calc(daysim_outputs))
+    print 'auto own'
     # Write it out
     output_dfs = [df_emissions, noise_vmt, injury_rates_vmt, auto_own_cost]
 
-    bc_writer = pd.ExcelWriter(bc_outputs_file, engine = 'xlsxwriter')
+
+    bc_writer =  pd.ExcelWriter(args.outputfile, engine = 'xlsxwriter')
     start_row = 1
     write_results(bc_writer, start_row, REPORT_ROW_GAP, output_dfs)
     bc_writer.close()

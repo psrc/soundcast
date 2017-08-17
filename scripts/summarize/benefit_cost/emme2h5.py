@@ -6,6 +6,7 @@ import inro.emme.database.emmebank as ebank
 import re
 import json
 from datetime import datetime, timedelta
+sys.path.append(os.getcwd())
 
 # Being bad and setting a global compression variable for HDF5
 # stores

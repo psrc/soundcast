@@ -1,18 +1,22 @@
 {
   "description": "example soundcast use",
   "year": 2040,
-  "outputpath": "d:/bca_outputs/soundcast_bc_test_2040.csv",
+  "outputpath": "d:/bca_outputs/soundcast_bc_test.csv",
   "constantdollars": 2014,
   "max_zone_id": 3700,
 
   "baseline": {
     "description": "2040_no_build",
-    "filepath": "d:/bca_outputs/2040_no_build.h5"
+    "filepath": "d:/bca_outputs/2040_no_build.h5",
+    "inputpath": "d:/soundcast_no_build_no_tolls/new",
+    "aqoutputpath": "d:/bca_outputs/aq_crash_base.xlsx"
   },
 
   "alternative": {
-    "description": "2040 build",
-    "filepath": "d:/bca_outputs/2040_build.h5"
+    "description": "2025_20_5",
+    "filepath": "d:/bca_outputs/2025_20_5.h5",
+    "inputpath": "d:/brice/sc_2025_20_5",
+    "aqoutputpath": "d:/bca_outputs/aq_crash_alt.xlsx"
   },
 
 
