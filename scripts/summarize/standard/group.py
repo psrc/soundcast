@@ -665,7 +665,7 @@ if __name__ == '__main__':
     # Write notebooks based on these outputs to HTML
     for nb in ['topsheet','metrics']:
         try:
-            os.system("jupyter nbconvert --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
+            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
         except:
             print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
