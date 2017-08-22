@@ -98,9 +98,11 @@ def calc_zz_benefit(zzben, config):
     av = av[0:max_zone, 0:max_zone]
 
     # this can happen if there is no transit service between an od pair
-    if (bc<-10000).any() or (ac<-10000).any():
+    if (bc>1000000).any() or (ac>1000000).any():
         print "There is no transit service between an o-d pair, you may want to check your network."
 
+    bc[bc>1000000] = 0
+    ac[ac>1000000] = 0
     rawben = (bc - ac) * ((bv + av) / 2)
 
 
