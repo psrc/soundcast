@@ -33,12 +33,12 @@ if __name__ == '__main__':
 
     print 'doing air quality and crash calculations with the emme networks.'
     # do air quality and crash calculations
-    returncode = subprocess.call([sys.executable,config['baseline']['inputpath']+'/scripts/summarize/benefit_cost/aq_crash_calcs.py', config['baseline']['aqoutputpath']])
+    returncode = subprocess.call([sys.executable, config['baseline']['inputpath']+'/scripts/summarize/benefit_cost/aq_crash_calcs.py', config['baseline']['inputpath'], config['baseline']['aqoutputpath']])
     if returncode != 0:
       print 'aq_crash_calcs.py failed for the baseline'
       sys.exit(1)
     
-    returncode = subprocess.call([sys.executable,config['alternative']['inputpath']+'/scripts/summarize/benefit_cost/aq_crash_calcs.py', config['alternative']['aqoutputpath']])
+    returncode = subprocess.call([sys.executable,config['alternative']['inputpath']+'/scripts/summarize/benefit_cost/aq_crash_calcs.py', config['alternative']['inputpath'], config['alternative']['aqoutputpath']])
     if returncode != 0:
       print 'aq_crash_calcs.py failed for the alternative'
       sys.exit(1)

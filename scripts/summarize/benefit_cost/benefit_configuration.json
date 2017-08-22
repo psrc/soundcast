@@ -8,15 +8,15 @@
   "baseline": {
     "description": "2040_no_build",
     "filepath": "d:/bca_outputs/2040_no_build.h5",
-    "inputpath": "d:/soundcast_no_build_no_tolls/new",
+    "inputpath": "D:/soundcast_2040_no_build2",
     "aqoutputpath": "d:/bca_outputs/aq_crash_base.xlsx"
   },
 
   "alternative": {
-    "description": "2025_20_5",
-    "filepath": "d:/bca_outputs/2025_20_5.h5",
-    "inputpath": "d:/brice/sc_2025_20_5",
-    "aqoutputpath": "d:/bca_outputs/aq_crash_alt.xlsx"
+    "description": "2040 constrained plan",
+    "filepath": "d:/bca_outputs/2040_constrained_plan.h5",
+    "inputpath": "D:/soundcast_2040_constrained",
+    "aqoutputpath": "d:/bca_outputs/aq_crash_constrained_plan.xlsx"
   },
 
 

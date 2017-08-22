@@ -144,8 +144,8 @@ def main():
       config = json.load(config_file)
       parser = argparse.ArgumentParser()
 
-    parser.add_argument("outputfile")
     parser.add_argument("inputpath")
+    parser.add_argument("outputfile")
 
     args = parser.parse_args()
 
