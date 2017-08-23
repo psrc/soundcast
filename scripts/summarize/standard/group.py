@@ -365,13 +365,15 @@ def taz_avg(dataset):
     taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
     # Delay
-    trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
-    trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
-    df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
-    df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
-    df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+    if dataset['name'] != 'survey':
+        # Delay field not available on survey records, skip if survey records
+        trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+        trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
+        df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+        df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+        df['Delay per Capita per Day'] = df['delay']/df['hhsize']
 
-    taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
+        taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 
     # average annual costs
     annual_factor = 300
@@ -692,8 +694,7 @@ def write_csv(df,fname):
 if __name__ == '__main__':
 
     # Use root directory name as run name
-    # run_name = os.getcwd().split('\\')[-1]
-    run_name = '2040 Plan'
+    run_name = os.getcwd().split('\\')[-1]
 
     # Create output directory, overwrite existing results
     output_dir = r'outputs/grouped'
