@@ -348,6 +348,21 @@ def taz_avg(dataset):
     # Join mode share and VMT per capita
     taz_df = pd.merge(taz_df, df, on='hhtaz')
 
+    # Non-Auto Mode Share
+    trip.ix[trip['mode'].isin(['Walk','Bike','Transit','School Bus','Other']), 'Non-Auto'] = 'Non-Auto'
+    trip.ix[trip['mode'].isin(['SOV','HOV2','HOV3+']), 'Non-Auto'] = 'Auto'
+    df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
+    df = df.reset_index()
+    df.columns = ['hhtaz','Non-Auto Trips']
+    df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
+    df_trip = df_trip.reset_index()
+    df = pd.merge(df_trip, df, on='hhtaz') 
+    df['Percent Non-Auto'] = df['Non-Auto Trips']/df['trexpfac']
+    df = df[['hhtaz','Percent Non-Auto']]
+
+    # Join mode share and VMT per capita
+    taz_df = pd.merge(taz_df, df, on='hhtaz')
+
     # Calculate percent walking or biking for transportation
     bike_walk_trips = trip[trip['mode'].isin(['Bike','Walk']) | ((trip['mode'] == 'Transit') & (trip['dorp'] > 0))]
     df = bike_walk_trips.groupby(['hhno','pno']).count()
