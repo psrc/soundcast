@@ -1,6 +1,8 @@
+import os, sys
 import pysal as ps
 import numpy as np
 import pandas as pd
+sys.path.append(os.getcwd())
 
 # open nodes file & convert to pandas dataframe
 nodes = ps.open('inputs/networks/junctions.dbf')

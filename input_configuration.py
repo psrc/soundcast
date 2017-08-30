@@ -1,3 +1,4 @@
+import os
 from input_configuration_simple import *
 
 # This file contains model input parameters imported by SoundCast scripts.   
@@ -15,21 +16,30 @@ from input_configuration_simple import *
 if not(use_simple_configuration):
     
     # Scenario and input paths
-    base_year = '2014'  # This should always be 2010 unless the base year changes
+    base_year = '2014'  # This should always be 2014 unless the base year changes
     scenario_name = '2014'
+    model_year = '2014'
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
-    main_inputs_folder =  'R:/SoundCast/Inputs/'
-    base_inputs = main_inputs_folder + scenario_name
+    main_inputs_folder =  'R:/SoundCast/Inputs'
+    base_inputs = os.path.join(main_inputs_folder, base_year)
+    scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
-    
-    ###### Only update parking for future-year analysis!######
-    run_update_parking = False
-    ##########################################################
     
     ###### Only Convert 2010 hhinc if using 2010 base year!######
     run_convert_hhinc_2000_2010 = False
     #############################################################
+    
+    ###### Distance-based pricing######
+    add_distance_pricing = False
+    # rate below includes 3.5 cent carbon tax
+    distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
+    # HOT Lanes
+    add_hot_lane_tolls = False
+    hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
+    # in the junctions shapefile in the inputs/networks folder, this is the minimum scene_node value where facility type = 99
+    min_hov_node = 199203
+    ###################################
     
     ######Set up:######
     run_accessibility_calcs = True
@@ -38,6 +48,7 @@ if not(use_simple_configuration):
     run_setup_emme_bank_folders = True
     run_copy_large_inputs = True
     run_import_networks = True
+    run_daysim_zone_inputs = True
     ###################
 
     ###### Only one of the following should be Tru!!!!!!######
@@ -56,14 +67,17 @@ if not(use_simple_configuration):
     run_supplemental_trips = True
     run_daysim = True
     ###########################
+
+    ###### Additional skims for Benefit Cost:######
+    should_run_reliability_skims = True
+    ###########################
     
     #Summaries to run:######
-    run_accessibility_summary = False
+    run_accessibility_summary = True
     run_network_summary = True
+    run_grouped_summary = True
     run_soundcast_summary = True
-    run_create_daily_bank = True
-    run_ben_cost = False
-    run_truck_summary = False
+    run_truck_summary = True
     run_landuse_summary = False
     ########################
 
@@ -93,7 +107,7 @@ if not(use_simple_configuration):
 else:
 
     create_no_toll_network = False
-    run_ben_cost = False
+
     min_pop_sample_convergence_test = 10
     
     if run_setup:
@@ -199,7 +213,6 @@ else:
 ###########################################################################################################################################################
 # These files generally do not change and don't need to be toggled here usually
 master_project = 'LoadTripTables'
-run_tableau_db = False
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
@@ -213,15 +226,11 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "snack", "nap"
 # Please add to this list as you find files that are missing.
 commonly_missing_files = ['buffered_parcels.txt', 'tazdata.in']
 
-
-run_tableau_db = False
-
 # Calibration Summary Configuration
-h5_results_file = 'outputs/daysim_outputs.h5'
+h5_results_file = 'outputs/daysim/daysim_outputs.h5'
 h5_results_name = 'DaysimOutputs'
 h5_comparison_file = 'scripts/summarize/inputs/calibration/survey.h5'
 h5_comparison_name = 'Survey'
 guidefile = 'scripts/summarize/inputs/calibration/CatVarDict.xlsx'
 districtfile = 'scripts/summarize/inputs/calibration/TAZ_TAD_County.csv'
-report_output_location = 'outputs'
-bc_outputs_file = 'outputs/BenefitCost.xlsx'
+report_output_location = 'outputs/daysim'

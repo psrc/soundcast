@@ -23,6 +23,7 @@ import inro.emme.database.emmebank as _eb
 import random
 import shutil
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.getcwd())
 from input_configuration import *
 from logcontroller import *
 from input_configuration import *
@@ -31,6 +32,7 @@ import pandas as pd
 import input_configuration # Import as a module to access inputs as a dictionary
 from emme_configuration import *
 import emme_configuration
+import input_configuration
 import glob
 
 
@@ -60,59 +62,51 @@ def copy_accessibility_files():
     
     print 'Copying UrbanSim parcel file'
     try:
-        if os.path.isfile(base_inputs+'/landuse/parcels_urbansim.txt'):
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
-        # the file may need to be reformatted- like this coming right out of urbansim
-        elif os.path.isfile(base_inputs+'/landuse/parcels.dat'):
-            print 'the file is ' + base_inputs +'/landuse/parcels.dat'
-            print "Parcels file is being reformatted to Daysim format"
-            parcels = pd.DataFrame.from_csv(base_inputs+'/landuse/parcels.dat',sep=" " )
-            print 'Read in unformatted parcels file'
-            for col in parcels.columns:
-                print col
-                new_col = [x.upper() for x in col]
-                new_col = ''.join(new_col)
-                parcels=parcels.rename(columns = {col:new_col})
-                print new_col
-            parcels.to_csv(base_inputs+'/landuse/parcels_urbansim.txt', sep = " ")
-            shcopy(base_inputs+'/landuse/parcels_urbansim.txt','inputs/accesibility')
-
-    except Exception as ex:
-        template = "An exception of type {0} occured. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print message
+        shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
+    except:
+        print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
+        sys.exit(1)
+      
+    
+    print 'Copying Transit stop file'
+    try:      
+        shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
+    except:
+        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
         sys.exit(1)
 
-
+    
     print 'Copying Military parcel file'
     try:
-        shcopy(base_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
     except:
-        print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
+        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
         sys.exit(1)
 
+    
+    print 'Copying JBLM file'
     try:
-        shcopy(base_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
+        shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
     except:
-        print 'error copying military parcel file at ' + base_inputs+'/landuse/parcels_military.csv'
+        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
         sys.exit(1)
 
-
+    
     print 'Copying Hourly and Daily Parking Files'
-    if run_update_parking: 
+    if base_year != model_year: 
         try:
-            shcopy(base_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
-            shcopy(base_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
         except:
-            print 'error copying parking file at' + base_inputs+'/landuse/' + ' either hourly or daily parking costs'
+            print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
             sys.exit(1)
 
 @timed
 def copy_seed_skims():
     print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
-    if not(os.path.isdir(base_inputs+'/seed_skims')):
-           print 'It looks like you do not hava directory called' + base_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
-    for filename in glob.glob(os.path.join(base_inputs+'/seed_skims', '*.*')):
+    if not(os.path.isdir(scenario_inputs+'/seed_skims')):
+           print 'It looks like you do not hava directory called' + scenario_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
+    for filename in glob.glob(os.path.join(scenario_inputs+'/seed_skims', '*.*')):
         shutil.copy(filename, 'inputs')
     print 'Done copying seed skims.'
 
@@ -170,6 +164,7 @@ def setup_emme_bank_folders():
 
 @timed
 def setup_emme_project_folders():
+    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
     #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
 
     tod_dict = text_to_dictionary('time_of_day')
@@ -189,11 +184,13 @@ def setup_emme_project_folders():
     database.open()
     desktop.project.save()
     desktop.close()
+    shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
 
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
     tod_list.append('Supplementals')
-    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
+
+    
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)
@@ -208,23 +205,19 @@ def setup_emme_project_folders():
 @timed    
 def copy_large_inputs():
     print 'Copying large inputs...' 
-    shcopy(base_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
-    dir_util.copy_tree(base_inputs+'/networks','Inputs/networks')
-    dir_util.copy_tree(base_inputs+'/trucks','Inputs/trucks')
-    dir_util.copy_tree(base_inputs+'/tolls','Inputs/tolls')
-    dir_util.copy_tree(base_inputs+'/Fares','Inputs/Fares')
-    dir_util.copy_tree(base_inputs+'/bikes','Inputs/bikes')
-    dir_util.copy_tree(base_inputs+'/supplemental/distribution','inputs/supplemental/distribution')
-    dir_util.copy_tree(base_inputs+'/supplemental/generation','inputs/supplemental/generation')
-    dir_util.copy_tree(base_inputs+'supplemental/parameters','inputs/supplemental/parameters')
-    dir_util.copy_tree(base_inputs+'supplemental/input','inputs/supplemental/input')
-    dir_util.copy_tree(base_inputs+'/supplemental/trips','outputs/supplemental')
-    dir_util.copy_tree(base_inputs+'/corridors','Inputs/corridors')
-    shcopy(base_inputs+'/landuse/hh_and_persons.h5','Inputs')
-    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize')
+    if run_skims_and_paths_seed_trips:
+        shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
+    dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
+    dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
+    dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
+    dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
+    dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
+    dir_util.copy_tree(base_inputs+'/observed','Inputs/observed')
+    dir_util.copy_tree(base_inputs+'/corridors','inputs/corridors')
+    dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
+    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
+    shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
-    shcopy(base_inputs+'/4k/auto.h5','Inputs/4k')
-    shcopy(base_inputs+'/4k/transit.h5','Inputs/4k')
     # node to node short distance files:
     shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
@@ -288,3 +281,8 @@ def check_inputs():
         for file in missing_list:
             logger.info('- ' + file)
             print file
+
+def build_output_dirs():
+    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit']:
+        if not os.path.exists(path):
+            os.makedirs(path)

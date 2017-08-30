@@ -1,4 +1,4 @@
-﻿#Copyright [2014] [Puget Sound Regional Council]
+#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -36,42 +36,21 @@ import sqlite3 as lite
 from datetime import datetime
 from EmmeProject import *
 from multiprocessing import Pool
+from pyproj import Proj, transform
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 from input_configuration import *
 from emme_configuration import *
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 
-#network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
-daily_network_fname = 'outputs/daily_network_results.csv'
-#fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
-#                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
-#                 'connectors' : 'ul3 = 5'}
+daily_network_fname = 'outputs/network/daily_network_results.csv'
 
-#extra_attributes_dict = {'@tveh' : 'total vehicles', 
-#                         '@mveh' : 'medium trucks', 
-#                         '@hveh' : 'heavy trucks', 
-#                         '@vmt' : 'vmt',\
-#                         '@vht' : 'vht', 
-#                         '@trnv' : 'buses in auto equivalents',
-#                         '@ovol' : 'observed volume', 
-#                         '@bveh' : 'number of buses'}
-
-#transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
-
-#transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
-#               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
-#               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 ## Input Files:
 aadt_counts_file = 'soundcast_aadt.csv'
 tptt_counts_file = 'soundcast_tptt.csv'
-
-#uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@svnt2', '@svnt3', '@h2tl1', '@h2tl2', '@h2tl3',
-#           '@h2nt1', '@h2nt2', '@h2nt3', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@h3nt2', '@h3nt3', '@lttrk', '@mveh', '@hveh', '@bveh']
 
 def json_to_dictionary(dict_name):
 
@@ -143,25 +122,44 @@ def vmt_by_user_class(EmmeProject):
         uc_vmt_list.append(EmmeProject.network_calc_result['sum'])
     return uc_vmt_list
 
-def get_link_counts(EmmeProject, df_counts, tod):
+def delay_by_user_class(EmmeProject):
+    #uc_list = ['@svtl1', '@svtl2', '@svtl3', '@svnt1', '@h2tl1', '@h2tl2', '@h2tl3', '@h2nt1', '@h3tl1', '@h3tl2', '@h3tl3', '@h3nt1', '@lttrk', '@mveh', '@hveh', '@bveh']
+    uc_delay_list = []
+    link_selection = 'ul3 = 1 or ul3 = 2 or ul3 = 3 or ul3 = 4 or ul3 = 5 or ul3 = 6'
+    for item in uc_list:
+        EmmeProject.network_calculator("link_calculation", result = None, expression = item + "*(timau-(length*60/ul2))/60", selections_by_link=link_selection)
+        uc_delay_list.append(EmmeProject.network_calc_result['sum'])
+    return uc_delay_list
+
+def get_link_counts(EmmeProject, loop_id_df, tod):
     #get the network for the active scenario
      network = EmmeProject.current_scenario.get_network()
+     scenario = EmmeProject.current_scenario
      list_model_vols = []
-     for item in df_counts.index:
-         i = list(item)[0]
-         j = list(item)[1]
+     # Add/refresh screenline ID link attribute
+     if scenario.extra_attribute('@loop'):
+            scenario.delete_extra_attribute('@loop')
+     attr = scenario.create_extra_attribute('LINK', '@loop')
+     for row in loop_id_df.iterrows():
+         i = row[1].NewINode
+         j = row[1].NewJNode
          link = network.link(i, j)
          x = {}
-         x['loop_INode'] = i
-         x['loop_JNode'] = j
+         #x['NewINode'] = i
+         #x['NewJNode'] = j
+         x['CountID'] = row[1].CountID
          if link <> None:
+            #link['@loop'] = row[1].CountID
             x['vol' + tod] = link['@tveh']   
          else:
             x['vol' + tod] = None
          list_model_vols.append(x)
-     print len(list_model_vols)
+     #print len(list_model_vols)
+     #scenario.publish_network(network)
      df =  pd.DataFrame(list_model_vols)
-     df = df.set_index(['loop_INode', 'loop_JNode'])
+     df.set_index(['CountID'], inplace = True)
+     #df = df.set_index(['loop_INode', 'loop_JNode'])
+     #print df.head(10)
      return df
 
 def get_aadt_volumes(EmmeProject, df_aadt_counts, vol_dict):
@@ -316,11 +314,9 @@ def get_transit_boardings_time(EmmeProject):
 def calc_transit_link_volumes(EmmeProject):
     total_hours = transit_tod[EmmeProject.tod]['num_of_hours']
     my_expression = str(total_hours) + ' * vauteq * (60/hdw)'
-    print my_expression
+    
     EmmeProject.transit_segment_calculator(result = '@trnv', expression = my_expression, aggregation = "+")
     
-          
-        
 def writeCSV(fileNamePath, listOfTuples):
     myWriter = csv.writer(open(fileNamePath, 'wb'))
     for l in listOfTuples:
@@ -398,15 +394,229 @@ def get_link_attribute(network, attr):
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
     return df
 
-def export_corridor_results(my_project):
+
+def calc_total_vehicles(my_project):
+     '''For a given time period, calculate link level volume, store as extra attribute on the link'''
+    
+     #medium trucks
+     my_project.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
+     
+     #heavy trucks:
+     my_project.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
+     
+     #buses:
+     my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
+     
+     #calc total vehicles, store in @tveh 
+     str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1 + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
+     my_project.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
+
+
+def get_aadt_trucks(my_project):
+    '''Calculate link level daily total truck passenger equivalents for medium and heavy, store in a DataFrame'''
+    
+    link_list = []
+
+    for key, value in sound_cast_net_dict.iteritems():
+        my_project.change_active_database(key)
+        
+        # Create extra attributes to store link volume data
+        for name, desc in extra_attributes_dict.iteritems():
+            my_project.create_extra_attribute('LINK', name, desc, 'True')
+        
+        ## Calculate total vehicles for each link
+        calc_total_vehicles(my_project)
+        
+        # Loop through each link, store length and truck pce
+        network = my_project.current_scenario.get_network()
+        for link in network.links():
+            link_list.append({'link_id' : link.id, '@mveh' : link['@mveh'], '@hveh' : link['@hveh'], 'length' : link.length})
+            
+    df = pd.DataFrame(link_list, columns = link_list[0].keys())       
+    grouped = df.groupby(['link_id'])
+    df = grouped.agg({'@mveh':sum, '@hveh':sum, 'length':min})
+    df.reset_index(level=0, inplace=True)
+    
+    return df
+    
+def truck_summary(df_counts, my_project, writer):
+    """ Export medium and heavy truck results where observed data is available """
+    
+    truck_volumes = get_aadt_trucks(my_project)
+    truck_compare = pd.merge(df_counts, truck_volumes, left_on='ij_id', right_on='link_id')
+    truck_compare['modeledTot'] = truck_compare['@mveh']+truck_compare['@hveh']
+    truck_compare['modeledMed'] = truck_compare['@mveh']
+    truck_compare['modeledHvy'] = truck_compare['@hveh']
+    truck_compare_grouped_sum = truck_compare.groupby(['CountID']).sum()[['modeledTot', 'modeledMed', 'modeledHvy']]
+    truck_compare_grouped_sum.reset_index(level=0, inplace=True)
+    truck_compare_grouped_min = truck_compare.groupby(['CountID']).min()[['Location', 'LocationDetail', 'FacilityType', 'length', 'observedMed',
+                                                                        'observedHvy', 'observedTot','county','LARGE_AREA','lat','lon']]
+    truck_compare_grouped_min.reset_index(level=0, inplace=True)
+    trucks_out= pd.merge(truck_compare_grouped_sum, truck_compare_grouped_min, on= 'CountID')
+    trucks_out.to_excel(excel_writer=writer, sheet_name='Truck Counts')
+
+def daily_counts(writer, my_project):
+    """Export daily network volumes and compare to observed."""
+
+    # Load observed data
+    count_id_df = pd.read_csv(r'inputs/networks/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    observed_count_df =  pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
+    count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
+    # add daily bank to project if it exists
+    if os.path.isfile(r'Banks/Daily/emmebank'):
+        bank = _eb.Emmebank(r'Banks/Daily/emmebank')
+        scenario = bank.scenario(1002)
+
+        # Add/refresh screenline ID link attribute
+        if scenario.extra_attribute('@scrn'):
+            scenario.delete_extra_attribute('@scrn')
+        attr = scenario.create_extra_attribute('LINK', '@scrn')
+
+        # Add/refresh screenline count value from assignment results
+        if scenario.extra_attribute('@count'):
+            scenario.delete_extra_attribute('@count')
+        attr_count = scenario.create_extra_attribute('LINK', '@count')
+
+        network = scenario.get_network()
+
+        inode_list = []
+        jnode_list = []
+        scrn_id = []
+        facility_list = []
+        observed_volume = []
+        model_volume = []
+
+        for row in count_id_df.iterrows():
+            inode = int(row[1].NewINode) 
+            jnode = int(row[1].NewJNode) 
+            if network.link(inode, jnode):
+                link = network.link(inode, jnode)
+                link['@scrn'] = row[1]['ScreenLineID']
+                link['@count'] = row[1]['Year_2014']
+
+                inode_list.append(inode)
+                jnode_list.append(jnode)
+                facility_list.append(link['data3'])
+                scrn_id.append(link['@scrn'])
+                observed_volume.append(link['@count'])
+                model_volume.append(link['@tveh'])
+
+        scenario.publish_network(network)
+
+        df = pd.DataFrame([inode_list,jnode_list,facility_list,model_volume,scrn_id,observed_volume]).T
+        df.columns=['i','j','ul3','@tveh','@scrn','count']
+
+        df.to_excel(excel_writer=writer, sheet_name='Daily Counts')
+
+        # Export truck trip tables
+        # for matrix_name in ['mfmetrk','mfhvtrk']:
+        #     matrix_id = bank.matrix(matrix_name).id
+        #     emme_matrix = bank.matrix(matrix_id)
+        #     matrix_data = emme_matrix.get_data()
+        #     np_matrix = np.matrix(matrix_data.raw_data)
+        #     df = pd.DataFrame(np_matrix)
+        #     # Attach zone numbers
+        #     # Look up zone ID from index location
+        #     zones = my_project.current_scenario.zone_numbers
+        #     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+        #     df.columns = [dictZoneLookup[i] for i in df.columns]
+        #     df.index = [dictZoneLookup[i] for i in df.index.values]
+
+        #     df.to_csv('outputs/'+matrix_name+'.csv')
+    else:
+        raise Exception('no daily bank found')
+
+def bike_volumes(writer, my_project, tod):
+    '''Write bike link volumes to file for comparisons to counts '''
+
+    my_project.change_active_database(tod)
+
+    network = my_project.current_scenario.get_network()
+
+    # Load bike count data from file
+    bike_counts = pd.read_csv(bike_count_data)
+
+    # Load edges file to join proper node IDs
+    edges_df = pd.read_csv(edges_file)
+
+    df = bike_counts.merge(edges_df, 
+        on=['INode','JNode'])
+    
+    # if the link is twoway, also get the other directoin IJ and JI and append to original df
+    twoway_links_df = df[df['Oneway'] == 2]
+
+    # Replace I with J node for twoway links, for Emme IJ and geodatabase IJ pairs
+    twoway_links_df.loc[:,'tempINode'] = twoway_links_df.loc[:,'JNode']
+    twoway_links_df.loc[:,'tempJNode'] = twoway_links_df.loc[:,'INode']
+    twoway_links_df.loc[:,'tempNewINode'] = twoway_links_df.loc[:,'NewJNode']
+    twoway_links_df.loc[:,'tempNewJNode'] = twoway_links_df.loc[:,'NewINode']
+    # remove old IJ values and replace with the new swapped values
+    twoway_links_df.drop(['INode','JNode','NewINode','NewJNode'],axis=1,inplace=True)
+    twoway_links_df.loc[:,'INode'] = twoway_links_df.loc[:,'tempINode']
+    twoway_links_df.loc[:,'JNode'] = twoway_links_df.loc[:,'tempJNode']
+    twoway_links_df.loc[:,'NewINode'] = twoway_links_df.loc[:,'tempNewINode']
+    twoway_links_df.loc[:,'NewJNode'] = twoway_links_df.loc[:,'tempNewJNode']
+    twoway_links_df.drop(['tempINode','tempJNode','tempNewINode','tempNewJNode'],axis=1,inplace=True)
+
+    df = pd.concat([df,twoway_links_df])
+    df = df.reset_index()
+    list_model_vols = []
+
+    for row in df.index:
+        i = df.iloc[row]['NewINode']
+        j = df.loc[row]['NewJNode']
+        link = network.link(i, j)
+        x = {}
+        x['EmmeINode'] = i
+        x['EmmeJNode'] = j
+        x['gdbINode'] = df.iloc[row]['INode']
+        x['gdbJNode'] = df.iloc[row]['JNode']
+        x['LocationID'] = df.iloc[row]['LocationID']
+        if link != None:
+            x['bvol' + tod] = link['@bvol']
+        else:
+            x['bvol' + tod] = None
+        list_model_vols.append(x)
+
+    df_count =  pd.DataFrame(list_model_vols)
+    sheet_name = 'Bike Volumes'
+    summary_file_dir = 'outputs/network/network_summary_detailed.xlsx'
+    if os.path.exists(summary_file_dir):
+        xl = pd.ExcelFile(summary_file_dir)
+        if sheet_name in xl.sheet_names:
+            '''append column to existing TOD results'''
+            # df = pd.read_csv(bike_link_vol)
+            df = pd.read_excel(io=xl, sheetname=sheet_name)
+            df['bvol'+tod] = df_count['bvol'+tod]
+            # df.to_csv(bike_link_vol,index=False)
+            df.to_excel(excel_writer=writer, sheet_name=sheet_name, index=False) 
+        else:
+            # df_count.to_csv(bike_link_vol,index=False)
+            df_count.to_excel(excel_writer=writer, sheet_name=sheet_name, index=False)
+
+def light_rail(df, writer):
+
+    # load lookup table for observed boardings and station names
+    observed = pd.read_csv(light_rail_boardings)
+    
+    # # Join total and initial boardings & sum for all hours
+
+    # # Join station information for set of nodes; report only for station in observed file
+    df = pd.merge(df, observed, left_on='inode', right_on='id', how='inner')
+    df['transfer_rate'] = df['transfers']/df['total_boardings']
+    if model_year == base_year:
+        df = df.loc[(df.observed_boardings>0)]
+    df.to_excel(excel_writer=writer, sheet_name='Light Rail')
+
+def export_corridor_results(my_project, writer):
     ''' Evaluate corridor travel time for a single AM and PM period'''
     tod = {'am': '7to8', 'pm': '16to17'}
     am_df = corridor_results(tod=tod['am'], my_project=my_project)
     pm_df = corridor_results(tod=tod['pm'], my_project=my_project)
 
     # combine am and pm into single CSV and export
-    corridor_df = pd.concat(objs=[am_df, pm_df])
-    corridor_df.to_csv('outputs/corridor_summary.csv')
+    df = pd.concat(objs=[am_df, pm_df])
+    df.to_excel(excel_writer=writer, sheet_name='Corridors')
 
 def corridor_results(tod, my_project):
     corridor_count = 12    # number of input corridor files
@@ -438,6 +648,8 @@ def corridor_results(tod, my_project):
 
     # join corridor flags to link travel time
     corridor_times_df = pd.merge(link_df, corridor_flags_df)
+
+    # corridor_times_df.to_csv('temp.csv')
 
     # sum corridor travel time and length for each corridor
     link_trav_time = pd.DataFrame()
@@ -471,7 +683,128 @@ def corridor_results(tod, my_project):
 
     return df_out
 
+def freeflow_skims(my_project):
+    """
+    Attach "freeflow" (20to5) SOV skims to daysim_outputs
+    """
 
+    # Load daysim_outputs as dataframe
+    daysim = h5py.File('outputs/daysim/daysim_outputs.h5', 'r+')
+    df = pd.DataFrame()
+    for field in ['travtime','otaz','dtaz']:
+        df[field] = daysim['Trip'][field][:]
+    df['od']=df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
+
+    # Look up zone ID from index location
+    zones = my_project.current_scenario.zone_numbers
+    dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+
+    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl3t'][:]
+
+    skim_df = pd.DataFrame(skim_vals)
+    # Reset index and column headers to match zone ID
+    skim_df.columns = [dictZoneLookup[i] for i in skim_df.columns]
+    skim_df.index = [dictZoneLookup[i] for i in skim_df.index.values]
+
+    skim_df = skim_df.stack().reset_index()
+    skim_df.columns = ['otaz','dtaz','ff_travtime']
+    skim_df['od']=skim_df['otaz'].astype('str')+'-'+skim_df['dtaz'].astype('str')
+    skim_df.index = skim_df['od']
+
+    df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
+
+    # Write to h5, create dataset if 
+    if 'sov_ff_time' in daysim['Trip'].keys():
+        del daysim['Trip']['sov_ff_time']
+    try:
+        daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
+    except:
+        print 'could not write freeflow skim to h5'
+    daysim.close()
+
+def jobs_transit(writer):
+    buf = pd.read_csv(r'inputs\buffered_parcels.txt', sep=' ')
+    buf.index = buf.parcelid
+
+    # distance to any transit stop
+    df = buf[['parcelid','dist_lbus','dist_crt','dist_fry','dist_lrt',
+              u'hh_p', u'stugrd_p', u'stuhgh_p', u'stuuni_p', u'empedu_p',
+           u'empfoo_p', u'empgov_p', u'empind_p', u'empmed_p', u'empofc_p',
+           u'empret_p', u'empsvc_p', u'empoth_p', u'emptot_p']]
+
+    # Use minimum distance to any transit stop
+    newdf = pd.DataFrame(df[['dist_lbus','dist_crt','dist_fry','dist_lrt']].min(axis=1))
+    newdf['parcelid'] = newdf.index
+    newdf.rename(columns={0:'nearest_transit'}, inplace=True)
+    df = pd.merge(df,newdf[['parcelid','nearest_transit']])
+
+    # only sum for parcels closer than quarter mile to stop
+    quarter_mile_jobs = pd.DataFrame(df[df['nearest_transit'] <= 0.25].sum())
+    quarter_mile_jobs.rename(columns={0:'quarter_mile_transit'}, inplace=True)
+    all_jobs = pd.DataFrame(df.sum())
+    all_jobs.rename(columns={0:'total'}, inplace=True)
+
+    df = pd.merge(all_jobs,quarter_mile_jobs, left_index=True, right_index=True)
+    df.drop(['parcelid','dist_lbus','dist_crt','dist_fry','dist_lrt','nearest_transit'], inplace=True)
+
+    df.to_excel(excel_writer=writer, sheet_name='Transit Job Access')
+
+
+def project_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
+    '''
+    Converts the passed in coordinates from their native projection (default is state plane WA North-EPSG:2926)
+    to wgs84. Returns a two item tuple containing the longitude (x) and latitude (y) in wgs84. Coordinates
+    must be in meters hence the default conversion factor- PSRC's are in state plane feet.  
+    '''
+    #print longitude, latitude
+    # Remember long is x and lat is y!
+    prj_wgs = Proj(init='epsg:4326')
+    prj_sp = Proj(ESPG)
+    
+    # Need to convert feet to meters:
+    longitude = longitude * conversion
+    latitude = latitude * conversion
+    x, y = transform(prj_sp, prj_wgs, longitude, latitude)
+    
+    return x, y
+
+def export_network_shape(tod):
+    """
+    Loop through network components and export shape points
+    """
+
+    if os.path.isfile(r'Banks/'+tod+'/emmebank'):
+        bank = _eb.Emmebank(r'Banks/'+tod+'/emmebank')
+        scenario = bank.scenario(1002)
+        network = scenario.get_network()
+
+        inode_list = []
+        jnode_list = []
+        shape_x = []
+        shape_y = []
+        shape_loc = []
+
+        for link in network.links():
+            local_index = 0
+            for point in link.shape:
+                inode_list.append(link.i_node)
+                jnode_list.append(link.j_node)
+                shape_x.append(point[0])
+                shape_y.append(point[1])
+                shape_loc.append(local_index)
+                local_index += 1
+
+        df = pd.DataFrame([inode_list,jnode_list,shape_loc,shape_x,shape_y]).T
+        df.columns=['i','j','shape_local_index','x','y']
+
+        df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
+
+        # convert to lat-lon
+        df['lat_lon'] = df[['x','y']].apply(lambda row: project_to_wgs84(row['x'], row['y']), axis=1)
+        df['lon'] = df['lat_lon'].apply(lambda row: row[0])
+        df['lat'] = df['lat_lon'].apply(lambda row: row[-1])
+
+        df.to_csv('outputs/network/network_shape.csv', index=False)
 
 def main():
     ft_summary_dict = {}
@@ -479,31 +812,44 @@ def main():
     transit_atts = []
     my_project = EmmeProject(project)
 
-    # Travel times on key corridors
-    # export_corridor_results(my_project)
+    export_network_shape('7to8')
 
-    #export_corridor_results(my_project)
+    writer = pd.ExcelWriter('outputs/network/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
-    # Connect to sqlite3 db
-    if run_tableau_db:
-        con = None
-        con = lite.connect(results_db)
-    
-    writer = pd.ExcelWriter('outputs/network_summary_detailed.xlsx', engine = 'xlsxwriter')#Defines the file to write to and to use xlsxwriter to do so
-    #create extra attributes:
-    
+    export_corridor_results(my_project, writer)
+    jobs_transit(writer)
        
-    #pandas dataframe to hold count table:
+    # Read observed count data
+    loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
+    loop_counts = pd.read_csv(r'inputs/observed/loop_counts_2014.csv')
+    loop_counts.set_index(['CountID_Type'], inplace = True)
+    #loop_ids = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_aadt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + aadt_counts_file)
     df_tptt_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + tptt_counts_file)
-    
- 
+    df_truck_counts = pd.read_csv(truck_counts_file)
+
+    daily_counts(writer, my_project)
+
+    freeflow_skims(my_project)
+
+    if run_truck_summary:
+    	truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=writer)
+
+
+
     counts_dict = {}
     uc_vmt_dict = {}
+    uc_delay_dict = {}
     aadt_counts_dict = {}
     
     tptt_counts_dict = {}
+
+    # write out stop-level boardings
+    stop_df = pd.DataFrame()
+
+    # write out transit segment boardings (line and stop specific)
+    seg_df = pd.DataFrame()
     
     #get a list of screenlines from the bank/scenario
     screenline_list = get_unique_screenlines(my_project) 
@@ -513,11 +859,57 @@ def main():
         #dict where key is screen line id and value is 0
         screenline_dict[item] = 0
 
-    #loop through all tod banks and get network summaries
+   #  #loop through all tod banks and get network summaries
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for name, desc in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, desc, 'True')
+
+        network = my_project.current_scenario.get_network()
+
+        tveh = []
+        i_list = []
+        j_list = []
+        speed_limit = []
+        facility_type = []
+        capacity = []
+        length = []
+        time = []
+        metrk = []
+        hvtrk = []
+        bvol = []
+
+        # Link volumes
+        for link in network.links():
+            i_list.append(link.i_node)
+            j_list.append(link.j_node)
+            tveh.append(link.auto_volume)
+            metrk.append(link['@metrk'])
+            hvtrk.append(link['@hvtrk'])
+            speed_limit.append(link.data2)
+            facility_type.append(link.data3)
+            capacity.append(link.data1)
+            length.append(link['length'])
+            time.append(link.auto_time)
+            try:
+                bvol.append(link['@bvol'])
+            except:
+                # print 'no bvol ' + key
+                pass
+
+        df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
+            capacity,length,time,bvol]).T
+        df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type',
+        'capacity','ij_length','time','bvol']
+        df['tod'] = key
+        df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
+
+        network_results_path = r'outputs/network/network_results.csv'
+        if os.path.exists(network_results_path):
+            df.to_csv(network_results_path, mode='a', index=False, header=False)
+        else:
+            df.to_csv(network_results_path, index=False)
+
         #TRANSIT:
         if my_project.tod in transit_tod.keys():
             for name, desc in transit_extra_attributes_dict.iteritems():
@@ -528,8 +920,49 @@ def main():
             transit_summary_dict[key] = transit_results[0]
             transit_atts.extend(transit_results[1])
             #transit_atts = list(set(transit_atts))
+        
+            network = my_project.current_scenario.get_network()
+            ons = {}
+            offs = {}
+            
+            for node in network.nodes():
+                ons[int(node.id)] = node.initial_boardings
+                offs[int(node.id)] = node.final_alightings
+            
+            df = pd.DataFrame() # temp dataFrame to append to stop_df
+            df['inode'] = ons.keys()
+            df['initial_boardings'] = ons.values()
+            df['final_alightings'] = offs.values()
+            df['tod'] = my_project.tod
 
-            #print transit_summary_dict
+            stop_df = stop_df.append(df)
+
+            # Transit segment values
+            # boardings = {}
+            # line = {}
+
+            boardings = []
+            line = []
+            inode = []
+
+            for tseg in network.transit_segments():
+                boardings.append(tseg.transit_boardings)
+                line.append(tseg.line.id)
+                inode.append(tseg.i_node.number)
+
+                # boardings[tseg.i_node.number] = tseg.transit_boardings
+                # line[tseg.i_node.number] = tseg.line.id
+            
+            df = pd.DataFrame([inode,boardings,line]).T
+            df.columns = ['inode','total_boardings','line']
+            df['tod'] = my_project.tod
+            # df['inode'] = boardings.keys()
+            # df['line'] = line.values()
+            # df['total_boardings'] = boardings.values()
+            
+
+            seg_df = seg_df.append(df)
+
           
         net_stats = calc_vmt_vht_delay_by_ft(my_project)
 
@@ -537,9 +970,10 @@ def main():
         ft_summary_dict[key] = net_stats
         #store vmt by user class in dict:
         uc_vmt_dict[key] = vmt_by_user_class(my_project)
+        uc_delay_dict[key] = delay_by_user_class(my_project)
 
         #counts:
-        df_tod_vol = get_link_counts(my_project, df_counts, key)
+        df_tod_vol = get_link_counts(my_project, loop_ids, key)
         counts_dict[key] = df_tod_vol
         
         #AADT Counts:
@@ -552,49 +986,29 @@ def main():
         
         #screen lines
         get_screenline_volumes(screenline_dict, my_project)
+
+        # bike volumes
+        if key in ['5to6','7to8','8to9','9to10','10to14','14to15','15to16','16to17',
+                        '17to18']:
+            bike_volumes(writer=writer, my_project=my_project, tod=key)
         
     list_of_measures = ['vmt', 'vht', 'delay']
 
-    # Write results to sqlite3 db (for Tableau)
-    if run_tableau_db:
-        facility_results = {}
-
-        for measure in list_of_measures:
-            facility_results[measure] = dict_to_df(input_dict=ft_summary_dict, 
-                                                    measure=measure)
-            # Measures by TOD
-            df = pd.DataFrame(facility_results[measure].sum(),columns=[measure]).T
-            df = stamp(df, con=con, table=measure+'_by_tod')
-            df.to_sql(name=measure+'_by_tod', con=con, if_exists='append', chunksize=1000)
-
-            # Measures by Facility Type
-            df = pd.DataFrame(facility_results[measure].T.sum(),columns=[measure]).T
-            df = stamp(df, con=con, table=measure+'_by_facility')
-            df.to_sql(name=measure+'_by_facility', con=con, if_exists='append', chunksize=1000)
+    # write total boardings by inode, transit line, and tod
+    # seg_df.to_excel(excel_writer=writer, sheet_name='Segments')
+    
+    # combine initial and final boardings for transfers
 
 
-        # Re-form screenlines for export to db
-        screenline_data = process_screenlines(screenline_dict)
-        screenline_data = stamp(screenline_data, con=con, table='screenlines')
-        screenline_data.to_sql(name='screenlines', con=con, if_exists='append', chunksize=1000)
+    seg_df = seg_df.groupby('inode').sum().reset_index()
+    seg_df = seg_df.drop(['tod','line'], axis=1)
+    stop_df = stop_df.groupby('inode').sum().reset_index()
+    transfer_df = pd.merge(stop_df, seg_df, on='inode')
+    transfer_df['transfers'] = transfer_df['total_boardings'] - transfer_df['initial_boardings']
+    transfer_df.to_excel(excel_writer=writer, sheet_name='Transfers by Stop')
 
-        # Export DaySim results to db
-        daysim_metrics = [u'mode', u'travcost', u'travdist', u'travtime']
-        
-        # Convert daysim outputs H5 to a dataframe
-        daysim_df = process_h5(data_table='Trip', h5_file=r'outputs/daysim_outputs.h5', columns=daysim_metrics)
-
-        # Process tables that show results by mode
-        for metric in [u'travcost', u'travdist', u'travtime']:
-            df = daysim_df.groupby('mode').mean()[[metric]].T
-            df.columns = ['Walk','Bike','SOV','HOV2','HOV3+','Transit','School Bus']
-            df = stamp(df, con=con, table=metric)
-            df.to_sql(name=metric, con=con, if_exists='append', chunksize=1000)
-
-        # Transit Counts to db
-
-
-        # Mode Share to DB
+    # Compute daily boardings for light-rail and major stops    
+    light_rail(df=transfer_df, writer=writer)
 
    #write out transit:
     # print uc_vmt_dict
@@ -602,9 +1016,6 @@ def main():
     transit_df = pd.DataFrame()
 
     for tod, df in transit_summary_dict.iteritems():
-       #if transit_tod[tod] == 'am':
-       #    pd.concat(objs, axis=0, join='outer', join_axes=None, ignore_index=False,
-       #keys=None, levels=None, names=None, verify_integrity=False)
         
        workbook = writer.book
        index_format = workbook.add_format({'align': 'left', 'bold': True, 'border': True})
@@ -617,36 +1028,19 @@ def main():
         '17to18_board', '17to18_time', '18to20_board', '18to20_time']]
     transit_atts_df = pd.DataFrame(transit_atts)
     transit_atts_df = transit_atts_df.drop_duplicates(['id'], take_last=True)
-    print transit_atts_df.columns
     transit_df.reset_index(level=0, inplace=True)
-    # transit_df.to_csv('D:/transit_df.csv')
-    # transit_atts_df.to_csv('D:/transit_atts.csv')
-    #transit_df = transit_df.merge(transit_atts_df, 'inner', right_on=['id'], left_on=['id'])
     transit_atts_df = transit_atts_df.merge(transit_df, 'inner', right_on=['id'], left_on=['id'])
-  
     transit_atts_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
        
-       #if col == 0:
-       #    worksheet = writer.sheets['Transit Summaries']
-       #    routes = df.index.tolist()
-       #    for route_no in range(len(routes)):
-       #        worksheet.write_string(route_no + 1, 0, routes[route_no], index_format)
-       #    col = col + 1
-       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-       #    col = col + 2
-       #else:
-       #    df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries', index = False, startcol = col)
-       #    col = col + 2
-
 
     #*******write out counts:
     for value in counts_dict.itervalues():
-        df_counts = df_counts.merge(value, right_index = True, left_index = True)
-        df_counts = df_counts.drop_duplicates()
+        loop_counts = loop_counts.merge(value, left_index = True, right_index = True)
+    #loop_counts = loop_counts.drop_duplicates()
     
     #write counts out to xlsx:
     #loops
-    df_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
+    loop_counts.to_excel(excel_writer = writer, sheet_name = 'Counts Output')
     
     #aadt:
     aadt_df = pd.DataFrame.from_dict(aadt_counts_dict, orient="index")
@@ -694,35 +1088,14 @@ def main():
     uc_vmt_df = uc_vmt_df.sort_index()
     uc_vmt_df.to_excel(excel_writer = writer, sheet_name = 'UC VMT')
 
+    uc_delay_df = pd.DataFrame(columns = uc_list, index = uc_delay_dict.keys())
+    for colnum in range(len(uc_list)):
+        for index in uc_delay_dict.keys():
+            uc_delay_df[uc_list[colnum]][index] = uc_delay_dict[index][colnum]
+    uc_delay_df = uc_delay_df.sort_index()
+    uc_delay_df.to_excel(excel_writer = writer, sheet_name = 'UC Delay')
+
     writer.save()
-
-    #checks if openpyxl is installed (or pip to install it) in order to run xlautofit.run() to autofit the columns
-    import imp
-    try:
-        imp.find_module('openpyxl')
-        found_openpyxl = True
-    except ImportError:
-        found_openpyxl = False
-    if found_openpyxl == True:
-        xlautofit.run('outputs/network_summary_detailed.xlsx')
-
-
-    #else:
-    #    try:
-    #        imp.find_module('pip')
-    #        found_pip = True
-    #    except ImportError:
-    #        found_pip = False
-    #    if found_pip == True:
-    #        pip.main(['install','openpyxl'])
-    #    else:
-    #        print('Library openpyxl needed to autofit columns')
-    
-    #writer = csv.writer(open('outputs/' + screenlines_file, 'ab'))
-    #for key, value in screenline_dict.iteritems():
-    #    print key, value
-    #    writer.writerow([key, value])
-    #writer = None
 
 if __name__ == "__main__":
     main()

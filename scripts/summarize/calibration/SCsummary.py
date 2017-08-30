@@ -12,8 +12,8 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-import os
-import sys
+import os, sys
+sys.path.append(os.getcwd())
 sys.path.append(os.path.join(os.getcwd(),"scripts\summarize"))
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ import math
 from input_configuration import *
 from summary_functions import *
 from calibration_summary_configuration import *
-
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 
 
 def DistrictSummary(data1, data2, name1, name2, location, districtfile):
@@ -1390,13 +1390,16 @@ def LongTerm(data1, data2, name1, name2, location, districtfile):
 
     #Auto Ownership
     ao1 = data1['Household'][['hhvehs', 'hhexpfac']].groupby('hhvehs').sum()['hhexpfac'] / data1['Household']['hhexpfac'].sum() * 100
-    for i in range(5, len(ao1)): #This loop groups households that own 4 or more cars into "4+"
-        ao1[4] = ao1[4] + ao1[i]
-        ao1 = ao1.drop([i])
+    # Group households of 4+ vehicles together
+    for i in ao1.index.values:
+        if i > 4:
+            ao1[4] = ao1[4] + ao1[i]
+            ao1 = ao1.drop([i])
     ao2 = data2['Household'][['hhvehs', 'hhexpfac']].groupby('hhvehs').sum()['hhexpfac'] / data2['Household']['hhexpfac'].sum() * 100
-    for i in range(5, len(ao2)):
-        ao2[4] = ao2[4] + ao2[i]
-        ao2 = ao2.drop([i])
+    for i in ao2.index.values:
+        if i > 4: 
+            ao2[4] = ao2[4] + ao2[i]
+            ao2 = ao2.drop([i])
     ao = pd.DataFrame()
     ao['% of Households (' + name1 + ')'] = ao1
     ao['% of Households (' + name2 + ')'] = ao2

@@ -1,7 +1,7 @@
 #################################### NETWORK SUMMARY ####################################
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
-report_output_location = 'Outputs'
+report_output_location = 'Outputs/network'
 fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
                  'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
                  'connectors' : 'ul3 = 5'}
@@ -55,8 +55,12 @@ light_rail_boardings = r'scripts/summarize/inputs/network_summary/light_rail_boa
 
 
 # Grouped outputs
-comparison_name = '2014_pre_calibration' # define in input_config
-comparison_run_dir = r'D:\Stefan\TWG\Estimated_Models_Pre_Calibration\outputs'
+
+# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
+# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
+#                          'soundcast_2040': 'C:/user/soundcast_2040'}
+comparison_runs = {}
+compare_survey = True    # compare daysim results in Tableau and topsheet outputs
 
 #### Transit Groupings ###############################################################
 transit_time_group_file= 'scripts/summarize/inputs/network_summary/transit_time_groups.csv'
@@ -65,12 +69,22 @@ special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_
 
 
 ##### Output File Locations ######################################################
-net_summary_detailed = 'outputs/network_summary_detailed.xlsx'
-net_summary_out = 'outputs/network_summary_aggregate.xlsx'
-roadway_summary = 'outputs/roadway_validation.xlsx'
-transit_summary_out = 'outputs/transit_validation.xlsx'
+net_summary_detailed = 'outputs/network/network_summary_detailed.xlsx'
+net_summary_out = 'outputs/network/network_summary.xlsx'
+roadway_summary = 'outputs/network/roadway_summary.xlsx'
+transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 
 # Bikes
-bike_link_vol = 'outputs/bike_volumes.csv'
+bike_link_vol = 'outputs/bike/bike_volumes.csv'
 bike_count_data = 'inputs/bikes/bike_count_links.csv'
 edges_file = 'inputs/bikes/edges_0.txt'
+
+# Parcel Summary
+buffered_parcels = 'buffered_parcels.txt'   # Parcel data
+parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
+parcel_file_out = 'parcel_summary.xlsx'    # summary output file name
+parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
+nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
+links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
+transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
+max_dist = 24140.2

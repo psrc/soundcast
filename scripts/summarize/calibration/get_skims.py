@@ -16,6 +16,7 @@ import h5py
 import pandas as pd
 import numpy as np
 import sys, os
+sys.path.append(os.getcwd())
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 
 def from_dict(skim, file_location, tod, taz_map): #Skim matrix for specified locations from a dictionary mapping TAZ's to place names

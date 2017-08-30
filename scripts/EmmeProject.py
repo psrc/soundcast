@@ -25,6 +25,7 @@ import pandas as pd
 import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.getcwd())
 from input_configuration import *
 from EmmeProject import *
 

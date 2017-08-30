@@ -7,8 +7,7 @@ import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
 import time
-import os
-import sys
+import os, sys
 import h5py
 import Tkinter
 import tkFileDialog
@@ -16,6 +15,7 @@ import gc
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
+sys.path.append(os.getcwd())
 
 # This script converts the 4k emmebank skims into HDF5 skims to be used in Daysim for model estimation.
 

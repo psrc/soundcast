@@ -1,14 +1,15 @@
 import inro.emme.database.emmebank as _emmebank
-import os
+import os, sys
 import numpy as np
-from input_configuration import *
-from emme_configuration import *
 import json
 import shutil
 from distutils import dir_util
+sys.path.append(os.getcwd())
+from input_configuration import *
+from emme_configuration import *
 from scripts.EmmeProject import *
 
-daily_network_fname = 'outputs/daily_network_results.csv'
+daily_network_fname = 'outputs/network/daily_network_results.csv'
 keep_atts = ['@type']
 def json_to_dictionary(dict_name):
 
@@ -130,14 +131,12 @@ def main():
     for matrix in daily_emmebank.matrices():
         daily_arr = matrix.get_numpy_data()
         daily_matrix_dict[matrix.name] = daily_arr
-        print matrix.name
 
     time_period_list = []
 
 
     for tod, time_period in sound_cast_net_dict.iteritems():
         path = os.path.join('Banks', tod, 'emmebank')
-        print path
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
         network = scenario.get_network()
@@ -164,7 +163,6 @@ def main():
 
 
     for extra_attribute in daily_scenario.extra_attributes():
-        print extra_attribute
         if extra_attribute not in keep_atts:
             daily_scenario.delete_extra_attribute(extra_attribute)
     daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
@@ -172,7 +170,6 @@ def main():
 
     for tod, time_period in sound_cast_net_dict.iteritems():
         path = os.path.join('Banks', tod, 'emmebank')
-        print path
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
         network = scenario.get_network()
@@ -197,11 +194,8 @@ def main():
     zone1 = 100
     zone2 = 100
 
-    print 'from zone', zone1, 'to zone', zone2
     for matrix1 in daily_emmebank.matrices():
         NAME = matrix1.name
-        print NAME
-        print 'daily:' , matrix1.get_numpy_data()[zone1][zone2]
         a = 0
         for tod, time_period in sound_cast_net_dict.iteritems():
             path = os.path.join('banks', tod, 'emmebank')
@@ -210,8 +204,6 @@ def main():
                 if matrix2.name == NAME:
                     my_arr = matrix2.get_numpy_data()
                     a += my_arr[zone1][zone2]
-        print 'hourly total:', a
-
 
     print 'daily bank created'
 

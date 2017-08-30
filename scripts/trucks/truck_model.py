@@ -16,6 +16,7 @@ from multiprocessing import Pool
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 #from truck_model import *
 from EmmeProject import * 
 from truck_configuration import *
@@ -45,16 +46,18 @@ def json_to_dictionary(dict_name):
 def skims_to_hdf5(EmmeProject):
     truck_od_matrices = ['lttrk', 'mdtrk', 'hvtrk']
   
+    # if h5 exists, delete it and re-write
+    try:
+        os.remove(truck_trips_h5_filename)
+    except OSError:
+        pass
+
     #open h5 container, delete existing truck trip matrices:
-    my_store = h5py.File(truck_trips_h5_filename, "r+")
+    my_store = h5py.File(truck_trips_h5_filename, 'w')
     for tod in tod_list:
+    	my_store.create_group(tod)
         for name in truck_od_matrices:
             matrix_name = tod[0] + name       
-            #delete if matrix exists
-            e = matrix_name in my_store[tod]
-            if e:
-                del my_store[tod][matrix_name]
-                'deleted ' + str(e)
             #export to hdf5
             print 'exporting' 
             matrix_name = tod[0] + name
@@ -63,6 +66,8 @@ def skims_to_hdf5(EmmeProject):
             print matrix_id
             matrix = EmmeProject.bank.matrix(matrix_id)
             matrix_value = np.matrix(matrix.raw_data)
+            if name == 'lttrk':
+                matrix_value = matrix_value * 0
             my_store[tod].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
             matrix_value = None
@@ -384,11 +389,11 @@ def write_summary():
     # Write production and attraction totals
     truck_pa = {'prod': {}, 'attr': {}}
 
-    for truck_type in ['lt','mt','ht']:
+    for truck_type in ['mt','ht']:
         truck_pa['prod'][truck_type] = my_project.bank.matrix('mo' + truck_type + 'prof').get_numpy_data().sum()
         truck_pa['attr'][truck_type] = my_project.bank.matrix('md' + truck_type + 'attf').get_numpy_data().sum()
 
-    pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/trucks.csv')
+    pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/network/trucks.csv')
 
 
 def main():

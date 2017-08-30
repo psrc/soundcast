@@ -1,4 +1,6 @@
-﻿##################################### NETWORK IMPORTER ####################################
+﻿from input_configuration import *
+##################################### NETWORK IMPORTER ####################################
+import_shape = False    # use network shape
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
@@ -16,13 +18,14 @@ mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : '
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt' 
 base_net_name = '_roadway.in'
+shape_name = '_link_shape.txt'
 turns_name = '_turns.in'
 transit_name = '_transit.in'
-shape_name = '_link_shape_1002.txt'
 no_toll_modes = ['s', 'h', 'i', 'j']
 unit_of_length = 'mi'    # units of miles in Emme
+rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
-headway_file = 'sc_headways.csv'
+headway_file = ''.join(['sc_headways_', scenario_name, '.csv'])
 
 ################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
@@ -72,18 +75,26 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'am':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+transit_node_constants = {'2014':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
                           '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
                           '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
-                          'pm':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
+                          '2025':{'5165':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '5166':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '5167':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '5168':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '5670':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '5671':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
+                          '2040':{'0041':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0042':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0043':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+                          '0044':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0055':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0056':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0057':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
+                          '0058':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
 
 transit_network_tod_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
                             '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
@@ -134,26 +145,29 @@ puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
 taz_data_loc = '/supplemental/generation/landuse/tazdata.in'
 pums_data_loc = '/supplemental/generation/pums/' 
 externals_loc = '/supplemental/generation/externals.csv'
+special_gen_trips = 'inputs/supplemental/generation/special_generators.csv'
+airport_zone_list = [983] # zone numbers for airport special generator
 # Special generator zones and demand (dictionary key is TAZ, value is demand)
-spg_general = {3110: 1682,    
-               631: 7567, 
-               438: 14013}    
-spg_airport = {983: 101838}
+# spg_general = {3110: 1682,    
+#                631: 7567, 
+#                438: 14013}    
+# spg_airport = {983: 101838}
 
 # Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'
 pm_skim_file_loc = 'inputs/17to18.h5'
-trip_table_loc = 'outputs/prod_att.csv'
+trip_table_loc = 'outputs/supplemental/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/gq_prod_att.csv'
+gq_trips_loc = 'outputs/supplemental/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
+airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228} 
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}

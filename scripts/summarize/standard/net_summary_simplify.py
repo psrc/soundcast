@@ -26,11 +26,12 @@ import time
 import summary_functions as scf
 from standard_summary_configuration import *
 from input_configuration import *
+sys.path.append(os.getcwd())
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 
 
-
-input_file = report_output_location+'/network_summary_detailed.xlsx'
+input_file = r'outputs/network/network_summary_detailed.xlsx'
 output_file= report_output_location+'/network_summary.xlsx'
 net_summary_df = pd.io.excel.read_excel(input_file, sheetname = 'Network Summary')
 model_run_name = 'Model Run'

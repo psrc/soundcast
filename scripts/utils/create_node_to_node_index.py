@@ -1,7 +1,8 @@
+import os, sys
 import pandas as pd
 import h5py
 import numpy as np
-
+sys.path.append(os.getcwd())
 # This file creates node to node index file and node to node distance file from DTAlite output. 
 
 

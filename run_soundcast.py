@@ -1,4 +1,4 @@
-﻿#Copyright [2014] [Puget Sound Regional Council]
+#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -44,23 +44,23 @@ from data_wrangling import *
 def accessibility_calcs():
     copy_accessibility_files()
     print 'adding military jobs to regular jobs'
-    returncode=subprocess.call([sys.executable, 'scripts/supplemental/military_parcel_loading.py'])
+    print 'adding JBLM workers to external workers'
+    print 'adjusting non-work externals'
+    print 'creating ixxi file for Daysim'
+    returncode=subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
     if returncode != 0:
         print 'Military Job loading failed'
         sys.exit(1)
     print 'military jobs loaded'
 
-    if run_update_parking:
-        if base_year == scenario_name:
-            print("----- This is a base-year analysis. Parking parcels are NOT being updated! Input for 'run_update_parking' is over-ridden. -----")
-        else:
-            print 'Starting to update UrbanSim parcel data with 4k parking data file'
-            returncode = subprocess.call([sys.executable,
-                                      'scripts/utils/update_parking.py', base_inputs])
-            if returncode != 0:
-                print 'Update Parking failed'
-                sys.exit(1)
-            print 'Finished updating parking data on parcel file'
+    if base_year != model_year:
+        print 'Starting to update UrbanSim parcel data with 4k parking data file'
+        returncode = subprocess.call([sys.executable,
+                                  'scripts/utils/update_parking.py', scenario_inputs])
+        if returncode != 0:
+            print 'Update Parking failed'
+            sys.exit(1)
+        print 'Finished updating parking data on parcel file'
 
     print 'Beginning Accessibility Calculations'
     returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
@@ -75,7 +75,7 @@ def build_seed_skims(max_iterations):
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations),
+        str(max_iterations), model_year, 
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
         sys.exit(1)
@@ -88,7 +88,7 @@ def build_free_flow_skims(max_iterations):
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations),
+        str(max_iterations), model_year, 
         '-build_free_flow_skims'])
     if returncode != 0:
         sys.exit(1)
@@ -163,9 +163,24 @@ def run_truck_supplemental(iteration):
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
             if returncode != 0:
                 sys.exit(1)
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribution.py'])
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
         if returncode != 0:
            sys.exit(1)
+        
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/mode_choice_supplemental.py'])
+        if returncode != 0:
+           sys.exit(1)
+
+        #returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
+        #if returncode != 0:
+        #   sys.exit(1)
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
+        if returncode != 0:
+           sys.exit(1)
+
+
 @timed
 def daysim_assignment(iteration):
      
@@ -186,7 +201,7 @@ def daysim_assignment(iteration):
      if run_skims_and_paths:
          logger.info("Start of %s iteration of Skims and Paths", str(iteration))
          num_iterations = str(max_iterations_list[iteration])
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations])
+         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, model_year])
          logger.info("End of %s iteration of Skims and Paths", str(iteration))
          print 'return code from skims and paths is ' + str(returncode)
          if returncode != 0:
@@ -210,8 +225,8 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
    if run_network_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
-      # this summary is producing erronous results, we don't want people to think they are correct.
       subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
       if scenario_name == '2014':
          subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
@@ -219,31 +234,23 @@ def run_all_summaries():
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
-
-   #Create a daily network with volumes. Will add counts and summary emme project. 
-   if run_create_daily_bank:
-      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
-
-   if run_ben_cost:
-      subprocess.call([sys.executable, 'scripts/summarize/benefit_cost/benefit_cost.py'])
-
+      
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
-   if run_truck_summary:
-       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
+   
+#   if run_truck_summary:
+#       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
+
+   if run_grouped_summary:
+       subprocess.call([sys.executable, 'scripts/summarize/standard/group.py'])
 ##################################################################################################### ###################################################################################################### 
 # Main Script:
 def main():
 ## SET UP INPUTS ##########################################################
 
-    if run_accessibility_calcs:
-        accessibility_calcs()
+    
 
-    if run_accessibility_summary:
-        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
-
-    if not os.path.exists('outputs'):
-        os.makedirs('outputs')
+    build_output_dirs()
 
     if run_copy_daysim_code:
         copy_daysim_code()
@@ -257,8 +264,14 @@ def main():
     if run_copy_large_inputs:
         copy_large_inputs()
 
-    if  run_convert_hhinc_2000_2010:
-        subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
+    if run_accessibility_calcs:
+        accessibility_calcs()
+
+    if run_accessibility_summary:
+        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
+
+    #if  run_convert_hhinc_2000_2010:
+    #    subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
 
 ### IMPORT NETWORKS
 ### ###############################################################
@@ -266,7 +279,7 @@ def main():
         time_copy = datetime.datetime.now()
         logger.info("Start of network importer")
         returncode = subprocess.call([sys.executable,
-        'scripts/network/network_importer.py', base_inputs])
+        'scripts/network/network_importer.py', scenario_inputs])
         logger.info("End of network importer")
         time_network = datetime.datetime.now()
         if returncode != 0:
@@ -309,10 +322,10 @@ def main():
                                                         
                             if not os.path.exists('working'):
                                 os.makedirs('working')
-                            shcopy(base_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+                            #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
                             print "copying shadow prices" 
                     except:
-                            print ' error copying shadow pricing file from shadow_pricing at ' + base_inputs+'/shadow_pricing/shadow_prices.txt'
+                            print ' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt'
                             sys.exit(1)
                 # Set up your Daysim Configration
                 modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
@@ -339,6 +352,12 @@ def main():
            modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
            #This function needs an iteration parameter. Value of 1 is fine. 
            daysim_assignment(1)
+
+
+    if should_run_reliability_skims:
+        returncode = subprocess.call([sys.executable,'scripts/skimming/reliability_skims.py'])
+        if returncode != 0:
+            sys.exit(1)
 
 ### SUMMARIZE
 ### ##################################################################

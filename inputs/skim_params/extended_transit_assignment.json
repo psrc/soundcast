@@ -46,7 +46,7 @@
         "choices_at_regular_nodes": "OPTIMAL_STRATEGY"
     },
     "flow_distribution_between_lines": {
-        "consider_total_impedance": false
+        "consider_total_impedance": true
     },
     "connector_to_connector_path_prohibition": null,
     "od_results": {

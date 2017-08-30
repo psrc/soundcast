@@ -1,12 +1,13 @@
 import pandana as pdna
-from accessibility_configuration import *
-from emme_configuration import *
 import pandas as pd
 import numpy as np
 import os
 import re
+import sys
 from pyproj import Proj, transform
-
+sys.path.append(os.getcwd())
+from accessibility_configuration import *
+from emme_configuration import *
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""
@@ -90,11 +91,12 @@ def process_parcels(parcels, transit_df):
   
     # calc the distance from each parcel to nearest transit stop by type
     for new_name, attr in transit_modes.iteritems():
-        print new_name
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
-
+        #Some parcels share the same network node and therefore have 0 distance. Recode this to .01.
+        field_name = "dist_%s" % new_name
+        parcels.ix[parcels[field_name]==0, field_name] = .01
     # distance to park
     parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
     parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
@@ -136,10 +138,31 @@ def clean_up(parcels):
     parcels_final[u'xcoord_p'] = parcels_final[u'xcoord_p'].astype(int)
     return parcels_final
 
-
-
 # read in data
 parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+
+# Move SeaTac Parcel so that it is on the terminal. 
+parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
+parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
+
+# Update UW Emp parcel with parking costs
+parcels.ix[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
+parcels.ix[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
+parcels.ix[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
+parcels.ix[parcels.PARCELID==751794, 'PPRICHRP'] = 300
+
+# This UW parcel is in the wrong zone. 
+parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
+
+
+#check for missing data!
+for col_name in parcels.columns:
+    # daysim does not use EMPRSC_P
+	if col_name <> 'EMPRSC_P':
+		if parcels[col_name].sum() == 0:
+			print col_name + ' column sum is zero! Exiting program.'
+			sys.exit(1)
+
 # nodes must be indexed by node_id column, which is the first column
 nodes = pd.DataFrame.from_csv(nodes_file_name)
 links = pd.DataFrame.from_csv(links_file_name, index_col = None )
@@ -184,5 +207,14 @@ assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
 # run all accibility measures
 parcels = process_parcels(parcels, transit_df)
 
+# reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
+parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
+parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
 parcels_done = clean_up(parcels)
+
+if int(model_year) > 2014:
+    #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
+    parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
+    parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
+
 parcels_done.to_csv(output_parcels, index = False, sep = ' ')

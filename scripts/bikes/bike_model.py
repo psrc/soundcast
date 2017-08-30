@@ -3,6 +3,7 @@ import numpy as np
 import os, sys
 import h5py
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 from EmmeProject import *
 from input_configuration import *
 from bike_configuration import *
@@ -27,7 +28,7 @@ def get_link_attribute(attr, network):
     for i in network.links():
         link_dict[i.id] = i[attr]
     df = pd.DataFrame({'link_id': link_dict.keys(), attr: link_dict.values()})
-    print df.head(4)
+
     return df
 
 def bike_facility_weight(my_project, link_df):
@@ -59,8 +60,11 @@ def volume_weight(my_project, df):
     df['volume_wt'] = pd.cut(df['@tveh'], bins=aadt_bins, labels=aadt_labels, right=False)
     df['volume_wt'] = df['volume_wt'].astype('int')
 
-    # Replace bin label with weight value
-    df = df.replace(to_replace=aadt_dict)
+    # Replace bin label with weight value, only for links with no bike facilities
+    over_df = df[df['facility_wt'] < 0].replace(to_replace=aadt_dict)
+    over_df['volume_wt'] = 0
+    under_df = df[df['facility_wt'] >= 0]
+    df = over_df.append(under_df)
 
     return df
 
@@ -71,6 +75,12 @@ def process_attributes(my_project):
 	for attr in ['@bkfac', '@upslp']:
 		if attr not in my_project.current_scenario.attributes('LINK'):
 			my_project.current_scenario.create_extra_attribute('LINK',attr)
+		else:
+			try:
+				my_project.current_scenario.delete_extra_attribute(attr)
+				my_project.current_scenario.create_extra_attribute('LINK',attr)
+			except:
+				print 'unable to recreate bike link attributes'
 
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
 	filename = r'inputs/bikes/emme_attr.in'
@@ -135,7 +145,7 @@ def calc_bike_weight(my_project, link_df):
 	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
 
 	# Write link data for analysis
-	df.to_csv(r'outputs/bike_attr.csv')
+	df.to_csv(r'outputs/bike/bike_attr.csv')
 
 	# export total link weight as an Emme attribute file ('@bkwt.in')
 	write_generalized_time(df=df)
@@ -261,81 +271,9 @@ def get_aadt(my_project):
     
     return df
     
-        
-   
-def write_link_counts(my_project, tod):
-	'''Write bike link volumes to file for comparisons to counts '''
-
-	my_project.change_active_database(tod)
-
-	network = my_project.current_scenario.get_network()
-
-	# Load bike count data from file
-	bike_counts = pd.read_csv(bike_count_data)
-
-	# Load edges file to join proper node IDs
-	edges_df = pd.read_csv(edges_file)
-
-	df = bike_counts.merge(edges_df, 
-		on=['INode','JNode'])
-	
-	# if the link is twoway, also get the other directoin IJ and JI and append to original df
-	twoway_links_df = df[df['Oneway'] == 2]
-
-	# Replace I with J node for twoway links, for Emme IJ and geodatabase IJ pairs
-	twoway_links_df.loc[:,'tempINode'] = twoway_links_df.loc[:,'JNode']
-	twoway_links_df.loc[:,'tempJNode'] = twoway_links_df.loc[:,'INode']
-	twoway_links_df.loc[:,'tempNewINode'] = twoway_links_df.loc[:,'NewJNode']
-	twoway_links_df.loc[:,'tempNewJNode'] = twoway_links_df.loc[:,'NewINode']
-	# remove old IJ values and replace with the new swapped values
-	twoway_links_df.drop(['INode','JNode','NewINode','NewJNode'],axis=1,inplace=True)
-	twoway_links_df.loc[:,'INode'] = twoway_links_df.loc[:,'tempINode']
-	twoway_links_df.loc[:,'JNode'] = twoway_links_df.loc[:,'tempJNode']
-	twoway_links_df.loc[:,'NewINode'] = twoway_links_df.loc[:,'tempNewINode']
-	twoway_links_df.loc[:,'NewJNode'] = twoway_links_df.loc[:,'tempNewJNode']
-	twoway_links_df.drop(['tempINode','tempJNode','tempNewINode','tempNewJNode'],axis=1,inplace=True)
-
-	df = pd.concat([df,twoway_links_df])
-	df = df.reset_index()
-	list_model_vols = []
-
-	for row in df.index:
-		i = df.iloc[row]['NewINode']
-		j = df.loc[row]['NewJNode']
-		link = network.link(i, j)
-		x = {}
-		x['EmmeINode'] = i
-		x['EmmeJNode'] = j
-		x['gdbINode'] = df.iloc[row]['INode']
-		x['gdbJNode'] = df.iloc[row]['JNode']
-		x['LocationID'] = df.iloc[row]['LocationID']
-		if link != None:
-			x['bvol' + tod] = link['@bvol']
-		else:
-			x['bvol' + tod] = None
-		list_model_vols.append(x)
-	print len(list_model_vols)
-
-	df_count =  pd.DataFrame(list_model_vols)
-
-	if os.path.exists(bike_link_vol):
-		'''append column to existing TOD results'''
-		df = pd.read_csv(bike_link_vol)
-		df['bvol'+tod] = df_count['bvol'+tod]
-		df.to_csv(bike_link_vol,index=False) 
-	else:
-		df_count.to_csv(bike_link_vol,index=False) 
-
 def main():
 	
 	print 'running bike model'
-
-	# Remove any existing results
-	if os.path.exists(bike_link_vol):
-		try:
-		    os.remove(bike_link_vol)
-		except OSError:
-		    pass
 
 	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
@@ -350,9 +288,6 @@ def main():
 	for tod in bike_assignment_tod:
 		print 'assigning bike trips for: ' + str(tod)
 		bike_assignment(my_project, tod)
-
-		# Write link volumes
-		write_link_counts(my_project, tod)
 
 if __name__ == "__main__":
 	main()

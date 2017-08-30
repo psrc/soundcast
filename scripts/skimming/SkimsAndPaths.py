@@ -19,6 +19,7 @@ import datetime
 import argparse
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 
@@ -59,18 +60,21 @@ elif daysim_seed_trips:
 	hdf5_file_path = 'inputs/daysim_outputs_seed_trips.h5'
 else:
 	print 'Using DAYSIM OUTPUTS'
-	hdf5_file_path = 'outputs/daysim_outputs.h5'
+	hdf5_file_path = 'outputs/daysim/daysim_outputs.h5'
 
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
     return sys.argv[1]
+
+def get_model_year():
+    return sys.argv[2]
 
 def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
 
     hdf5_filename = os.path.join('inputs/', hdf5_name +'.h5').replace("\\","/")
-    print hdf5_filename
+
     my_user_classes = json_to_dictionary('user_classes')
 
     # IOError will occur if file already exists with "w-", so in this case
@@ -665,8 +669,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= 'ivtwa' + item
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
@@ -675,8 +679,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             print matrix_name
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
         #Transit, All Modes:
@@ -686,8 +690,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_name= key
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            #if average_skims:
+            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
 
@@ -801,10 +805,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     for matrix_name in ['lttrk','metrk','hvtrk']:
         demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
-
+        
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk']:
+    for matrix_name in ['svtl2', 'h2tl2', 'h3tl2', 'litrat', 'bike', 'walk']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -837,8 +841,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
         #Regular Daysim Output:            
         else:
-            if vot[x] < 15: vot[x]=1
-            elif vot[x] < 25: vot[x]=2
+            if vot[x] < 13.07: vot[x]=1
+            elif vot[x] < 26.14: vot[x]=2
             else: vot[x]=3
 
         #get the matrix name from matrix_dict. Throw out school bus (8) for now.
@@ -929,7 +933,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(supplemental_loc + tod + '.h5', "r")
     # Call correct mode name by removing income class value when needed
-    if matrix_name not in ['bike', 'trnst', 'walk']:
+    if matrix_name not in ['bike', 'litrat', 'walk']:
         mode_name = matrix_name[:-1]
     else:
         mode_name = matrix_name
@@ -1263,22 +1267,21 @@ def create_node_attributes(node_attribute_dict, my_project):
                        extra_attribute_description=key,
                        extra_attribute_default_value = value['init_value'],
                        overwrite=True)
-
         
         network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")  
         node_calculator_spec = json_to_dictionary("node_calculation")
-        transit_tod = transit_network_tod_dict[tod]
-        
-        if transit_tod in transit_node_constants.keys():
-            for line_id, attribute_dict in transit_node_constants[transit_tod].iteritems():
+        model_year = get_model_year()
+      
+        for line_id, attribute_dict in transit_node_constants[model_year].iteritems():
 
-                for attribute_name, value in attribute_dict.iteritems():
-                #Load in the necessary Dictionarie
-                    mod_calc = node_calculator_spec
-                    mod_calc["result"] = attribute_name
-                    mod_calc["expression"] = value
-                    mod_calc["selections"]["node"] = "Line = " + line_id
-                    network_calc(mod_calc)
+            for attribute_name, value in attribute_dict.iteritems():
+            #Load in the necessary Dictionarie
+                mod_calc = node_calculator_spec
+                mod_calc["result"] = attribute_name
+                mod_calc["expression"] = value
+                mod_calc["selections"]["node"] = "Line = " + line_id
+                network_calc(mod_calc)
+
 
 
 def delete_matrices_parallel(project_name):
@@ -1344,6 +1347,8 @@ def run_assignments_parallel(project_name):
     attribute_based_toll_cost_skims(my_project, "@toll1")
     attribute_based_toll_cost_skims(my_project, "@toll2")
     attribute_based_toll_cost_skims(my_project, "@toll3")
+    attribute_based_toll_cost_skims(my_project, "@trkc2")
+    attribute_based_toll_cost_skims(my_project, "@trkc3")
     class_specific_volumes(my_project)
 
     ##dispose emmebank
@@ -1370,7 +1375,7 @@ def main():
 
         
         #want pooled processes finished before executing more code in main:
-        #run_assignments_parallel('projects/5to6/5to6.emp')
+        # run_assignments_parallel('projects/6to7/6to7.emp')
         
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')

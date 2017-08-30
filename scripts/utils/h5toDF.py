@@ -20,6 +20,7 @@ import time
 import json
 import sys, os
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 
 def negative_check(array,variable):
     if pd.Series.min(array)<0:

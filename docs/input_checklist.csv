@@ -1,0 +1,64 @@
+exists,update from base year,folder,file,description
+,y,4k,auto.h5,input for truck model
+,y,4k,transit.h5,input for truck model
+,y,4k,trips_auto_4k.h5,input for truck model
+,y,4k,trips_transit_4k.h5,input for truck model
+,y,bikes,bike_count_data.csv,observed bike count values intersected with network
+,y,bikes,edges_0.txt,network attribute table
+,y,bikes,emme_attr.in,link bike facilities and slope factors 
+,,etc,daysim_outputs_seed_trips.h5,
+,,etc,survey.h5,base year survey
+,y,Fares,am_fares_farebox.in,
+,y,Fares,am_fares_monthly_pass.in,
+,y,Fares,md_fares_farebox.in,
+,y,Fares,md_fares_monthly_pass.in,
+,y,Fares,transit_fare_zones.grt,
+,,landuse,distribute_jblm_jobs.csv,
+,,landuse,parcels_military.csv,
+,y,landuse,hh_and_persons.h5,
+,y,landuse,parcels_urbansim.txt,
+,y,networks,x_roadway.in,"where x is time period (e.g., am)"
+,y,networks,x_transit.in,"where x is time period (e.g., am)"
+,y,networks,x_turns.in,"where x is time period (e.g., am)"
+,y,networks,edges_y.*,"where y is 0 through 4, representing time period am through ni, several files associated with shapefile"
+,y,networks,junctions.*,junction shapefile and related files
+,?,networks,modes.txt,Emme mode string definitions
+,?,networks,pnr_lot_capacities.in,
+,y,networks,sc_headways.csv,
+,?,networks,vehicles.txt,
+,?,networks/rdly,x_rdly.txt,"where x is time period (e.g., am)"
+,,seed_skims,x.h5,"where x is 12-hour time segment (e.g., 5to6.h5, 6to7.h5)"
+,,shadow_pricing,shadow_prices.txt,
+,,short_distance_files,node_index_2014.txt,
+,,short_distance_files,node_to_node_distance_2014.h5,
+,,short_distance_files,parcel_nodes_2014.txt,
+,,.,transit_stops.csv,
+,,tolls,x_roadway_tolls.in,"where x is time period (e.g., am)"
+,,tolls,ferry_vehicle_fares.in,
+,,trucks,medium_trucks_ie.in,
+,,trucks,medium_trucks_ei.in,
+,,trucks,medium_trucks_ee.in,
+,,trucks,heavy_trucks_ie.in,
+,,trucks,heavy_trucks_ei.in,
+,,trucks,heavy_trucks_ee.in,
+,,trucks,matrix_calc_spec.txt,
+,y,trucks,tazdata.in,
+,?,trucks,agshar.in,
+,?,trucks,minshar.in,
+,?,trucks,prodshar.in,
+,?,trucks,equipshar.in,
+,?,trucks,tcushar.in,
+,?,trucks,whlsshar.in,
+,,trucks,const.in,
+,y,trucks,special_gen_medium_trucks.in,
+,y,trucks,special_gen_heavy_trucks.in,
+,n,supplemental/generation/rates,hh_triprates.in,
+,n,supplemental/generation/rates,nonhh_triprates.in,
+,n,supplemental/generation/ensembles,puma00.ens,
+,y,supplemental/generation/landuse,tazdata.in,
+,,supplemental/generation,externals.csv,
+,,supplemental/generation/pums,pumshhxc_income-collegestudents.in,
+,,supplemental/generation/pums,pumshhxc_income-k12students.in,
+,,supplemental/generation/pums,pumshhxc_income-size-workers.in,
+,,supplemental/generation/pums,pumshhxc_income-size-workers-vehicles.in,
+,y,emme_configuration.py,spg_general demand dictionary,

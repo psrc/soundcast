@@ -52,9 +52,12 @@
             "c",
             "f",
             "p",
-            "r"
+            "r",
+            "w",
+            "x"
         ],
         "actual_in_vehicle_times": "mfivtwr",
+        "actual_aux_transit_times": "mfauxwr",
         "avg_boardings": "mfndbwr"
     },
     "type": "EXTENDED_TRANSIT_MATRIX_RESULTS",

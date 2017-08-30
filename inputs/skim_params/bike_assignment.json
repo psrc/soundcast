@@ -2,7 +2,8 @@
     "modes": [
         "k",
         "l",
-        "q"
+        "q",
+        "f"
     ],
     "demand": "mfbike",
     "waiting_time": {

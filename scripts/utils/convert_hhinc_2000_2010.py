@@ -4,6 +4,7 @@
 import h5py
 import numpy as np
 import os, sys
+sys.path.append(os.getcwd())
 
 print 'Converting synthetic population income from 2000$ to 2010$'
 INCOME_FACTOR_00_10 = 1.26
