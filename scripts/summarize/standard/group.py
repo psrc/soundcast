@@ -646,39 +646,39 @@ def process_dataset(h5file, scenario_name):
     dataset = apply_lables(dataset)
     
     # Calculate aggregate measures csv
-    #agg_df = agg_measures(dataset)
-    #write_csv(agg_df,fname='agg_measures.csv')
+    agg_df = agg_measures(dataset)
+    write_csv(agg_df,fname='agg_measures.csv')
 
-    #hh_df = household(dataset)
-    #write_csv(hh_df, fname='household.csv')
+    hh_df = household(dataset)
+    write_csv(hh_df, fname='household.csv')
 
     ## Tours based on time left origin
-    #tours_df = tours(dataset,'tlvorig')
-    #write_csv(tours_df,fname='tours_tlvorig.csv')
+    tours_df = tours(dataset,'tlvorig')
+    write_csv(tours_df,fname='tours_tlvorig.csv')
 
     #tours_df = tours(dataset, 'tardest')
     #write_csv(tours_df,fname='tours_tardest.csv')
 
-    #tours_df = tours(dataset, 'tlvdest')
-    #write_csv(tours_df,fname='tours_tlvdest.csv')
+    tours_df = tours(dataset, 'tlvdest')
+    write_csv(tours_df,fname='tours_tlvdest.csv')
 
-    #taz_df = taz_tours(dataset)
-    #write_csv(taz_df,fname='taz_tours.csv')
+    taz_df = taz_tours(dataset)
+    write_csv(taz_df,fname='taz_tours.csv')
     
     #trips_df = trips(dataset)
     #write_csv(trips_df, fname='trips.csv')
 
-    #trip_taz_df = taz_trips(dataset)
-    #write_csv(trip_taz_df, fname='trips_taz.csv')
+    trip_taz_df = taz_trips(dataset)
+    write_csv(trip_taz_df, fname='trips_taz.csv')
     
-    #person_day_df = person_day(dataset)
-    #write_csv(person_day_df, fname='person_day.csv')
+    person_day_df = person_day(dataset)
+    write_csv(person_day_df, fname='person_day.csv')
     
-    #person_df = person(dataset)
-    #write_csv(person_df, 'person.csv')
+    person_df = person(dataset)
+    write_csv(person_df, 'person.csv')
     
-    #tod_df = time_of_day(dataset)
-    #write_csv(tod_df, fname='time_of_day.csv')
+    tod_df = time_of_day(dataset)
+    write_csv(tod_df, fname='time_of_day.csv')
 
     taz_avg_df = taz_avg(dataset)
     write_csv(taz_avg_df, fname='taz_avg.csv')
@@ -722,30 +722,30 @@ if __name__ == '__main__':
 		del daysim_h5 # drop from memory to save space for next comparison
 
     # Compare daysim to survey if set in standard_summary_configuration.py
-    #if compare_survey:
-    #    process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
+    if compare_survey:
+        process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
 
     # Create network and accessibility summaries
-    #for name, run_dir in run_dir_dict.iteritems():
-    #    file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
-    #    print 'processing excel: ' + name
-    #    transit_summary(file_dir, name)
-    #    daily_counts(file_dir, name)
-    #    # hourly_counts(file_dir, name)
-    #    net_summary(file_dir, name)
-    #    truck_summary(file_dir, name)
-    #    screenlines(file_dir, name)
-    #    file_dir = os.path.join(run_dir,r'outputs/daysim')
-    #    logsums(name, file_dir)
+    for name, run_dir in run_dir_dict.iteritems():
+        file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
+        print 'processing excel: ' + name
+        transit_summary(file_dir, name)
+        daily_counts(file_dir, name)
+        # hourly_counts(file_dir, name)
+        net_summary(file_dir, name)
+        truck_summary(file_dir, name)
+        screenlines(file_dir, name)
+        file_dir = os.path.join(run_dir,r'outputs/daysim')
+        logsums(name, file_dir)
 
     ## Write notebooks based on these outputs to HTML
-    #for nb in ['topsheet','metrics']:
-    #    try:
-    #        os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
-    #    except:
-    #        print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
+    for nb in ['topsheet','metrics']:
+        try:
+            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
+        except:
+            print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
-    #    # Move these files to output
-    #    if os.path.exists(r"outputs/"+nb+".html"):
-    #        os.remove(r"outputs/"+nb+".html")
-    #    os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
+        # Move these files to output
+        if os.path.exists(r"outputs/"+nb+".html"):
+            os.remove(r"outputs/"+nb+".html")
+        os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
