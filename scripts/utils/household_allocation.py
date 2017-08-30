@@ -140,8 +140,9 @@ for hh_dict in allocation_list:
     freq = get_sample_frequencies(hh_dict['number_of_households'], hh_df, 'cross_class', [hh_dict['taz_id']])
     # possible that the TAZ does not have all possible cross class combinations:
     hh_df2 = hh_df[hh_df['class'].isin(freq['class'])]
-    # remove HHs that are in the TAZs we are moving to
-    hh_df2 = hh_df2[~hh_df2['hhtaz'].isin(taz_list)]
+    if move_households:
+        # HHs should not be drawn from TAZs that are target destination. 
+        hh_df2 = hh_df2[~hh_df2['hhtaz'].isin(taz_list)]
     sample2 = bootstrap(hh_df2, freq)
     # randomly assign new parcel ids from the given list of ids
     sample2['hhparcel'] = np.random.choice(hh_dict['parcel_ids'], sample2.shape[0])
