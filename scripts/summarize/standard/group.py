@@ -318,40 +318,37 @@ def taz_tours(dataset):
 
 def taz_avg(dataset):
 
-    trip = dataset['Trip']
-    hh = dataset['Household']
-    person = dataset['Person']
+	trip = dataset['Trip']
+	hh = dataset['Household']
+	person = dataset['Person']
 
-    person_hh = pd.merge(person, hh, on='hhno', how='left')
-    trip = pd.merge(trip, person_hh, on=['pno','hhno'], how='left')
+	person_hh = pd.merge(person, hh, on='hhno', how='left')
+	trip = pd.merge(trip, person_hh, on=['pno','hhno'], how='left')
 
-    # total VMT by home TAZ
-    taz_vmt = trip[['hhtaz','travdist']].groupby('hhtaz').sum()
-    taz_pop = person_hh[['hhtaz','psexpfac']].groupby('hhtaz').sum()
-    taz_df = pd.DataFrame(taz_vmt['travdist']/taz_pop['psexpfac'])
-    taz_df.columns = ['Average VMT per Capita']
-    taz_df = taz_df.reset_index()
+	# total VMT by home TAZ
+	taz_vmt = trip[['hhtaz','travdist']].groupby('hhtaz').sum()
+	taz_pop = person_hh[['hhtaz','psexpfac']].groupby('hhtaz').sum()
+	taz_df = pd.DataFrame(taz_vmt['travdist']/taz_pop['psexpfac'])
+	taz_df.columns = ['Average VMT per Capita']
+	taz_df = taz_df.reset_index()
 
-    # Non-SOV Mode Share
-    trip.ix[trip['mode'] != 'SOV', 'Non-SOV'] = 'Non-SOV'
-    trip.ix[trip['mode'] == 'SOV', 'Non-SOV'] = 'SOV'
-    df = pd.DataFrame(trip[trip['Non-SOV'] == 'Non-SOV'][['hhtaz','Non-SOV','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
-    df = df.reset_index()
-    df.columns = ['hhtaz','non-sov trips']
-    df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
-    df_trip = df_trip.reset_index()
+	# Non-SOV Mode Share
+	trip.ix[trip['mode'] != 'SOV', 'Non-SOV'] = 'Non-SOV'
+	trip.ix[trip['mode'] == 'SOV', 'Non-SOV'] = 'SOV'
+	df = pd.DataFrame(trip[trip['Non-SOV'] == 'Non-SOV'][['hhtaz','Non-SOV','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
+	df = df.reset_index()
+	df.columns = ['hhtaz','non-sov trips']
+	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
+	df_trip = df_trip.reset_index()
 
-    df = pd.merge(df_trip, df, on='hhtaz') 
-    df['Percent Non-SOV'] = df['non-sov trips']/df['trexpfac']
-    df = df[['hhtaz','Percent Non-SOV']]
-
-    # Join mode share and VMT per capita
-    taz_df = pd.merge(taz_df, df, on='hhtaz')
+	df = pd.merge(df_trip, df, on='hhtaz') 
+	df['Percent Non-SOV'] = df['non-sov trips']/df['trexpfac']
+	df = df[['hhtaz','Percent Non-SOV']]
 
     # Non-Auto Mode Share
 	trip.ix[trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Non-Auto'
 	trip.ix[~trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Auto'
-	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
+	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-SOV'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
 	df = df.reset_index()
 	df.columns = ['hhtaz','non-auto trips']
 	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
@@ -360,51 +357,38 @@ def taz_avg(dataset):
 	df = pd.merge(df_trip, df, on='hhtaz') 
 	df['Percent Non-Auto'] = df['non-auto trips']/df['trexpfac']
 	df = df[['hhtaz','Percent Non-Auto']]
-    df = df[['hhtaz','Percent Non-Auto']]
 
-    # Join mode share and VMT per capita
-    taz_df = pd.merge(taz_df, df, on='hhtaz')
+	# Join mode share and VMT per capita
+	taz_df = pd.merge(taz_df, df, on='hhtaz')
 
-    # Calculate percent walking or biking for transportation
-    bike_walk_trips = trip[trip['mode'].isin(['Bike','Walk']) | ((trip['mode'] == 'Transit') & (trip['dorp'] > 0))]
-    df = bike_walk_trips.groupby(['hhno','pno']).count()
-    df = df.reset_index()
-    df = df[['hhno','pno']]
-    df['bike_walk'] = 1
-    df = pd.merge(person_hh,df,on=['hhno','pno'], how='left')
-    df['bike_walk'] = df['bike_walk'].fillna(0)
-    df['indicator'] = 1
-    df = df[['hhtaz','bike_walk','indicator']].groupby(['hhtaz']).sum()
-    df = df.reset_index()
-    df['Percent Biking or Walking'] = df['bike_walk']/df['indicator']
+	# Calculate percent walking or biking for transportation
+	bike_walk_trips = trip[trip['mode'].isin(['Bike','Walk']) | ((trip['mode'] == 'Transit') & (trip['dorp'] > 0))]
+	df = bike_walk_trips.groupby(['hhno','pno']).count()
+	df = df.reset_index()
+	df = df[['hhno','pno']]
+	df['bike_walk'] = 1
+	df = pd.merge(person_hh,df,on=['hhno','pno'], how='left')
+	df['bike_walk'] = df['bike_walk'].fillna(0)
+	df['indicator'] = 1
+	df = df[['hhtaz','bike_walk','indicator']].groupby(['hhtaz']).sum()
+	df = df.reset_index()
+	df['Percent Biking or Walking'] = df['bike_walk']/df['indicator']
 
-    # Merge with taz_df
-    taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
+	# Merge with taz_df
+	taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
-    # Delay
-    if dataset['name'] != 'survey':
-        # Delay field not available on survey records, skip if survey records
-        trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
-        trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
-        df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
-        df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
-        df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+	# Delay
+	trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+	trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
+	df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+	df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+	df['Delay per Capita per Day'] = df['delay']/df['hhsize']
 
-        taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
+	taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 
-    # average annual costs
-    annual_factor = 300
-    df = trip.groupby('hhno').sum()['travcost'].reset_index()
-    df = pd.merge(hh,df,on='hhno',how='left')
-    df['travcost'] = df['travcost'].fillna(0)
-    df = df[['travcost','hhtaz','hhsize']].groupby('hhtaz').mean().reset_index()
-    df['Average Annual Household Travel Costs'] = df['travcost']*annual_factor
+	taz_df['source'] = dataset['name']
 
-    taz_df = pd.merge(taz_df, df[['Average Annual Household Travel Costs','hhtaz','hhsize']], on='hhtaz')
-
-    taz_df['source'] = dataset['name']
-
-    return taz_df
+	return taz_df
 
 def time_of_day(dataset):
     """
@@ -662,39 +646,39 @@ def process_dataset(h5file, scenario_name):
     dataset = apply_lables(dataset)
     
     # Calculate aggregate measures csv
-    agg_df = agg_measures(dataset)
-    write_csv(agg_df,fname='agg_measures.csv')
+    #agg_df = agg_measures(dataset)
+    #write_csv(agg_df,fname='agg_measures.csv')
 
-    hh_df = household(dataset)
-    write_csv(hh_df, fname='household.csv')
+    #hh_df = household(dataset)
+    #write_csv(hh_df, fname='household.csv')
 
-    # Tours based on time left origin
-    tours_df = tours(dataset,'tlvorig')
-    write_csv(tours_df,fname='tours_tlvorig.csv')
+    ## Tours based on time left origin
+    #tours_df = tours(dataset,'tlvorig')
+    #write_csv(tours_df,fname='tours_tlvorig.csv')
 
-    tours_df = tours(dataset, 'tardest')
-    write_csv(tours_df,fname='tours_tardest.csv')
+    #tours_df = tours(dataset, 'tardest')
+    #write_csv(tours_df,fname='tours_tardest.csv')
 
-    tours_df = tours(dataset, 'tlvdest')
-    write_csv(tours_df,fname='tours_tlvdest.csv')
+    #tours_df = tours(dataset, 'tlvdest')
+    #write_csv(tours_df,fname='tours_tlvdest.csv')
 
-    taz_df = taz_tours(dataset)
-    write_csv(taz_df,fname='taz_tours.csv')
+    #taz_df = taz_tours(dataset)
+    #write_csv(taz_df,fname='taz_tours.csv')
     
-    trips_df = trips(dataset)
-    write_csv(trips_df, fname='trips.csv')
+    #trips_df = trips(dataset)
+    #write_csv(trips_df, fname='trips.csv')
 
-    trip_taz_df = taz_trips(dataset)
-    write_csv(trip_taz_df, fname='trips_taz.csv')
+    #trip_taz_df = taz_trips(dataset)
+    #write_csv(trip_taz_df, fname='trips_taz.csv')
     
-    person_day_df = person_day(dataset)
-    write_csv(person_day_df, fname='person_day.csv')
+    #person_day_df = person_day(dataset)
+    #write_csv(person_day_df, fname='person_day.csv')
     
-    person_df = person(dataset)
-    write_csv(person_df, 'person.csv')
+    #person_df = person(dataset)
+    #write_csv(person_df, 'person.csv')
     
-    tod_df = time_of_day(dataset)
-    write_csv(tod_df, fname='time_of_day.csv')
+    #tod_df = time_of_day(dataset)
+    #write_csv(tod_df, fname='time_of_day.csv')
 
     taz_avg_df = taz_avg(dataset)
     write_csv(taz_avg_df, fname='taz_avg.csv')
@@ -738,30 +722,30 @@ if __name__ == '__main__':
 		del daysim_h5 # drop from memory to save space for next comparison
 
     # Compare daysim to survey if set in standard_summary_configuration.py
-    if compare_survey:
-        process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
+    #if compare_survey:
+    #    process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
 
     # Create network and accessibility summaries
-    for name, run_dir in run_dir_dict.iteritems():
-        file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
-        print 'processing excel: ' + name
-        transit_summary(file_dir, name)
-        daily_counts(file_dir, name)
-        # hourly_counts(file_dir, name)
-        net_summary(file_dir, name)
-        truck_summary(file_dir, name)
-        screenlines(file_dir, name)
-        file_dir = os.path.join(run_dir,r'outputs/daysim')
-        logsums(name, file_dir)
+    #for name, run_dir in run_dir_dict.iteritems():
+    #    file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
+    #    print 'processing excel: ' + name
+    #    transit_summary(file_dir, name)
+    #    daily_counts(file_dir, name)
+    #    # hourly_counts(file_dir, name)
+    #    net_summary(file_dir, name)
+    #    truck_summary(file_dir, name)
+    #    screenlines(file_dir, name)
+    #    file_dir = os.path.join(run_dir,r'outputs/daysim')
+    #    logsums(name, file_dir)
 
-    # Write notebooks based on these outputs to HTML
-    for nb in ['topsheet','metrics']:
-        try:
-            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
-        except:
-            print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
+    ## Write notebooks based on these outputs to HTML
+    #for nb in ['topsheet','metrics']:
+    #    try:
+    #        os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
+    #    except:
+    #        print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
-        # Move these files to output
-        if os.path.exists(r"outputs/"+nb+".html"):
-            os.remove(r"outputs/"+nb+".html")
-        os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
+    #    # Move these files to output
+    #    if os.path.exists(r"outputs/"+nb+".html"):
+    #        os.remove(r"outputs/"+nb+".html")
+    #    os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
