@@ -325,13 +325,15 @@ def taz_avg(dataset):
 	person_hh = pd.merge(person, hh, on='hhno', how='left')
 	trip = pd.merge(trip, person_hh, on=['pno','hhno'], how='left')
 
+	print 'total VMT by home TAZ'
 	# total VMT by home TAZ
 	taz_vmt = trip[['hhtaz','travdist']].groupby('hhtaz').sum()
 	taz_pop = person_hh[['hhtaz','psexpfac']].groupby('hhtaz').sum()
-	taz_df = pd.DataFrame(taz_vmt['travdist']/taz_pop['psexpfac'])
+	taz_df = pd.DataFrame(taz_vmt['travdist'] / taz_pop['psexpfac'])
 	taz_df.columns = ['Average VMT per Capita']
 	taz_df = taz_df.reset_index()
 
+	print 'Non-SOV Share'
 	# Non-SOV Mode Share
 	trip.ix[trip['mode'] != 'SOV', 'Non-SOV'] = 'Non-SOV'
 	trip.ix[trip['mode'] == 'SOV', 'Non-SOV'] = 'SOV'
@@ -342,20 +344,24 @@ def taz_avg(dataset):
 	df_trip = df_trip.reset_index()
 
 	df = pd.merge(df_trip, df, on='hhtaz') 
-	df['Percent Non-SOV'] = df['non-sov trips']/df['trexpfac']
+	df['Percent Non-SOV'] = df['non-sov trips'] / df['trexpfac']
 	df = df[['hhtaz','Percent Non-SOV']]
 
-    # Non-Auto Mode Share
+   # Join mode share and VMT per capita
+	taz_df = pd.merge(taz_df, df, on='hhtaz')
+
+	print 'Non-Auto Share'
+	# Non-Auto Mode Share
 	trip.ix[trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Non-Auto'
 	trip.ix[~trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Auto'
-	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-SOV'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
+	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
 	df = df.reset_index()
 	df.columns = ['hhtaz','non-auto trips']
 	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
 	df_trip = df_trip.reset_index()
 
 	df = pd.merge(df_trip, df, on='hhtaz') 
-	df['Percent Non-Auto'] = df['non-auto trips']/df['trexpfac']
+	df['Percent Non-Auto'] = df['non-auto trips'] / df['trexpfac']
 	df = df[['hhtaz','Percent Non-Auto']]
 
 	# Join mode share and VMT per capita
@@ -372,17 +378,17 @@ def taz_avg(dataset):
 	df['indicator'] = 1
 	df = df[['hhtaz','bike_walk','indicator']].groupby(['hhtaz']).sum()
 	df = df.reset_index()
-	df['Percent Biking or Walking'] = df['bike_walk']/df['indicator']
+	df['Percent Biking or Walking'] = df['bike_walk'] / df['indicator']
 
 	# Merge with taz_df
 	taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
 	# Delay
 	trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
-	trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
+	trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time'] / 100.0
 	df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
 	df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
-	df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+	df['Delay per Capita per Day'] = df['delay'] / df['hhsize']
 
 	taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 
@@ -665,8 +671,8 @@ def process_dataset(h5file, scenario_name):
     taz_df = taz_tours(dataset)
     write_csv(taz_df,fname='taz_tours.csv')
     
-    #trips_df = trips(dataset)
-    #write_csv(trips_df, fname='trips.csv')
+    trips_df = trips(dataset)
+    write_csv(trips_df, fname='trips.csv')
 
     trip_taz_df = taz_trips(dataset)
     write_csv(trip_taz_df, fname='trips_taz.csv')
