@@ -5,6 +5,6 @@ You've found the Puget Sound Regional Council's activity-based regional transpor
 ## Install, Model, and Learn
 
 - Follow directions in [this wiki guide](https://github.com/psrc/soundcast/wiki) to install and use SoundCast.
-- Read about the [model design and calibration/validation summaries](http://www.psrc.org/data/models/abmodel/).
-- Find more details about [Daysim](https://github.com/psrc/daysim), the core model on which SoundCast is based.
+- Read about the [model design and calibration/validation summaries](https://github.com/psrc/soundcast/wiki/SoundCast-2.0).
+- Find more details about [Daysim](https://github.com/RSGInc/DaySim/wiki), the core model on which SoundCast is based.
 
