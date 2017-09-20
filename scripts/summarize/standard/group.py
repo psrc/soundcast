@@ -332,23 +332,10 @@ def taz_avg(dataset):
 	taz_df.columns = ['Average VMT per Capita']
 	taz_df = taz_df.reset_index()
 
-	# Non-SOV Mode Share
-	trip.ix[trip['mode'] != 'SOV', 'Non-SOV'] = 'Non-SOV'
-	trip.ix[trip['mode'] == 'SOV', 'Non-SOV'] = 'SOV'
-	df = pd.DataFrame(trip[trip['Non-SOV'] == 'Non-SOV'][['hhtaz','Non-SOV','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
-	df = df.reset_index()
-	df.columns = ['hhtaz','non-sov trips']
-	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
-	df_trip = df_trip.reset_index()
-
-	df = pd.merge(df_trip, df, on='hhtaz') 
-	df['Percent Non-SOV'] = df['non-sov trips']/df['trexpfac']
-	df = df[['hhtaz','Percent Non-SOV']]
-
     # Non-Auto Mode Share
 	trip.ix[trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Non-Auto'
 	trip.ix[~trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Auto'
-	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-SOV'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
+	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
 	df = df.reset_index()
 	df.columns = ['hhtaz','non-auto trips']
 	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
