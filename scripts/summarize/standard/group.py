@@ -365,11 +365,19 @@ def taz_avg(dataset):
 	taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
 	# Delay
-	trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
-	trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
-	df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
-	df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
-	df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+	# only perform for non-survey runs, check delay exists
+	if 'sov_ff_time' in trip.columns:
+		trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+		trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
+		df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+		df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+		df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+	else:
+		trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+		trip_auto['delay'] = -99
+		df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+		df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+		df['Delay per Capita per Day'] = -99
 
 	taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 
@@ -643,8 +651,8 @@ def process_dataset(h5file, scenario_name):
     tours_df = tours(dataset,'tlvorig')
     write_csv(tours_df,fname='tours_tlvorig.csv')
 
-    #tours_df = tours(dataset, 'tardest')
-    #write_csv(tours_df,fname='tours_tardest.csv')
+    tours_df = tours(dataset, 'tardest')
+    write_csv(tours_df,fname='tours_tardest.csv')
 
     tours_df = tours(dataset, 'tlvdest')
     write_csv(tours_df,fname='tours_tlvdest.csv')
@@ -652,8 +660,8 @@ def process_dataset(h5file, scenario_name):
     taz_df = taz_tours(dataset)
     write_csv(taz_df,fname='taz_tours.csv')
     
-    #trips_df = trips(dataset)
-    #write_csv(trips_df, fname='trips.csv')
+    trips_df = trips(dataset)
+    write_csv(trips_df, fname='trips.csv')
 
     trip_taz_df = taz_trips(dataset)
     write_csv(trip_taz_df, fname='trips_taz.csv')

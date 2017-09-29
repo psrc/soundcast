@@ -82,7 +82,7 @@ edges_file = 'inputs/bikes/edges_0.txt'
 # Parcel Summary
 buffered_parcels = 'buffered_parcels.txt'   # Parcel data
 parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
-parcel_file_out = 'parcel_summary.xlsx'    # summary output file name
+parcel_file_out = r'landuse/parcel_summary.xlsx'    # summary output file name
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
 links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
