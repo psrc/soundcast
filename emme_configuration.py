@@ -134,8 +134,8 @@ destination_tt_file = 'inputs/intrazonals/destination_tt.in'
 # SUPPLEMENTAL#######################################################
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
 supplemental_loc = 'outputs/supplemental/'
-hdf_auto_filename = 'inputs/4k/auto.h5'
-hdf_transit_filename = 'inputs/4k/transit.h5' 
+hdf_auto_filename = 'inputs/supplemental/auto.h5'
+hdf_transit_filename = 'inputs/supplemental/transit.h5' 
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
 ext_spg_trips = 'outputs/supplemental/ext_spg/'
 supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
