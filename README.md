@@ -1,6 +1,5 @@
 # SoundCast: the PSRC Activity-Based Model
-
-You've found the Puget Sound Regional Council's activity-based regional transportation model, which we call SoundCast.
+SoundCast is a travel demand model system built for the Puget Sound Region. The model depict diverses human travel behavior and include travel sensitivity to land use and the built environment.
 
 ## Install, Model, and Learn
 
