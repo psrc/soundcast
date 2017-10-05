@@ -238,6 +238,16 @@ class EmmeProject:
             throw_on_error = False,
             scenario = self.current_scenario)
 
+    def export_matrix(self, matrix, matrix_path_name):
+        NAMESPACE = "inro.emme.data.matrix.export_matrices"
+        process = self.m.tool(NAMESPACE)
+        process(matrices=matrix,
+                export_file=matrix_path_name, 
+                field_separator=' ',
+                export_format="PROMPT_DATA_FORMAT",
+                skip_default_values=True,
+                full_matrix_line_format="ONE_ENTRY_PER_LINE")
+
     def transit_line_calculator(self, **kwargs):
         spec = json_to_dictionary("transit_line_calculation")
         for name, value in kwargs.items():

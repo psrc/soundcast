@@ -209,6 +209,9 @@ def copy_large_inputs():
         shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
+    if run_supplemental_generation:
+        shcopy(scenario_inputs+'/tazdata/tazdata.in','Inputs/trucks')
+        shcopy(scenario_inputs+'/tazdata/tazdata.in','Inputs/suplemental_generation_landuse')
     dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
     dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
     dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')

@@ -159,7 +159,7 @@ def run_truck_supplemental(iteration):
     ###outputs.'''
      if run_supplemental_trips:
          # Only run generation script once - does not change with feedback
-        if iteration == 0:
+        if iteration == 0 and run_supplemental_generation:
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
             if returncode != 0:
                 sys.exit(1)

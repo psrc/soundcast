@@ -66,6 +66,7 @@ if not(use_simple_configuration):
     run_truck_model = True
     run_supplemental_trips = True
     run_daysim = True
+    run_supplemental_generation = True
     ###########################
 
     ###### Additional skims for Benefit Cost:######
