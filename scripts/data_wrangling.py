@@ -209,16 +209,16 @@ def copy_large_inputs():
         shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
+	dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
     if run_supplemental_generation:
         shcopy(scenario_inputs+'/tazdata/tazdata.in','Inputs/trucks')
-        shcopy(scenario_inputs+'/tazdata/tazdata.in','Inputs/suplemental_generation_landuse')
+        shcopy(scenario_inputs+'/tazdata/tazdata.in','Inputs/suplemental/generation/landuse')
     dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
     dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
     dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
     dir_util.copy_tree(base_inputs+'/observed','Inputs/observed')
     dir_util.copy_tree(base_inputs+'/corridors','inputs/corridors')
     dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
-    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
     shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
     # node to node short distance files:
