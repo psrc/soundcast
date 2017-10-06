@@ -361,6 +361,7 @@ def main():
     trip_table = trip_table.fillna(0)
 
     # Write results to CSV
+    print trip_table_loc
     trip_table.to_csv(trip_table_loc, index_label="taz")
     gq_append.to_csv(gq_trips_loc, index_label="taz")
 
