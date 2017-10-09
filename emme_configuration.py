@@ -160,7 +160,7 @@ trip_table_loc = 'inputs/supplemental/generation/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/supplemental/gq_prod_att.csv'
+gq_trips_loc = 'inputs\supplemental\generation\gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5

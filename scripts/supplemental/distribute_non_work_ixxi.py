@@ -30,7 +30,7 @@ def json_to_dictionary(dict_name):
 
 # Load the trip productions and attractions
 trip_table = pd.read_csv(trip_table_loc, index_col="taz")  # total 4K Ps and As by trip purpose
-gq_trip_table = pd.read_csv(r'outputs\supplemental\gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
+gq_trip_table = pd.read_csv(r'inputs\supplemental\generation\gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
 
 # Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
