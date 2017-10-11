@@ -554,6 +554,18 @@ def transit_summary(net_file, fname):
         
         write_csv(df=df, fname=fname_out)
 
+def light_rail(netfile, name):
+	"""Compare light-rail boardings by station"""
+
+	sheetname = 'Light Rail'
+	if sheetname not in pd.ExcelFile(netfile).sheet_names:
+		return
+	else:
+		df = pd.read_excel(netfile, sheetname=sheetname)
+		df['source'] = name
+
+		write_csv(df=df, fname='light_rail.csv')
+
 def truck_summary(net_file, fname):
     """Process medium and heavy truck counts where observed data is provided"""
 
@@ -730,6 +742,7 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
+        light_rail(file_dir, name)
         file_dir = os.path.join(run_dir,r'outputs/daysim')
         logsums(name, file_dir)
 
