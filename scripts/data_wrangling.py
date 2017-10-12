@@ -287,6 +287,6 @@ def check_inputs():
             print file
 
 def build_output_dirs():
-    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit']:
+    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
         if not os.path.exists(path):
             os.makedirs(path)

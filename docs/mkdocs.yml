@@ -1,8 +1,0 @@
-site_name: soundcast-user-guide
-pages:
-- User's Guide: 'index.md'
-- Initial Setup: 'Initial-setup.md'
-- Model Structure: 'model-structure.md'
-- Running the Model: 'running-the-model.md'
-- Results and Outputs: 'results-outputs.md'
-theme: readthedocs

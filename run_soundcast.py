@@ -249,12 +249,7 @@ def run_all_summaries():
 def main():
 ## SET UP INPUTS ##########################################################
 
-    
-
     build_output_dirs()
-
-    if run_copy_daysim_code:
-        copy_daysim_code()
 
     if run_setup_emme_bank_folders:
         setup_emme_bank_folders()

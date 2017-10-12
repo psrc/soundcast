@@ -2,7 +2,6 @@ Banks/
 working/
 outputs/
 projects/
-daysim/
 Daysim/last-run.log
 inputs/networks/
 *.pyc

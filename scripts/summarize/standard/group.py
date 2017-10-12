@@ -333,25 +333,8 @@ def taz_avg(dataset):
 	taz_df.columns = ['Average VMT per Capita']
 	taz_df = taz_df.reset_index()
 
-	print 'Non-SOV Share'
-	# Non-SOV Mode Share
-	trip.ix[trip['mode'] != 'SOV', 'Non-SOV'] = 'Non-SOV'
-	trip.ix[trip['mode'] == 'SOV', 'Non-SOV'] = 'SOV'
-	df = pd.DataFrame(trip[trip['Non-SOV'] == 'Non-SOV'][['hhtaz','Non-SOV','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
-	df = df.reset_index()
-	df.columns = ['hhtaz','non-sov trips']
-	df_trip = trip[['hhtaz','trexpfac']].groupby('hhtaz').sum()['trexpfac']
-	df_trip = df_trip.reset_index()
+    # Non-Auto Mode Share
 
-	df = pd.merge(df_trip, df, on='hhtaz') 
-	df['Percent Non-SOV'] = df['non-sov trips'] / df['trexpfac']
-	df = df[['hhtaz','Percent Non-SOV']]
-
-   # Join mode share and VMT per capita
-	taz_df = pd.merge(taz_df, df, on='hhtaz')
-
-	print 'Non-Auto Share'
-	# Non-Auto Mode Share
 	trip.ix[trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Non-Auto'
 	trip.ix[~trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Auto'
 	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
@@ -384,11 +367,21 @@ def taz_avg(dataset):
 	taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
 	# Delay
-	trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
-	trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time'] / 100.0
-	df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
-	df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
-	df['Delay per Capita per Day'] = df['delay'] / df['hhsize']
+
+	# only perform for non-survey runs, check delay exists
+	if 'sov_ff_time' in trip.columns:
+		trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+		trip_auto['delay'] = trip_auto['travtime'] - trip_auto['sov_ff_time']/100.0
+		df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+		df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+		df['Delay per Capita per Day'] = df['delay']/df['hhsize']
+	else:
+		trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
+		trip_auto['delay'] = -99
+		df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
+		df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
+		df['Delay per Capita per Day'] = -99
+
 
 	taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 
@@ -565,6 +558,18 @@ def transit_summary(net_file, fname):
         
         write_csv(df=df, fname=fname_out)
 
+def light_rail(netfile, name):
+	"""Compare light-rail boardings by station"""
+
+	sheetname = 'Light Rail'
+	if sheetname not in pd.ExcelFile(netfile).sheet_names:
+		return
+	else:
+		df = pd.read_excel(netfile, sheetname=sheetname)
+		df['source'] = name
+
+		write_csv(df=df, fname='light_rail.csv')
+
 def truck_summary(net_file, fname):
     """Process medium and heavy truck counts where observed data is provided"""
 
@@ -662,8 +667,8 @@ def process_dataset(h5file, scenario_name):
     tours_df = tours(dataset,'tlvorig')
     write_csv(tours_df,fname='tours_tlvorig.csv')
 
-    #tours_df = tours(dataset, 'tardest')
-    #write_csv(tours_df,fname='tours_tardest.csv')
+    tours_df = tours(dataset, 'tardest')
+    write_csv(tours_df,fname='tours_tardest.csv')
 
     tours_df = tours(dataset, 'tlvdest')
     write_csv(tours_df,fname='tours_tlvdest.csv')
@@ -741,6 +746,7 @@ if __name__ == '__main__':
         net_summary(file_dir, name)
         truck_summary(file_dir, name)
         screenlines(file_dir, name)
+        light_rail(file_dir, name)
         file_dir = os.path.join(run_dir,r'outputs/daysim')
         logsums(name, file_dir)
 
