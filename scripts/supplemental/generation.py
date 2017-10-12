@@ -51,7 +51,7 @@ bal_to_attractions = ["colpro"]
 hh_trip_loc = 'inputs/supplemental/generation/rates/hh_triprates.in'
 nonhh_trip_loc = 'inputs/supplemental/generation/rates/nonhh_triprates.in'
 puma_taz_loc = 'inputs/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'inputs/supplemental/generation/landuse/tazdata.in'
+taz_data_loc = 'inputs/trucks/tazdata.in'
 pums_data_loc = 'inputs/supplemental/generation/pums/' 
 externals_loc = 'inputs/supplemental/generation/externals.csv'
 
@@ -361,6 +361,7 @@ def main():
     trip_table = trip_table.fillna(0)
 
     # Write results to CSV
+    print trip_table_loc
     trip_table.to_csv(trip_table_loc, index_label="taz")
     gq_append.to_csv(gq_trips_loc, index_label="taz")
 

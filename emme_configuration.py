@@ -142,7 +142,7 @@ supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk
 hh_trip_loc = '/supplemental/generation/rates/hh_triprates.in'
 nonhh_trip_loc = '/supplemental/generation/rates/nonhh_triprates.in'
 puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = '/supplemental/generation/landuse/tazdata.in'
+taz_data_loc = 'inputs/trucks/tazdata.in'
 pums_data_loc = '/supplemental/generation/pums/' 
 externals_loc = '/supplemental/generation/externals.csv'
 special_gen_trips = 'inputs/supplemental/generation/special_generators.csv'
@@ -156,11 +156,11 @@ airport_zone_list = [983] # zone numbers for airport special generator
 # Using one AM and one PM time period to represent AM and PM skims
 am_skim_file_loc = 'inputs/7to8.h5'
 pm_skim_file_loc = 'inputs/17to18.h5'
-trip_table_loc = 'outputs/supplemental/prod_att.csv'
+trip_table_loc = 'inputs/supplemental/generation/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'outputs/supplemental/gq_prod_att.csv'
+gq_trips_loc = 'inputs\supplemental\generation\gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5

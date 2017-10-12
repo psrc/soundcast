@@ -325,14 +325,16 @@ def taz_avg(dataset):
 	person_hh = pd.merge(person, hh, on='hhno', how='left')
 	trip = pd.merge(trip, person_hh, on=['pno','hhno'], how='left')
 
+	print 'total VMT by home TAZ'
 	# total VMT by home TAZ
 	taz_vmt = trip[['hhtaz','travdist']].groupby('hhtaz').sum()
 	taz_pop = person_hh[['hhtaz','psexpfac']].groupby('hhtaz').sum()
-	taz_df = pd.DataFrame(taz_vmt['travdist']/taz_pop['psexpfac'])
+	taz_df = pd.DataFrame(taz_vmt['travdist'] / taz_pop['psexpfac'])
 	taz_df.columns = ['Average VMT per Capita']
 	taz_df = taz_df.reset_index()
 
     # Non-Auto Mode Share
+
 	trip.ix[trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Non-Auto'
 	trip.ix[~trip['mode'].isin(['Bike', 'Walk', 'Transit']), 'Non-Auto'] = 'Auto'
 	df = pd.DataFrame(trip[trip['Non-Auto'] == 'Non-Auto'][['hhtaz','Non-Auto','trexpfac']].groupby(['hhtaz']).sum()['trexpfac'])
@@ -342,7 +344,7 @@ def taz_avg(dataset):
 	df_trip = df_trip.reset_index()
 
 	df = pd.merge(df_trip, df, on='hhtaz') 
-	df['Percent Non-Auto'] = df['non-auto trips']/df['trexpfac']
+	df['Percent Non-Auto'] = df['non-auto trips'] / df['trexpfac']
 	df = df[['hhtaz','Percent Non-Auto']]
 
 	# Join mode share and VMT per capita
@@ -359,12 +361,13 @@ def taz_avg(dataset):
 	df['indicator'] = 1
 	df = df[['hhtaz','bike_walk','indicator']].groupby(['hhtaz']).sum()
 	df = df.reset_index()
-	df['Percent Biking or Walking'] = df['bike_walk']/df['indicator']
+	df['Percent Biking or Walking'] = df['bike_walk'] / df['indicator']
 
 	# Merge with taz_df
 	taz_df = pd.merge(taz_df, df[['Percent Biking or Walking','hhtaz']], on='hhtaz')
 
 	# Delay
+
 	# only perform for non-survey runs, check delay exists
 	if 'sov_ff_time' in trip.columns:
 		trip_auto = trip[trip['mode'].isin(['SOV','HOV2','HOV3+']) & (trip['dorp'] == 1)]
@@ -378,6 +381,7 @@ def taz_avg(dataset):
 		df = trip_auto[['hhtaz','delay']].groupby('hhtaz').sum()[['delay']].reset_index()
 		df = pd.merge(df, hh[['hhtaz','hhsize']].groupby('hhtaz').sum()[['hhsize']].reset_index(),on='hhtaz')
 		df['Delay per Capita per Day'] = -99
+
 
 	taz_df = pd.merge(taz_df, df[['hhtaz','Delay per Capita per Day']], on='hhtaz')
 

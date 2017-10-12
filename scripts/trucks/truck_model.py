@@ -21,6 +21,7 @@ sys.path.append(os.getcwd())
 from EmmeProject import * 
 from truck_configuration import *
 from emme_configuration import *
+from input_configuration import *
 
 # Temp log file for de-bugging
 logfile = open("truck_log.txt", 'wb')
@@ -70,6 +71,7 @@ def skims_to_hdf5(EmmeProject):
                 matrix_value = matrix_value * 0
             my_store[tod].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
             print matrix_name+' was transferred to the HDF5 container.'
+            print matrix_value.sum()
             matrix_value = None
                     
     my_store.close()
@@ -148,6 +150,7 @@ def truck_productions():
     # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
     my_project.matrix_calculator(result = 'mohtpro', expression = 'mohtpro * motruck')
 
+
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
    
@@ -179,10 +182,21 @@ def truck_attractions():
                      'mdmtattf' : 'mdmtatt * ' + str(truck_adjustment_factor['mtatt']),
                      'mdhtattf' : 'mdhtatt * ' + str(truck_adjustment_factor['htatt'])}
 
+    # refactor and export productions and attractions
     for key, value in refactor_dict.iteritems():
         my_project.matrix_calculator(result = key, expression = value)
+        matrix = my_project.bank.matrix(key)
+        print 'exporting ' + key
+        my_project.export_matrix(matrix, 'inputs/trucks/' + key + '.in') 
 
+
+def import_productions_and_attractions():
     
+    for item in ['moltprof', 'momtprof', 'mohtprof', 'mdltattf', 'mdmtattf', 'mdhtattf']:
+        print 'importing ' + item
+        my_project.delete_matrix(item)
+        my_project.import_matrices('inputs/trucks/' + item + '.in')
+
 
 def import_skims():
     # Import districts
@@ -298,11 +312,11 @@ def calculate_impedance():
 
 def balance_matrices():
     # Balance Light Trucks
-    my_project.matrix_balancing(results_od_balanced_values = 'mflgtdis', 
-                                od_values_to_balance = 'mflgtimp', 
-                                origin_totals = 'moltprof', destination_totals = 'mdltattf', 
-                                constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
-                                constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+    #my_project.matrix_balancing(results_od_balanced_values = 'mflgtdis', 
+    #                            od_values_to_balance = 'mflgtimp', 
+    #                            origin_totals = 'moltprof', destination_totals = 'mdltattf', 
+    #                            constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
+    #                            constraint_by_zone_origins = '1-' + str(HIGH_STATION))
     # Balance Medium Trucks
     my_project.matrix_balancing(results_od_balanced_values = 'mfmeddis', 
                                 od_values_to_balance = 'mfmedimp', 
@@ -404,10 +418,14 @@ def main():
     create_origin_destination_matrices()
     create_scalar_matrices()
     create_full_matrices()
-    import_emp_matrices() 
-    calc_total_households()
-    truck_productions()
-    truck_attractions()
+    if run_supplemental_generation:
+        import_emp_matrices() 
+        calc_total_households()
+        truck_productions()
+        truck_attractions()
+    if not run_supplemental_generation:
+        # import Ps & As
+        import_productions_and_attractions()
     import_skims()
     balance_attractions()
     calculate_impedance()
