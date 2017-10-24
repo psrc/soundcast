@@ -1,4 +1,6 @@
 #################################### NETWORK SUMMARY ####################################
+network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                         'counts_output', 'network_summary']
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 report_output_location = 'Outputs/network'

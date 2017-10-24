@@ -1,6 +1,7 @@
 ﻿from input_configuration import *
 ##################################### NETWORK IMPORTER ####################################
 import_shape = False    # use network shape
+master_project = 'LoadTripTables'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
@@ -15,6 +16,13 @@ mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : '
                       'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
                       'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
                       'ahijstuvbw' : 'asehdimjvutbpw'}
+###### Distance-based pricing######
+add_distance_pricing = False
+# rate below includes 3.5 cent carbon tax
+distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
+# HOT Lanes
+add_hot_lane_tolls = False
+hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt' 
 base_net_name = '_roadway.in'
@@ -27,6 +35,10 @@ rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 headway_file = ''.join(['sc_headways_', scenario_name, '.csv'])
 
+# in the junctions shapefile in the inputs/networks folder, this is the
+# minimum scene_node value where facility type = 99
+min_hov_node = 199203
+###################################
 ################################### SKIMS AND PATHS ####################################
 log_file_name = 'skims_log.txt'
 STOP_THRESHOLD = 0.025
@@ -65,6 +77,8 @@ skim_matrix_designation_limited = ['d']    # Distance skim
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
 gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'svtl2'}
+
+
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']

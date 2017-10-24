@@ -205,8 +205,6 @@ def setup_emme_project_folders():
 @timed    
 def copy_large_inputs():
     print 'Copying large inputs...' 
-    if run_skims_and_paths_seed_trips:
-        shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')

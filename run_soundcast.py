@@ -266,8 +266,6 @@ def main():
     if run_accessibility_summary:
         subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
-    #if  run_convert_hhinc_2000_2010:
-    #    subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
 
 ### IMPORT NETWORKS
 ### ###############################################################
@@ -282,26 +280,19 @@ def main():
            sys.exit(1)
 
 ### BUILD OR COPY SKIMS ###############################################################
-    if run_skims_and_paths_seed_trips:
-        build_seed_skims(10)
-        returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
-        if returncode != 0:
-            sys.exit(1)
-    elif run_skims_and_paths_free_flow:
+    if run_skims_and_paths_free_flow:
         build_free_flow_skims(10)
         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
         if returncode != 0:
             sys.exit(1)
-    # either you build seed skims or you copy them, or neither, but it wouldn't make sense to do both
-    elif run_copy_seed_skims:
-        copy_seed_skims()
+
     # Check all inputs have been created or copied
     check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################
     
-    if(run_daysim or run_skims_and_paths or run_skims_and_paths_seed_trips):
+    if(run_daysim or run_skims_and_paths):
         
         for iteration in range(len(pop_sample)):
             print "We're on iteration %d" % (iteration)
@@ -350,10 +341,6 @@ def main():
            daysim_assignment(1)
 
 
-    if should_run_reliability_skims:
-        returncode = subprocess.call([sys.executable,'scripts/skimming/reliability_skims.py'])
-        if returncode != 0:
-            sys.exit(1)
 
 ### SUMMARIZE
 ### ##################################################################
