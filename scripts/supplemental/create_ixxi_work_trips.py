@@ -3,7 +3,6 @@ import numpy as np
 import h5py
 import sys 
 import os
-#os.chdir('D:/Stefan/TWG/Estimated_Models_Pre_Calibration')
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
