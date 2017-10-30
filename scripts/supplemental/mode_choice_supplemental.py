@@ -145,14 +145,15 @@ def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
     # SOV
     #'(mf"dabds"*16.75) + (mf"dabcs")/0.0496+ (md"daily"/2)'
     # Need to add parking cost
-    auto_cost_matrices['dabct'] = (auto_skim_dict['dabds'] * parameters_dict[trip_purpose]['global']['autoop']) + (auto_skim_dict['dabcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['svt']]) + (parking_cost_array/2)
+    auto_cost_matrices['dabct'] = (auto_skim_dict['dabds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['dabcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['svt']] + (parking_cost_array/2)
     #test = auto_cost_matrices['dabct'] + (parking_cost_array/2)
     # HOV 2 passenger   
-    auto_cost_matrices['s2bct'] = ((auto_skim_dict['s2bds'] * parameters_dict[trip_purpose]['global']['autoop']) + (auto_skim_dict['s2bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h2v']]))/2 
+    auto_cost_matrices['s2bct'] = ((auto_skim_dict['s2bds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['s2bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h2v']] + (parking_cost_array/2))/2 
                                     #'+ (md"daily"/2))/2')
-    auto_cost_matrices['s3bct'] = ((auto_skim_dict['s3bds'] * parameters_dict[trip_purpose]['global']['autoop']) + (auto_skim_dict['s3bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h3v']]))/3.5
+    auto_cost_matrices['s3bct'] = ((auto_skim_dict['s3bds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['s3bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h3v']] + (parking_cost_array/2))/3.5
                                     #+ (md"daily"/2))/3.5')                                
    
+
     return auto_cost_matrices
 
 
@@ -373,7 +374,7 @@ def main():
         transit_skim_dict = get_transit_skim_data()
         print 'transit skim done'
 
-        parking_costs = get_destination_parking_costs(r'D:\Stefan\soundcast\inputs\accessibility\parcels_urbansim.txt')
+        parking_costs = get_destination_parking_costs(parcels_file_name)
         
         auto_cost_dict = calculate_auto_cost(trip_purpose, auto_skim_dict, parking_costs)
         print 'calculate auto cost done'
@@ -396,6 +397,7 @@ zone_lookup_dict = dict((value,index) for index,value in enumerate(zones))
 #origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
 parameters_dict = json_to_dictionary('parameters.json')
 ensembles_path = r'inputs\supplemental\generation\ensembles\ensembles_list.csv'
+parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 
 if __name__ == "__main__":
     main()
