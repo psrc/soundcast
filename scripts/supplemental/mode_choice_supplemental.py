@@ -142,17 +142,16 @@ def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
 
     auto_cost_matrices = {}
 
+    # *******Code below is different from 4k in that 4k uses generalized time - time / vot to get cost. Soundcat already has a cost skims, so no need to do that.******* 
     # SOV
-    #'(mf"dabds"*16.75) + (mf"dabcs")/0.0496+ (md"daily"/2)'
-    # Need to add parking cost
-    auto_cost_matrices['dabct'] = (auto_skim_dict['dabds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['dabcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['svt']] + (parking_cost_array/2)
-    #test = auto_cost_matrices['dabct'] + (parking_cost_array/2)
-    # HOV 2 passenger   
-    auto_cost_matrices['s2bct'] = ((auto_skim_dict['s2bds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['s2bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h2v']] + (parking_cost_array/2))/2 
-                                    #'+ (md"daily"/2))/2')
-    auto_cost_matrices['s3bct'] = ((auto_skim_dict['s3bds'] * parameters_dict[trip_purpose]['global']['autoop']) + auto_skim_dict['s3bcs'] / parameters_dict[trip_purpose]['vot'][input_paramas_vot_name[trip_purpose]['h3v']] + (parking_cost_array/2))/3.5
-                                    #+ (md"daily"/2))/3.5')                                
-   
+    auto_cost_matrices['dabct'] = auto_skim_dict['dabds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['dabcs'] 
+    
+    # HOV2 
+    auto_cost_matrices['s2bct'] = (auto_skim_dict['s2bds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['s2bcs'])/2 
+    
+    # HOV3+                                
+    auto_cost_matrices['s3bct'] = (auto_skim_dict['s3bds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['s3bcs'])/3.5
+                                                                  
 
     return auto_cost_matrices
 
