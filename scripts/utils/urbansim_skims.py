@@ -328,7 +328,7 @@ def urbansim_skims_to_h5(h5_name, skim_dict):
     grp = my_store.create_group('results')
     for name, skim in skim_dict.iteritems():
             skim = skim[0:max_internal_zone, 0:max_internal_zone]
-            grp.create_dataset(name, data = skim)
+            grp.create_dataset(name, data = skim.astype('float32'), compression='gzip')
             print skim
 
     my_store.close()
