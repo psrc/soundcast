@@ -163,6 +163,9 @@ for col_name in parcels.columns:
 			print col_name + ' column sum is zero! Exiting program.'
 			sys.exit(1)
 
+# Not using, causes bug in Daysim
+parcels.APARKS = 0
+parcels.NPARKS = 0
 # nodes must be indexed by node_id column, which is the first column
 nodes = pd.DataFrame.from_csv(nodes_file_name)
 links = pd.DataFrame.from_csv(links_file_name, index_col = None )
