@@ -1,0 +1,12 @@
+{
+    "by_mode_subset": {
+        "modes": [
+            "k",
+            "l",
+            "q",
+            "f"
+        ],        
+	"actual_aux_transit_times": "mfbkat"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+}

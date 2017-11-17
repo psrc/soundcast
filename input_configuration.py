@@ -17,11 +17,11 @@ if not(use_simple_configuration):
     
     # Scenario and input paths
     base_year = '2014'  # This should always be 2014 unless the base year changes
-    scenario_name = '2014'
+    scenario_name = '2014_lodes'
     model_year = '2014'
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
-    main_inputs_folder =  'R:/SoundCast/Inputs'
+    main_inputs_folder =  'R:\SoundCast\Inputs\dev'
     base_inputs = os.path.join(main_inputs_folder, base_year)
     scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
@@ -43,10 +43,10 @@ if not(use_simple_configuration):
     
     ######Set up:######
     run_accessibility_calcs = True
-    run_copy_daysim_code = True
-    run_setup_emme_project_folders = True
-    run_setup_emme_bank_folders = True
-    run_copy_large_inputs = True
+    run_copy_daysim_code = False
+    run_setup_emme_project_folders = False
+    run_setup_emme_bank_folders = False
+    run_copy_scenario_inputs = False
     run_import_networks = True
     run_daysim_zone_inputs = True
     ###################
@@ -70,16 +70,16 @@ if not(use_simple_configuration):
     ###########################
 
     ###### Additional skims for Benefit Cost:######
-    should_run_reliability_skims = True
+    should_run_reliability_skims = False
     ###########################
     
     #Summaries to run:######
-    run_accessibility_summary = True
+    run_accessibility_summary = False
     run_network_summary = True
     run_grouped_summary = True
     run_soundcast_summary = True
     run_truck_summary = True
-    run_landuse_summary = False
+    run_landuse_summary = True
     ########################
 
     ###### Specific reports to run######
@@ -89,7 +89,7 @@ if not(use_simple_configuration):
     run_dest_choice_report = True
     run_long_term_report = True
     run_time_choice_report = True
-    run_district_summary_report = False
+    run_district_summary_report = True
     ####################################
     
 
@@ -207,17 +207,13 @@ else:
 
         feedback_iterations -=1 
 
-
-
-
-
 ###########################################################################################################################################################
 # These files generally do not change and don't need to be toggled here usually
 master_project = 'LoadTripTables'
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
-main_log_file = 'soundcast_log.txt'
+main_log_file = 'outputs/logs/soundcast_log.txt'
 network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
                          'counts_output', 'network_summary']
 #This is what you get if the model runs cleanly, but it's random:

@@ -24,7 +24,7 @@ from emme_configuration import *
 from input_configuration import *
 
 # Temp log file for de-bugging
-logfile = open("truck_log.txt", 'wb')
+logfile = open("outputs/logs/truck_log.txt", 'wb')
           
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
@@ -35,12 +35,12 @@ def network_importer(EmmeProject):
         #print key
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
-    EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)  
+    EmmeProject.process_modes('inputs/scenario/networks/' + mode_file)
+    EmmeProject.process_base_network('inputs/scenario/networks/roadway/' + truck_base_net_name)  
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/trucks/',dict_name+'.txt').replace("\\","/")
+    input_filename = os.path.join('inputs/model/trucks/',dict_name+'.txt').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
 
@@ -117,7 +117,7 @@ def import_emp_matrices():
                                  'trucks']
     for name in truck_matrix_import_list:
         print 'importing: ' + str(name)
-        my_project.import_matrices('inputs/trucks/' + name + '.in')
+        my_project.import_matrices('inputs/scenario/trucks/' + name + '.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information
@@ -187,7 +187,7 @@ def truck_attractions():
         my_project.matrix_calculator(result = key, expression = value)
         matrix = my_project.bank.matrix(key)
         print 'exporting ' + key
-        my_project.export_matrix(matrix, 'inputs/trucks/' + key + '.in') 
+        my_project.export_matrix(matrix, 'inputs/scenario/trucks/' + key + '.in') 
 
 
 def import_productions_and_attractions():
@@ -195,21 +195,21 @@ def import_productions_and_attractions():
     for item in ['moltprof', 'momtprof', 'mohtprof', 'mdltattf', 'mdmtattf', 'mdhtattf']:
         print 'importing ' + item
         my_project.delete_matrix(item)
-        my_project.import_matrices('inputs/trucks/' + item + '.in')
+        my_project.import_matrices('inputs/scenario/trucks/' + item + '.in')
 
 
 def import_skims():
     # Import districts
     my_project.initialize_zone_partition('ga')
-    my_project.process_zone_partition('inputs/trucks/' + districts_file)
+    my_project.process_zone_partition('inputs/scenario/trucks/' + districts_file)
     # Import truck operating costs
-    my_project.import_matrices('inputs/trucks/truck_operating_costs.in')
+    my_project.import_matrices('inputs/scenario/trucks/truck_operating_costs.in')
     
     # Open GC skims from H5 container, average am/pm, import to emme:
     np_gc_skims = {}
     np_bidir_gc_skims = {}
     for tod in truck_generalized_cost_tod.keys():
-        hdf_file = h5py.File('inputs/' + tod + '.h5', "r")
+        hdf_file = h5py.File('outputs/skims/' + tod + '.h5', "r")
         for item in input_skims.values():
             #gc
             skim_name = item['gc_name']
@@ -365,10 +365,10 @@ def create_landuse_correction():
     '''Restrict truck trips by land use type.'''
 
     #  Read in the csv files for Parcel ID and Taz and Parcel ID and Use Type for join
-    parcels = pd.read_csv(r'inputs/buffered_parcels.txt', sep=' ')
+    parcels = pd.read_csv(r'inputs/scenario/buffered_parcels.txt', sep=' ')
 
     # Read in land use type lookup
-    df = parcels.merge(pd.read_csv(r'inputs/lu_type.csv'),left_on='lutype_p',right_on='land_use_type_id')
+    df = parcels.merge(pd.read_csv(r'inputs/model/lookup/lu_type.csv'),left_on='lutype_p',right_on='land_use_type_id')
 
     # List of allowable truck land uses
     truck_uses = ['Agriculture','Fisheries','Forest, harvestable','Forest, protected','Industrial','Military','Mining','Warehousing']
@@ -397,7 +397,7 @@ def create_landuse_correction():
 
     df_string = " " + df_taz['taz'].astype('str') + " " + df_taz['emme']
     df_head = pd.DataFrame(['t matrices', 'c Zones with Industrial Use Allowed', 'm matrix=motruck'])
-    pd.concat([df_head, df_string]).to_csv(r'inputs/trucks/trucks.in', index=False, header=False)
+    pd.concat([df_head, df_string]).to_csv(r'inputs/scenario/trucks/trucks.in', index=False, header=False)
 
 def write_summary():
     # Write production and attraction totals

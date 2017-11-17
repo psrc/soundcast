@@ -28,7 +28,7 @@ coord_unit_length = 0.0001894    # network links measured in feet, converted to 
 headway_file = ''.join(['sc_headways_', scenario_name, '.csv'])
 
 ################################### SKIMS AND PATHS ####################################
-log_file_name = 'skims_log.txt'
+log_file_name = 'outputs/logs/skims_log.txt'
 STOP_THRESHOLD = 0.025
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50             # Assignment Convergence Criteria
@@ -115,18 +115,19 @@ transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                 
 
 # Transit Fare:
-zone_file = 'inputs/Fares/transit_fare_zones.grt'
-peak_fare_box = 'inputs/Fares/am_fares_farebox.in'
-peak_monthly_pass = 'inputs/Fares/am_fares_monthly_pass.in'
-offpeak_fare_box = 'inputs/Fares/md_fares_farebox.in'
-offpeak_monthly_pass = 'inputs/Fares/md_fares_monthly_pass.in'
+fares_dir = 'inputs/scenario/networks/fares/'
+zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
+peak_fare_box = 'inputs/scenario/networks/fares/am_fares_farebox.in'
+peak_monthly_pass = 'inputs/scenario/networks/fares/am_fares_monthly_pass.in'
+offpeak_fare_box = 'inputs/scenario/networks/fares/Fares/md_fares_farebox.in'
+offpeak_monthly_pass = 'inputs/scenario/networks/fares/md_fares_monthly_pass.in'
 fare_matrices_tod = ['6to7', '9to10']
 
 # Intrazonals
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
-taz_area_file = 'inputs/intrazonals/taz_acres.in'
-origin_tt_file = 'inputs/intrazonals/origin_tt.in'
-destination_tt_file = 'inputs/intrazonals/destination_tt.in'
+taz_area_file = 'inputs/model/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/model/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
 
 # Zone Index
 #tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
@@ -139,28 +140,17 @@ hdf_transit_filename = 'outputs/supplemental/transit.h5'
 group_quarters_trips = 'outputs/supplemental/group_quarters/'
 ext_spg_trips = 'outputs/supplemental/ext_spg/'
 supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
-hh_trip_loc = '/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = '/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = '/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'inputs/trucks/tazdata.in'
-pums_data_loc = '/supplemental/generation/pums/' 
-externals_loc = '/supplemental/generation/externals.csv'
-special_gen_trips = 'inputs/supplemental/generation/special_generators.csv'
+special_gen_trips = 'inputs/scenario/supplemental/generation/special_generators.csv'
 airport_zone_list = [983] # zone numbers for airport special generator
-# Special generator zones and demand (dictionary key is TAZ, value is demand)
-# spg_general = {3110: 1682,    
-#                631: 7567, 
-#                438: 14013}    
-# spg_airport = {983: 101838}
 
 # Using one AM and one PM time period to represent AM and PM skims
-am_skim_file_loc = 'inputs/7to8.h5'
-pm_skim_file_loc = 'inputs/17to18.h5'
-trip_table_loc = 'inputs/supplemental/generation/prod_att.csv'
+am_skim_file_loc = 'outputs/skims/7to8.h5'
+pm_skim_file_loc = 'outputs/skims/17to18.h5'
+trip_table_loc = 'inputs/scenario/supplemental/generation/prod_att.csv'
 output_dir = 'outputs/supplemental/'
 ext_spg_dir = 'outputs/supplemental/ext_spg'
 gq_directory = 'outputs/supplemental/group_quarters'
-gq_trips_loc = 'inputs\supplemental\generation\gq_prod_att.csv'
+gq_trips_loc = 'inputs/scenario/supplemental/generation/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 # Iterations for fratar process in trip distribution
 bal_iters = 5

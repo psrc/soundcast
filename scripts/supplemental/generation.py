@@ -48,12 +48,12 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 bal_to_attractions = ["colpro"]
 
 # Input locations
-hh_trip_loc = 'inputs/supplemental/generation/rates/hh_triprates.in'
-nonhh_trip_loc = 'inputs/supplemental/generation/rates/nonhh_triprates.in'
-puma_taz_loc = 'inputs/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'inputs/trucks/tazdata.in'
-pums_data_loc = 'inputs/supplemental/generation/pums/' 
-externals_loc = 'inputs/supplemental/generation/externals.csv'
+hh_trip_loc = 'inputs/scenario/supplemental/generation/rates/hh_triprates.in'
+nonhh_trip_loc = 'inputs/scenario/supplemental/generation/rates/nonhh_triprates.in'
+puma_taz_loc = 'inputs/scenario/supplemental/generation/ensembles/puma00.ens'
+taz_data_loc = 'inputs/scenario/tazdata/tazdata.in'
+pums_data_loc = 'inputs/scenario/supplemental/generation/pums/' 
+externals_loc = 'inputs/scenario/supplemental/generation/externals.csv'
 
 # Number of header lines for input files (keep these standard for all scenarios)
 tazdata_header_len = 5      
@@ -68,7 +68,7 @@ purp_cols = [1, 24] # Begin and end column numbers for 12 trip purposes (includi
 
 def json_to_dictionary(dict_name):
     ''' loads JSON input as dictionary '''
-    input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/supplementals/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
 
@@ -81,8 +81,8 @@ def network_importer(EmmeProject):
         #print key
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
-    EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)
+    EmmeProject.process_modes('inputs/scenario/networks/' + mode_file)
+    EmmeProject.process_base_network('inputs/scenario/networks/roadway/' + truck_base_net_name)
 
 def init_dir(filename):
     try:

@@ -1,0 +1,103 @@
+{
+    "type": "PATH_BASED_TRAFFIC_ANALYSIS",
+    "classes": [
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h2nt1",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+{
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h2nt2",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+{
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h2nt3",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3tl1",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3tl2",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3tl3",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3nt1",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+{
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3nt2",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+{
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@h3nt3",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@lttrk",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@mdtrk",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@hvtrk",
+                "turn_volumes": null
+            },
+            "analysis": null
+        }
+    ],
+    "path_analysis": null,
+    "cutoff_analysis": null
+}

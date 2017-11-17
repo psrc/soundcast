@@ -23,14 +23,14 @@ print os.getcwdu()
 
 def json_to_dictionary(dict_name):
     ''' Load supplemental input files as dictionary '''
-    input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/supplementals', dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
-    return(my_dictionary)
+    return my_dictionary
 
 # Load the trip productions and attractions
 trip_table = pd.read_csv(trip_table_loc, index_col="taz")  # total 4K Ps and As by trip purpose
-gq_trip_table = pd.read_csv(r'inputs\supplemental\generation\gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
+gq_trip_table = pd.read_csv(r'inputs/scenario/supplemental/generation/gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
 
 # Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
@@ -441,66 +441,6 @@ def supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_to
 
     write_csv(sum_p + [[]] + sum_tm, file_name='supplemental_summary.csv')
 
-
-#def main():
-#    global dictZoneLookup
-#    dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.current_scenario.zone_numbers))
-    
-#    # Overwrite previous trip tables 
-#    init_dir(supplemental_loc)
-
-#    # Load skim data
-#    am_cost_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl2g')
-#    am_dist_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl1d', divide_by_100=True)
-#    pm_cost_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl2g')
-#    pm_dist_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl1d', divide_by_100=True)
-#    cost_skim = (am_cost_skim + pm_cost_skim) * .5
-#    dist_skim = (am_cost_skim + pm_dist_skim) * .5
-   
-#    # Compute friction factors by trip purpose
-#    fric_facs = calc_fric_fac(cost_skim, dist_skim)
-
-#    # Create trip table for externals and special generators by purpose and summarize
-#    distribute_trips(trip_table, ext_spg_dir, trip_purp_full, fric_facs, my_project)
-#    ext_spg_trimmed = ext_spg_selected(trip_purp_full)    # Include only external and special gen. zones
-#    print 'dinished created trip tables_______________'
-#    # Distribute group quarters trips by purpose and summarize results
-#    distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
-#    gq_summary = sum_by_purp(trip_purp_gq, my_project)
-#    print 'distributed______________'
-#    # Combine external, special gen., and group quarters trips
-#    #combined = {}
-#    print 'start combined trips.........'
-#    for purp in trip_purp_full:
-#        if purp not in ['hw2', 'hw3', 'hw4']:   # These purposes don't exist for GQ trips, use only for ext_spg
-#            combined[purp] = ext_spg_trimmed[purp] + gq_summary[purp]
-#        else:
-#            combined[purp] = ext_spg_trimmed[purp]
-#        print purp, 'is done............'
-#    print 'combined trip is created_____________'
-
-#    # Replace old trip tables into new trip tables
-#    trip_dict = repalce_previous_trip_table(new_purp_list, new_to_old_purp_list, new_mode_list, old_mode_list)
-#    print 'finished replace the trip tables________________'
-#     # Split by mode and TOD
-#    #split_by_mode_tod = split_trips(combined, trip_purp_full, my_project)
-#    split_by_mode_tod = split_trips(trip_dict, trip_purps, my_project)
-
-#    # Export results to H5
-#    export_trips(split_by_mode_tod, output_dir = 'outputs/supplemental/')
-
-#    # Report results in CSV summary
-#    supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)
-
-#my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
-#combined = {}    
-#if __name__ == "__main__":
-#    main()
-
-
-
-
-
 my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
 
 global dictZoneLookup
@@ -510,10 +450,10 @@ dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.curr
 #init_dir(supplemental_loc)
 
 # Load skim data
-am_cost_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl2g')
-am_dist_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl1d', divide_by_100=True)
-pm_cost_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl2g')
-pm_dist_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl1d', divide_by_100=True)
+am_cost_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl2g')
+am_dist_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl1d', divide_by_100=True)
+pm_cost_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl2g')
+pm_dist_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl1d', divide_by_100=True)
 cost_skim = (am_cost_skim + pm_cost_skim) * .5
 dist_skim = (am_cost_skim + pm_dist_skim) * .5
    
@@ -539,34 +479,3 @@ my_store.create_dataset('h2tl', data=h2tl)
 my_store.create_dataset('h3tl', data=h3tl)
 
 my_store.close()
-
-
-## Distribute group quarters trips by purpose and summarize results
-#distribute_trips(gq_trip_table, gq_directory, trip_purp_gq, fric_facs, my_project)
-#gq_trip_tables = sum_by_purp(trip_purp_gq, my_project)
-
-
-
-
-
-
-## Combine external, special gen., and group quarters trips
-#combined = {}
-#for purp in trip_purp_full:
-#        if purp not in ['hw2', 'hw3', 'hw4']:   # These purposes don't exist for GQ trips, use only for ext_spg
-#            combined[purp] = ext_spg_trimmed[purp] + gq_summary[purp]
-#        else:
-#            combined[purp] = ext_spg_trimmed[purp]
-
-
-### Input the model choice ratio matrices
-#trip_dict = repalce_previous_trip_table(new_purp_list, new_to_old_purp_list, new_mode_list, old_mode_list, gq_trip_tables)
-
-## Split by mode and TOD
-#split_by_mode_tod = split_trips(trip_dict, trip_purps, my_project)
-
-## Export results to H5
-#export_trips(split_by_mode_tod, output_dir = 'outputs/supplemental')
-
-## Report results in CSV summary
-#supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)

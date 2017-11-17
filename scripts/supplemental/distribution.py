@@ -19,14 +19,14 @@ dictZoneLookup = {}
 
 def json_to_dictionary(dict_name):
     ''' Load supplemental input files as dictionary '''
-    input_filename = os.path.join('inputs/supplemental/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/scenario/supplemental/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
 
 # Load the trip productions and attractions
-trip_table = pd.read_csv(r'outputs\prod_att.csv', index_col="taz")  # total 4K Ps and As by trip purpose
-gq_trip_table = pd.read_csv(r'outputs\gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
+trip_table = pd.read_csv('outputs/supplemental/prod_att.csv', index_col="taz")  # total 4K Ps and As by trip purpose
+gq_trip_table = pd.read_csv('outputs/supplemental/gq_prod_att.csv', index_col="taz")  # only group quarter Ps and As
 
 # Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
@@ -307,10 +307,10 @@ def main():
     init_dir(supplemental_loc)
 
     # Load skim data
-    am_cost_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl2g')
-    am_dist_skim = load_skims(r'inputs\7to8.h5', mode_name='svtl1d', divide_by_100=True)
-    pm_cost_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl2g')
-    pm_dist_skim = load_skims(r'inputs\17to18.h5', mode_name='svtl1d', divide_by_100=True)
+    am_cost_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl2g')
+    am_dist_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl1d', divide_by_100=True)
+    pm_cost_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl2g')
+    pm_dist_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl1d', divide_by_100=True)
     cost_skim = (am_cost_skim + pm_cost_skim) * .5
     dist_skim = (am_cost_skim + pm_dist_skim) * .5
    
@@ -342,7 +342,7 @@ def main():
     # Report results in CSV summary
     supplementals_report(ext_spg_trimmed, gq_summary, combined, split_by_mode_tod)
 
-my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
+my_project = EmmeProject('projects/Supplementals/Supplementals.emp')
     
 if __name__ == "__main__":
     main()

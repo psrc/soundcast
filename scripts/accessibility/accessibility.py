@@ -50,7 +50,7 @@ def process_dist_attribute(parcels, network, name, x, y):
     parcels[res_name] = res.loc[parcels.node_ids].values
     return parcels
 
-def process_parcels(parcels, transit_df):
+def process_parcels(parcels, transit_df, net, intersections_df):
     
     # Add a field so you can compute the weighted average number of spaces later
     parcels['daily_weighted_spaces'] = parcels['PARKDY_P']*parcels['PPRICDYP']
@@ -138,83 +138,87 @@ def clean_up(parcels):
     parcels_final[u'xcoord_p'] = parcels_final[u'xcoord_p'].astype(int)
     return parcels_final
 
-# read in data
-parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+def main():
+    # read in data
+    parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
 
-# Move SeaTac Parcel so that it is on the terminal. 
-parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
-parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
+    # Move SeaTac Parcel so that it is on the terminal. 
+    parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
+    parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
 
-# Update UW Emp parcel with parking costs
-parcels.ix[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
-parcels.ix[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
-parcels.ix[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
-parcels.ix[parcels.PARCELID==751794, 'PPRICHRP'] = 300
+    # Update UW Emp parcel with parking costs
+    parcels.ix[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
+    parcels.ix[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
+    parcels.ix[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
+    parcels.ix[parcels.PARCELID==751794, 'PPRICHRP'] = 300
 
-# This UW parcel is in the wrong zone. 
-parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
+    # This UW parcel is in the wrong zone. 
+    parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
 
 
-#check for missing data!
-for col_name in parcels.columns:
-    # daysim does not use EMPRSC_P
-	if col_name <> 'EMPRSC_P':
-		if parcels[col_name].sum() == 0:
-			print col_name + ' column sum is zero! Exiting program.'
-			sys.exit(1)
+    #check for missing data!
+    for col_name in parcels.columns:
+        # daysim does not use EMPRSC_P
+        if col_name <> 'EMPRSC_P':
+            if parcels[col_name].sum() == 0:
+                print col_name + ' column sum is zero! Exiting program.'
+                sys.exit(1)
 
-# nodes must be indexed by node_id column, which is the first column
-nodes = pd.DataFrame.from_csv(nodes_file_name)
-links = pd.DataFrame.from_csv(links_file_name, index_col = None )
+    # nodes must be indexed by node_id column, which is the first column
+    nodes = pd.DataFrame.from_csv(nodes_file_name)
+    links = pd.DataFrame.from_csv(links_file_name, index_col = None )
 
-# get rid of circular links
-links = links.loc[(links.from_node_id <> links.to_node_id)]
+    # get rid of circular links
+    links = links.loc[(links.from_node_id <> links.to_node_id)]
 
-# assign impedance
-imp = pd.DataFrame(links.Shape_Length)
-imp = imp.rename(columns = {'Shape_Length':'distance'})
+    # assign impedance
+    imp = pd.DataFrame(links.Shape_Length)
+    imp = imp.rename(columns = {'Shape_Length':'distance'})
 
-# create pandana network
-net = pdna.network.Network(nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp)
-for dist in distances:
-            net.precompute(dist)
+    # create pandana network
+    net = pdna.network.Network(nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp)
+    for dist in distances:
+                net.precompute(dist)
 
-# get transit stops
-transit_df = pd.DataFrame.from_csv(transit_stops_name,  index_col = False)
-transit_df['tstops'] = 1
+    # get transit stops
+    transit_df = pd.DataFrame.from_csv(transit_stops_name,  index_col = False)
+    transit_df['tstops'] = 1
 
-# intersections:
-# combine from and to columns
-all_nodes = pd.DataFrame(net.edges_df['from'].append(net.edges_df.to), columns = ['node_id'])
+    # intersections:
+    # combine from and to columns
+    all_nodes = pd.DataFrame(net.edges_df['from'].append(net.edges_df.to), columns = ['node_id'])
 
-# get the frequency of each node, which is the number of intersecting ways
-intersections_df = pd.DataFrame(all_nodes.node_id.value_counts())
-intersections_df = intersections_df.rename(columns = {'node_id' : 'edge_count'})
-intersections_df.reset_index(0, inplace = True)
-intersections_df = intersections_df.rename(columns = {'index' : 'node_ids'})
+    # get the frequency of each node, which is the number of intersecting ways
+    intersections_df = pd.DataFrame(all_nodes.node_id.value_counts())
+    intersections_df = intersections_df.rename(columns = {'node_id' : 'edge_count'})
+    intersections_df.reset_index(0, inplace = True)
+    intersections_df = intersections_df.rename(columns = {'index' : 'node_ids'})
 
-# add a column for each way count
-intersections_df['nodes1'] = np.where(intersections_df['edge_count']==1, 1, 0)
-intersections_df['nodes3'] = np.where(intersections_df['edge_count']==3, 1, 0)
-intersections_df['nodes4'] = np.where(intersections_df['edge_count']>3, 1, 0)
+    # add a column for each way count
+    intersections_df['nodes1'] = np.where(intersections_df['edge_count']==1, 1, 0)
+    intersections_df['nodes3'] = np.where(intersections_df['edge_count']==3, 1, 0)
+    intersections_df['nodes4'] = np.where(intersections_df['edge_count']>3, 1, 0)
 
-# assign network nodes to parcels, for buffer variables
-assign_nodes_to_dataset(parcels, net, 'node_ids', 'XCOORD_P', 'YCOORD_P')
+    # assign network nodes to parcels, for buffer variables
+    assign_nodes_to_dataset(parcels, net, 'node_ids', 'XCOORD_P', 'YCOORD_P')
 
-# assign network nodes to transit stops, for buffer variable
-assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
+    # assign network nodes to transit stops, for buffer variable
+    assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
 
-# run all accibility measures
-parcels = process_parcels(parcels, transit_df)
+    # run all accibility measures
+    parcels = process_parcels(parcels, transit_df, net, intersections_df)
 
-# reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
-parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
-parcels_done = clean_up(parcels)
+    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
+    parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
+    parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
+    parcels_done = clean_up(parcels)
 
-if int(model_year) > 2014:
-    #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
-    parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
-    parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
+    if int(model_year) > 2014:
+        #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
+        parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
+        parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
 
-parcels_done.to_csv(output_parcels, index = False, sep = ' ')
+    parcels_done.to_csv(output_parcels, index = False, sep = ' ')
+
+if __name__ == '__main__':
+    main()

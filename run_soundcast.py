@@ -42,7 +42,7 @@ from data_wrangling import *
 
 @timed
 def accessibility_calcs():
-    copy_accessibility_files()
+    # copy_accessibility_files()
     print 'adding military jobs to regular jobs'
     print 'adding JBLM workers to external workers'
     print 'adjusting non-work externals'
@@ -136,7 +136,7 @@ def build_shadow_only():
             #send_error_email(recipients, returncode)
             sys.exit(1)
         returncode = subprocess.call([sys.executable, 'scripts/utils/shadow_pricing_check.py'])
-        shadow_con_file = open('inputs/shadow_rmse.txt', 'r')
+        shadow_con_file = open('outputs/shadow_rmse.txt', 'r')
         rmse_list = shadow_con_file.readlines()
         iteration_number = len(rmse_list)
         current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
@@ -188,7 +188,8 @@ def daysim_assignment(iteration):
      ### RUN DAYSIM ################################################################
      if run_daysim:
          logger.info("Start of %s iteration of Daysim", str(iteration))
-         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
+         returncode = 0
+         # returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
          logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)
@@ -217,7 +218,7 @@ def daysim_assignment(iteration):
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
     if iteration > 0 and recipr_sample <= min_pop_sample_convergence_test:
-            con_file = open('inputs/converge.txt', 'r')
+            con_file = open('outputs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
     return converge
@@ -257,8 +258,8 @@ def main():
     if run_setup_emme_project_folders:
         setup_emme_project_folders()
 
-    if run_copy_large_inputs:
-        copy_large_inputs()
+    if run_copy_scenario_inputs:
+        copy_scenario_inputs()
 
     if run_accessibility_calcs:
         accessibility_calcs()
@@ -354,6 +355,9 @@ def main():
         returncode = subprocess.call([sys.executable,'scripts/skimming/reliability_skims.py'])
         if returncode != 0:
             sys.exit(1)
+
+    # Move skims from temporary location to output directory
+    move_skims()
 
 ### SUMMARIZE
 ### ##################################################################

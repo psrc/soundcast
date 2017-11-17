@@ -31,7 +31,7 @@ def init_dir(directory):
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/supplemental/',dict_name).replace("\\","/")
+    input_filename = os.path.join('inputs/model/supplementals/',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
 
@@ -92,7 +92,7 @@ def create_ensembles_dict():
     i = 0
     for i in range(len(ensembles)):
         short_name = ensembles.iat[i, 0]
-        file_name = 'inputs\\supplemental\\generation\\ensembles\\' + ensembles.iat[i, 1]
+        file_name = 'inputs/scenario/supplemental/generation/ensembles/' + ensembles.iat[i, 1]
         ensembles_dict[short_name] = file_name
     return ensembles_dict
 
@@ -126,10 +126,10 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
 # SKIM: bi-directional cost, distance, time;
 def load_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
     # get am and pm skim
-    am_skim = load_skims(r'inputs\7to8.h5', 
+    am_skim = load_skims('outputs/skims/7to8.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
-    pm_skim = load_skims(r'inputs\17to18.h5', 
+    pm_skim = load_skims('outputs/skims/17to18.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
 
@@ -186,7 +186,7 @@ def get_terminal_skim_data():
 # Walk and Bike Skims emmebank
 def load_walk_bike_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
     np_matrix_dic = {}
-    np_matrix_dic[np_matrix_name_output] = load_skims(r'inputs\5to6.h5', 
+    np_matrix_dic[np_matrix_name_output] = load_skims('outputs/skims/5to6.h5', 
                                                       mode_name=np_matrix_name_input, 
                                                       divide_by_100=TrueOrFalse)
 
@@ -217,12 +217,12 @@ def load_transit_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFa
     np_matrix_dic = {}
 
     if np_matrix_name_input in ['ivtwa', 'iwtwa', 'brdwa', 'nbdwa', 'xfrwa']:
-        np_matrix_dic[np_matrix_name_input] = load_skims(r'inputs\10to14.h5', 
+        np_matrix_dic[np_matrix_name_input] = load_skims('outputs/skims/10to14.h5', 
                                                          mode_name= np_matrix_name_output, 
                                                          divide_by_100=TrueOrFalse) # Actual in vehicle time
    
     if np_matrix_name_input in ['farbx', 'farwa']:
-        np_matrix_dic[np_matrix_name_input] = load_skims(r'inputs\6to7.h5', 
+        np_matrix_dic[np_matrix_name_input] = load_skims('outputs/skims/6to7.h5', 
                                                          mode_name= np_matrix_name_output, 
                                                          divide_by_100=TrueOrFalse)
 
@@ -482,8 +482,6 @@ def delete_matrices(my_project, matrix_type):
         if matrix.type == matrix_type:
             my_project.delete_matrix(matrix)
 
-
-
 def main():
     #init_dir('outputs/supplemental/mode_choice')
     my_project.delete_matrices("ALL")
@@ -522,10 +520,10 @@ def main():
     mode_choice_to_h5(trip_purpose)
     print trip_purpose, 'is done'
 
-my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
+my_project = EmmeProject(r'projects/Supplementals/Supplementals.emp')
 origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
 parameters_dict = json_to_dictionary('parameters.json')
-ensembles_path = r'inputs\supplemental\generation\ensembles\ensembles_list.csv'
+ensembles_path = r'inputs/scenario/supplemental/generation/ensembles/ensembles_list.csv'
 #trip_purpose_list = ['hbw1', 'hbw2', 'hbw3', 'hbo', 'nhb']
 #for trip_purp in trip_purpose_list:
 #     trip_purpose = trip_purp
