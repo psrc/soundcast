@@ -68,7 +68,10 @@ def get_cost_time_distance_skim_data(trip_purpose):
                   'hbw2' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
                             'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
                             'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw3' : {'cost' : {'svt' : 'svtl3c', 'h2v' : 'h2tl3c', 'h3v' : 'h3tl3c'}, 
+                  'hbw3' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
+                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
+                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
+                  'hbw4' : {'cost' : {'svt' : 'svtl3c', 'h2v' : 'h2tl3c', 'h3v' : 'h3tl3c'}, 
                            'time' : {'svt' : 'svtl3t', 'h2v' : 'h2tl3t', 'h3v' : 'h3tl3t'}, 
                            'distance' : {'svt' : 'svtl3d', 'h2v' : 'h2tl3d', 'h3v' : 'h3tl3d'}},
                   'nhb' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
@@ -151,8 +154,9 @@ def get_total_sov_trips(tod_list):
 
 def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
     input_paramas_vot_name = {'hbw1': {'svt': 'avot1v', 'h2v': 'avots2', 'h3v': 'avots3'},
-                          'hbw2': {'svt': 'avot3v', 'h2v': 'avots2', 'h3v': 'avots3'},
-                          'hbw3': {'svt': 'avot4v', 'h2v': 'avots2', 'h3v': 'avots3'},
+                          'hbw2': {'svt': 'avot2v', 'h2v': 'avots2', 'h3v': 'avots3'},
+                          'hbw3': {'svt': 'avot3v', 'h2v': 'avots2', 'h3v': 'avots3'},
+                          'hbw4': {'svt': 'avot4v', 'h2v': 'avots2', 'h3v': 'avots3'},
                           'nhb': {'svt': 'mvotda', 'h2v': 'mvots2', 'h3v':'mvots3'},
                           'hbo': {'svt': 'mvotda', 'h2v': 'mvots2', 'h3v':'mvots3'}}
     output_auto_cost_name = {'svt': 'dabct', 'h2v': 's2bct', 'h3v': 's3bct'}
@@ -162,13 +166,13 @@ def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
     # *******Code below is different from 4k in that 4k uses generalized time - time / vot to get cost. Soundcat already has a cost skims, so no need to do that.******* 
     
     # SOV
-    auto_cost_matrices['dabct'] = auto_skim_dict['dabds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['dabcs'] + (parking_cost_array/2)
+    auto_cost_matrices['dabct'] = auto_skim_dict['dabds'] * parameters_dict['autoop'] + auto_skim_dict['dabcs'] + (parking_cost_array/2)
     
     # HOV 2 passenger   
-    auto_cost_matrices['s2bct'] = (auto_skim_dict['s2bds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['s2bcs'] + (parking_cost_array/2))/2 
+    auto_cost_matrices['s2bct'] = (auto_skim_dict['s2bds'] * parameters_dict['autoop'] + auto_skim_dict['s2bcs'] + (parking_cost_array/2))/2 
      
     # HOV 2 passenger                                 #'+ (md"daily"/2))/2')
-    auto_cost_matrices['s3bct'] = (auto_skim_dict['s3bds'] * parameters_dict[trip_purpose]['global']['autoop'] + auto_skim_dict['s3bcs'] + (parking_cost_array/2))/3.5
+    auto_cost_matrices['s3bct'] = (auto_skim_dict['s3bds'] * parameters_dict['autoop'] + auto_skim_dict['s3bcs'] + (parking_cost_array/2))/3.5
                                     #+ (md"daily"/2))/3.5')                                
    
 
@@ -225,7 +229,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     utility_matrices = {}
     
     # Calculate Drive Alone Utility
-    utility_matrices['euda'] = np.exp(parameters_dict[trip_purpose]['modechoice']['autivt'] * auto_skim_dict['dabtm'] + parameters_dict[trip_purpose]['modechoice']['autcos'] * auto_cost_dict['dabct'])
+    utility_matrices['euda'] = np.exp(parameters_dict[trip_purpose]['autivt'] * auto_skim_dict['dabtm'] + parameters_dict[trip_purpose]['autcos'] * auto_cost_dict['dabct'])
     # rows, cols includes internal, externals, exclude p&rs
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['euda'][zone_start_constraint:] = 0
@@ -233,7 +237,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     print 'euda done'
     
     # Calculate Shared Ride 2 utility
-    utility_matrices['eus2'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccs2'] + parameters_dict[trip_purpose]['modechoice']['autivt'] * auto_skim_dict['s2btm'] + parameters_dict[trip_purpose]['modechoice']['autcos'] * auto_cost_dict['s2bct'])
+    utility_matrices['eus2'] = np.exp(parameters_dict[trip_purpose]['asccs2'] + parameters_dict[trip_purpose]['autivt'] * auto_skim_dict['s2btm'] + parameters_dict[trip_purpose]['autcos'] * auto_cost_dict['s2bct'])
     # rows, cols includes internal, externals, exclude p&rs
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus2'][zone_start_constraint:] = 0
@@ -241,7 +245,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     print 'eus2 done'
 
     # Calculate Shared Ride 3+ Utility
-    utility_matrices['eus3'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccs3'] + parameters_dict[trip_purpose]['modechoice']['autivt'] * auto_skim_dict['s3btm'] + parameters_dict[trip_purpose]['modechoice']['autcos'] * auto_cost_dict['s3bct'])
+    utility_matrices['eus3'] = np.exp(parameters_dict[trip_purpose]['asccs3'] + parameters_dict[trip_purpose]['autivt'] * auto_skim_dict['s3btm'] + parameters_dict[trip_purpose]['autcos'] * auto_cost_dict['s3bct'])
     # rows, cols includes internal, externals, exclude p&rs
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus3'][zone_start_constraint:] = 0
@@ -249,7 +253,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     print 'eus3 done'
 
     # Calculate Walk to Transit Utility
-    utility_matrices['eutw'] = np.exp(parameters_dict[trip_purpose]['modechoice']['ascctw'] + parameters_dict[trip_purpose]['modechoice']['trwivt'] * transit_skim_dict['ivtwa'] + parameters_dict[trip_purpose]['modechoice']['trwovt'] * (transit_skim_dict['auxwa'] + transit_skim_dict["iwtwa"] + transit_skim_dict['xfrwa']) + parameters_dict[trip_purpose]['modechoice']['trwcos'] * transit_skim_dict['farwa'])
+    utility_matrices['eutw'] = np.exp(parameters_dict[trip_purpose]['ascctw'] + parameters_dict[trip_purpose]['trwivt'] * transit_skim_dict['ivtwa'] + parameters_dict[trip_purpose]['trwovt'] * (transit_skim_dict['auxwa'] + transit_skim_dict["iwtwa"] + transit_skim_dict['xfrwa']) + parameters_dict[trip_purpose]['trwcos'] * transit_skim_dict['farwa'])
     # rows, cols includes internal, excludes extermal, p&rs (no walk, transit to external stations)
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eutw'][zone_start_constraint:] = 0
@@ -257,7 +261,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     print 'eutw done'
 
     # Calculate Walk to Light Rail Utility
-    utility_matrices['eurw'] = np.exp(parameters_dict[trip_purpose]['modechoice']['ascctw'] + parameters_dict[trip_purpose]['modechoice']['trwivt'] * transit_skim_dict['ivtwr'] + parameters_dict[trip_purpose]['modechoice']['trwovt'] * (transit_skim_dict['auxwr'] + transit_skim_dict["iwtwr"] + transit_skim_dict['xfrwr']) + parameters_dict[trip_purpose]['modechoice']['trwcos'] * transit_skim_dict['farwa'])
+    utility_matrices['eurw'] = np.exp(parameters_dict[trip_purpose]['ascctw'] + parameters_dict[trip_purpose]['trwivt'] * transit_skim_dict['ivtwr'] + parameters_dict[trip_purpose]['trwovt'] * (transit_skim_dict['auxwr'] + transit_skim_dict["iwtwr"] + transit_skim_dict['xfrwr']) + parameters_dict[trip_purpose]['trwcos'] * transit_skim_dict['farwa'])
     # rows, cols includes internal, excludes extermal, p&rs (no walk, transit to external stations)
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eurw'][zone_start_constraint:] = 0
@@ -269,7 +273,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     utility_matrices['eurw'][utility_matrices['eutw'] > utility_matrices['eurw']] = 0
 
     # Calculate Walk Utility
-    utility_matrices['euwk'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccwk'] + parameters_dict[trip_purpose]['modechoice']['walktm'] * walk_bike_skim_dict['walkt'])
+    utility_matrices['euwk'] = np.exp(parameters_dict[trip_purpose]['asccwk'] + parameters_dict[trip_purpose]['walktm'] * walk_bike_skim_dict['walkt'])
     # rows, cols includes internal, excludes extermal, p&rs (no walk, transit to external stations)
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['euwk'][zone_start_constraint:] = 0
@@ -277,7 +281,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     print 'euwk done'
     
     # Calculate Bike Utility
-    utility_matrices['eubk'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccbk'] + parameters_dict[trip_purpose]['modechoice']['biketm'] * walk_bike_skim_dict['biket'])
+    utility_matrices['eubk'] = np.exp(parameters_dict[trip_purpose]['asccbk'] + parameters_dict[trip_purpose]['biketm'] * walk_bike_skim_dict['biket'])
     # rows, cols includes internal, excludes extermal, p&rs (no walk, transit to most external stations)
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eubk'][zone_start_constraint:] = 0
@@ -311,6 +315,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     output_mode_share_name = {'hbw1': ['eusm', 'w1shda', 'w1shs2', 'w1shs3', 'w1shtw', 'w1shrw', 'w1shtd', 'w1shbk', 'w1shwk'],
                           'hbw2': ['eusm', 'w2shda', 'w2shs2', 'w2shs3', 'w2shtw', 'w2shrw', 'w2shtd', 'w2shbk', 'w2shwk'],
                           'hbw3': ['eusm', 'w3shda', 'w3shs2', 'w3shs3', 'w3shtw', 'w3shrw', 'w3shtd', 'w3shbk', 'w3shwk'],
+                          'hbw4': ['eusm', 'w4shda', 'w4shs2', 'w4shs3', 'w4shtw', 'w4shrw', 'w4shtd', 'w4shbk', 'w4shwk'],
                           'nhb': ['eusm', 'nhshda', 'nhshs2', 'nhshs3', 'nhshtw', 'nhshrw', 'nhshbk', 'nhshwk'],
                           'hbo': ['eusm', 'nwshda', 'nwshs2', 'nwshs3', 'nwshtw', 'nwshrw', 'nwshbk', 'nwshwk']}
 
@@ -335,7 +340,7 @@ def urbansim_skims_to_h5(h5_name, skim_dict):
 
 
 def main():
-    trip_purpose_list = ['hbw1', 'hbw2', 'hbw3']
+    trip_purpose_list = ['hbw1', 'hbw2', 'hbw3', 'hbw4']
     
     urbansim_skim_dict = {}
 
@@ -400,7 +405,7 @@ max_internal_zone = 3700
 #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
 zone_lookup_dict = dict((value,index) for index,value in enumerate(zones))
 #origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
-parameters_dict = json_to_dictionary('parameters.json')
+parameters_dict = json_to_dictionary('urbansim_skims_parameters.json')
 ensembles_path = r'inputs\supplemental\generation\ensembles\ensembles_list.csv'
 parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
 
