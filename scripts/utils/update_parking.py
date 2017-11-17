@@ -15,9 +15,9 @@ import numpy as np
 sys.path.append(os.getcwd())
 from input_configuration import *
 
-parking_cost_file = r'inputs\parking_costs.csv'
-input_ensemble = r'inputs\parking_gz.csv'
-input_parcels = r'inputs\parcels_urbansim.txt'
+parking_cost_file = r'inputs/scenario/landuse/parking_costs.csv'
+input_ensemble = r'inputs/scenario/landuse/parking_gz.csv'
+input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
 # Combine data columns
 df_parcels = pd.read_csv(input_parcels, delim_whitespace=True)

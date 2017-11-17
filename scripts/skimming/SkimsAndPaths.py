@@ -71,7 +71,7 @@ def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
 
-    hdf5_filename = os.path.join('outputs/skims', hdf5_name +'.h5').replace("\\","/")
+    hdf5_filename = os.path.join('inputs/model/roster', hdf5_name +'.h5').replace("\\","/")
 
     my_user_classes = json_to_dictionary('user_classes')
 

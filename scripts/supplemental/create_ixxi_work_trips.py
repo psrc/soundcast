@@ -179,7 +179,7 @@ observed_ixxi.reset_index(inplace = True)
 
 parcel_df = pd.read_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ')
 parcel_df = remove_employment_by_taz(parcel_df, jblm_taz_list, parcel_emp_cols)
-hh_persons = h5py.File(r'inputs/scenario/hh_and_persons.h5', "r")
+hh_persons = h5py.File(r'inputs/scenario/landuse/hh_and_persons.h5', "r")
 parcel_grouped = parcel_df.groupby('TAZ_P')
 emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
 emp_by_taz.reset_index(inplace = True)
