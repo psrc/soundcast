@@ -12,7 +12,7 @@ from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *
 
-DAYSIM = 'inputs/scenario/hh_and_persons.h5'
+DAYSIM = 'inputs/scenario/landuse/hh_and_persons.h5'
 PARCEL = 'inputs/scenario/landuse/parcels_urbansim.txt'
 OUT_PUT = 'outputs/supplemental/AIRPORT_TRIPS.csv'
 daysim = h5py.File(DAYSIM,'r+')

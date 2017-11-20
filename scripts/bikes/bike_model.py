@@ -83,7 +83,7 @@ def process_attributes(my_project):
 				print 'unable to recreate bike link attributes'
 
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-	filename = 'inputs/scenario/bike_attributes.csv'
+	filename = 'inputs/scenario/bike/bike_attributes.csv'
 	import_attributes(filename, 
 	                  scenario = my_project.current_scenario,
 	                  revert_on_error=False)

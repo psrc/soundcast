@@ -1184,7 +1184,7 @@ def feedback_check(emmebank_path_list):
      for emmebank_path in emmebank_path_list:
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
-        my_store=h5py.File('outputs/' + tod + '.h5', "r+")
+        my_store=h5py.File('outputs/skims/' + tod + '.h5', "r+")
         #put current time skims in numpy:
         skims_dict = {}
 
@@ -1340,7 +1340,7 @@ def main():
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')
        
-        f = open('outputs/converge.txt', 'w')
+        f = open('outputs/logs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
         if (survey_seed_trips == False and daysim_seed_trips == False and build_free_flow_skims == False):

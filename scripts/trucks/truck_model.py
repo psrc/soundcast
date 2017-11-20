@@ -109,7 +109,7 @@ def create_full_matrices():
 #import matrices(employment shares):
 def import_emp_matrices():
     truck_emp_dict = json_to_dictionary('truck_emp_dict')
-    truck_matrix_import_list = ['tazdata', 'agshar', 'minshar', 'prodshar', 'equipshar', 
+    truck_matrix_import_list = ['agshar', 'minshar', 'prodshar', 'equipshar', 
                                  'tcushar', 'whlsshar', 'const', 'special_gen_light_trucks',
                                  'special_gen_medium_trucks', 'special_gen_heavy_trucks', 
                                  'heavy_trucks_ee', 'heavy_trucks_ei', 'heavy_trucks_ie',
@@ -118,6 +118,8 @@ def import_emp_matrices():
     for name in truck_matrix_import_list:
         print 'importing: ' + str(name)
         my_project.import_matrices('inputs/scenario/trucks/' + name + '.in')
+
+    my_project.import_matrices('inputs/scenario/tazdata/tazdata.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information
@@ -365,7 +367,7 @@ def create_landuse_correction():
     '''Restrict truck trips by land use type.'''
 
     #  Read in the csv files for Parcel ID and Taz and Parcel ID and Use Type for join
-    parcels = pd.read_csv(r'inputs/scenario/buffered_parcels.txt', sep=' ')
+    parcels = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
 
     # Read in land use type lookup
     df = parcels.merge(pd.read_csv(r'inputs/model/lookup/lu_type.csv'),left_on='lutype_p',right_on='land_use_type_id')
