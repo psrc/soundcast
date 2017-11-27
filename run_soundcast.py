@@ -218,7 +218,7 @@ def daysim_assignment(iteration):
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
     if iteration > 0 and recipr_sample <= min_pop_sample_convergence_test:
-            con_file = open('outputs/converge.txt', 'r')
+            con_file = open('outputs/logs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
     return converge

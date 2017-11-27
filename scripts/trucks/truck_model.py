@@ -119,7 +119,7 @@ def import_emp_matrices():
         print 'importing: ' + str(name)
         my_project.import_matrices('inputs/scenario/trucks/' + name + '.in')
 
-    my_project.import_matrices('inputs/scenario/tazdata/tazdata.in')
+    my_project.import_matrices('inputs/scenario/landuse/tazdata.in')
 
 #calculate total households (9_calculate_total_households.mac) by origin:
 #destinations 102-105 represent household information

@@ -213,6 +213,6 @@ for col_name in final_df.columns:
         final_df.drop(col_name, axis=1, inplace=True)
 final_df = final_df.round(3)
 
-final_df.to_csv('inputs/scenario/landuse/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
+final_df.to_csv('outputs/landuse/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
 parcel_df.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ', index = False)
 ###############

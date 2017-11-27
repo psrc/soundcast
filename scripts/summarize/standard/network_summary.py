@@ -459,7 +459,7 @@ def daily_counts(writer, my_project):
     """Export daily network volumes and compare to observed."""
 
     # Load observed data
-    count_id_df = pd.read_csv(r'inputs/scenario/networks/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    count_id_df = pd.read_csv(r'inputs/base_year/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
     observed_count_df =  pd.read_csv(r'inputs/base_year/observed_daily_counts.csv')
     count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
     # add daily bank to project if it exists

@@ -21,7 +21,7 @@ if not(use_simple_configuration):
     model_year = '2014'
     daysim_code = 'R:/SoundCast/daysim_2016' 
     master_project = 'LoadTripTables'
-    main_inputs_folder =  'R:\SoundCast\Inputs\dev'
+    main_inputs_folder =  'R:\SoundCast\Inputs'
     base_inputs = os.path.join(main_inputs_folder, base_year)
     scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
     # For Overriding the simple configuration, when you want to run things in more detail:
@@ -43,10 +43,10 @@ if not(use_simple_configuration):
     
     ######Set up:######
     run_accessibility_calcs = True
-    run_copy_daysim_code = False
-    run_setup_emme_project_folders = False
-    run_setup_emme_bank_folders = False
-    run_copy_scenario_inputs = False
+    run_copy_daysim_code = True
+    run_setup_emme_project_folders = True
+    run_setup_emme_bank_folders = True
+    run_copy_scenario_inputs = True
     run_import_networks = True
     run_daysim_zone_inputs = True
     ###################
@@ -210,7 +210,7 @@ else:
 ###########################################################################################################################################################
 # These files generally do not change and don't need to be toggled here usually
 master_project = 'LoadTripTables'
-parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
+parcel_decay_file = 'outputs/landuse/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 
 main_log_file = 'outputs/logs/soundcast_log.txt'

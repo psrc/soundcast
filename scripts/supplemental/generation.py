@@ -51,7 +51,7 @@ bal_to_attractions = ["colpro"]
 hh_trip_loc = 'inputs/scenario/supplemental/generation/rates/hh_triprates.in'
 nonhh_trip_loc = 'inputs/scenario/supplemental/generation/rates/nonhh_triprates.in'
 puma_taz_loc = 'inputs/scenario/supplemental/generation/ensembles/puma00.ens'
-taz_data_loc = 'inputs/scenario/tazdata/tazdata.in'
+taz_data_loc = 'inputs/scenario/landuse/tazdata.in'
 pums_data_loc = 'inputs/scenario/supplemental/generation/pums/' 
 externals_loc = 'inputs/scenario/supplemental/generation/externals.csv'
 

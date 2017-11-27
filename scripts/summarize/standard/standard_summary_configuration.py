@@ -41,8 +41,8 @@ output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts
 map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
 
 ########## Land Use Summary ##################################################
-out_lu_summary = r'inputs/landuse_summary.xlsx'
-households_persons_file = r'inputs/scenario/hh_and_persons.h5'
+out_lu_summary = r'outputs/landuse/landuse_summary.xlsx'
+households_persons_file = r'inputs/scenario/landuse/hh_and_persons.h5'
 
 ######## Truck Counts ########################################################
 truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014.csv' 
