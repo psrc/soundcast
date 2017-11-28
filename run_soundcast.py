@@ -267,8 +267,8 @@ def main():
     if run_accessibility_summary:
         subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
-    #if  run_convert_hhinc_2000_2010:
-    #    subprocess.call([sys.executable, 'scripts/utils/convert_hhinc_2000_2010.py'])
+    if not os.path.exists('working'):
+        os.makedirs('working')
 
 ### IMPORT NETWORKS
 ### ###############################################################
@@ -316,9 +316,6 @@ def main():
                 if iteration == 0 or pop_sample[iteration-1] > 2:
                     print 'here'
                     try:
-                                                        
-                            if not os.path.exists('working'):
-                                os.makedirs('working')
                             #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
                             print "copying shadow prices" 
                     except:
