@@ -352,9 +352,6 @@ def main():
         if returncode != 0:
             sys.exit(1)
 
-    # Move skims from temporary location to output directory
-    move_skims()
-
 ### SUMMARIZE
 ### ##################################################################
     run_all_summaries()

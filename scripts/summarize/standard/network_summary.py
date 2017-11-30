@@ -699,7 +699,7 @@ def freeflow_skims(my_project):
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
-    skim_vals = h5py.File(r'outputs/skims/20to5.h5')['Skims']['svtl3t'][:]
+    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['svtl3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID

@@ -270,14 +270,3 @@ def build_output_dirs():
     for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
         if not os.path.exists(path):
             os.makedirs(path)
-
-def move_skims():
-    try:
-        files = glob.iglob(os.path.join('inputs/model/roster', "*.h5"))
-        for file in files:
-            if os.path.isfile(file):
-                shutil.move(file, 'outputs/skims')
-    except Exception as ex:
-        template = "An exception of type {0} occured. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print message
