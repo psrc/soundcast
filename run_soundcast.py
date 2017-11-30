@@ -188,8 +188,7 @@ def daysim_assignment(iteration):
      ### RUN DAYSIM ################################################################
      if run_daysim:
          logger.info("Start of %s iteration of Daysim", str(iteration))
-         returncode = 0
-         # returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
+         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
          logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
              #send_error_email(recipients, returncode)

@@ -211,7 +211,7 @@ def import_skims():
     np_gc_skims = {}
     np_bidir_gc_skims = {}
     for tod in truck_generalized_cost_tod.keys():
-        hdf_file = h5py.File('outputs/skims/' + tod + '.h5', "r")
+        hdf_file = h5py.File('inputs/model/roster/' + tod + '.h5', "r")
         for item in input_skims.values():
             #gc
             skim_name = item['gc_name']

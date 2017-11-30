@@ -450,10 +450,10 @@ dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.curr
 #init_dir(supplemental_loc)
 
 # Load skim data
-am_cost_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl2g')
-am_dist_skim = load_skims('outputs/skims/7to8.h5', mode_name='svtl1d', divide_by_100=True)
-pm_cost_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl2g')
-pm_dist_skim = load_skims('outputs/skims/17to18.h5', mode_name='svtl1d', divide_by_100=True)
+am_cost_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl2g')
+am_dist_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1d', divide_by_100=True)
+pm_cost_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='svtl2g')
+pm_dist_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='svtl1d', divide_by_100=True)
 cost_skim = (am_cost_skim + pm_cost_skim) * .5
 dist_skim = (am_cost_skim + pm_dist_skim) * .5
    

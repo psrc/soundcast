@@ -200,7 +200,7 @@ def bike_assignment(my_project, tod):
 def export_skims(my_project, matrix_name, tod):
 	'''Write skim matrix to h5 container'''
 
-	my_store = h5py.File(r'outputs/skims/' + tod + '.h5', "r+")
+	my_store = h5py.File(r'inputs/model/roster/' + tod + '.h5', "r+")
 
 	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
 

@@ -1184,7 +1184,7 @@ def feedback_check(emmebank_path_list):
      for emmebank_path in emmebank_path_list:
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
-        my_store=h5py.File('outputs/skims/' + tod + '.h5', "r+")
+        my_store=h5py.File('inputs/model/roster/' + tod + '.h5', "r+")
         #put current time skims in numpy:
         skims_dict = {}
 

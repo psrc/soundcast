@@ -723,7 +723,7 @@ def freeflow_skims(my_project):
     daysim.close()
 
 def jobs_transit(writer):
-    buf = pd.read_csv(r'inputs/scenario/landuse/buffered_parcels.txt', sep=' ')
+    buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
     buf.index = buf.parcelid
 
     # distance to any transit stop

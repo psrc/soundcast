@@ -126,10 +126,10 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
 # SKIM: bi-directional cost, distance, time;
 def load_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
     # get am and pm skim
-    am_skim = load_skims('outputs/skims/7to8.h5', 
+    am_skim = load_skims('inputs/model/roster/7to8.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
-    pm_skim = load_skims('outputs/skims/17to18.h5', 
+    pm_skim = load_skims('inputs/model/roster/17to18.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
 
@@ -186,7 +186,7 @@ def get_terminal_skim_data():
 # Walk and Bike Skims emmebank
 def load_walk_bike_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
     np_matrix_dic = {}
-    np_matrix_dic[np_matrix_name_output] = load_skims('outputs/skims/5to6.h5', 
+    np_matrix_dic[np_matrix_name_output] = load_skims('inputs/model/roster/5to6.h5', 
                                                       mode_name=np_matrix_name_input, 
                                                       divide_by_100=TrueOrFalse)
 
@@ -217,12 +217,12 @@ def load_transit_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFa
     np_matrix_dic = {}
 
     if np_matrix_name_input in ['ivtwa', 'iwtwa', 'brdwa', 'nbdwa', 'xfrwa']:
-        np_matrix_dic[np_matrix_name_input] = load_skims('outputs/skims/10to14.h5', 
+        np_matrix_dic[np_matrix_name_input] = load_skims('inputs/model/roster/10to14.h5', 
                                                          mode_name= np_matrix_name_output, 
                                                          divide_by_100=TrueOrFalse) # Actual in vehicle time
    
     if np_matrix_name_input in ['farbx', 'farwa']:
-        np_matrix_dic[np_matrix_name_input] = load_skims('outputs/skims/6to7.h5', 
+        np_matrix_dic[np_matrix_name_input] = load_skims('inputs/model/roster/6to7.h5', 
                                                          mode_name= np_matrix_name_output, 
                                                          divide_by_100=TrueOrFalse)
 
