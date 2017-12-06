@@ -1,6 +1,0 @@
-{"lttrk" : {"daily_trips" : "mflgtod", 
-                                    "am" : ".194", "md" : ".346", "pm" : ".240", "ev" : ".126", "ni" : ".094"}, 
-                         "mdtrk" : {"daily_trips" : "mfmedod", 
-                                    "am" : ".208", "md" : ".417", "pm" : ".204", "ev" : ".095", "ni" : ".076"}, 
-                         "hvtrk" : {"daily_trips" : "mfhvyod", 
-                                    "am" : ".209", "md" : ".468", "pm" : ".189", "ev" : ".071", "ni" : ".063"}}

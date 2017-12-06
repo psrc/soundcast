@@ -6,13 +6,11 @@ sys.path.append(os.getcwd())
 from input_configuration import *
 
 #it might make sense to put these file locations in a config somewhere
-parcel_file =  "inputs\\accessibility\\parcels_urbansim.txt"
-military_file = "inputs\\accessibility\\parcels_military.csv"
-jblm_file = "inputs\\accessibility\\\distribute_jblm_jobs.csv"
+parcel_file =  'inputs/scenario/landuse/parcels_urbansim.txt'
+military_file = 'inputs/scenario/landuse/parcels_military.csv'
+jblm_file = 'inputs/scenario/landuse/distribute_jblm_jobs.csv'
 
 parcels_urbansim = pd.read_csv(parcel_file, sep = " ")
-
-
 
 parcels_military = pd.read_csv(military_file)
 parcels_military.dropna(subset = ['Parcel_ID'])

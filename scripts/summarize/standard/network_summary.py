@@ -55,7 +55,7 @@ tptt_counts_file = 'soundcast_tptt.csv'
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs\\skim_params"))    # Assumes the cwd is @ run_soundcast.py; always run this script from run_soundcast.py
+    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters"))    # Assumes the cwd is @ run_soundcast.py; always run this script from run_soundcast.py
     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
@@ -369,7 +369,7 @@ def process_screenlines(screenline_dict):
     '''Convert screenline volume dictionary to dataframe in SQL format (single row of columns)'''
     
     # Load screenline lookup between location name and network value
-    screenline_names = pd.read_json('inputs/screenline_dict.json',orient='values')
+    screenline_names = pd.read_json('inputs/base_year/screenline_dict.json',orient='values')
     screenline_names['id'] = screenline_names.index
 
     # Load screenline volumes from the network and merge with names lookup
@@ -459,8 +459,8 @@ def daily_counts(writer, my_project):
     """Export daily network volumes and compare to observed."""
 
     # Load observed data
-    count_id_df = pd.read_csv(r'inputs/networks/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
-    observed_count_df =  pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
+    count_id_df = pd.read_csv(r'inputs/base_year/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    observed_count_df =  pd.read_csv(r'inputs/base_year/observed_daily_counts.csv')
     count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
     # add daily bank to project if it exists
     if os.path.isfile(r'Banks/Daily/emmebank'):
@@ -699,7 +699,7 @@ def freeflow_skims(my_project):
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
-    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl3t'][:]
+    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['svtl3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -723,7 +723,7 @@ def freeflow_skims(my_project):
     daysim.close()
 
 def jobs_transit(writer):
-    buf = pd.read_csv(r'inputs\buffered_parcels.txt', sep=' ')
+    buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
     buf.index = buf.parcelid
 
     # distance to any transit stop
@@ -816,12 +816,12 @@ def main():
 
     writer = pd.ExcelWriter('outputs/network/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
-    export_corridor_results(my_project, writer)
+    # export_corridor_results(my_project, writer)
     jobs_transit(writer)
        
     # Read observed count data
-    loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
-    loop_counts = pd.read_csv(r'inputs/observed/loop_counts_2014.csv')
+    loop_ids = pd.read_csv(r'inputs/scenario/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
+    loop_counts = pd.read_csv(r'inputs/base_year/loop_counts_2014.csv')
     loop_counts.set_index(['CountID_Type'], inplace = True)
     #loop_ids = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
@@ -998,8 +998,6 @@ def main():
     # seg_df.to_excel(excel_writer=writer, sheet_name='Segments')
     
     # combine initial and final boardings for transfers
-
-
     seg_df = seg_df.groupby('inode').sum().reset_index()
     seg_df = seg_df.drop(['tod','line'], axis=1)
     stop_df = stop_df.groupby('inode').sum().reset_index()

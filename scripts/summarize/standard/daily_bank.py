@@ -14,7 +14,7 @@ keep_atts = ['@type']
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs\\skim_params")) 
+    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/skim_params")) 
     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
@@ -22,7 +22,7 @@ def json_to_dictionary(dict_name):
 
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
@@ -107,7 +107,7 @@ def main():
     #Use a copy of an existing bank for the daily bank
     copy_emmebank('Banks/7to8', 'Banks/Daily')
 
-    daily_emmebank =_emmebank.Emmebank(r'Banks\Daily\emmebank')
+    daily_emmebank =_emmebank.Emmebank(r'Banks/Daily/emmebank')
     # Set the emmebank title
     daily_emmebank.title = 'daily'
     daily_scenario = daily_emmebank.scenario(1002)

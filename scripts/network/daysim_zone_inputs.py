@@ -5,7 +5,7 @@ import pandas as pd
 sys.path.append(os.getcwd())
 
 # open nodes file & convert to pandas dataframe
-nodes = ps.open('inputs/networks/junctions.dbf')
+nodes = ps.open('inputs/scenario/networks/shapefiles/junctions.dbf')
 d = dict([(col, np.array(nodes.by_col(col))) for col in nodes.header])
 df = pd.DataFrame(d)
 
@@ -29,11 +29,11 @@ df.ix[df.Scen_Node <= 3700, 'Dest_eligible'] = 1
 df = df.rename(columns={'Scen_Node': 'Zone_id', 'P_RStalls': 'Capacity', 'Processing' : 'External'})
 
 # write out taz file:
-df.to_csv(r'inputs\TAZIndex.txt', columns = ['Zone_id', 'zone_ordinal', 'Dest_eligible', 'External'], index = False, sep='\t') 
+df.to_csv('inputs/scenario/landuse/TAZIndex.txt', columns = ['Zone_id', 'zone_ordinal', 'Dest_eligible', 'External'], index = False, sep='\t') 
 
 # rename some columns for the park and ride file
 df = df.rename(columns={'Zone_id': 'ZoneID', 'zone_ordinal' : 'NodeID', })
 
 # write out  park and ride file 
 p_rDF = df.loc[df['Capacity'] > 0]
-p_rDF.to_csv(r'inputs\p_r_nodes.csv', columns = ['NodeID', 'ZoneID', 'XCoord', 'YCoord', 'Capacity', 'Cost'], index = False) 
+p_rDF.to_csv(r'inputs/scenario/landuse/p_r_nodes.csv', columns = ['NodeID', 'ZoneID', 'XCoord', 'YCoord', 'Capacity', 'Cost'], index = False) 

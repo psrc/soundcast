@@ -17,16 +17,13 @@ from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *
 
-    
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
-
-
           
 def import_tolls(emmeProject):
     #create extra attributes:
@@ -45,7 +42,7 @@ def import_tolls(emmeProject):
 
     tod_4k = sound_cast_net_dict[emmeProject.tod]
 
-    attr_file= ['inputs/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/tolls/ferry_vehicle_fares.in']
+    attr_file= ['inputs/scenario/networks/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/scenario/networks/tolls/ferry_vehicle_fares.in']
 
     # set tolls
     #for file in attr_file:
@@ -107,11 +104,7 @@ def distance_pricing(distance_rate, hot_rate, emmeProject):
                     if 's' in test or 'e' in test:
                         print hot_rate
                         link['@toll1'] = link['@toll1'] + (link.length * hot_rate)
-                        link['@toll2'] = link['@toll2'] + (link.length * hot_rate)
-                       
-               
-
-            
+                        link['@toll2'] = link['@toll2'] + (link.length * hot_rate)          
     
    emmeProject.current_scenario.publish_network(network)
 
@@ -251,7 +244,7 @@ def arterial_delay(emmeProject, factor):
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
-    headway_df = pd.DataFrame.from_csv('inputs/networks/' + headway_file)
+    headway_df = pd.DataFrame.from_csv('inputs/scenario/networks/' + headway_file)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
@@ -262,22 +255,21 @@ def run_importer(project_name):
         my_project.delete_links()
         my_project.delete_nodes()
       
-        my_project.process_modes('inputs/networks/' + mode_file)
+        my_project.process_modes('inputs/scenario/networks/' + mode_file)
         
-        my_project.process_base_network('inputs/networks/' + value + base_net_name)
+        my_project.process_base_network('inputs/scenario/networks/roadway/' + value + base_net_name)
         if import_shape:
-            my_project.process_shape('inputs/networks/' + value + shape_name)
-        my_project.process_turn('inputs/networks/' + value + turns_name)
+            my_project.process_shape('inputs/scenario/networks/shapefiles/' + value + shape_name)
+        my_project.process_turn('inputs/scenario/networks/turns/' + value + turns_name)
         if my_project.tod in load_transit_tod:
-           my_project.process_vehicles('inputs/networks/' + transit_vehicle_file)
-           my_project.process_transit('inputs/networks/' + value + transit_name)
+           my_project.process_vehicles('inputs/scenario/networks/' + transit_vehicle_file)
+           my_project.process_transit('inputs/scenario/networks/transit/' + value + transit_name)
            update_headways(my_project, headway_df)
         #import tolls
         import_tolls(my_project)
         arterial_delay(my_project, rdly_factor)
         if add_distance_pricing or add_hot_lane_tolls:
-            distance_pricing(distance_rate_dict[value], hot_rate_dict[value], my_project)
-        
+            distance_pricing(distance_rate_dict[value], hot_rate_dict[value], my_project)     
        
 def main():
 

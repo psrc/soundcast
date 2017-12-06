@@ -1,5 +1,4 @@
 import os
-
 # This file contains model input parameters imported by SoundCast scripts.
 
 # CONFIGURATION TO RUN SOUNDCAST
@@ -7,6 +6,7 @@ import os
 
 # Scenario and input paths
 #####################################################################
+base_year = '2014'  # This should always be 2014 unless the base year changes
 scenario_name = '2014'
 model_year = '2014'
 main_inputs_folder = 'R:/SoundCast/Inputs'
@@ -55,11 +55,6 @@ run_long_term_report = True
 run_time_choice_report = True
 ####################################
 
-
-base_year = '2014'  # This should always be 2014 unless the base year changes
-base_inputs = os.path.join(main_inputs_folder, base_year)
-scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
-
 ###### Model iterations, population sampling, log files, etc.######
 pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
@@ -68,19 +63,18 @@ min_pop_sample_convergence_test = 10
 # start building shadow prices - only run work locations
 shadow_work = [2, 1, 1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
-###################################################################
+####################################
 
-###########################################################################################################################################################
 # These files generally do not change and don't need to be toggled here usually
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 main_log_file = 'soundcast_log.txt'
+master_project = 'LoadTripTables'
+network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                         'counts_output', 'network_summary']
 
 #This is what you get if the model runs cleanly, but it's random:
 good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "sunshine", "nap","world peace"]
 
-# These files are often missing from a run.  We want to check they are present
-# and warn if not.
-# Please add to this list as you find files that are missing.
-commonly_missing_files = ['buffered_parcels.txt', 'tazdata.in']
-
+base_inputs = os.path.join(main_inputs_folder, base_year)
+scenario_inputs = os.path.join(main_inputs_folder, scenario_name)

@@ -54,53 +54,6 @@ def copy_daysim_code():
         print message
         sys.exit(1)
 
-
-@timed
-def copy_accessibility_files():
-    if not os.path.exists('inputs/accessibility'):
-        os.makedirs('inputs/accessibility')
-    
-    print 'Copying UrbanSim parcel file'
-    try:
-        shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
-    except:
-        print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
-        sys.exit(1)
-      
-    
-    print 'Copying Transit stop file'
-    try:      
-        shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
-    except:
-        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
-        sys.exit(1)
-
-    
-    print 'Copying Military parcel file'
-    try:
-        shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
-    except:
-        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
-        sys.exit(1)
-
-    
-    print 'Copying JBLM file'
-    try:
-        shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
-    except:
-        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
-        sys.exit(1)
-
-    
-    print 'Copying Hourly and Daily Parking Files'
-    if base_year != model_year: 
-        try:
-            shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
-            shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
-        except:
-            print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
-            sys.exit(1)
-
 @timed
 def copy_seed_skims():
     print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
@@ -112,7 +65,7 @@ def copy_seed_skims():
 
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
@@ -125,7 +78,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
@@ -203,6 +156,11 @@ def setup_emme_project_folders():
         
    
 @timed    
+def copy_scenario_inputs():
+    print 'Copying scenario inputs...' 
+    dir_util.copy_tree(scenario_inputs,'inputs/scenario')
+
+@timed
 def copy_large_inputs():
     print 'Copying large inputs...' 
     dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
@@ -211,7 +169,6 @@ def copy_large_inputs():
     dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
     if run_supplemental_generation:
         shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/trucks')
-        #shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/suplemental/generation/landuse')
     dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
     dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
     dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
@@ -220,10 +177,12 @@ def copy_large_inputs():
     dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
     shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
+    
     # node to node short distance files:
     shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
+
 
 @timed
 def copy_shadow_price_file():

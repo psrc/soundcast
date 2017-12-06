@@ -15,34 +15,23 @@ import numpy as np
 sys.path.append(os.getcwd())
 from input_configuration import *
 
-daily_parking_cost = r'inputs\parking\daily_parking_costs.csv'
-hourly_parking_cost = r'inputs\parking\hourly_parking_costs.csv'
-input_ensemble = r'inputs\parking_gz.csv'
-input_parcels = r'inputs\accessibility\parcels_urbansim.txt'
+parking_cost_file = r'inputs/scenario/landuse/parking_costs.csv'
+input_ensemble = r'inputs/scenario/landuse/parking_gz.csv'
+input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
 # Combine data columns
 df_parcels = pd.read_csv(input_parcels, delim_whitespace=True)
-df_ensemble = pd.read_csv(input_ensemble, low_memory = False)
-df_daily_parking_cost = pd.DataFrame(pd.read_csv(daily_parking_cost, low_memory = False))
-df_hourly_parking_cost = pd.DataFrame(pd.read_csv(hourly_parking_cost, low_memory = False))
-join_ensemble_to_parcel = pd.merge(left = df_parcels, right=df_ensemble,left_on="TAZ_P",right_on="TAZ")
-# Join daily costs with parcel data 
-merged_df = pd.merge(left=join_ensemble_to_parcel,
-                                right=df_daily_parking_cost, 
-                                left_on="ENS",
-                                right_on="ENS",
-                                how='left')
-# Join hourly costs with parcel data
-merged_df = pd.merge(left = merged_df,
-                                right = df_hourly_parking_cost,
-                                left_on="ENS",
-                                right_on="ENS",
-                                how='left')
+df_ensemble = pd.read_csv(input_ensemble)
+parking_cost = pd.read_csv(parking_cost_file)
 
+parking_cost = pd.read_csv(parking_cost_file)
+df_parcels = pd.merge(left = df_parcels, right=df_ensemble,left_on="TAZ_P",right_on="TAZ")
+
+# Join daily costs with parcel data 
+df_parking_cost = pd.merge(df_parcels,parking_cost,on='ENS',how='left')
 
 # Clean up the results and store in same format as original parcel.txt file
-df = pd.DataFrame(merged_df)
-#drop_columns = ['PARKDY_P', 'PARKHR_P', 'PPRICDYP', 'PPRICHRP']
+df = pd.DataFrame(df_parking_cost)
 drop_columns = ['PPRICDYP', 'PPRICHRP']
 df = df.drop(drop_columns, 1)
 

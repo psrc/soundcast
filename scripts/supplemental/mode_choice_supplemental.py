@@ -31,11 +31,38 @@ def init_dir(directory):
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/supplemental/',dict_name).replace("\\","/")
+    input_filename = os.path.join('inputs/model/supplementals/',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
          
+# Initialize partitions
+def create_ensembles_dict():
+    ensembles = pd.read_csv(ensembles_path)
+    ensembles_dict = {}
+    i = 0
+    for i in range(len(ensembles)):
+        short_name = ensembles.iat[i, 0]
+        file_name = 'inputs/scenario/supplemental/generation/ensembles/' + ensembles.iat[i, 1]
+        ensembles_dict[short_name] = file_name
+    return ensembles_dict
 
+def initialize_process_zone_partition():
+    ensembles_dict = create_ensembles_dict()
+    for short_name, file_name in ensembles_dict.items():
+        #print short_name
+        #print file_name
+        my_project.initialize_zone_partition(short_name)
+        my_project.process_zone_partition(file_name)
+
+
+# Reset utility to zero 
+def reset_utility():
+    utilities = ['euda', 'eus2', 'eus3', 'eutw', 'eutd', 'eubk', 'euwk', 'eusm', 'dabct', 's2bct', 's3bct']
+    for u in utilities:
+        my_project.matrix_calculator(result = u, expression = "0")
+
+
+# Import data (skim data) from external database (1.31: IMPORT DATA FROM EXTERNAL DATABASE)
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
     with h5py.File(skim_file_loc, "r") as f:
@@ -46,19 +73,17 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     else:
         return skim_file
 
-
 def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
     # get am and pm skim
-    am_skim = load_skims(r'inputs\7to8.h5', 
+    am_skim = load_skims('inputs/model/roster/7to8.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
-    pm_skim = load_skims(r'inputs\17to18.h5', 
+    pm_skim = load_skims('inputs/model/roster/17to18.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
 
     # calculate the bi_dictional skim
     return (am_skim + pm_skim) * .5
-
 
 def get_cost_time_distance_skim_data(trip_purpose):
     skim_dict = {}
@@ -83,6 +108,30 @@ def get_cost_time_distance_skim_data(trip_purpose):
     
     for skim_name in ['cost', 'time', 'distance']:
         for sov_hov in ['svt', 'h2v', 'h3v']:
+
+            #print sov_hov
+            if skim_name == 'cost':
+                load_skim_data(input_skim[trip_purpose][skim_name][sov_hov],
+                               output_skim[skim_name][sov_hov], True)
+            else:
+                load_skim_data(input_skim[trip_purpose][skim_name][sov_hov], 
+                               output_skim[skim_name][sov_hov], True)
+
+
+
+# calculate full matrix terminal times
+def get_terminal_skim_data():
+        my_project.matrix_calculator(result = 'termti', expression = 'prodtt + attrtt' )
+
+
+
+# Walk and Bike Skims emmebank
+def load_walk_bike_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
+    np_matrix_dic = {}
+    np_matrix_dic[np_matrix_name_output] = load_skims('inputs/model/roster/5to6.h5', 
+                                                      mode_name=np_matrix_name_input, 
+                                                      divide_by_100=TrueOrFalse)
+
             skim_dict[output_skim[skim_name][sov_hov]] = load_skim_data(trip_purpose, input_skim[trip_purpose][skim_name][sov_hov], True)
     
     return skim_dict
@@ -94,6 +143,34 @@ def get_walk_bike_skim_data():
         skim_dict[skim_name]= load_skims(r'inputs\5to6.h5', mode_name=skim_name, divide_by_100=True)
     return skim_dict
 
+# Transit Skims emmebank
+def load_transit_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOrFalse):
+    '''
+    #auxwa_skim :?
+    #iwtwa : First waiting time
+    #brdwa : ?
+    #nbdwa : ABs all mode
+    #xfrwa : Transfer time
+    #farbx : Ferry?
+    #farwa : Ferry?
+    np_matrix_dic = {}
+    '''
+    np_matrix_dic = {}
+
+    if np_matrix_name_input in ['ivtwa', 'iwtwa', 'brdwa', 'nbdwa', 'xfrwa']:
+        np_matrix_dic[np_matrix_name_input] = load_skims('inputs/model/roster/10to14.h5', 
+                                                         mode_name= np_matrix_name_output, 
+                                                         divide_by_100=TrueOrFalse) # Actual in vehicle time
+   
+    if np_matrix_name_input in ['farbx', 'farwa']:
+        np_matrix_dic[np_matrix_name_input] = load_skims('inputs/model/roster/6to7.h5', 
+                                                         mode_name= np_matrix_name_output, 
+                                                         divide_by_100=TrueOrFalse)
+
+    for np_matrix_name, np_matrix in np_matrix_dic.iteritems():
+        targeted_matrix = my_project.bank.matrix(np_matrix_name)
+        targeted_matrix.set_numpy_data(np_matrix)
+        #print np_matrix_name, my_project.bank.matrix(np_matrix_name).id
 
 def get_transit_skim_data():
     transit_skim_dict = {'ivtwa' : 'ivtwa', 
@@ -342,6 +419,58 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
             grp.create_dataset(mode, data = mode_shares_dict[mode])
             print mode
     my_store.close()
+
+def delete_matrices(my_project, matrix_type):
+    for matrix in my_project.bank.matrices():
+        if matrix.type == matrix_type:
+            my_project.delete_matrix(matrix)
+
+def main():
+    #init_dir('outputs/supplemental/mode_choice')
+    my_project.delete_matrices("ALL")
+    create_scalar_matrices()
+    print 'scalar done'
+    create_origin_destination_matrices()
+    print 'OD done'
+    create_full_matrices()
+    print 'full done'
+    create_skim_matrices()
+    print 'skim done'
+    create_terminal_matrices()
+    print 'terminal done'
+    initialize_process_zone_partition()
+    print 'initialize done'
+    reset_utility()
+    print 'reset utility done'
+
+    get_cost_time_distance_skim_data()
+    print 'get auto skim done'
+    get_terminal_skim_data()
+    print 'get terminal skim done'
+    get_walk_bike_skim_data()
+    print 'get walk bike skim done'
+    get_transit_skim_data()
+    print 'transit skim done'
+
+    calculate_auto_cost()
+    print 'calculate auto cost done'
+    calculate_mode()
+    print 'calculate mode done'
+    calculate_mode_shares()
+    print 'calculate mode shares done'
+
+    test_results()
+    mode_choice_to_h5(trip_purpose)
+    print trip_purpose, 'is done'
+
+my_project = EmmeProject(r'projects/Supplementals/Supplementals.emp')
+origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
+parameters_dict = json_to_dictionary('parameters.json')
+ensembles_path = r'inputs/scenario/supplemental/generation/ensembles/ensembles_list.csv'
+#trip_purpose_list = ['hbw1', 'hbw2', 'hbw3', 'hbo', 'nhb']
+#for trip_purp in trip_purpose_list:
+#     trip_purpose = trip_purp
+trip_purpose = 'hbo'
 
 def urbansim_skims_to_h5(h5_name):
     atrtwa = get_total_transit_time('7to8')

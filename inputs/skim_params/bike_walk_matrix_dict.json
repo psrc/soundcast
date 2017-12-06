@@ -1,6 +1,0 @@
-{"walk":{"time" : "walkt", "description" : "walk time",
-                                 "demand" : "walk", "modes" : ["w", "x"],
-                                 "intrazonal_time" : "izwtim"},
-                         "bike":{"time" : "biket", "description" : "bike time",
-                                 "demand" : "bike", "modes" : ["k", "l", "q"],
-                                 "intrazonal_time" : "izbtim"}}
