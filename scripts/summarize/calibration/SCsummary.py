@@ -1750,8 +1750,6 @@ def report_compile(h5_results_file,h5_results_name,
         LongTerm(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     if run_time_choice_report == True:
         TimeChoice(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
-    if run_district_summary_report == True:
-        WorkFAZSummary(data1,data2,h5_results_name,h5_comparison_name,report_output_location,zone_district)
     totaltime = round(time.time() - timerstart, 1)
     if totaltime < 60:
         print('+-+-+-+Summary report compilation complete in ' + str(totaltime % 60) + ' seconds+-+-+-+')

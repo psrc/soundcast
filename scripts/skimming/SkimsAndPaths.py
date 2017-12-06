@@ -791,7 +791,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['svtl2', 'h2tl2', 'h3tl2', 'litrat', 'bike', 'walk']:
+    for matrix_name in ['svtl2', 'h2tl2', 'h3tl2', 'litrat', 'trnst', 'bike', 'walk']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -916,7 +916,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(supplemental_loc + tod + '.h5', "r")
     # Call correct mode name by removing income class value when needed
-    if matrix_name not in ['bike', 'litrat', 'walk']:
+    if matrix_name not in ['bike', 'litrat', 'trnst', 'walk']:
         mode_name = matrix_name[:-1]
     else:
         mode_name = matrix_name
@@ -928,7 +928,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
     sub_demand_array = (np.asarray(sub_demand_matrix))
     demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
-
+    print matrix_name
     return demand_matrix
 
 def create_trip_tod_indices(tod):

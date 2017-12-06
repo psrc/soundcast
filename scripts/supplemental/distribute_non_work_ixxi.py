@@ -6,7 +6,6 @@ import csv
 import pandas as pd
 import h5py
 import numpy as np
-#os.chdir(r"D:\soundcast_mode_choice\soundcast")
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
@@ -14,12 +13,7 @@ sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 from truck_configuration import *
-#from mode_choice_supplemental import *
 
-# Global variable to hold taz id/index; populated in main
-
-print os.getcwdu()
-#dictZoneLookup = {}
 
 def json_to_dictionary(dict_name):
     ''' Load supplemental input files as dictionary '''
@@ -35,6 +29,7 @@ gq_trip_table = pd.read_csv(r'inputs/scenario/supplemental/generation/gq_prod_at
 # Import JSON inputs as dictionaries
 coeff = json_to_dictionary('gravity_model')
 mode_dict = json_to_dictionary('mode_dict')
+
 # Need a new time dictionary! (updated)
 '''time_dict = json_to_dictionary('time_dict')'''
 time_dict = json_to_dictionary('time_dict')

@@ -164,6 +164,7 @@ def main():
                 print col_name + ' column sum is zero! Exiting program.'
                 sys.exit(1)
 
+
     # nodes must be indexed by node_id column, which is the first column
     nodes = pd.DataFrame.from_csv(nodes_file_name)
     links = pd.DataFrame.from_csv(links_file_name, index_col = None )
