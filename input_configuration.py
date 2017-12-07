@@ -7,7 +7,7 @@ import os
 # Scenario and input paths
 #####################################################################
 base_year = '2014'  # This should always be 2014 unless the base year changes
-scenario_name = '2014'
+scenario_name = '2014_lodes'
 model_year = '2014'
 main_inputs_folder = 'R:/SoundCast/Inputs'
 #####################################################################
@@ -17,7 +17,7 @@ run_accessibility_calcs = True
 run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
-run_copy_large_inputs = True
+run_copy_scenario_inputs = True
 run_import_networks = True
 run_daysim_zone_inputs = True
 

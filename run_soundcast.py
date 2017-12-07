@@ -287,9 +287,6 @@ def main():
         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
         if returncode != 0:
             sys.exit(1)
-
-    # Check all inputs have been created or copied
-    check_inputs()
     
 ### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
 ### ##########################################

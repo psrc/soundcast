@@ -220,29 +220,6 @@ def find_inputs(base_directory, save_list):
             if '.' in file:
                 save_list.append(file)
 
-def check_inputs():
-    ''' Warn user if any inputs are missing '''
-
-    logger = logging.getLogger('main_logger')
-
-    # Build list of existing inputs from local inputs
-    input_list = []
-    find_inputs(os.getcwd(), input_list)    # local inputs
-
-    # Compare lists and report inconsistenies
-    missing_list = []
-    for f in commonly_missing_files:
-        if not any(f in input for input in input_list):
-            missing_list.append(f)
-
-    # Save missing file list to soundcast log and print to console
-    if len(missing_list) > 0:
-        logger.info('Warning: the following files are missing and may be needed to complete the model run:')
-        print 'Warning: the following files are missing and may be needed to complete the model run:'
-        for file in missing_list:
-            logger.info('- ' + file)
-            print file
-
 def build_output_dirs():
     for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
         if not os.path.exists(path):

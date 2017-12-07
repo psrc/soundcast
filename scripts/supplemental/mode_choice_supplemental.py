@@ -121,7 +121,7 @@ def get_cost_time_distance_skim_data(trip_purpose):
 
 # calculate full matrix terminal times
 def get_terminal_skim_data():
-        my_project.matrix_calculator(result = 'termti', expression = 'prodtt + attrtt' )
+    my_project.matrix_calculator(result = 'termti', expression = 'prodtt + attrtt' )
 
 
 
@@ -132,7 +132,7 @@ def load_walk_bike_skim_data(np_matrix_name_input, np_matrix_name_output, TrueOr
                                                       mode_name=np_matrix_name_input, 
                                                       divide_by_100=TrueOrFalse)
 
-            skim_dict[output_skim[skim_name][sov_hov]] = load_skim_data(trip_purpose, input_skim[trip_purpose][skim_name][sov_hov], True)
+    skim_dict[output_skim[skim_name][sov_hov]] = load_skim_data(trip_purpose, input_skim[trip_purpose][skim_name][sov_hov], True)
     
     return skim_dict
 
