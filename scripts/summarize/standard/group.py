@@ -706,54 +706,54 @@ def write_csv(df,fname):
 if __name__ == '__main__':
 
     # Use root directory name as run name
-    run_name = os.getcwd().split('\\')[-1]
+ #    run_name = os.getcwd().split('\\')[-1]
 
-    # Create output directory, overwrite existing results
-    output_dir = r'outputs/grouped'
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir)
+ #    # Create output directory, overwrite existing results
+ #    output_dir = r'outputs/grouped'
+ #    if os.path.exists(output_dir):
+ #        shutil.rmtree(output_dir)
+ #    os.makedirs(output_dir)
 
-    # Create list of runs to compare, starting with current run
-    run_dir_dict = {
-        run_name: os.getcwd(), 
-    }
+ #    # Create list of runs to compare, starting with current run
+ #    run_dir_dict = {
+ #        run_name: os.getcwd(), 
+ #    }
 
-    # Add runs, if set in standard_summary_configuration.py
-    if len(comparison_runs.keys()) > 0:
-        for comparison_name, comparison_dir in comparison_runs.iteritems():
-            run_dir_dict[comparison_name] = comparison_dir
+ #    # Add runs, if set in standard_summary_configuration.py
+ #    if len(comparison_runs.keys()) > 0:
+ #        for comparison_name, comparison_dir in comparison_runs.iteritems():
+ #            run_dir_dict[comparison_name] = comparison_dir
 
-	# Create daysim summaries
-    for name, run_dir in run_dir_dict.iteritems():
+	# # Create daysim summaries
+ #    for name, run_dir in run_dir_dict.iteritems():
 
-		daysim_h5 = h5py.File(os.path.join(run_dir,r'outputs/daysim/daysim_outputs.h5'))
-		print 'processing h5: ' + name
-		process_dataset(h5file=daysim_h5, scenario_name=name)
-		del daysim_h5 # drop from memory to save space for next comparison
+	# 	daysim_h5 = h5py.File(os.path.join(run_dir,r'outputs/daysim/daysim_outputs.h5'))
+	# 	print 'processing h5: ' + name
+	# 	process_dataset(h5file=daysim_h5, scenario_name=name)
+	# 	del daysim_h5 # drop from memory to save space for next comparison
 
-    # Compare daysim to survey if set in standard_summary_configuration.py
-    if compare_survey:
-        process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
+ #    # Compare daysim to survey if set in standard_summary_configuration.py
+ #    if compare_survey:
+ #        process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
 
-    # Create network and accessibility summaries
-    for name, run_dir in run_dir_dict.iteritems():
-        file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
-        print 'processing excel: ' + name
-        transit_summary(file_dir, name)
-        daily_counts(file_dir, name)
-        # hourly_counts(file_dir, name)
-        net_summary(file_dir, name)
-        truck_summary(file_dir, name)
-        screenlines(file_dir, name)
-        light_rail(file_dir, name)
-        file_dir = os.path.join(run_dir,r'outputs/daysim')
-        logsums(name, file_dir)
+ #    # Create network and accessibility summaries
+ #    for name, run_dir in run_dir_dict.iteritems():
+ #        file_dir = os.path.join(run_dir,r'outputs/network/network_summary_detailed.xlsx')
+ #        print 'processing excel: ' + name
+ #        transit_summary(file_dir, name)
+ #        daily_counts(file_dir, name)
+ #        # hourly_counts(file_dir, name)
+ #        net_summary(file_dir, name)
+ #        truck_summary(file_dir, name)
+ #        screenlines(file_dir, name)
+ #        light_rail(file_dir, name)
+ #        file_dir = os.path.join(run_dir,r'outputs/daysim')
+ #        logsums(name, file_dir)
 
     ## Write notebooks based on these outputs to HTML
     for nb in ['topsheet','metrics']:
         try:
-            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
+            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --ExecutePreprocessor.kernel_name=python scripts/summarize/notebooks/"+nb+".ipynb")
         except:
             print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
