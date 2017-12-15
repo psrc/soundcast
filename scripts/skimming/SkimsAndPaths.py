@@ -1272,9 +1272,13 @@ def run_assignments_parallel(project_name):
 
     define_matrices(my_project)
 
+    if not build_free_flow_skims:
+        hdf5_trips_to_Emme(my_project, hdf5_file_path)
+        matrix_controlled_rounding(my_project)
+
     ##tod = m.emmebank.title
     populate_intrazonals(my_project)
-    
+
     ##create transit fare matrices:
     if my_project.tod in fare_matrices_tod:
         fare_dict = json_to_dictionary('transit_fare_dictionary')
