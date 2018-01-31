@@ -1,5 +1,7 @@
 import os, sys, shutil, math, h5py
 import pandas as pd
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
 sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 
@@ -751,13 +753,21 @@ if __name__ == '__main__':
         logsums(name, file_dir)
 
     ## Write notebooks based on these outputs to HTML
-    for nb in ['topsheet','metrics']:
+
         try:
-            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --ExecutePreprocessor.kernel_name=python scripts/summarize/notebooks/"+nb+".ipynb")
+            for sheet in ['topsheet','metrics']:
+                with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
+                        nb = nbformat.read(f, as_version=4)
+                ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
+                ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
+                with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
+                    nbformat.write(nb, f)
+                os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
+                # Move these files to output
+                if os.path.exists(r"outputs/"+sheet+".html"):
+                    os.remove(r"outputs/"+sheet+".html")
+                os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
         except:
             print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
 
-        # Move these files to output
-        if os.path.exists(r"outputs/"+nb+".html"):
-            os.remove(r"outputs/"+nb+".html")
-        os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
+        
