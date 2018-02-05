@@ -750,24 +750,4 @@ if __name__ == '__main__':
         screenlines(file_dir, name)
         light_rail(file_dir, name)
         file_dir = os.path.join(run_dir,r'outputs/daysim')
-        logsums(name, file_dir)
-
-    ## Write notebooks based on these outputs to HTML
-
-        try:
-            for sheet in ['topsheet','metrics']:
-                with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
-                        nb = nbformat.read(f, as_version=4)
-                ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
-                ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
-                with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
-                    nbformat.write(nb, f)
-                os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
-                # Move these files to output
-                if os.path.exists(r"outputs/"+sheet+".html"):
-                    os.remove(r"outputs/"+sheet+".html")
-                os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
-        except:
-            print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
-
-        
+        logsums(name, file_dir)        
