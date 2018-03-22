@@ -20,6 +20,7 @@ run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
 run_import_networks = True
 run_daysim_zone_inputs = True
+run_integrated = False
 
 # to get the first iteration of skims:
 run_skims_and_paths_free_flow = True
@@ -66,6 +67,7 @@ shadow_con = 30 #%RMSE for shadow pricing to consider being converged
 ####################################
 
 # These files generally do not change and don't need to be toggled here usually
+urbansim_skims_dir = r'D:/soundcast_root'
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 main_log_file = 'soundcast_log.txt'

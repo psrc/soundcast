@@ -337,6 +337,8 @@ def main():
            daysim_assignment(1)
 
 
+    if run_integrated:
+        subprocess.call([sys.executable, 'scripts/utils/urbansim_skims.py'])
 
 ### SUMMARIZE
 ### ##################################################################

@@ -13,7 +13,7 @@ df = pd.DataFrame(d)
 df = df.loc[df['IsZone'] == 1]
 
 # Scen_Node is the taz id column
-df = df.sort(columns = 'Scen_Node')
+df = df.sort_values(by='Scen_Node')
 
 # create an ordinal/index column. Daysim is 1 based. 
 df['zone_ordinal'] = [i for i in xrange(1, len(df) + 1)]

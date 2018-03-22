@@ -49,10 +49,10 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
 
 def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
     # get am and pm skim
-    am_skim = load_skims(r'inputs\7to8.h5', 
+    am_skim = load_skims(r'inputs/model/roster/7to8.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
-    pm_skim = load_skims(r'inputs\17to18.h5', 
+    pm_skim = load_skims(r'inputs/model/roster/17to18.h5', 
                          mode_name=np_matrix_name_input, 
                          divide_by_100=TrueOrFalse)
 
@@ -94,7 +94,7 @@ def get_cost_time_distance_skim_data(trip_purpose):
 def get_walk_bike_skim_data():
     skim_dict = {}
     for skim_name in ['walkt', 'biket']:
-        skim_dict[skim_name]= load_skims(r'inputs\5to6.h5', mode_name=skim_name, divide_by_100=True)
+        skim_dict[skim_name]= load_skims(r'inputs/model/roster/5to6.h5', mode_name=skim_name, divide_by_100=True)
     return skim_dict
 
 
@@ -115,11 +115,11 @@ def get_transit_skim_data():
 
     for input, output in transit_skim_dict.iteritems():
         if input in ['farbx', 'farwa']:
-            skim_dict[input] = load_skims(r'inputs\6to7.h5', mode_name = output, divide_by_100=True)
+            skim_dict[input] = load_skims(r'inputs/model/roster/6to7.h5', mode_name = output, divide_by_100=True)
         else:
-            am_skim = load_skims(r'inputs\7to8.h5', mode_name = output, 
+            am_skim = load_skims(r'inputs/model/roster/7to8.h5', mode_name = output, 
                              divide_by_100=True) 
-            pm_skim = load_skims(r'inputs\17to18.h5', mode_name = output, 
+            pm_skim = load_skims(r'inputs/model/roster/17to18.h5', mode_name = output, 
                              divide_by_100=True)
             skim_dict[input] = (am_skim + pm_skim) *.5
   
@@ -131,10 +131,10 @@ def get_total_transit_time(tod):
     rail_skims = {}
     bus_skims = {}
     for component in rail_component_list:
-        rail_skims[component] = load_skims('inputs/' + tod + '.h5', mode_name= component, 
+        rail_skims[component] = load_skims('inputs/model/roster/' + tod + '.h5', mode_name= component, 
                              divide_by_100=True) 
     for component in bus_component_list:
-        bus_skims[component] = load_skims('inputs/' + tod + '.h5', mode_name= component, 
+        bus_skims[component] = load_skims('inputs/model/roster/' + tod + '.h5', mode_name= component, 
                              divide_by_100=True) 
 
     rail = sum(rail_skims.values())
@@ -319,9 +319,8 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
                           'nhb': ['eusm', 'nhshda', 'nhshs2', 'nhshs3', 'nhshtw', 'nhshrw', 'nhshbk', 'nhshwk'],
                           'hbo': ['eusm', 'nwshda', 'nwshs2', 'nwshs3', 'nwshtw', 'nwshrw', 'nwshbk', 'nwshwk']}
 
-
-    #my_store = h5py.File('/outputs/supplemental/' + trip_purpose + '_ratio.h5', 'w')
-    my_store = h5py.File(output_dir + '/' + trip_purpose + '_ratio.h5', "w")
+    
+    my_store = h5py.File(urbansim_skims_dir + '/' + trip_purpose + '_ratio.h5', "w")
     grp = my_store.create_group(trip_purpose)
     for mode in output_mode_share_name[trip_purpose]:
             grp.create_dataset(mode, data = mode_shares_dict[mode])
@@ -329,7 +328,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     my_store.close()
 
 def urbansim_skims_to_h5(h5_name, skim_dict):
-    my_store = h5py.File(output_dir + '/' + h5_name + '.h5', "w")
+    my_store = h5py.File(urbansim_skims_dir + '/' + h5_name + '.h5', "w")
     grp = my_store.create_group('results')
     for name, skim in skim_dict.iteritems():
             skim = skim[0:max_internal_zone, 0:max_internal_zone]
@@ -345,19 +344,19 @@ def main():
     urbansim_skim_dict = {}
 
     #am_single_vehicle_to_work_travel_time
-    urbansim_skim_dict['aau1tm'] = load_skims('inputs/7to8.h5', mode_name='svtl1t', 
+    urbansim_skim_dict['aau1tm'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1t', 
                              divide_by_100=True) 
 
     #am_single_vehicle_to_work_toll
-    urbansim_skim_dict['aau1tl'] = load_skims('inputs/7to8.h5', mode_name='svtl1c', 
+    urbansim_skim_dict['aau1tl'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1c', 
                              divide_by_100=False) 
 
     #single_vehicle_to_work_travel_distance
-    urbansim_skim_dict['aau1ds'] = load_skims('inputs/7to8.h5', mode_name='svtl1d', 
+    urbansim_skim_dict['aau1ds'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1d', 
                              divide_by_100=True)
     
     #am_walk_time_in_minutes
-    urbansim_skim_dict['awlktm'] = load_skims('inputs/5to6.h5', mode_name='walkt', 
+    urbansim_skim_dict['awlktm'] = load_skims('inputs/model/roster/5to6.h5', mode_name='walkt', 
                              divide_by_100=True)
 
     #am_pk_period_drive_alone_vehicle_trips
@@ -367,7 +366,7 @@ def main():
     urbansim_skim_dict['atrtwa'] = get_total_transit_time('7to8')
 
     #single_vehicle_to_work_travel_cost
-    urbansim_skim_dict['aau1cs'] = load_skims('inputs/7to8.h5', mode_name='svtl2g', 
+    urbansim_skim_dict['aau1cs'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl2g', 
                              divide_by_100=False)
 
     for trip_purpose in trip_purpose_list:
@@ -396,18 +395,21 @@ def main():
        
         #mode_choice_to_h5(trip_purpose, mode_shares_dict)
         #print trip_purpose, 'is done'
-    urbansim_skims_to_h5('urbansim_skims', urbansim_skim_dict)
+    urbansim_skims_to_h5(model_year+'-travelmodel', urbansim_skim_dict)
 
        
-my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
+my_project = EmmeProject(r'projects/Supplementals/Supplementals.emp')
 zones = my_project.current_scenario.zone_numbers
 max_internal_zone = 3700
 #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
 zone_lookup_dict = dict((value,index) for index,value in enumerate(zones))
 #origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
 parameters_dict = json_to_dictionary('urbansim_skims_parameters.json')
-ensembles_path = r'inputs\supplemental\generation\ensembles\ensembles_list.csv'
-parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
+ensembles_path = r'inputs/scenario/supplemental/generation/ensembles/ensembles_list.csv'
+parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
+
+if not os.path.exists(urbansim_skims_dir):
+    os.makedirs(urbansim_skims_dir)
 
 if __name__ == "__main__":
     main()
