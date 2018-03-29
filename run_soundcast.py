@@ -260,6 +260,9 @@ def main():
     if run_copy_scenario_inputs:
         copy_scenario_inputs()
 
+    if run_integrated:
+        import_integrated_inputs()
+
     if run_accessibility_calcs:
         accessibility_calcs()
 
@@ -362,3 +365,6 @@ if __name__ == "__main__":
     elapsed_total = end_time - start_time
     logger.info('------------------------RUN ENDING_----------------------------------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
+
+    if delete_banks():
+        shutil.rmtree('/Banks', ignore_errors=True)

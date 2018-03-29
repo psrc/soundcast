@@ -39,25 +39,27 @@ run_supplemental_generation = True
 ###########################
 
 #Summaries to run:######
-run_accessibility_summary = True
+run_accessibility_summary = False
 run_network_summary = True
-run_grouped_summary = True
-run_soundcast_summary = True
-run_truck_summary = True
+run_grouped_summary = False
+run_soundcast_summary = False
+run_truck_summary = False
 run_landuse_summary = False
 ########################
 
 ###### Specific reports to run######
-run_daysim_report = True
-run_day_pattern_report = True
-run_mode_choice_report = True
-run_dest_choice_report = True
-run_long_term_report = True
-run_time_choice_report = True
+run_daysim_report = False
+run_day_pattern_report = False
+run_mode_choice_report = False
+run_dest_choice_report = False
+run_long_term_report = False
+run_time_choice_report = False
 ####################################
 
+delete_banks = False
+
 ###### Model iterations, population sampling, log files, etc.######
-pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+pop_sample = [100, 50, 20, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
 max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
@@ -67,7 +69,6 @@ shadow_con = 30 #%RMSE for shadow pricing to consider being converged
 ####################################
 
 # These files generally do not change and don't need to be toggled here usually
-urbansim_skims_dir = r'D:/soundcast_root'
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 main_log_file = 'soundcast_log.txt'
@@ -80,3 +81,14 @@ good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "sunshine", "n
 
 base_inputs = os.path.join(main_inputs_folder, base_year)
 scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
+
+# Integrated Run Settings
+#################################
+# Root dir for all Soundcast runs
+urbansim_skims_dir = r'D:/soundcast_root'
+
+# Urbansim outputs dir
+urbansim_outputs_dir = r'D:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
+
+# Urbansim outputs config file
+urbansim_outputs_config_root = r'D:\opusgit\urbansim\inprocess\hana\configurations'

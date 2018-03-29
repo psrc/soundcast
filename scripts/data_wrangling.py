@@ -224,3 +224,29 @@ def build_output_dirs():
     for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
         if not os.path.exists(path):
             os.makedirs(path)
+
+def import_integrated_inputs():
+    print 'creating soundcast inputs from urbansim'
+    parcels_script_path = os.path.join(urbansim_outputs_config_root,'psrc_daysim_parcels_'+model_year+'.xml')
+    hh_persons_script_path = os.path.join(urbansim_outputs_config_root,'psrc_daysim_hh_persons_'+model_year+'.xml')
+    script_call_parcels = r'python -m opus_core.tools.start_run -x '  + parcels_script_path + ' -s daysim_scenario'
+    script_call_hh_and_persons = r'python -m opus_core.tools.start_run -x '  + hh_persons_script_path + ' -s daysim_scenario'
+
+    print script_call_parcels
+    os.system(script_call_parcels)
+
+    print script_call_hh_and_persons
+    os.system(script_call_hh_and_persons)
+
+    # Copy outputs to Soundcast directory
+    # Replace parcels_urbansim and hh_and_persons with direct urbansim output
+
+    # landuse file
+    src_dir = os.path.join(urbansim_outputs_dir, model_year, 'parcels.dat')
+    dst_dir = r'inputs\scenario\landuse\parcels_urbansim.txt'
+    shcopy(src_dir,dst_dir)
+    
+    # hh and persons file
+    src_dir = os.path.join(urbansim_outputs_dir, model_year, 'hh_and_persons.h5')
+    dst_dir = r'inputs\scenario\landuse\hh_and_persons.h5'
+    shcopy(src_dir,dst_dir)
