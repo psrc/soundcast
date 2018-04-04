@@ -25,7 +25,7 @@ df_ensemble = pd.read_csv(input_ensemble)
 parking_cost = pd.read_csv(parking_cost_file)
 
 parking_cost = pd.read_csv(parking_cost_file)
-df_parcels = pd.merge(left = df_parcels, right=df_ensemble,left_on="TAZ_P",right_on="TAZ")
+df_parcels = pd.merge(left = df_parcels, right=df_ensemble,left_on="TAZ_P",right_on="TAZ", how = 'left')
 
 # Join daily costs with parcel data 
 df_parking_cost = pd.merge(df_parcels,parking_cost,on='ENS',how='left')
