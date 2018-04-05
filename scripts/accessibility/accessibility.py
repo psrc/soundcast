@@ -140,7 +140,7 @@ def clean_up(parcels):
 
 def main():
     # read in data
-    parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+    parcels = pd.read_csv(parcels_file_name, sep =" ")
 
     # Move SeaTac Parcel so that it is on the terminal. 
     parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
@@ -169,8 +169,8 @@ def main():
     parcels.NPARKS = 0            
 
     # nodes must be indexed by node_id column, which is the first column
-    nodes = pd.DataFrame.from_csv(nodes_file_name)
-    links = pd.DataFrame.from_csv(links_file_name, index_col = None )
+    nodes = pd.read_csv(nodes_file_name)
+    links = pd.read_csv(links_file_name)
 
     # get rid of circular links
     links = links.loc[(links.from_node_id <> links.to_node_id)]
