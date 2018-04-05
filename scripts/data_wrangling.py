@@ -214,6 +214,55 @@ def clean_up():
         else:
             print file
 
+@timed
+def copy_accessibility_files():
+    if run_integrated:
+        import_integrated_inputs()
+    else:
+        if not os.path.exists('inputs/accessibility'):
+            os.makedirs('inputs/accessibility')
+        
+        print 'Copying UrbanSim parcel file'
+        try:
+            shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
+        except:
+            print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
+            sys.exit(1)
+          
+        
+        print 'Copying Transit stop file'
+        try:      
+            shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
+        except:
+            print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
+            sys.exit(1)
+
+        
+        print 'Copying Military parcel file'
+        try:
+            shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
+        except:
+            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
+            sys.exit(1)
+
+        
+        print 'Copying JBLM file'
+        try:
+            shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
+        except:
+            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
+            sys.exit(1)
+
+        
+        print 'Copying Hourly and Daily Parking Files'
+        if base_year != model_year: 
+            try:
+                shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
+                shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
+            except:
+                print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
+                sys.exit(1)
+
 def find_inputs(base_directory, save_list):
     for root, dirs, files in os.walk(base_directory):
         for file in files:
@@ -226,27 +275,26 @@ def build_output_dirs():
             os.makedirs(path)
 
 def import_integrated_inputs():
-    print 'creating soundcast inputs from urbansim'
-    parcels_script_path = os.path.join(urbansim_outputs_config_root,'psrc_daysim_parcels_'+model_year+'.xml')
-    hh_persons_script_path = os.path.join(urbansim_outputs_config_root,'psrc_daysim_hh_persons_'+model_year+'.xml')
-    script_call_parcels = r'python -m opus_core.tools.start_run -x '  + parcels_script_path + ' -s daysim_scenario'
-    script_call_hh_and_persons = r'python -m opus_core.tools.start_run -x '  + hh_persons_script_path + ' -s daysim_scenario'
+    """
+    Convert Urbansim input file into separate files:
+    - parcels_urbansim.txt
+    - hh_and_persons.h5
+    """
 
-    print script_call_parcels
-    os.system(script_call_parcels)
+    print "Importing land use files from urbansim"
 
-    print script_call_hh_and_persons
-    os.system(script_call_hh_and_persons)
+    # Copy soundcast inputs and separate input files
+    h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
+    shcopy(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
 
-    # Copy outputs to Soundcast directory
-    # Replace parcels_urbansim and hh_and_persons with direct urbansim output
+    h5_inputs = h5_inputs = h5py.File('inputs/scenario/landuse/hh_and_persons.h5')
 
-    # landuse file
-    src_dir = os.path.join(urbansim_outputs_dir, model_year, 'parcels.dat')
-    dst_dir = r'inputs\scenario\landuse\parcels_urbansim.txt'
-    shcopy(src_dir,dst_dir)
-    
-    # hh and persons file
-    src_dir = os.path.join(urbansim_outputs_dir, model_year, 'hh_and_persons.h5')
-    dst_dir = r'inputs\scenario\landuse\hh_and_persons.h5'
-    shcopy(src_dir,dst_dir)
+    # Export parcels file as a txt file input
+    parcels = pd.DataFrame()
+    for col in h5_inputs['parcels'].keys():
+        parcels[col] = h5_inputs['parcels'][col][:]
+        
+    parcels.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt', sep=' ', index=False)
+
+    # Delete parcels group
+    del h5_inputs['parcels']
