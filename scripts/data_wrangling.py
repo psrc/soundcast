@@ -22,6 +22,7 @@ import re
 import inro.emme.database.emmebank as _eb
 import random
 import shutil
+import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
 from input_configuration import *
