@@ -42,7 +42,7 @@ from data_wrangling import *
 
 @timed
 def accessibility_calcs():
-    # copy_accessibility_files()
+    copy_accessibility_files()
     print 'adding military jobs to regular jobs'
     print 'adding JBLM workers to external workers'
     print 'adjusting non-work externals'
@@ -366,5 +366,5 @@ if __name__ == "__main__":
     logger.info('------------------------RUN ENDING_----------------------------------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
 
-    if delete_banks():
+    if delete_banks:
         shutil.rmtree('/Banks', ignore_errors=True)
