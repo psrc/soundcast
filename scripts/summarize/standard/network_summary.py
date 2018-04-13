@@ -1035,7 +1035,7 @@ def main():
         '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time', '15to16_board', '15to16_time', '16to17_board', '16to17_time', \
         '17to18_board', '17to18_time', '18to20_board', '18to20_time']]
     transit_atts_df = pd.DataFrame(transit_atts)
-    transit_atts_df = transit_atts_df.drop_duplicates(['id'], take_last=True)
+    transit_atts_df = transit_atts_df.drop_duplicates(['id'], keep='last')
     transit_df.reset_index(level=0, inplace=True)
     transit_atts_df = transit_atts_df.merge(transit_df, 'inner', right_on=['id'], left_on=['id'])
     transit_atts_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
