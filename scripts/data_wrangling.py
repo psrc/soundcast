@@ -220,12 +220,12 @@ def copy_accessibility_files():
     if run_integrated:
         import_integrated_inputs()
     else:
-        if not os.path.exists('inputs/accessibility'):
-            os.makedirs('inputs/accessibility')
+        if not os.path.exists('inputs/scenario/landuse'):
+            os.makedirs('inputs/scenario/landuse')
         
         print 'Copying UrbanSim parcel file'
         try:
-            shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/scenario/landuse')
         except:
             print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
             sys.exit(1)
@@ -233,15 +233,15 @@ def copy_accessibility_files():
         
         print 'Copying Transit stop file'
         try:      
-            shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
+            shcopy(scenario_inputs+'/networks/transit/transit_stops.csv','inputs/scenario/networks/transit')
         except:
-            print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
+            print 'error copying transit stops file at ' + scenario_inputs + '/networks/transit_transit_stops.csv'
             sys.exit(1)
 
         
         print 'Copying Military parcel file'
         try:
-            shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/scenario/landuse')
         except:
             print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
             sys.exit(1)
@@ -249,7 +249,7 @@ def copy_accessibility_files():
         
         print 'Copying JBLM file'
         try:
-            shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
+            shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','inputs/scenario/landuse')
         except:
             print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
             sys.exit(1)
@@ -258,10 +258,9 @@ def copy_accessibility_files():
         print 'Copying Hourly and Daily Parking Files'
         if base_year != model_year: 
             try:
-                shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
-                shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
+                shcopy(scenario_inputs+'/landuse/parking_costs.csv','inputs/scenario/landuse')
             except:
-                print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
+                print 'error copying parking file at' + scenario_inputs+'/landuse/parking_costs.csv'
                 sys.exit(1)
 
 def find_inputs(base_directory, save_list):
