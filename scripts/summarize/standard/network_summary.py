@@ -861,6 +861,12 @@ def main():
         #dict where key is screen line id and value is 0
         screenline_dict[item] = 0
 
+    # Summarize link-level network results
+    # Delete the file if it exists from a past summary
+    network_results_path = r'outputs/network/network_results.csv'
+    if os.path.exists(network_results_path):
+        os.remove(network_results_path)
+
    #  #loop through all tod banks and get network summaries
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
@@ -875,6 +881,7 @@ def main():
         speed_limit = []
         facility_type = []
         capacity = []
+        lanes = []
         length = []
         time = []
         metrk = []
@@ -891,6 +898,7 @@ def main():
             speed_limit.append(link.data2)
             facility_type.append(link.data3)
             capacity.append(link.data1)
+            lanes.append(link.num_lanes)
             length.append(link['length'])
             time.append(link.auto_time)
             try:
@@ -900,13 +908,13 @@ def main():
                 pass
 
         df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
-            capacity,length,time,bvol]).T
+            capacity,lanes,length,time,bvol]).T
         df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type',
-        'capacity','ij_length','time','bvol']
+        'capacity','lanes','ij_length','time','bvol']
         df['tod'] = key
         df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
 
-        network_results_path = r'outputs/network/network_results.csv'
+        # Append hourly results to output file
         if os.path.exists(network_results_path):
             df.to_csv(network_results_path, mode='a', index=False, header=False)
         else:
