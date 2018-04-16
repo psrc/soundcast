@@ -59,7 +59,7 @@ run_time_choice_report = False
 delete_banks = False
 
 ###### Model iterations, population sampling, log files, etc.######
-pop_sample = [100, 50, 20, 1, 1, 1, 1, 1, 1]
+pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
 max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
