@@ -38,6 +38,8 @@ from EmmeProject import *
 from multiprocessing import Pool
 from pyproj import Proj, transform
 import pandas as pd
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
@@ -55,7 +57,7 @@ tptt_counts_file = 'soundcast_tptt.csv'
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs\\skim_params"))    # Assumes the cwd is @ run_soundcast.py; always run this script from run_soundcast.py
+    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters"))    # Assumes the cwd is @ run_soundcast.py; always run this script from run_soundcast.py
     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
@@ -369,7 +371,7 @@ def process_screenlines(screenline_dict):
     '''Convert screenline volume dictionary to dataframe in SQL format (single row of columns)'''
     
     # Load screenline lookup between location name and network value
-    screenline_names = pd.read_json('inputs/screenline_dict.json',orient='values')
+    screenline_names = pd.read_json('inputs/base_year/screenline_dict.json',orient='values')
     screenline_names['id'] = screenline_names.index
 
     # Load screenline volumes from the network and merge with names lookup
@@ -459,8 +461,8 @@ def daily_counts(writer, my_project):
     """Export daily network volumes and compare to observed."""
 
     # Load observed data
-    count_id_df = pd.read_csv(r'inputs/networks/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
-    observed_count_df =  pd.read_csv(r'inputs/observed/observed_daily_counts.csv')
+    count_id_df = pd.read_csv(r'inputs/base_year/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    observed_count_df =  pd.read_csv(r'inputs/base_year/observed_daily_counts.csv')
     count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
     # add daily bank to project if it exists
     if os.path.isfile(r'Banks/Daily/emmebank'):
@@ -699,7 +701,7 @@ def freeflow_skims(my_project):
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
-    skim_vals = h5py.File(r'inputs\20to5.h5')['Skims']['svtl3t'][:]
+    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['svtl3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -723,7 +725,7 @@ def freeflow_skims(my_project):
     daysim.close()
 
 def jobs_transit(writer):
-    buf = pd.read_csv(r'inputs\buffered_parcels.txt', sep=' ')
+    buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
     buf.index = buf.parcelid
 
     # distance to any transit stop
@@ -816,12 +818,12 @@ def main():
 
     writer = pd.ExcelWriter('outputs/network/network_summary_detailed.xlsx', engine='xlsxwriter')    
 
-    export_corridor_results(my_project, writer)
+    # export_corridor_results(my_project, writer)
     jobs_transit(writer)
        
     # Read observed count data
-    loop_ids = pd.read_csv(r'inputs/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
-    loop_counts = pd.read_csv(r'inputs/observed/loop_counts_2014.csv')
+    loop_ids = pd.read_csv(r'inputs/scenario/networks/count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','CountID'])
+    loop_counts = pd.read_csv(r'inputs/base_year/loop_counts_2014.csv')
     loop_counts.set_index(['CountID_Type'], inplace = True)
     #loop_ids = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_counts = pd.read_csv('scripts/summarize/inputs/network_summary/' + counts_file, index_col=['loop_INode', 'loop_JNode'])
@@ -859,6 +861,12 @@ def main():
         #dict where key is screen line id and value is 0
         screenline_dict[item] = 0
 
+    # Summarize link-level network results
+    # Delete the file if it exists from a past summary
+    network_results_path = r'outputs/network/network_results.csv'
+    if os.path.exists(network_results_path):
+        os.remove(network_results_path)
+
    #  #loop through all tod banks and get network summaries
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
@@ -873,6 +881,7 @@ def main():
         speed_limit = []
         facility_type = []
         capacity = []
+        lanes = []
         length = []
         time = []
         metrk = []
@@ -889,6 +898,7 @@ def main():
             speed_limit.append(link.data2)
             facility_type.append(link.data3)
             capacity.append(link.data1)
+            lanes.append(link.num_lanes)
             length.append(link['length'])
             time.append(link.auto_time)
             try:
@@ -898,13 +908,13 @@ def main():
                 pass
 
         df = pd.DataFrame([i_list,j_list,tveh,metrk,hvtrk,speed_limit,facility_type,
-            capacity,length,time,bvol]).T
+            capacity,lanes,length,time,bvol]).T
         df.columns = ['i','j','tveh','metrk','hvtrk','speed_limit','facility_type',
-        'capacity','ij_length','time','bvol']
+        'capacity','lanes','ij_length','time','bvol']
         df['tod'] = key
         df['ij'] = df['i'].astype('str') + '-' + df['j'].astype('str')
 
-        network_results_path = r'outputs/network/network_results.csv'
+        # Append hourly results to output file
         if os.path.exists(network_results_path):
             df.to_csv(network_results_path, mode='a', index=False, header=False)
         else:
@@ -998,8 +1008,6 @@ def main():
     # seg_df.to_excel(excel_writer=writer, sheet_name='Segments')
     
     # combine initial and final boardings for transfers
-
-
     seg_df = seg_df.groupby('inode').sum().reset_index()
     seg_df = seg_df.drop(['tod','line'], axis=1)
     stop_df = stop_df.groupby('inode').sum().reset_index()
@@ -1027,7 +1035,7 @@ def main():
         '9to10_time', '10to14_board', '10to14_time', '14to15_board', '14to15_time', '15to16_board', '15to16_time', '16to17_board', '16to17_time', \
         '17to18_board', '17to18_time', '18to20_board', '18to20_time']]
     transit_atts_df = pd.DataFrame(transit_atts)
-    transit_atts_df = transit_atts_df.drop_duplicates(['id'], take_last=True)
+    transit_atts_df = transit_atts_df.drop_duplicates(['id'], keep='last')
     transit_df.reset_index(level=0, inplace=True)
     transit_atts_df = transit_atts_df.merge(transit_df, 'inner', right_on=['id'], left_on=['id'])
     transit_atts_df.to_excel(excel_writer = writer, sheet_name = 'Transit Summaries')
@@ -1096,6 +1104,24 @@ def main():
     uc_delay_df.to_excel(excel_writer = writer, sheet_name = 'UC Delay')
 
     writer.save()
+
+    # Write notebooks based on these outputs to HTML
+
+    # try:
+    for sheet in ['topsheet','metrics']:
+        with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
+                nb = nbformat.read(f, as_version=4)
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
+        ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
+        with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
+            nbformat.write(nb, f)
+        os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
+        # Move these files to output
+        if os.path.exists(r"outputs/"+sheet+".html"):
+            os.remove(r"outputs/"+sheet+".html")
+        os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
+    # except:
+    #     print 'Unable to produce topsheet'
 
 if __name__ == "__main__":
     main()

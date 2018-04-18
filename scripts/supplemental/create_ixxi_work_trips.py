@@ -3,7 +3,6 @@ import numpy as np
 import h5py
 import sys 
 import os
-#os.chdir('D:/Stefan/TWG/Estimated_Models_Pre_Calibration')
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
@@ -25,9 +24,9 @@ jblm_taz_list = [3061, 3070, 3346, 3348, 3349, 3350, 3351, 3352, 3353, 3354, 335
 jbml_enlisted_taz_dict = {}
 
 # it might make sense to put these file locations in a config somewhere
-parcel_file =  "inputs\\accessibility\\parcels_urbansim.txt"
-military_file = "inputs\\accessibility\\enlisted_personnel.csv"
-non_worker_file = r'inputs\supplemental\generation\externals_unadjusted.csv'
+parcel_file =  'inputs/scenario/landuse/parcels_urbansim.txt'
+military_file = 'inputs/base_year/enlisted_personnel.csv'
+non_worker_file = 'inputs/scenario/supplemental/generation/externals_unadjusted.csv'
 
 parcel_emp_cols = parcel_attributes =["EMPMED_P", "EMPOFC_P", "EMPEDU_P", "EMPFOO_P", "EMPGOV_P", "EMPIND_P", "EMPSVC_P", "EMPOTH_P", "EMPTOT_P", "EMPRET_P"]
 
@@ -40,8 +39,8 @@ def network_importer(EmmeProject):
         #print key
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
-    EmmeProject.process_modes('inputs/networks/' + mode_file)
-    EmmeProject.process_base_network('inputs/networks/' + truck_base_net_name)
+    EmmeProject.process_modes('inputs/scenario/networks/' + mode_file)
+    EmmeProject.process_base_network('inputs/scenario/networks/roadway/' + truck_base_net_name)
 
 def h5_to_data_frame(h5_file, group_name):
     col_dict = {}
@@ -102,7 +101,7 @@ zones = my_project.current_scenario.zone_numbers
 dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
 
 # read External work trips
-work = pd.read_excel('inputs/supplemental/distribution/External_Work_NonWork_Inputs.xlsx','External_Workers')
+work = pd.read_excel('inputs/scenario/supplemental/distribution/External_Work_NonWork_Inputs.xlsx','External_Workers')
 # keep only the needed columns
 work = work [['PSRC_TAZ','External_Station','Total_IE', 'Total_EI', 'SOV_Veh_IE', 'SOV_Veh_EI','HOV2_Veh_IE','HOV2_Veh_EI','HOV3_Veh_IE','HOV3_Veh_EI']]
 
@@ -131,7 +130,7 @@ w_grp = work.groupby(['PSRC_TAZ','External_Station']).sum()
 #non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] = float(non_worker_external.ix[non_worker_external.taz==3734, 'hsppro'] - (.10 * .30 * sum(jbml_enlisted_taz_dict.values())))
 
 # export to .csv
-non_worker_external.to_csv(r'inputs\supplemental\generation\externals.csv', index = False)
+non_worker_external.to_csv('inputs/scenario/supplemental/generation/externals.csv', index = False)
 
 # create empty numpy matrices for SOV, HOV2 and HOV3
 w_SOV = np.zeros((zonesDim,zonesDim), np.float16)
@@ -177,9 +176,9 @@ observed_ixxi = w_grp.groupby('PSRC_TAZ').sum()
 observed_ixxi = observed_ixxi.reindex(zones, fill_value=0)
 observed_ixxi.reset_index(inplace = True)
 
-parcel_df = pd.read_csv(r'inputs\accessibility\parcels_urbansim.txt',  sep = ' ')
+parcel_df = pd.read_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ')
 parcel_df = remove_employment_by_taz(parcel_df, jblm_taz_list, parcel_emp_cols)
-hh_persons = h5py.File(r'inputs\hh_and_persons.h5', "r")
+hh_persons = h5py.File(r'inputs/scenario/landuse/hh_and_persons.h5', "r")
 parcel_grouped = parcel_df.groupby('TAZ_P')
 emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
 emp_by_taz.reset_index(inplace = True)
@@ -213,6 +212,6 @@ for col_name in final_df.columns:
         final_df.drop(col_name, axis=1, inplace=True)
 final_df = final_df.round(3)
 
-final_df.to_csv('inputs/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
-parcel_df.to_csv(r'inputs\accessibility\parcels_urbansim.txt',  sep = ' ', index = False)
+final_df.to_csv('outputs/landuse/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
+parcel_df.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ', index = False)
 ###############

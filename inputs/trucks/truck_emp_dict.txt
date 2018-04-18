@@ -1,4 +1,0 @@
-{"agffsh" : "agshar * manu", "mining" : "minshr * manu", "manup" : "prodsh*manu", 
-                  "manue" : "eqshar * manu", "tcu" : "tcushr * wtcu", "whls" : "whlssh * wtcu", 
-                  "retail" : "ret1 + ret2 + ret3", "fires" : "fires1 + fires2 + fires3", 
-                  "govedu" : "gov1 + gov2 + gov3 + edu"}

@@ -30,8 +30,6 @@ logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 current_time = str(time.strftime("%H:%M:%S"))
 logging.debug('----Began SkimsAndPaths script at ' + current_time)
 
-
-
 # When we start a model run, we want to start with seed trips to assign.  Usually this will be
 # an old daysim outputs, but sometimes you may want to use the expanded survey. On the second or
 # higher iteration, you will want to use daysim_outputs.h5 from the h5 directory because these outputs
@@ -73,7 +71,7 @@ def create_hdf5_skim_container2(hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
 
-    hdf5_filename = os.path.join('inputs/', hdf5_name +'.h5').replace("\\","/")
+    hdf5_filename = os.path.join('inputs/model/roster', hdf5_name +'.h5').replace("\\","/")
 
     my_user_classes = json_to_dictionary('user_classes')
 
@@ -101,7 +99,7 @@ def create_hdf5_skim_container2(hdf5_name):
 
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
@@ -111,27 +109,24 @@ def text_to_dictionary(dict_name):
 
     return(my_dictionary)
 
-
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
-
 
 def vdf_initial(my_project):
 
     start_vdf_initial = time.time()
     
     #Point to input file for the VDF's and Read them in
-    function_file = 'inputs/vdfs/vdfs' + my_project.tod + '.txt'
+    function_file = 'inputs/model/vdfs/vdfs' + my_project.tod + '.txt'
 
     #manage_vdfs(transaction_file = function_file,throw_on_error = True)
     my_project.process_function_file(function_file)
     end_vdf_initial = time.time()
-
 
 def delete_matrices(my_project, matrix_type):
     for matrix in my_project.bank.matrices():
@@ -220,10 +215,9 @@ def create_fare_zones(my_project, zone_file, fare_file):
    
     my_project.initialize_zone_partition("gt")
     my_project.process_zone_partition(zone_file)
-    my_project.matrix_transaction(fare_file) 
+    print fare_file
+    my_project.matrix_transaction(os.path.join('inputs/scenario/networks/fares',fare_file)) 
     
-
-
 def populate_intrazonals(my_project):
     #populate origin matrix with zone areas:
 
@@ -259,7 +253,6 @@ def populate_intrazonals(my_project):
     
     logging.debug('finished populating intrazonals')
 
-
 def intitial_extra_attributes(my_project):
 
     start_extra_attr = time.time()
@@ -277,7 +270,6 @@ def intitial_extra_attributes(my_project):
  
     # Create the link extra attribute to store the arterial delay in
     #my_project.create_extra_attribute("LINK", "@rdly","Intersection Delay", True)
-
     end_extra_attr = time.time()
 
 def calc_bus_pce(my_project):
@@ -371,9 +363,7 @@ def traffic_assignment(my_project):
         assign_traffic(mod_assign, warm_start = True)
     else:
         print 'not using warm starts'
-        assign_traffic(mod_assign, warm_start = False)
-    
-
+        assign_traffic(mod_assign, warm_start = False)    
     end_traffic_assignment = time.time()
 
     print 'It took', round((end_traffic_assignment-start_traffic_assignment)/60,2), 'minutes to run the assignment.'
@@ -599,9 +589,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     my_user_classes = json_to_dictionary("user_classes")
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
-
     hdf5_filename = create_hdf5_skim_container2(my_project.tod)
-    my_store=h5py.File(hdf5_filename, "r+")
+    my_store = h5py.File(hdf5_filename, "r+")
     #if averaging, load old skims in dictionary of numpy matrices
     if average_skims:
         np_old_matrices = {}
@@ -615,16 +604,14 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     if e:
         del my_store["Skims"]
         skims_group = my_store.create_group("Skims")
-        print "Group Skims Exists. Group deleSted then created"
+        print "Group Skims Exists. Group deleted then created"
         #If not there, create the group
     else:
         skims_group = my_store.create_group("Skims")
         print "Group Skims Created"
 
-
     #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
-
 
    # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
     try:
@@ -696,7 +683,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             print matrix_name+' was transferred to the HDF5 container.'
 
     #bike/walk
-    
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -735,7 +721,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
-
 def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     start_time = time.time()
@@ -753,9 +738,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
 
     #Create the HDF5 Container if needed and open it in read/write mode using "r+"
-
     my_store=h5py.File(hdf_filename, "r+")
-
 
     #Read the Matrix File from the Dictionary File and Set Unique Matrix Names
     matrix_dict = text_to_dictionary('demand_matrix_dictionary')
@@ -808,7 +791,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['svtl2', 'h2tl2', 'h3tl2', 'litrat', 'bike', 'walk']:
+    for matrix_name in ['svtl2', 'h2tl2', 'h3tl2', 'litrat', 'trnst', 'bike', 'walk']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -933,7 +916,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(supplemental_loc + tod + '.h5', "r")
     # Call correct mode name by removing income class value when needed
-    if matrix_name not in ['bike', 'litrat', 'walk']:
+    if matrix_name not in ['bike', 'litrat', 'trnst', 'walk']:
         mode_name = matrix_name[:-1]
     else:
         mode_name = matrix_name
@@ -945,7 +928,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
     sub_demand_array = (np.asarray(sub_demand_matrix))
     demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
-
+    print matrix_name
     return demand_matrix
 
 def create_trip_tod_indices(tod):
@@ -1024,14 +1007,12 @@ def start_transit_pool(project_list):
 def run_transit(project_name):
     start_of_run = time.time()
 
-    my_desktop = app.start_dedicated(True, "sc", project_name)
-    
+    my_desktop = app.start_dedicated(True, "sc", project_name) 
     
     m = _m.Modeller(my_desktop)
     for t in m.toolboxes:
         t.connection.execute("PRAGMA busy_timeout=1000")
 
-    
     #delete locki if one exists
     m.emmebank.dispose()
     
@@ -1071,13 +1052,7 @@ def run_transit(project_name):
     mod_calc["result"] = transfer_wait_matrix
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
-    
-    
-    
-    
-    
-    
-    
+
     my_bank.dispose()
  
 def export_to_hdf5_pool(project_list):
@@ -1166,9 +1141,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
 
     #Define the Emme Tools used in this function
 
-    for tod in uniqueTOD:
-
-        
+    for tod in uniqueTOD:       
         my_bank = all_emmebanks[tod]
         #need a scenario, get the first one
         current_scenario = list(my_bank.scenarios())[0]
@@ -1176,18 +1149,14 @@ def bike_walk_assignment_NonConcurrent(project_name):
 
         zones=current_scenario.zone_numbers
         bank_name = my_bank.title
-
-
         assign_transit = project_name.tool("inro.emme.transit_assignment.standard_transit_assignment")
 
-    #Load in the necessary Dictionaries
-
-
+    	# Load in the necessary Dictionaries
         assignment_specification = json_to_dictionary("bike_walk_assignment")
-        #get demand matrix name from here:
+        # get demand matrix name from here:
         user_classes = json_to_dictionary("user_classes")
         mod_assign = assignment_specification
-        #only skim for time for certain tod
+        # only skim for time for certain tod
         if tod in bike_walk_skim_tod:
             for key in bike_walk_matrix_dict.keys():
                 mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
@@ -1195,7 +1164,7 @@ def bike_walk_assignment_NonConcurrent(project_name):
                 mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
                 assign_transit(mod_assign)
         else:
-            #Dont Skim
+            # Dont Skim
             for key in bike_walk_matrix_dict.keys():
                 mod_assign['demand'] = bike_walk_matrix_dict[key]['demand']
                 mod_assign['modes'] = bike_walk_matrix_dict[key]['modes']
@@ -1215,7 +1184,7 @@ def feedback_check(emmebank_path_list):
      for emmebank_path in emmebank_path_list:
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
-        my_store=h5py.File('inputs/' + tod + '.h5', "r+")
+        my_store=h5py.File('inputs/model/roster/' + tod + '.h5', "r+")
         #put current time skims in numpy:
         skims_dict = {}
 
@@ -1282,8 +1251,6 @@ def create_node_attributes(node_attribute_dict, my_project):
                 mod_calc["selections"]["node"] = "Line = " + line_id
                 network_calc(mod_calc)
 
-
-
 def delete_matrices_parallel(project_name):
     my_project = EmmeProject(project_name)
    
@@ -1305,14 +1272,13 @@ def run_assignments_parallel(project_name):
 
     define_matrices(my_project)
 
-    ##import demand/trip tables to emme. this is actually quite fast con-currently.
     if not build_free_flow_skims:
         hdf5_trips_to_Emme(my_project, hdf5_file_path)
         matrix_controlled_rounding(my_project)
 
     ##tod = m.emmebank.title
     populate_intrazonals(my_project)
-    
+
     ##create transit fare matrices:
     if my_project.tod in fare_matrices_tod:
         fare_dict = json_to_dictionary('transit_fare_dictionary')
@@ -1363,7 +1329,6 @@ def run_assignments_parallel(project_name):
 
 def main():
 
-        
     #Start Daysim-Emme Equilibration
     #This code is organized around the time periods for which we run assignments, often represented by the variable tod. This variable will always
     #represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
@@ -1373,14 +1338,13 @@ def main():
             l = project_list[i:i+parallel_instances]
             start_pool(l)
 
-        
         #want pooled processes finished before executing more code in main:
         # run_assignments_parallel('projects/6to7/6to7.emp')
         
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')
        
-        f = open('inputs/converge.txt', 'w')
+        f = open('outputs/logs/converge.txt', 'w')
        
         #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
         if (survey_seed_trips == False and daysim_seed_trips == False and build_free_flow_skims == False):

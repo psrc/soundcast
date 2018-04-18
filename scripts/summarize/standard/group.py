@@ -1,5 +1,7 @@
 import os, sys, shutil, math, h5py
 import pandas as pd
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
 sys.path.append(os.getcwd())
 from standard_summary_configuration import *
 
@@ -748,16 +750,4 @@ if __name__ == '__main__':
         screenlines(file_dir, name)
         light_rail(file_dir, name)
         file_dir = os.path.join(run_dir,r'outputs/daysim')
-        logsums(name, file_dir)
-
-    ## Write notebooks based on these outputs to HTML
-    for nb in ['topsheet','metrics']:
-        try:
-            os.system("jupyter nbconvert --ExecutePreprocessor.timeout=600 --to=html --execute scripts/summarize/notebooks/"+nb+".ipynb")
-        except:
-            print 'Unable to produce topsheet, see: scripts/summarize/standard/group.py'
-
-        # Move these files to output
-        if os.path.exists(r"outputs/"+nb+".html"):
-            os.remove(r"outputs/"+nb+".html")
-        os.rename(r"scripts/summarize/notebooks/"+nb+".html", r"outputs/"+nb+".html")
+        logsums(name, file_dir)        

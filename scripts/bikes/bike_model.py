@@ -83,7 +83,7 @@ def process_attributes(my_project):
 				print 'unable to recreate bike link attributes'
 
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-	filename = r'inputs/bikes/emme_attr.in'
+	filename = 'inputs/scenario/bike/bike_attributes.csv'
 	import_attributes(filename, 
 	                  scenario = my_project.current_scenario,
 	                  revert_on_error=False)
@@ -118,10 +118,10 @@ def write_generalized_time(df):
 	df['inode'] = df['link_id'].str.split('-').str[0]
 	df['jnode'] = df['link_id'].str.split('-').str[1]
 
-	filename = r'inputs/bikes/bkwt.in'
+	filename = 'working/bike_link_weights.csv'
 	df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
 
-	print "results written to inputs/bikes/bkwt.in"
+	print "results written to working/bike_link_weights.csv"
 
 def calc_bike_weight(my_project, link_df):
 	''' Calculate perceived travel time weight for bikes
@@ -167,27 +167,27 @@ def bike_assignment(my_project, tod):
 
 	# Load in bike weight link attributes
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-	filename = r'inputs\bikes\bkwt.in'
+	filename = 'working/bike_link_weights.csv'
 	import_attributes(filename, 
 	                scenario = my_project.current_scenario,
 	                revert_on_error=False)
 
 	# Invoke the Emme assignment tool
 	extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
-	bike_spec = json.load(open(r'inputs\skim_params\bike_assignment.json'))
+	bike_spec = json.load(open('inputs/model/skim_parameters/bike_assignment.json'))
 	extended_assign_transit(bike_spec, add_volumes=True)
 
 	print 'bike assignment complete, now skimming'
 
 	skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
-	bike_skim_spec = json.load(open(r'inputs\skim_params\bike_skim_setup.json'))
+	bike_skim_spec = json.load(open('inputs/model/skim_parameters/bike_skim_setup.json'))
 	skim_bike(bike_skim_spec)
 
 	# Add bike volumes to bvol network attribute
 	bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
 
 	# Skim for final bike assignment results
-	bike_network_spec = json.load(open(r'inputs\skim_params\bike_network_setup.json'))
+	bike_network_spec = json.load(open('inputs/model/skim_parameters/bike_network_setup.json'))
 	bike_network_vol(bike_network_spec)
 
 	# Export skims to h5
@@ -200,7 +200,7 @@ def bike_assignment(my_project, tod):
 def export_skims(my_project, matrix_name, tod):
 	'''Write skim matrix to h5 container'''
 
-	my_store = h5py.File(r'inputs/' + tod + '.h5', "r+")
+	my_store = h5py.File(r'inputs/model/roster/' + tod + '.h5', "r+")
 
 	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
 

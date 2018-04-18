@@ -22,6 +22,7 @@ import re
 import inro.emme.database.emmebank as _eb
 import random
 import shutil
+import h5py
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
 from input_configuration import *
@@ -54,53 +55,6 @@ def copy_daysim_code():
         print message
         sys.exit(1)
 
-
-@timed
-def copy_accessibility_files():
-    if not os.path.exists('inputs/accessibility'):
-        os.makedirs('inputs/accessibility')
-    
-    print 'Copying UrbanSim parcel file'
-    try:
-        shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/accessibility')
-    except:
-        print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
-        sys.exit(1)
-      
-    
-    print 'Copying Transit stop file'
-    try:      
-        shcopy(scenario_inputs+'/landuse/transit_stops_' + scenario_name + '.csv','inputs/accessibility')
-    except:
-        print 'error copying transit stops file at ' + scenario_inputs + '/landuse/transit_stops_' + scenario_name + '.csv'
-        sys.exit(1)
-
-    
-    print 'Copying Military parcel file'
-    try:
-        shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/accessibility')
-    except:
-        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
-        sys.exit(1)
-
-    
-    print 'Copying JBLM file'
-    try:
-        shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','Inputs/accessibility')
-    except:
-        print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
-        sys.exit(1)
-
-    
-    print 'Copying Hourly and Daily Parking Files'
-    if base_year != model_year: 
-        try:
-            shcopy(scenario_inputs+'/landuse/hourly_parking_costs.csv','Inputs/accessibility')
-            shcopy(scenario_inputs+'/landuse/daily_parking_costs.csv','Inputs/accessibility')
-        except:
-            print 'error copying parking file at' + scenario_inputs+'/landuse/' + ' either hourly or daily parking costs'
-            sys.exit(1)
-
 @timed
 def copy_seed_skims():
     print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
@@ -112,7 +66,7 @@ def copy_seed_skims():
 
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
@@ -125,7 +79,7 @@ def text_to_dictionary(dict_name):
 def json_to_dictionary(dict_name):
 
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
     return(my_dictionary)
@@ -203,17 +157,19 @@ def setup_emme_project_folders():
         
    
 @timed    
+def copy_scenario_inputs():
+    print 'Copying scenario inputs...' 
+    dir_util.copy_tree(scenario_inputs,'inputs/scenario')
+
+@timed
 def copy_large_inputs():
     print 'Copying large inputs...' 
-    if run_skims_and_paths_seed_trips:
-        shcopy(scenario_inputs+'/etc/daysim_outputs_seed_trips.h5','Inputs')
     dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
     dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
     dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
     dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
     if run_supplemental_generation:
         shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/trucks')
-        #shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/suplemental/generation/landuse')
     dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
     dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
     dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
@@ -222,10 +178,12 @@ def copy_large_inputs():
     dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
     shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
     shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
+    
     # node to node short distance files:
     shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
     shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
+
 
 @timed
 def copy_shadow_price_file():
@@ -257,36 +215,86 @@ def clean_up():
         else:
             print file
 
+@timed
+def copy_accessibility_files():
+    if run_integrated:
+        import_integrated_inputs()
+    else:
+        if not os.path.exists('inputs/scenario/landuse'):
+            os.makedirs('inputs/scenario/landuse')
+        
+        print 'Copying UrbanSim parcel file'
+        try:
+            shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/scenario/landuse')
+        except:
+            print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
+            sys.exit(1)
+          
+        
+        print 'Copying Transit stop file'
+        try:      
+            shcopy(scenario_inputs+'/networks/transit/transit_stops.csv','inputs/scenario/networks/transit')
+        except:
+            print 'error copying transit stops file at ' + scenario_inputs + '/networks/transit_transit_stops.csv'
+            sys.exit(1)
+
+        
+        print 'Copying Military parcel file'
+        try:
+            shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/scenario/landuse')
+        except:
+            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
+            sys.exit(1)
+
+        
+        print 'Copying JBLM file'
+        try:
+            shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','inputs/scenario/landuse')
+        except:
+            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
+            sys.exit(1)
+
+        
+        print 'Copying Hourly and Daily Parking Files'
+        if base_year != model_year: 
+            try:
+                shcopy(scenario_inputs+'/landuse/parking_costs.csv','inputs/scenario/landuse')
+            except:
+                print 'error copying parking file at' + scenario_inputs+'/landuse/parking_costs.csv'
+                sys.exit(1)
+
 def find_inputs(base_directory, save_list):
     for root, dirs, files in os.walk(base_directory):
         for file in files:
             if '.' in file:
                 save_list.append(file)
 
-def check_inputs():
-    ''' Warn user if any inputs are missing '''
-
-    logger = logging.getLogger('main_logger')
-
-    # Build list of existing inputs from local inputs
-    input_list = []
-    find_inputs(os.getcwd(), input_list)    # local inputs
-
-    # Compare lists and report inconsistenies
-    missing_list = []
-    for f in commonly_missing_files:
-        if not any(f in input for input in input_list):
-            missing_list.append(f)
-
-    # Save missing file list to soundcast log and print to console
-    if len(missing_list) > 0:
-        logger.info('Warning: the following files are missing and may be needed to complete the model run:')
-        print 'Warning: the following files are missing and may be needed to complete the model run:'
-        for file in missing_list:
-            logger.info('- ' + file)
-            print file
-
 def build_output_dirs():
     for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
         if not os.path.exists(path):
             os.makedirs(path)
+
+def import_integrated_inputs():
+    """
+    Convert Urbansim input file into separate files:
+    - parcels_urbansim.txt
+    - hh_and_persons.h5
+    """
+
+    print "Importing land use files from urbansim"
+
+    # Copy soundcast inputs and separate input files
+    h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
+    shcopy(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
+
+    h5_inputs = h5_inputs = h5py.File('inputs/scenario/landuse/hh_and_persons.h5')
+
+    # Export parcels file as a txt file input
+    parcels = pd.DataFrame()
+    for col in h5_inputs['parcels'].keys():
+        parcels[col] = h5_inputs['parcels'][col][:]
+        
+    parcels.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt', sep=' ', index=False)
+
+    # Delete parcels group
+    del h5_inputs['parcels']

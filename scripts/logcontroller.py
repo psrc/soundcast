@@ -17,10 +17,16 @@ from input_configuration import *
 from functools import wraps
 from time import time
 import datetime
-import os, sys
+import os, sys, errno
 sys.path.append(os.getcwd())
 
 def setup_custom_logger(name):
+    # create dir for main log file if it doesn't exist
+    try:
+        os.makedirs('outputs/logs')
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     logging.basicConfig(filename=main_log_file,format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     handler = logging.StreamHandler()
     logger = logging.getLogger(name)
