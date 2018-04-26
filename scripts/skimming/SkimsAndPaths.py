@@ -808,19 +808,19 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         #Start building the tuple key, 3 VOT of categories...
         if survey_seed_trips:
             vot = 2
-            if mode[x]<7:
-                mat_name = matrix_dict[mode[x], vot, toll_path[x]]
+            # if mode[x]<7:
+            #     mat_name = matrix_dict[mode[x], vot, toll_path[x]]
 
-                if dorp[x] <= 1:
-                    #get the index of the Otaz
-                    #some missing Os&Ds in seed trips!
-                    if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
-                        myOtaz = dictZoneLookup[otaz[x]]
-                        myDtaz = dictZoneLookupd[dtaz[x]] 
-                        trips = np.asscalar(np.float32(trexpfac[x]))
-                        trips = round(trips, 2)
-                        #if mode in supplemental_modes:
-                        demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+            #     if dorp[x] <= 1:
+            #         #get the index of the Otaz
+            #         #some missing Os&Ds in seed trips!
+            #         if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
+            #             myOtaz = dictZoneLookup[otaz[x]]
+            #             myDtaz = dictZoneLookupd[dtaz[x]] 
+            #             trips = np.asscalar(np.float32(trexpfac[x]))
+            #             trips = round(trips, 2)
+            #             #if mode in supplemental_modes:
+            #             demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
         
         #Regular Daysim Output:            
         else:
@@ -834,7 +834,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 # to do: this should probably be in the emme_configuration file, in case the ids change
                 auto_mode_ids = [3, 4, 5]
                 # using dorp to select out driver trips only for car trips; for non-auto trips, put all trips in the matrix                              
-                if dorp[x] <= 1 or mode[x] not in auto_mode_ids:
+                # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
+                if (dorp[x] <= 1 or dorp[x] == 3) or mode[x] not in auto_mode_ids:
                     mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
                     myOtaz = dictZoneLookup[otaz[x]]
                     myDtaz = dictZoneLookup[dtaz[x]]
