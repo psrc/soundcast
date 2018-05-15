@@ -19,6 +19,7 @@ run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
 run_import_networks = True
+#only run_daysim_zone_inputs in the base year currently
 run_daysim_zone_inputs = True
 run_integrated = False
 
@@ -57,6 +58,14 @@ run_time_choice_report = False
 ####################################
 
 delete_banks = False
+
+###### Distance-based pricing######
+add_distance_pricing = False
+# rate below includes 3.5 cent carbon tax
+distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
+# HOT Lanes
+add_hot_lane_tolls = False
+hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
 
 ###### Model iterations, population sampling, log files, etc.######
 pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
