@@ -31,7 +31,7 @@ def init_dir(directory):
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/supplemental/',dict_name).replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
          
