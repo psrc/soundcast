@@ -37,7 +37,7 @@ headway_file = 'headways.csv'
 
 # in the junctions shapefile in the inputs/networks folder, this is the
 # minimum scene_node value where facility type = 99
-min_hov_node = 199203
+min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205}
 ###################################
 ################################### SKIMS AND PATHS ####################################
 log_file_name = 'outputs/logs/skims_log.txt'
@@ -171,7 +171,7 @@ bal_iters = 5
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
-airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228} 
+airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228, '2050' : 257500} 
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
