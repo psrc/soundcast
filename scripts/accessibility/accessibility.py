@@ -8,6 +8,7 @@ from pyproj import Proj, transform
 sys.path.append(os.getcwd())
 from accessibility_configuration import *
 from emme_configuration import *
+from input_configuration import *
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""
@@ -155,7 +156,6 @@ def main():
     # This UW parcel is in the wrong zone. 
     parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
 
-
     #check for missing data!
     for col_name in parcels.columns:
         # daysim does not use EMPRSC_P
@@ -167,6 +167,21 @@ def main():
     # Not using, causes bug in Daysim
     parcels.APARKS = 0
     parcels.NPARKS = 0            
+
+    # Add school enrollment data
+    df_enrollment = pd.read_csv(r'inputs\base_year\school_enrollment.csv', sep=',')
+    df_enrollment['year'] = df_enrollment['year'].astype('str')
+    df_enrollment = df_enrollment[df_enrollment['year'] == str(model_year)]
+
+    df = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
+
+    df['STUGRD_P'] = df['stugrd_p']
+    df['STUHGH_P'] = df['stuhgh_p']
+    df['STUUNI_P'] = df['stuuni_p']
+
+    df = df.fillna(0)
+
+    df.drop(['parcelid','stugrd_p','stuhgh_p','stuuni_p','year'], axis=1, inplace=True)
 
     # nodes must be indexed by node_id column, which is the first column
     nodes = pd.DataFrame.from_csv(nodes_file_name)
