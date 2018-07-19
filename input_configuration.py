@@ -93,11 +93,10 @@ scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
 
 # Integrated Run Settings
 #################################
+# Only required for integrated Urbans runs; leave as default for standard runs
+
 # Root dir for all Soundcast runs
-urbansim_skims_dir = r'D:/soundcast_root'
+urbansim_skims_dir = r'E:\soundcast_root'
 
 # Urbansim outputs dir
-urbansim_outputs_dir = r'D:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
-
-# Urbansim outputs config file
-urbansim_outputs_config_root = r'D:\opusgit\urbansim\inprocess\hana\configurations'
+urbansim_outputs_dir = r'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
