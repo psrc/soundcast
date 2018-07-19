@@ -168,12 +168,14 @@ def main():
     parcels.APARKS = 0
     parcels.NPARKS = 0            
 
-    # Add school enrollment data
-    df_enrollment = pd.read_csv(r'inputs\base_year\school_enrollment.csv', sep=',')
-    df_enrollment['year'] = df_enrollment['year'].astype('str')
-    df_enrollment = df_enrollment[df_enrollment['year'] == str(model_year)]
+    if run_integrated:
+        # Add school enrollment data since output from integrated runs is static for 2014 only
+        # Future changes will remove this need for a static school_enrollment table
+        df_enrollment = pd.read_csv(r'inputs\base_year\school_enrollment.csv', sep=',')
+        df_enrollment['year'] = df_enrollment['year'].astype('str')
+        df_enrollment = df_enrollment[df_enrollment['year'] == str(model_year)]
 
-    df = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
+        df = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
 
     df['STUGRD_P'] = df['stugrd_p']
     df['STUHGH_P'] = df['stuhgh_p']
