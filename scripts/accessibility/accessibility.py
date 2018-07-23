@@ -175,15 +175,15 @@ def main():
         df_enrollment['year'] = df_enrollment['year'].astype('str')
         df_enrollment = df_enrollment[df_enrollment['year'] == str(model_year)]
 
-        df = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
+        parcels = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
 
-    df['STUGRD_P'] = df['stugrd_p']
-    df['STUHGH_P'] = df['stuhgh_p']
-    df['STUUNI_P'] = df['stuuni_p']
+        parcels['STUGRD_P'] = parcels['stugrd_p']
+        parcels['STUHGH_P'] = parcels['stuhgh_p']
+        parcels['STUUNI_P'] = parcels['stuuni_p']
 
-    df = df.fillna(0)
+        parcels = parcels.fillna(0)
 
-    df.drop(['parcelid','stugrd_p','stuhgh_p','stuuni_p','year'], axis=1, inplace=True)
+        parcels.drop(['parcelid','stugrd_p','stuhgh_p','stuuni_p','year'], axis=1, inplace=True)
 
     # nodes must be indexed by node_id column, which is the first column
     nodes = pd.DataFrame.from_csv(nodes_file_name)
