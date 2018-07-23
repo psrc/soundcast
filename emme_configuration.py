@@ -165,7 +165,7 @@ bal_iters = 5
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
-airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228} 
+airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228, '2050': 257500} 
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
