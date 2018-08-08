@@ -16,13 +16,6 @@ mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : '
                       'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
                       'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
                       'ahijstuvbw' : 'asehdimjvutbpw'}
-###### Distance-based pricing######
-add_distance_pricing = True
-# rate below includes 3.5 cent carbon tax
-distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
-# HOT Lanes
-add_hot_lane_tolls = True
-hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt' 
 base_net_name = '_roadway.in'
