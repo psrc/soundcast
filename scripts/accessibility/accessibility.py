@@ -168,23 +168,6 @@ def main():
     parcels.APARKS = 0
     parcels.NPARKS = 0            
 
-    if run_integrated:
-        # Add school enrollment data since output from integrated runs is static for 2014 only
-        # Future changes will remove this need for a static school_enrollment table
-        df_enrollment = pd.read_csv(r'inputs\base_year\school_enrollment.csv', sep=',')
-        df_enrollment['year'] = df_enrollment['year'].astype('str')
-        df_enrollment = df_enrollment[df_enrollment['year'] == str(model_year)]
-
-        parcels = pd.merge(parcels,df_enrollment,how='left',left_on='PARCELID',right_on='parcelid')
-
-        parcels['STUGRD_P'] = parcels['stugrd_p']
-        parcels['STUHGH_P'] = parcels['stuhgh_p']
-        parcels['STUUNI_P'] = parcels['stuuni_p']
-
-        parcels = parcels.fillna(0)
-
-        parcels.drop(['parcelid','stugrd_p','stuhgh_p','stuuni_p','year'], axis=1, inplace=True)
-
     # nodes must be indexed by node_id column, which is the first column
     nodes = pd.DataFrame.from_csv(nodes_file_name)
     links = pd.DataFrame.from_csv(links_file_name, index_col = None )
