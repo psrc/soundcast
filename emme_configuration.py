@@ -30,7 +30,7 @@ headway_file = 'headways.csv'
 
 # in the junctions shapefile in the inputs/networks folder, this is the
 # minimum scene_node value where facility type = 99
-min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205, '2040' : 199205}
+min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205, '2050' : 199205}
 
 ###################################
 ################################### SKIMS AND PATHS ####################################
