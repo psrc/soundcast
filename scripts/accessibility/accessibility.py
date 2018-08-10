@@ -8,6 +8,7 @@ from pyproj import Proj, transform
 sys.path.append(os.getcwd())
 from accessibility_configuration import *
 from emme_configuration import *
+from input_configuration import *
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     """Adds an attribute node_ids to the given dataset."""
@@ -154,7 +155,6 @@ def main():
 
     # This UW parcel is in the wrong zone. 
     parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
-
 
     #check for missing data!
     for col_name in parcels.columns:

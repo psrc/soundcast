@@ -19,6 +19,7 @@ run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
 run_import_networks = True
+#only run_daysim_zone_inputs in the base year currently
 run_daysim_zone_inputs = True
 run_integrated = False
 
@@ -58,6 +59,14 @@ run_time_choice_report = False
 
 delete_banks = False
 
+###### Distance-based pricing######
+add_distance_pricing = False
+# rate below includes 3.5 cent carbon tax
+distance_rate_dict = {'am' : 13.5, 'md' : 8.5, 'pm' : 13.5, 'ev' : 8.5, 'ni' : 8.5}
+# HOT Lanes
+add_hot_lane_tolls = False
+hot_rate_dict = {'am' : 35, 'md' : 10, 'pm' : 35, 'ev' : 10, 'ni' : 10}
+
 ###### Model iterations, population sampling, log files, etc.######
 pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
@@ -84,11 +93,10 @@ scenario_inputs = os.path.join(main_inputs_folder, scenario_name)
 
 # Integrated Run Settings
 #################################
+# Only required for integrated Urbans runs; leave as default for standard runs
+
 # Root dir for all Soundcast runs
-urbansim_skims_dir = r'D:/soundcast_root'
+urbansim_skims_dir = r'E:\soundcast_root'
 
 # Urbansim outputs dir
-urbansim_outputs_dir = r'D:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
-
-# Urbansim outputs config file
-urbansim_outputs_config_root = r'D:\opusgit\urbansim\inprocess\hana\configurations'
+urbansim_outputs_dir = r'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
