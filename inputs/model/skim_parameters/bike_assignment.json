@@ -27,7 +27,7 @@
         "on_lines": null
     },
     "in_vehicle_time": {
-        "perception_factor": 0
+        "perception_factor": 1
     },
     "in_vehicle_cost": null,
     "aux_transit_time": {
