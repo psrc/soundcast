@@ -22,9 +22,6 @@ from EmmeProject import *
 from truck_configuration import *
 from emme_configuration import *
 from input_configuration import *
-
-# Temp log file for de-bugging
-logfile = open("outputs/logs/truck_log.txt", 'wb')
           
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
@@ -147,7 +144,6 @@ def truck_productions():
     #Calculate Productions for 3 truck classes (Origin Matrices are populated)
     for key, value in truck_generation_dict['productions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        # logfile.write("We're printing the productions part.")
 
     # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
     my_project.matrix_calculator(result = 'mohtpro', expression = 'mohtpro * motruck')
@@ -158,14 +154,11 @@ def truck_attractions():
    
     for key, value in truck_generation_dict['attractions'].iteritems():
         my_project.matrix_calculator(result = value['results'], expression = value['expression'])
-        # logfile.write("We're printing the attractions part.")
 
     # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
     my_project.matrix_calculator(result = 'mohtatt', expression = 'mohtatt * motruck')
 
     truck_dest_matrices = ['ltatt', 'mtatt', 'htatt']
-    # print 'done with truck productions and attractions'
-    logfile.write('done with truck productions and attractions')
 
     #Transpose Attractions (Destination Matrices are populated)
     for item in truck_dest_matrices:
