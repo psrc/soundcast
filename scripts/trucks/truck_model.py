@@ -26,10 +26,10 @@ from input_configuration import *
 def network_importer(EmmeProject):
     for scenario in list(EmmeProject.bank.scenarios()):
            EmmeProject.bank.delete_scenario(scenario)
-        #create scenario
+    
+    #create scenario
     EmmeProject.bank.create_scenario(1002)
     EmmeProject.change_scenario()
-        #print key
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
     EmmeProject.process_modes('inputs/scenario/networks/' + mode_file)
@@ -72,7 +72,6 @@ def skims_to_hdf5(EmmeProject):
             matrix_value = None
                     
     my_store.close()
-
 
 #create a place holder scalar matrix
 def place_holder_scalar_matrix():
