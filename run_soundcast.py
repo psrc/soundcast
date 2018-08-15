@@ -228,7 +228,6 @@ def run_all_summaries():
    if run_network_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
-      subprocess.call([sys.executable, 'scripts/summarize/standard/net_summary_simplify.py'])
       if scenario_name == '2014':
          subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
          subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])

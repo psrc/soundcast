@@ -42,10 +42,6 @@ output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts
 # Alternative run for map comparisons
 map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
 
-########## Land Use Summary ##################################################
-out_lu_summary = r'outputs/landuse/landuse_summary.xlsx'
-households_persons_file = r'inputs/scenario/landuse/hh_and_persons.h5'
-
 ######## Truck Counts ########################################################
 truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014.csv' 
 
@@ -77,13 +73,3 @@ transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 bike_link_vol = 'outputs/bike/bike_volumes.csv'
 bike_count_data = 'inputs/base_year/bike_count_links.csv'
 edges_file = 'inputs/scenario/bike/edges_0.txt'
-
-# Parcel Summary
-buffered_parcels = 'buffered_parcels.txt'   # Parcel data
-parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
-parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
-parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
-nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
-links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
-transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
-max_dist = 24140.2
