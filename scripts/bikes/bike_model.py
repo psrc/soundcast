@@ -285,7 +285,7 @@ def main():
 	calc_bike_weight(my_project, link_df)
 
 	# Assign all AM trips (unable to assign trips without transit networks)
-	for tod in bike_assignment_tod:
+	for tod in transit_skim_tod:
 		print 'assigning bike trips for: ' + str(tod)
 		bike_assignment(my_project, tod)
 

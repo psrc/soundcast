@@ -27,8 +27,11 @@ income_bin_labels = ['low','medium','high']
 #               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
 #               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
 # Input Files:
-counts_file = 'TrafficCounts_Mid.txt'
+counts_file = r'scripts/summarize/inputs/network_summary/TrafficCounts_Mid.txt'
+aadt_counts_file = r'scripts/summarize/inputs/network_summary/soundcast_aadt.csv'
+tptt_counts_file = r'scripts/summarize/inputs/network_summary/soundcast_tptt.csv'
 # Output Files: 
+daily_network_fname = 'outputs/network/daily_network_results.csv'
 net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
 screenlines = 'screenline_volumes.csv'
@@ -39,8 +42,9 @@ uc_list = ['@svtl1', '@svtl2', '@svtl3', '@h2tl1', '@h2tl2', '@h2tl3',
 output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
                'screenline_volumes']
 
-# Alternative run for map comparisons
-map_daysim_alt = r'P:\TransportationFutures2040\outputs\daysim_outputs.h5'
+########## Land Use Summary ##################################################
+out_lu_summary = r'outputs/landuse/landuse_summary.xlsx'
+households_persons_file = r'inputs/scenario/landuse/hh_and_persons.h5'
 
 ######## Truck Counts ########################################################
 truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014.csv' 
@@ -64,8 +68,10 @@ special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_
 
 
 ##### Output File Locations ######################################################
-net_summary_detailed = 'outputs/network/network_summary_detailed.xlsx'
-net_summary_out = 'outputs/network/network_summary.xlsx'
+network_summary_dir = 'outputs/network/network_summary.xlsx'
+validation_summary_dir = 'outputs/network/validation.xlsx'
+transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
+
 roadway_summary = 'outputs/network/roadway_summary.xlsx'
 transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 
@@ -73,3 +79,13 @@ transit_summary_out = 'outputs/transit/transit_summary.xlsx'
 bike_link_vol = 'outputs/bike/bike_volumes.csv'
 bike_count_data = 'inputs/base_year/bike_count_links.csv'
 edges_file = 'inputs/scenario/bike/edges_0.txt'
+
+# Parcel Summary
+buffered_parcels = 'buffered_parcels.txt'   # Parcel data
+parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
+parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
+parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
+nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
+links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
+transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
+max_dist = 24140.2
