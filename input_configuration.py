@@ -7,9 +7,9 @@ import os
 # Scenario and input paths
 #####################################################################
 base_year = '2014'  # This should always be 2014 unless the base year changes
-scenario_name = '2014_lodes'
+scenario_name = '2014'
 model_year = '2014'
-main_inputs_folder = 'R:/SoundCast/Inputs'
+main_inputs_folder = 'R:/SoundCast/Inputs/lodes/vision'
 #####################################################################
 
 ######Set up:######
