@@ -161,10 +161,29 @@ def copy_scenario_inputs():
     print 'Copying scenario inputs...' 
     dir_util.copy_tree(scenario_inputs,'inputs/scenario')
 
-    # Copy base year inputs (too large for storing on Github)
-    src = os.path.join(os.path.join(base_inputs,'landuse/node_to_node_distance_2014.h5'))
-    dst = os.path.join(os.getcwd(),'inputs/scenario/landuse/node_to_node_distance_2014.h5')
-    shutil.copyfile(src,dst)
+@timed
+def copy_large_inputs():
+    print 'Copying large inputs...' 
+    dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
+    dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
+    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
+    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
+    if run_supplemental_generation:
+        shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/trucks')
+    dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
+    dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
+    dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
+    dir_util.copy_tree(base_inputs+'/observed','Inputs/observed')
+    dir_util.copy_tree(base_inputs+'/corridors','inputs/corridors')
+    dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
+    shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
+    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
+    
+    # node to node short distance files:
+    shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
+    shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
+
 
 @timed
 def copy_shadow_price_file():
@@ -251,7 +270,7 @@ def find_inputs(base_directory, save_list):
                 save_list.append(file)
 
 def build_output_dirs():
-    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse']:
+    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse','outputs/emissions']:
         if not os.path.exists(path):
             os.makedirs(path)
 

@@ -173,6 +173,10 @@ def run_truck_supplemental(iteration):
         if returncode != 0:
            sys.exit(1)
 
+        #returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
+        #if returncode != 0:
+        #   sys.exit(1)
+
         returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
         if returncode != 0:
            sys.exit(1)
@@ -187,6 +191,7 @@ def daysim_assignment(iteration):
          returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
          logger.info("End of %s iteration of Daysim", str(iteration))
          if returncode != 0:
+             #send_error_email(recipients, returncode)
              sys.exit(1)
      
      ### ADD SUPPLEMENTAL TRIPS
@@ -223,13 +228,20 @@ def run_all_summaries():
    if run_network_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
-      # if scenario_name == '2014':
-      #    subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
-      #    subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/emissions.py'])
+      if scenario_name == '2014':
+         subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
+         subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])
 
    if run_soundcast_summary:
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
+      
+   if run_landuse_summary:
+      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
    
+#   if run_truck_summary:
+#       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
+
    if run_grouped_summary:
        subprocess.call([sys.executable, 'scripts/summarize/standard/group.py'])
 ##################################################################################################### ###################################################################################################### 
@@ -254,7 +266,7 @@ def main():
     if run_accessibility_calcs:
         accessibility_calcs()
 
-    if run_input_summary:
+    if run_accessibility_summary:
         subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('working'):
@@ -339,11 +351,13 @@ def main():
 #### ##################################################################
     clean_up()
     print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
+##print '    Total run time:',time_assign_summ - time_start
 
 if __name__ == "__main__":
     logger = logcontroller.setup_custom_logger('main_logger')
     logger.info('------------------------NEW RUN STARTING----------------------------------------------')
     start_time = datetime.datetime.now()
+
 
     main()
 

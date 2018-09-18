@@ -20,12 +20,61 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
 
-#transit_tod = {'6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '8to9' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
-#               '9to10' : {'4k_tp' : 'md', 'num_of_hours' : 1}, 
-#               '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
-#               '14to15' : {'4k_tp' : 'md', 'num_of_hours' : 1}}
+tod_lookup = {'5to6' : 5, '6to7' : 6, '7to8' : 7, '8to9' : 8, '9to10' : 9, 
+              '10to14' : 10, '14to15' : 14, '15to16' : 15, '16to17' : 16, 
+              '17to18' : 17, '18to20' : 18, '20to5' : 20}
+
+county_id = {1: 'King',
+            2: 'Kitsap',
+            3: 'Pierce',
+            4: 'Snohomish'}
+
+veh_totals = {'2014': 3176086, '2040': 3982578.1}
+
+# Base year distribution of vehicle ownership by county
+vehs_by_county = {
+    'King': 1625471,
+    'Kitsap': 231231,
+    'Pierce': 675660,
+    'Snohomish': 643724
+}
+
+# List of pollutants to be summarized for summer
+# All other are to be summarized for winter season
+summer_list = [87]
+
+
+speed_bins = [-999999, 2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 999999] 
+speed_bins_labels =  range(1, len(speed_bins))
+
+fac_type_lookup = {0:0, 1:4, 2:4, 3:5, 4:5, 5:5, 6:3, 7:5, 8:0}
+
+# Map pollutant name and ID
+pollutant_map = {
+    '1': 'Total Gaseous HCs',
+    '2': 'CO',
+    '3': 'NOx',
+    '5': 'Methane',
+    '6': 'N20',
+    '79': 'Non-methane HCs',
+    '87': 'VOCs',             
+    '90': 'Atmospheric CO2',
+    '91': 'Total Energy',
+    '98': 'CO2 Equivalent',
+    'PM10': 'PM10 Total',
+    'PM25': 'PM25 Total',
+    '100': 'PM10 Exhaust',
+    '106': 'PM10 Brakewear',
+    '107': 'PM10 Tirewear',
+    '110': 'PM25 Exhaust',
+    '112': 'Elemental Carbon',
+    '115': 'Sulfate Particulate',
+    '116': 'PM25 Brakewear',
+    '117': 'PM25 Tirewear',   
+    '118': 'Composite NonECPM',
+    '119': 'H20 Aerosol'
+}
+
 # Input Files:
 counts_file = r'scripts/summarize/inputs/network_summary/TrafficCounts_Mid.txt'
 aadt_counts_file = r'scripts/summarize/inputs/network_summary/soundcast_aadt.csv'

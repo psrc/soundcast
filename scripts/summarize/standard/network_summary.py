@@ -69,6 +69,17 @@ def get_link_counts(EmmeProject, loop_id_df, tod):
 
     return df
 
+def get_intrazonal_vol(emmeproject, df_vol):
+
+    iz_uc_list = ['svtl','h2tl','h3tl']
+    iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
+    iz_uc_list += ['metrk','hvtrk']
+
+    for uc in iz_uc_list:
+        df_vol[uc+'_'+emmeproject.tod] = emmeproject.bank.matrix(uc).get_numpy_data().diagonal()
+
+    return df_vol
+
 def get_aadt_volumes(EmmeProject, df_aadt_counts, vol_dict):
     network = EmmeProject.current_scenario.get_network()
     for index, row in df_aadt_counts.iterrows():
@@ -748,10 +759,19 @@ def main():
     counts_dict = {}
     aadt_counts_dict = {}
     tptt_counts_dict = {}
+    df_iz_vol = pd.DataFrame()
     transit_atts = []
 
-    # Access global Emme project with all time-of-day banks available
+    # Access global Emme project WITHOUTh all time-of-day banks available
     my_project = EmmeProject(project)
+
+    zones = my_project.current_scenario.zone_numbers
+    dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+
+    df_iz_vol['taz'] = dictZoneLookup.values()
+
+    # Intrazonal distance array
+    df_iz_vol['izdist'] = my_project.bank.matrix('izdist').get_numpy_data().diagonal()
 
     # Create engines for writing Excel outputs, for network summary and count comparisons
     network_writer = pd.ExcelWriter(network_summary_dir, engine='xlsxwriter')    
@@ -786,6 +806,7 @@ def main():
 
     # Loop through all TOD banks to get network summaries
     for tod_hour, tod_segment in sound_cast_net_dict.iteritems():
+        print tod_hour
         my_project.change_active_database(tod_hour)
         for name, desc in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, desc, 'True')
@@ -795,11 +816,14 @@ def main():
 
         network = my_project.current_scenario.get_network()
 
+        df_iz_vol = get_intrazonal_vol(my_project, df_iz_vol)
+
         # Calculate link-level results
         export_network_attributes(network, tod_hour, network_results_path)
 
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
+            print my_project.tod
             stop_df, seg_df = transit_summary(project=my_project, seg_df=seg_df, 
                 transit_summary_dict=transit_summary_dict, transit_atts=transit_atts,
                 stop_df=stop_df)
@@ -826,6 +850,9 @@ def main():
 
     # Export high-level network summaries by time of day to Excel 
     summarize_network(filepath=network_results_path, excel_writer=network_writer)
+
+    # Export intrazonal trip totals
+    df_iz_vol.to_csv(r'outputs/network/iz_vol.csv', index=False)
 
     # Write transit transfer results to Excel
     transfer_df = transfers(seg_df=seg_df, stop_df=stop_df, writer=transit_writer)
