@@ -15,14 +15,20 @@ def grams_to_tons(value):
 def calc_start_emissions():
 
     # Import emissions rates per vehicle 
-    starts = pd.read_csv(r'scripts/summarize/inputs/network_summary/start_emission_rates_'+model_year+'.csv')
+    starts = pd.read_csv(r'scripts/summarize/inputs/network_summary/start_emission_rates.csv')
 
-    # using wintertime rates for all start emission rates 
-    # per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xlsx
-    month = 1
+    # Filter out rates for model year
+    starts['yearID'] = starts['yearID'].astype('str')
+    starts = starts[starts['yearID'] == model_year]
 
-    # Sum total winter emissions across all times of day, by county, for each pollutant
-    starts = starts[starts['monthID'] == month].groupby(['pollutantID','county']).sum()[['ratePerVehicle']].reset_index()
+    # using wintertime rates for all start emission rates except for VOCs
+    # per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
+    df1 = starts[(starts['pollutantID'] != 87) & (starts['monthID'] == 1)]
+    df2 = starts[(starts['pollutantID'] == 87) & (starts['monthID'] == 7)]
+    starts = df1.append(df2)
+
+    # Sum total emissions across all times of day, by county, for each pollutant
+    starts = starts.groupby(['pollutantID','county']).sum()[['ratePerVehicle']].reset_index()
 
     # Estimate vehicle population for AQ purposes (not using Soundcast estimates)
     # Ref: X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Estimate Vehicle Population_updatedfor2018.xlsx
@@ -32,8 +38,6 @@ def calc_start_emissions():
     base_county_veh.columns = ['vehicles']
 
     # Scale county vehicles by total change
-    # model_year = '2040'
-    # base_year = '2014'
     veh_scale = 1+(veh_totals[model_year]-veh_totals[base_year])/veh_totals[base_year]
 
     # Apply scale factor to the base vehicle sum by county
@@ -114,7 +118,6 @@ def calc_iz_emissions(df_iz, rates):
 def calc_running_emissions(rates):
     """ Calcualte inter-zonal running emission rates from network outputs
     """
-
     # Running emissions from link-level results
     df = pd.read_csv(r'outputs/network/network_results.csv')
     county_flag_df = pd.read_csv(r'inputs/scenario/networks/county_flag_' + model_year + '.csv')
@@ -126,61 +129,67 @@ def calc_running_emissions(rates):
 
     df['congested_speed'] = (df['length']/df['auto_time'])*60
     df['facility_type'] = df['data3']
-    df['total_volume'] = df['@tveh']
-    df['total_vmt'] = df['@tveh']*df['length']
+
+    # remove links with facility type = 0
+    df = df[df['facility_type'] > 0]
+
+    # Calculate bus, medium, and heavy truck VMT
+    df['bus_vmt'] = df['@bveh']*df['length']
+    df['sov_vol'] = df['@svtl1']+df['@svtl2']+df['@svtl3']
+    df['hov2_vol'] = df['@h2tl1']+df['@h2tl2']+df['@h2tl3']
+    df['hov3_vol'] = df['@h3tl1']+df['@h3tl2']+df['@h3tl3']
+    df['sov_vmt'] = df['sov_vol']*df['length']
+    df['hov2_vol'] = df['hov2_vol']
+    df['hov3_vol'] = df['hov3_vol']
+    df['med_trk_vmt'] = df['@mveh']*df['length']
+    df['hvy_trk_vmt'] = df['@hveh']*df['length']
+    df['total_volume'] = df['sov_vol']+df['hov2_vol']+df['hov3_vol']+df['@mveh']+df['@hveh']+df['@bveh']
+    df['total_vmt'] = df['total_volume']*df['length']
     df['hourId'] = df['tod'].map(tod_lookup).astype('int')
 
     # recode speed into moves bins
     df['avgspeedbinId'] = pd.cut(df['congested_speed'], speed_bins, labels=speed_bins_labels).astype('int')
     df['roadtypeId'] = df["facility_type"].map(fac_type_lookup).astype('int')
 
-    # Drop all facility type 0 rows
-    print len(df)
-    df = df[df['facility_type'] != 0]
-    print len(df)
-
-
-    df_cols = [u'geog_name', u'congested_speed', u'facility_type', u'total_volume',
-       u'total_vmt', u'hourId', u'avgspeedbinId', u'roadtypeId','ij']
+    df['index'] = df.index
+    
     join_cols = ['avgspeedbinId','roadtypeId','hourId','geog_name']
 
-    # Export link-level results by month rate
-    df_results_dict = {}
+    # Use winter time rates for all pollutants for now:
+    month = 1
+    rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates.csv')
+    rates['yearId'] = rates['yearId'].astype('str')
+    rates = rates[rates['yearId'] == model_year]
+    rates['geog_name'] = rates['countyId'].map(county_id)
+    rates = rates[rates['monthId'] == 1]
 
-    # Join emission rates to each link
-    for month in month_list:
-        df_results = pd.DataFrame(df[df_cols])
-        for pollutant in pollutant_list:
-            _rates = rates[(rates['pollutantId'] == pollutant) & 
-                           (rates['monthId'] == month)]
+    # Merge all rates to the main df
+    df_pivot = pd.merge(df, rates, on=join_cols, how='left')
 
-            _df = pd.merge(df, _rates, on=join_cols,how='left')
-            df_results[pollutant] = _df['gramsPerMile']
-          
-        df_results_dict[month] = df_results
+    # For now drop rows with nulls
+    df_pivot = df_pivot[-df_pivot['pollutantId'].isnull()]
+    df_pivot['pollutantId'] = df_pivot['pollutantId'].astype('int').astype('str')
+    df_pivot = df_pivot.pivot_table('gramsPerMile',join_cols,'pollutantId').reset_index()
 
-    # Initialize results dictionary
-    running_emissions = {str(k): 0 for k in pollutant_list}
+    # Merge back to original df
+    results_df = pd.merge(df[join_cols+['total_vmt','ij','index']], df_pivot, on=join_cols, how='left')
 
-    # Loop through each pollutant to calculate totals
+    # Calculate total columns
+    pollutant_totals_list = []
     for pollutant in pollutant_list:
-        # Load rates based on analysis season
-        if pollutant in summer_list:
-            # df = df_summer.copy()
-            df = df_results_dict[7].copy()
-        else:
-            # df = df_winter.copy()
-            df = df_results_dict[1].copy()
-        df['tot'] = df['total_vmt']*df[pollutant]
-        tot = df['tot'].sum()
-        running_emissions[str(pollutant)] += grams_to_tons(tot)
-
-    df_running = pd.DataFrame.from_dict(running_emissions, orient='index').reset_index()
-    df_running.columns = ['pollutant','running_tons']
-
-    df_running.to_csv(r'outputs/emissions/running_emissions.csv', index=False)
-
-    return df_running
+        results_df[str(pollutant)+'_total'] = results_df[str(pollutant)]*results_df['total_vmt']
+        pollutant_totals_list.append(str(pollutant)+'_total')
+        
+    # write to csv
+    results_df.to_csv(r'outputs/emissions/link_running_emissions.csv', index=False)
+    
+    summary_df = pd.DataFrame(results_df[pollutant_totals_list].sum())
+    summary_df.columns = ['running_grams']
+    summary_df['pollutant'] = [i.split('_')[0] for i in summary_df.index]
+    summary_df.reset_index(drop=True, inplace=True)
+    summary_df['running_tons'] = summary_df['running_grams']/453.592/2000
+    
+    return summary_df
 
 def calculate_emissions(df_iz_vol, rates):
     """ Summarize total emissions from starts, intrazonal, and running emissions
@@ -233,8 +242,10 @@ def main():
     # Load intrazonal volume data
     df_iz_vol = pd.read_csv(r'outputs/network/iz_vol.csv')
 
-    # Load running emission rates and replace county ID with name
-    rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/emission_rates_'+model_year+'.csv')
+    # Load running emission rates for model year and replace county ID with name
+    rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates.csv')
+    rates['yearId'] = rates['yearId'].astype('str')
+    rates = rates[rates['yearId'] == model_year]
     rates['geog_name'] = rates['countyId'].map(county_id)
 
     # Calculate start, intra-, and inter-zonal emissions 
