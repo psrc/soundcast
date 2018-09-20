@@ -29,7 +29,7 @@ county_id = {1: 'King',
             3: 'Pierce',
             4: 'Snohomish'}
 
-veh_totals = {'2014': 3176086, '2040': 3982578.1}
+veh_totals = {'2014': 3176086, '2040': 3982578.1, '2050': 4326300}
 
 # Base year distribution of vehicle ownership by county
 vehs_by_county = {
