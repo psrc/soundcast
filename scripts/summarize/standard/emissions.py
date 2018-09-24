@@ -21,19 +21,19 @@ def calc_start_emissions():
     starts['yearID'] = starts['yearID'].astype('str')
     starts = starts[starts['yearID'] == model_year]
 
-    # using wintertime rates for all start emission rates except for VOCs
-    # per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
-    df1 = starts[(starts['pollutantID'] != 87) & (starts['monthID'] == 1)]
-    df2 = starts[(starts['pollutantID'] == 87) & (starts['monthID'] == 7)]
-    starts = df1.append(df2)
+    # Select winter rates for pollutants other than those listed in summer_list
+    df_summer = starts[starts['pollutantID'].isin(summer_list)]
+    df_summer = df_summer[df_summer['monthID'] == 7]
+    df_winter = starts[~starts['pollutantID'].isin(summer_list)]
+    df_winter = df_winter[df_winter['monthID'] == 1]
+    starts = df_winter.append(df_summer)
 
     # Sum total emissions across all times of day, by county, for each pollutant
     starts = starts.groupby(['pollutantID','county']).sum()[['ratePerVehicle']].reset_index()
 
     # Estimate vehicle population for AQ purposes (not using Soundcast estimates)
     # Ref: X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Estimate Vehicle Population_updatedfor2018.xlsx
-    # Pivoting from 2014 Vehicle population data and 2040 projections -> update to 2050 using this process
-
+    # Pivoting from 2014 Vehicle population data and 2040 projections -> updated to 2050 using this process
     base_county_veh = pd.DataFrame.from_dict(vehs_by_county, orient='index')
     base_county_veh.columns = ['vehicles']
 
@@ -88,7 +88,7 @@ def calc_iz_emissions(df_iz, rates):
                 month = 7
             else:
                 month = 1
-                
+
             # Calculate VMT as volume times intrazonal distance
             df_iz['tot_vmt']  = df_iz['tot_vol'+'_'+tod]*df_iz['izdist']
 
@@ -118,6 +118,7 @@ def calc_iz_emissions(df_iz, rates):
 def calc_running_emissions(rates):
     """ Calcualte inter-zonal running emission rates from network outputs
     """
+    
     # Running emissions from link-level results
     df = pd.read_csv(r'outputs/network/network_results.csv')
     county_flag_df = pd.read_csv(r'inputs/scenario/networks/county_flag_' + model_year + '.csv')
@@ -138,11 +139,6 @@ def calc_running_emissions(rates):
     df['sov_vol'] = df['@svtl1']+df['@svtl2']+df['@svtl3']
     df['hov2_vol'] = df['@h2tl1']+df['@h2tl2']+df['@h2tl3']
     df['hov3_vol'] = df['@h3tl1']+df['@h3tl2']+df['@h3tl3']
-    df['sov_vmt'] = df['sov_vol']*df['length']
-    df['hov2_vol'] = df['hov2_vol']
-    df['hov3_vol'] = df['hov3_vol']
-    df['med_trk_vmt'] = df['@mveh']*df['length']
-    df['hvy_trk_vmt'] = df['@hveh']*df['length']
     df['total_volume'] = df['sov_vol']+df['hov2_vol']+df['hov3_vol']+df['@mveh']+df['@hveh']+df['@bveh']
     df['total_vmt'] = df['total_volume']*df['length']
     df['hourId'] = df['tod'].map(tod_lookup).astype('int')
@@ -155,18 +151,23 @@ def calc_running_emissions(rates):
     
     join_cols = ['avgspeedbinId','roadtypeId','hourId','geog_name']
 
-    # Use winter time rates for all pollutants for now:
-    month = 1
+    # Load running emission rates for the model year
     rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates.csv')
     rates['yearId'] = rates['yearId'].astype('str')
     rates = rates[rates['yearId'] == model_year]
     rates['geog_name'] = rates['countyId'].map(county_id)
-    rates = rates[rates['monthId'] == 1]
+
+    # Select rates based on season
+    df_summer = rates[rates['pollutantId'].isin(summer_list)]
+    df_summer = df_summer[df_summer['monthId'] == 7]
+    df_winter = rates[~rates['pollutantId'].isin(summer_list)]
+    df_winter = df_winter[df_winter['monthId'] == 1]
+    rates = df_winter.append(df_summer)
 
     # Merge all rates to the main df
     df_pivot = pd.merge(df, rates, on=join_cols, how='left')
 
-    # For now drop rows with nulls
+    # For now, drop rows with nulls
     df_pivot = df_pivot[-df_pivot['pollutantId'].isnull()]
     df_pivot['pollutantId'] = df_pivot['pollutantId'].astype('int').astype('str')
     df_pivot = df_pivot.pivot_table('gramsPerMile',join_cols,'pollutantId').reset_index()

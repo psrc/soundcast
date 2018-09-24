@@ -29,7 +29,7 @@ county_id = {1: 'King',
             3: 'Pierce',
             4: 'Snohomish'}
 
-veh_totals = {'2014': 3176086, '2040': 3982578.1, '2050': 4326300}
+veh_totals = {'2014': 3176086, '2040': 3982578.1}
 
 # Base year distribution of vehicle ownership by county
 vehs_by_county = {
@@ -41,8 +41,9 @@ vehs_by_county = {
 
 # List of pollutants to be summarized for summer
 # All other are to be summarized for winter season
+# using wintertime rates for all start emission rates except for VOCs
+# per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
 summer_list = [87]
-
 
 speed_bins = [-999999, 2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 999999] 
 speed_bins_labels =  range(1, len(speed_bins))
