@@ -167,7 +167,7 @@ def calc_running_emissions(rates):
     # Merge all rates to the main df
     df_pivot = pd.merge(df, rates, on=join_cols, how='left')
 
-    # For now, drop rows with nulls
+    # Drop rows with nulls
     df_pivot = df_pivot[-df_pivot['pollutantId'].isnull()]
     df_pivot['pollutantId'] = df_pivot['pollutantId'].astype('int').astype('str')
     df_pivot = df_pivot.pivot_table('gramsPerMile',join_cols,'pollutantId').reset_index()
@@ -185,10 +185,10 @@ def calc_running_emissions(rates):
     results_df.to_csv(r'outputs/emissions/link_running_emissions.csv', index=False)
     
     summary_df = pd.DataFrame(results_df[pollutant_totals_list].sum())
-    summary_df.columns = ['running_grams']
+    summary_df.columns = ['interzonal_grams']
     summary_df['pollutant'] = [i.split('_')[0] for i in summary_df.index]
     summary_df.reset_index(drop=True, inplace=True)
-    summary_df['running_tons'] = summary_df['running_grams']/453.592/2000
+    summary_df['interzonal_tons'] = summary_df['interzonal_grams']/453.592/2000
     
     return summary_df
 
@@ -207,7 +207,7 @@ def calculate_emissions(df_iz_vol, rates):
     # Combine all emission sources 
     df = pd.merge(iz_df, running_df,how='left', on='pollutant').fillna(0)
     df = pd.merge(df, start_df,how='left', on='pollutant').fillna(0)
-    df['daily_tons'] = df['intrazonal_tons'] + df['running_tons'] + df['start_tons']
+    df['daily_tons'] = df['intrazonal_tons'] + df['interzonal_tons'] + df['start_tons']
 
     # Calculate total PM10 and PM2.5
     pm10 = df[df['pollutant'].isin(['100','106','107'])].sum()
@@ -226,7 +226,7 @@ def calculate_emissions(df_iz_vol, rates):
 
     df = pd.concat([df_a,df_b])
     df['pollutant_name'] = df['pollutant'].map(pollutant_map)
-    df = df[['pollutant','start_tons','intrazonal_tons','running_tons','daily_tons','pollutant_name']]
+    df = df[['pollutant','start_tons','intrazonal_tons','interzonal_tons','daily_tons','pollutant_name']]
 
     df.to_csv(r'outputs/emissions/emissions_summary.csv', index=False)
 

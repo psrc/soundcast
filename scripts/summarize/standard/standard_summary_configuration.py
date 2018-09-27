@@ -20,16 +20,16 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
 
-tod_lookup = {'5to6' : 5, '6to7' : 6, '7to8' : 7, '8to9' : 8, '9to10' : 9, 
-              '10to14' : 10, '14to15' : 14, '15to16' : 15, '16to17' : 16, 
-              '17to18' : 17, '18to20' : 18, '20to5' : 20}
+tod_lookup = {'5to6' : 6, '6to7' : 7, '7to8' : 8, '8to9' : 9, '9to10' : 10, 
+              '10to14' : 13, '14to15' : 15, '15to16' : 16, '16to17' : 17, 
+              '17to18' : 18, '18to20' : 19, '20to5' : 21}
 
-county_id = {1: 'King',
-            2: 'Kitsap',
-            3: 'Pierce',
-            4: 'Snohomish'}
+county_id = {	1: 'King',
+				2: 'Snohomish',
+				3: 'Pierce',
+				4: 'Kitsap'}
 
-veh_totals = {'2014': 3176086, '2040': 3982578.1}
+veh_totals = {'2014': 3176086, '2040': 3982578.1, '2050': 4437371}
 
 # Base year distribution of vehicle ownership by county
 vehs_by_county = {
