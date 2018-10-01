@@ -669,42 +669,42 @@ def transit_summary(project, seg_df, transit_summary_dict, transit_atts, stop_df
 
     for name, desc in transit_extra_attributes_dict.iteritems():
         project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-        calc_transit_line_atts(project)
-        transit_results = get_transit_boardings_time(project)
-        transit_summary_dict[project.tod] = transit_results[0]
-        transit_atts.extend(transit_results[1])
+    calc_transit_line_atts(project)
+    transit_results = get_transit_boardings_time(project)
+    transit_summary_dict[project.tod] = transit_results[0]
+    transit_atts.extend(transit_results[1])
 
-        network = project.current_scenario.get_network()
-        ons = {}
-        offs = {}
-        
-        for node in network.nodes():
-            ons[int(node.id)] = node.initial_boardings
-            offs[int(node.id)] = node.final_alightings
-        
-        df = pd.DataFrame() # temp dataFrame to append to stop_df
-        df['inode'] = ons.keys()
-        df['initial_boardings'] = ons.values()
-        df['final_alightings'] = offs.values()
-        df['tod'] = project.tod
+    network = project.current_scenario.get_network()
+    ons = {}
+    offs = {}
+    
+    for node in network.nodes():
+        ons[int(node.id)] = node.initial_boardings
+        offs[int(node.id)] = node.final_alightings
+    
+    df = pd.DataFrame() # temp dataFrame to append to stop_df
+    df['inode'] = ons.keys()
+    df['initial_boardings'] = ons.values()
+    df['final_alightings'] = offs.values()
+    df['tod'] = project.tod
 
-        stop_df = stop_df.append(df)
+    stop_df = stop_df.append(df)
 
-        boardings = []
-        line = []
-        inode = []
+    boardings = []
+    line = []
+    inode = []
 
-        for tseg in network.transit_segments():
-            boardings.append(tseg.transit_boardings)
-            line.append(tseg.line.id)
-            inode.append(tseg.i_node.number)
-        
-        df = pd.DataFrame([inode,boardings,line]).T
-        df.columns = ['inode','total_boardings','line']
-        df['tod'] = project.tod           
-        seg_df = seg_df.append(df)
+    for tseg in network.transit_segments():
+        boardings.append(tseg.transit_boardings)
+        line.append(tseg.line.id)
+        inode.append(tseg.i_node.number)
+    
+    df = pd.DataFrame([inode,boardings,line]).T
+    df.columns = ['inode','total_boardings','line']
+    df['tod'] = project.tod           
+    seg_df = seg_df.append(df)
 
-        return stop_df, seg_df
+    return stop_df, seg_df
 
 def export_transit_summary(transit_summary_dict, transit_atts, writer):
     """ Write transit boardings and travel times to Excel. """
