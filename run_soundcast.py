@@ -238,6 +238,7 @@ def run_all_summaries():
       
    if run_landuse_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
    
 #   if run_truck_summary:
 #       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
@@ -265,9 +266,6 @@ def main():
 
     if run_accessibility_calcs:
         accessibility_calcs()
-
-    if run_accessibility_summary:
-        subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
     if not os.path.exists('working'):
         os.makedirs('working')

@@ -14,7 +14,6 @@ main_inputs_folder = 'R:/SoundCast/Inputs/lodes/vision'
 
 ######Set up:######
 run_accessibility_calcs = True
-run_copy_daysim_code = True
 run_setup_emme_project_folders = True
 run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
