@@ -160,10 +160,9 @@ def run_truck_supplemental(iteration):
      if run_supplemental_trips:
          # Only run generation script once - does not change with feedback
         if iteration == 0:
-            if run_supplemental_generation:
-                returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-                if returncode != 0:
-                    sys.exit(1)
+            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+            if returncode != 0:
+                sys.exit(1)
 
         returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
         if returncode != 0:
@@ -173,14 +172,9 @@ def run_truck_supplemental(iteration):
         if returncode != 0:
            sys.exit(1)
 
-        #returncode = subprocess.call([sys.executable,'scripts/supplemental/create_ixxi_work_trips.py'])
-        #if returncode != 0:
-        #   sys.exit(1)
-
         returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
         if returncode != 0:
            sys.exit(1)
-
 
 @timed
 def daysim_assignment(iteration):
@@ -237,12 +231,9 @@ def run_all_summaries():
       subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
       
    if run_landuse_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
+      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
    
-#   if run_truck_summary:
-#       subprocess.call([sys.executable, 'scripts/summarize/standard/truck_vols.py'])
-
    if run_grouped_summary:
        subprocess.call([sys.executable, 'scripts/summarize/standard/group.py'])
 ##################################################################################################### ###################################################################################################### 
