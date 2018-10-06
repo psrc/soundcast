@@ -222,7 +222,10 @@ def run_all_summaries():
    if run_network_summary:
       subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
       subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
-      subprocess.call([sys.executable, 'scripts/summarize/standard/emissions.py'])
+      try:
+        subprocess.call([sys.executable, 'scripts/summarize/standard/emissions.py'])
+      except:
+        print 'unable to generate emissions summary; check required inputs.'
       # if model_year == base_year:
       #    subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
       #    subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])
