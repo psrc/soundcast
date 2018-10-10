@@ -43,6 +43,7 @@ run_network_summary = True
 run_grouped_summary = False
 run_soundcast_summary = False
 run_truck_summary = False
+run_landuse_summary = False
 ########################
 
 ###### Specific reports to run######
