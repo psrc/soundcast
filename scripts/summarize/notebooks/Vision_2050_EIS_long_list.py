@@ -3,10 +3,15 @@ import os
 import collections
 import h5py
 import sys
+import time
 
 # Relative path between notebooks and goruped output directories
 # for testing
-os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
+# os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\h2o2\h2o2_run_4_2018_08_17_16_15\2050\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\tod\tod_run_5_2018_08_14_08_52\2050\scripts\summarize\notebooks")
+os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\dug\dug_run_1_2018_08_17_15_45\2050\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
 relative_path = '../../../outputs'
 output_vision_file = os.path.join(relative_path, 'Vision2050_longlist.csv')
 taz_reg_geog = '../../../scripts/summarize/inputs/TAZ_Reg_Geog.csv'
@@ -26,7 +31,7 @@ agency_lookup = {
     }
 
 weekday_to_annual = 300
-minute_to_hour = 60
+minutes_to_hour = 60
 geog_list = ['rg_proposed', 'geog_name', 'People Of Color', 'Low Income']
 
 def h5_to_df(h5file, table_list):
@@ -56,16 +61,21 @@ def mode_geo(trip, geog_level, output_dict, name):
     for index, row in mode_geog.iterrows():
         output_dict[(name, row[geog_level], row['mode'])]=row['Mode Share']
 
+    return output_dict
+
 def delay_geo(trip, geog_level, output_dict, name, person):
     print geog_level
     delay_geog = pd.DataFrame(trip[['delay', geog_level]].groupby(geog_level).sum()['delay']/person[['psexpfac', geog_level]].groupby(geog_level).sum()['psexpfac'])
+    print delay_geog
     delay_geog.reset_index(inplace=True)
     delay_geog.columns = [geog_level,'delay']
 
     for index, row in delay_geog.iterrows():
-        output_dict[(name,row[geog_level], 'Total')]=row['delay']*(weekday_to_annual/minute_to_hour)
+        output_dict[(name,row[geog_level], 'Total')]=row['delay']*(weekday_to_annual/minutes_to_hour)
+
 
 def vmt_per_capita(driver_trips, geog_level, output_dict, name, person):
+    print 'vmt_per_capita'
     driver_trips_geog = pd.DataFrame(driver_trips[[geog_level, 'travdist']].groupby(geog_level).sum()['travdist']/person[[geog_level, 'psexpfac']].groupby(geog_level).sum()['psexpfac'])
     driver_trips_geog.reset_index(inplace=True)
     driver_trips_geog.columns = [geog_level,'vmt']
@@ -73,16 +83,16 @@ def vmt_per_capita(driver_trips, geog_level, output_dict, name, person):
     for index, row in driver_trips_geog.iterrows():
         output_dict[(name, row[geog_level], 'Total')]=row['vmt']
 
-def vht_per_capita(trip, geog_level, output_dict, name, person):
-    driver_trips_geog = pd.DataFrame(driver_trips[[geog_level, 'travtime']].sum()['travtime']/person[[geog_level, 'psexpfac']].groupby(geog_name).sum()['psexpfac'])
+def vht_per_capita(driver_trips, geog_level, output_dict, name, person):
+    driver_trips_geog = pd.DataFrame(driver_trips[[geog_level, 'travtime']].groupby(geog_level).sum()['travtime']/person[[geog_level, 'psexpfac']].groupby(geog_level).sum()['psexpfac'])
     driver_trips_geog.reset_index(inplace=True)
     driver_trips_geog.columns = [geog_level,'vht']
 
-    for index, row in driver_trips_g prieog.iterrows():
+    for index, row in driver_trips_geog.iterrows():
         output_dict[(name, row[geog_level], 'Total')]=row['vht']/minutes_to_hour
 
-def walk_bike_geo(trip, geog_level, output_dict,person):
-    df_geog_share=pd.DataFrame(df.groupby(geog_level).sum()['bike_walk_t']/person.groupby(geog_level).sum(['psexpfac']))
+def walk_bike_geo(df, geog_level, output_dict,person):
+    df_geog_share=pd.DataFrame(df.groupby(geog_level).sum()['bike_walk_t']/person.groupby(geog_level).sum()['psexpfac'])
     df_geog_total=pd.DataFrame(df.groupby(geog_level).sum()['bike_walk_t'])
     df_geog_share.reset_index(inplace=True)
     df_geog_total.reset_index(inplace=True)
@@ -159,7 +169,7 @@ def network_results(network_df):
         output_dict[('Daily Transit Boardings', row['agency'], 'Total')] = row['line_total']
 
     output_dict[('Daily Transit Boardings', 'Regional', 'Total')]=transit_df['line_total'].sum()
-    print output_dict
+
     return output_dict
 
 def mode_results(trip, person, output_dict):
@@ -212,18 +222,22 @@ def mode_results(trip, person, output_dict):
     return output_dict
 
 
+
 def person_vehicle_results(trip, person, output_dict):
     # Delay per person (Annual Hours)
+
     trip['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
     driver_trips = trip[['rg_proposed', 'geog_name', 'People Of Color', 'Low Income', 'travdist', 'travtime', 'delay']].loc[trip['dorp']==1]
-    output_dict[('Average Auto Delay per Resident', 'Regional', 'Total')] = (driver_trips['delay'].sum()/person['psexpfac'].sum())*weekday_to_annual/minute_to_hour
+    output_dict[('Average Auto Delay per Resident', 'Regional', 'Total')] = (driver_trips['delay'].sum()/person['psexpfac'].sum())*weekday_to_annual/minutes_to_hour
+
 
     # VMT per resident per day
     output_dict[('Average VMT per Resident', 'Regional', 'Total')]=driver_trips['travdist'].sum()/ person['psexpfac'].sum()
 
     # VHT per resident per day
-    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(driver_trips['travdist'].sum()/ person['psexpfac'].sum())* minute_to_hour
+    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(driver_trips['travtime'].sum()/ person['psexpfac'].sum())* minutes_to_hour
 
+    print 'calculating driver trip information by geography'
     # Driver Trip information by geography
     for geog in geog_list:
         delay_geo(driver_trips,geog, output_dict, 'Average Auto Delay per Resident', person)
@@ -262,11 +276,15 @@ def walk_bike_results(trip, person, output_dict):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     # Load network results
     print 'working on network summary'
     network_df = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary_detailed.xlsx',
                       sheetname='Network Summary')
     output_dict = network_results(network_df)
+    network_time = time.time() 
+    network_elapsed = network_time - start_time
+    print 'network summary took '+ str(network_elapsed)
 
     print 'loading and merging person trip data files'
     dataset = h5_to_df(h5file, table_list=['Trip','Person', 'Household'])
@@ -280,12 +298,27 @@ if __name__ == "__main__":
     equity_geog = pd.read_csv(equity_taz)
 
 
-    print 'calcualting person-based measures'
+    print 'calculating person-based measures'
     person= merge_persons(person, hh, taz_geog, county_taz, equity_geog)
     trip = merge_trips(trip, person, taz_geog, county_taz, equity_geog)
+
+    data_read_time = time.time()
+    data_read_elapsed = data_read_time - network_time
     
+    print 'data read and merging took '+ str(data_read_elapsed)
     output_dict =mode_results(trip, person, output_dict)
+
+    mode_time = time.time()
+    mode_elapsed = mode_time - data_read_time 
+
+    print 'mode calculations took '+ str(mode_elapsed)
     output_dict =person_vehicle_results(trip, person, output_dict)
+
+    person_vehicle_time = time.time()
+
+    person_elapsed = person_vehicle_time - mode_time
+
+    print 'Delay and VMT calculationts took ' + str(person_elapsed)
     output_dict =walk_bike_results(trip, person, output_dict)
 
     output_df = pd.DataFrame(output_dict.keys(), index = output_dict.values()).reset_index()
