@@ -801,54 +801,37 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
             demand_matrices.update({matrix : demand_matrix})
 
-    #Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
-    #The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
+    # Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
+    # The correct matrix is determined using a tuple that consists of (mode, vot, toll path). This tuple is the key in matrix_dict.
 
     for x in range (0, len(otaz)):
-        #Start building the tuple key, 3 VOT of categories...
-        if survey_seed_trips:
-            vot = 2
-            # if mode[x]<7:
-            #     mat_name = matrix_dict[mode[x], vot, toll_path[x]]
-
-            #     if dorp[x] <= 1:
-            #         #get the index of the Otaz
-            #         #some missing Os&Ds in seed trips!
-            #         if dictZoneLookup.has_key[otaz[x]] and dictZoneLookup.has_key[dtaz[x]]:
-            #             myOtaz = dictZoneLookup[otaz[x]]
-            #             myDtaz = dictZoneLookupd[dtaz[x]] 
-            #             trips = np.asscalar(np.float32(trexpfac[x]))
-            #             trips = round(trips, 2)
-            #             #if mode in supplemental_modes:
-            #             demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+        # Start building the tuple key, 3 VOT of categories...
         
-        #Regular Daysim Output:            
-        else:
-            if vot[x] < 13.07: vot[x]=1
-            elif vot[x] < 26.14: vot[x]=2
-            else: vot[x]=3
+        if vot[x] < vot_1_max: 
+        	vot[x] = 1 
+        elif vot[x] < vot_2_max : 
+        	vot[x] = 2
+        else: 
+        	vot[x]=3
 
-        #get the matrix name from matrix_dict. Throw out school bus (8) for now.
-            if mode[x]<8 and mode[x]>0:
-                #Only want drivers, transit trips.
-                # to do: this should probably be in the emme_configuration file, in case the ids change
-                auto_mode_ids = [3, 4, 5]
-                # using dorp to select out driver trips only for car trips; for non-auto trips, put all trips in the matrix                              
-                # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
-                if (dorp[x] <= 1 or dorp[x] == 3) or mode[x] not in auto_mode_ids:
-                    mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
-                    myOtaz = dictZoneLookup[otaz[x]]
-                    myDtaz = dictZoneLookup[dtaz[x]]
-                    #add the trip, if it's not in a special generator location
-                    #if OtazInt not in SPECIAL_GENERATORS.values() and DtazInt not in SPECIAL_GENERATORS.values():
-                    trips = np.asscalar(np.float32(trexpfac[x]))
-                    trips = round(trips, 2)
-                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+        # Get matrix name from matrix_dict. Do not assign school bus trips (8) to the network.
+        if mode[x] != 8 and mode[x] > 0:
+            
+            # Only want driver (or primary TNC passenger) trips. Note: empty TNC trips not assigned.
+            auto_mode_ids = [3, 4, 5, 9]    # SOV, HOV2, HOV3, TNC
+
+            # Use "dorp" to select driver trips only; for non-auto trips, put all trips in the matrix                              
+            # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
+            # for TNC dorp==1 for primary passenger; dorp==2 for additional passenger
+            if (dorp[x] <= 1 or dorp[x] == 3) or mode[x] not in auto_mode_ids:
+                mat_name = matrix_dict[(int(mode[x]),int(vot[x]),int(toll_path[x]))]
+                myOtaz = dictZoneLookup[otaz[x]]
+                myDtaz = dictZoneLookup[dtaz[x]]
+                trips = np.asscalar(np.float32(trexpfac[x]))
+                trips = round(trips, 2)
+                demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
-    if survey_seed_trips:
-        for matrix in demand_matrices.itervalues():
-            matrix = matrix.astype(np.uint16)
     for mat_name in uniqueMatrices:
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
@@ -1340,7 +1323,7 @@ def main():
             start_pool(l)
 
         #want pooled processes finished before executing more code in main:
-        # run_assignments_parallel('projects/6to7/6to7.emp')
+        # run_assignments_parallel('projects/18to20/18to20.emp')
         
         start_transit_pool(project_list)
         #run_transit('projects/20to5/20to5.emp')

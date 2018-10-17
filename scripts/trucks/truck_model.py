@@ -412,14 +412,10 @@ def main():
     create_origin_destination_matrices()
     create_scalar_matrices()
     create_full_matrices()
-    if run_supplemental_generation:
-        import_emp_matrices() 
-        calc_total_households()
-        truck_productions()
-        truck_attractions()
-    if not run_supplemental_generation:
-        # import Ps & As
-        import_productions_and_attractions()
+    import_emp_matrices() 
+    calc_total_households()
+    truck_productions()
+    truck_attractions()
     import_skims()
     balance_attractions()
     calculate_impedance()

@@ -74,6 +74,30 @@
             }
         },
         {
+            "mode": "y",
+            "demand": "mftnc1",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "y",
+            "demand": "mftnc2",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "y",
+            "demand": "mftnc3",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
             "mode": "v",
             "demand": "mflttrkv",
             "generalized_cost": {

@@ -68,6 +68,30 @@
 {
             "results": {
                 "od_travel_times": null,
+                "link_volumes": "@tnctl1",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@tnctl2",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
+                "link_volumes": "@tnctl3",
+                "turn_volumes": null
+            },
+            "analysis": null
+        },
+        {
+            "results": {
+                "od_travel_times": null,
                 "link_volumes": "@h3nt3",
                 "turn_volumes": null
             },

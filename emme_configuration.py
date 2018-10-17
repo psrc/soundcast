@@ -48,6 +48,9 @@ HIGH_TAZ = 3700
 LOW_PNR = 3751
 HIGH_PNR = 4000
 
+vot_1_max = 13.07    # VOT for User Class 1 < vot_1_max
+vot_2_max = 26.14    # vot_1_max < VOT for User Class 2 < vot_2_max
+
 SPECIAL_GENERATORS = {"SeaTac":983,"Tacoma Dome":3110,"exhibition center":631, "Seattle Center":438}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
