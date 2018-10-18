@@ -7,11 +7,27 @@ import time
 
 # Relative path between notebooks and goruped output directories
 # for testing
-# os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\h2o2\h2o2_run_4_2018_08_17_16_15\2050\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\tod\tod_run_5_2018_08_14_08_52\2050\scripts\summarize\notebooks")
-os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
+
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
+os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
+
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug\2050_dug_b_181005_run_4_2018_10_02_11_57\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug\2050_dug_jobhh_balance_181004_run1_2018_10_01_20_37_\scripts\summarize\notebooks")
+
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\h2o2\2050_h2o2_181005_run_6_2018_10_02_12_01\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\h2o2\2050_h2o2_b_181008_run_2_2018_10_05_14_50\scripts\summarize\notebooks")
+
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_181004_run_3_2018_10_02_14_30_\scripts\summarize\inputs")
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_b_181008_run_12_2018_10_05_15_04\scripts\summarize\notebooks")
+
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water_jobhh_balance_181014\scripts\summarize\notebooks")
+
+
+
+
 #os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\dug\dug_run_1_2018_08_17_15_45\2050\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
+
 relative_path = '../../../outputs'
 output_vision_file = os.path.join(relative_path, 'Vision2050_longlist.csv')
 taz_reg_geog = '../../../scripts/summarize/inputs/TAZ_Reg_Geog.csv'
@@ -235,7 +251,7 @@ def person_vehicle_results(trip, person, output_dict):
     output_dict[('Average VMT per Resident', 'Regional', 'Total')]=driver_trips['travdist'].sum()/ person['psexpfac'].sum()
 
     # VHT per resident per day
-    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(driver_trips['travtime'].sum()/ person['psexpfac'].sum())* minutes_to_hour
+    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(driver_trips['travtime'].sum()/ (person['psexpfac'].sum()))/minutes_to_hour
 
     print 'calculating driver trip information by geography'
     # Driver Trip information by geography
