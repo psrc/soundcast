@@ -9,24 +9,10 @@ import time
 # for testing
 
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
-os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
-
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug\2050_dug_b_181005_run_4_2018_10_02_11_57\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug\2050_dug_jobhh_balance_181004_run1_2018_10_01_20_37_\scripts\summarize\notebooks")
-
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\h2o2\2050_h2o2_181005_run_6_2018_10_02_12_01\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\h2o2\2050_h2o2_b_181008_run_2_2018_10_05_14_50\scripts\summarize\notebooks")
-
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_181004_run_3_2018_10_02_14_30_\scripts\summarize\inputs")
+#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_b_181008_run_12_2018_10_05_15_04\scripts\summarize\notebooks")
-
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water\scripts\summarize\notebooks")
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water_jobhh_balance_181014\scripts\summarize\notebooks")
 
-
-
-
-#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\dug\dug_run_1_2018_08_17_15_45\2050\scripts\summarize\notebooks")
 
 relative_path = '../../../outputs'
 output_vision_file = os.path.join(relative_path, 'Vision2050_longlist.csv')
@@ -241,10 +227,13 @@ def mode_results(trip, person, output_dict):
 
 def person_vehicle_results(trip, person, output_dict):
     # Delay per person (Annual Hours)
-
     trip['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
-    driver_trips = trip[['rg_proposed', 'geog_name', 'People Of Color', 'Low Income', 'travdist', 'travtime', 'delay']].loc[trip['dorp']==1]
-    output_dict[('Average Auto Delay per Resident', 'Regional', 'Total')] = (driver_trips['delay'].sum()/person['psexpfac'].sum())*weekday_to_annual/minutes_to_hour
+    drive_modes = [3, 4, 5]
+    driver_trips = trip[['rg_proposed', 'geog_name', 'People Of Color', 'Low Income', 'travdist', 'travtime', 'delay','mode']].loc[trip['mode'].isin(drive_modes)]
+    driver_mode_delay =driver_trips[['delay', 'mode']].groupby('mode').sum()['delay'].reset_index()
+    driver_mode_delay.replace({'mode':mode_dict}, inplace=True)
+    for index, row in driver_mode_delay.iterrows():
+        output_dict[('Average Auto Delay per Resident', 'Regional', row['mode'])] = (row['delay']/person['psexpfac'].sum())*weekday_to_annual/minutes_to_hour
 
 
     # VMT per resident per day
