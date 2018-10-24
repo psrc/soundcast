@@ -608,7 +608,14 @@ def summarize_network(filepath, excel_writer):
     df.loc[df['data3'].isin([5]), 'facility_type'] = 'connector'
 
     # Calculate delay
-    df['freeflow_time'] = (60*df['length'])/df['data2']    # data2 represents link speed limit
+    # Select links from overnight time of day
+    delay_df = df.loc[df['tod'] == '20to5'][['ij','auto_time']]
+    delay_df.rename(columns={'auto_time':'freeflow_time'}, inplace=True)
+
+    # Merge delay field back onto network link df
+    df = pd.merge(df, delay_df, on='ij', how='left')
+
+    # Calcualte hourly delay
     df['delay'] = ((df['auto_time']-df['freeflow_time'])*df['@tveh'])/60    # sum of (volume)*(travtime diff from freeflow)
 
     # Add time-of-day group (AM, PM, etc.)
