@@ -9,7 +9,7 @@ import time
 # for testing
 
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
+os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_b_181008_run_12_2018_10_05_15_04\scripts\summarize\notebooks")
 #os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water_jobhh_balance_181014\scripts\summarize\notebooks")
 
@@ -121,42 +121,37 @@ def merge_trips(trip, person, taz_geog, county_taz, equity_geog):
     trip = pd.merge(trip, equity_geog, left_on = 'dtaz', right_on = 'taz_p', suffixes = ['', '_tripdest'])
     return trip
 
-def network_results(network_df):
+def network_results(network_df_vmt, network_df_vht, network_df_delay):
     # System performance measures
     # VMT
-    network_df['all_facility_vmt'] = network_df['arterial_vmt']+ network_df['connectors_vmt']+ network_df['highway_vmt']
-    total_vmt = network_df['all_facility_vmt'].sum()
+    network_df_vmt['all_facility_vmt'] = network_df_vmt['arterial']+ network_df_vmt['connector']+ network_df_vmt['highway']
+    total_vmt = network_df_vmt['all_facility_vmt'].sum()
     output_dict = {}
     output_dict = collections.OrderedDict(output_dict)
     output_dict[('Daily VMT','Regional', 'Total')] = total_vmt
 
     #VHT
-    network_df['all_facility_vht'] = network_df['arterial_vht']+ network_df['connectors_vht']+ network_df['highway_vht']
-    total_vht = network_df['all_facility_vht'].sum()
+    network_df_vht['all_facility_vht'] = network_df_vht['arterial']+ network_df_vht['connector']+ network_df_vht['highway']
+    total_vht = network_df_vht['all_facility_vht'].sum()
     output_dict[('Daily VHT', 'Regional', 'Total')] = total_vht
 
     # Delay
-    network_df['all_facility_delay'] = network_df['arterial_delay']+ network_df['connectors_delay']+ network_df['highway_delay']
-    total_delay = network_df['all_facility_delay'].sum()
+    network_df_delay['all_facility_delay'] = network_df_delay['arterial']+ network_df_delay['connector']+ network_df_delay['highway']
+    total_delay = network_df_delay['all_facility_delay'].sum()
     output_dict[('Daily Delay', 'Regional', 'Total')] = total_delay
 
     # Total Delay Hours Daily by Facility Type
-    df_fac = pd.DataFrame(network_df.sum()[['arterial_delay','highway_delay']])
+    df_fac = pd.DataFrame(network_df_delay.sum()[['arterial','highway']])
     df_fac = df_fac.reset_index()
     df_fac.columns = ['Facility Type', 'Delay']
     #df_fac.index = df_fac['Facility Type']
     #df_fac.drop('Facility Type', axis=1, inplace=True)
     df_fac.loc['Total'] = df_fac.sum()
-    output_dict[('Daily Arterial Delay Hours', 'Regional', 'Total')] = df_fac['Delay'].loc[df_fac['Facility Type'] == 'arterial_delay'].values[0]
-    output_dict[('Daily Highway Delay Hours', 'Regional', 'Total')] = df_fac['Delay'].loc[df_fac['Facility Type'] == 'highway_delay'].values[0]
+    output_dict[('Daily Arterial Delay Hours', 'Regional', 'Total')] = df_fac['Delay'].loc[df_fac['Facility Type'] == 'arterial'].values[0]
+    output_dict[('Daily Highway Delay Hours', 'Regional', 'Total')] = df_fac['Delay'].loc[df_fac['Facility Type'] == 'highway'].values[0]
 
     # Daily Transit Boardings
-    transit_df = pd.read_excel(r'../../../outputs/network/network_summary_detailed.xlsx', sheetname='Transit Summaries')
-    tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','15to16','16to17','17to18','18to20']
-    transit_df = transit_df[[tod+'_board' for tod in tod_list]+['route_code']]
-    transit_df = transit_df.fillna(0)
-    transit_df['line_total'] = transit_df[[tod+'_board' for tod in tod_list]].sum(axis=1)
-    df = pd.read_excel(r'../../../outputs/network/network_summary_detailed.xlsx', sheetname='Transit Summaries')
+    df = pd.read_excel(r'../../../outputs/transit/transit_summary.xlsx', sheetname='Transit Line Activity')
     tod_list = ['5to6','6to7','7to8','8to9','9to10','10to14','14to15','15to16','16to17','17to18','18to20']
     df = df[[tod+'_board' for tod in tod_list]+['route_code']]
     df = df.fillna(0)
@@ -165,12 +160,12 @@ def network_results(network_df):
     #Boardings by transit agency
     df['agency'] = df['route_code'].astype('str').apply(lambda row: row[0])
     df['agency'] = df['agency'].map(agency_lookup)
-    # the agency name isn't working for some reason, so just give total
+
     df = pd.DataFrame(df.groupby('agency').sum()['line_total']).reset_index()
     for index, row in df.iterrows():
         output_dict[('Daily Transit Boardings', row['agency'], 'Total')] = row['line_total']
 
-    output_dict[('Daily Transit Boardings', 'Regional', 'Total')]=transit_df['line_total'].sum()
+    output_dict[('Daily Transit Boardings', 'Regional', 'Total')]= df['line_total'].sum()
 
     return output_dict
 
@@ -229,25 +224,25 @@ def person_vehicle_results(trip, person, output_dict):
     # Delay per person (Annual Hours)
     trip['delay'] = trip['travtime']-(trip['sov_ff_time']/100.0)
     drive_modes = [3, 4, 5]
-    driver_trips = trip[['rg_proposed', 'geog_name', 'People Of Color', 'Low Income', 'travdist', 'travtime', 'delay','mode']].loc[trip['mode'].isin(drive_modes)]
-    driver_mode_delay =driver_trips[['delay', 'mode']].groupby('mode').sum()['delay'].reset_index()
-    driver_mode_delay.replace({'mode':mode_dict}, inplace=True)
-    for index, row in driver_mode_delay.iterrows():
+    drive_trips = trip[['rg_proposed', 'geog_name', 'People Of Color', 'Low Income', 'travdist', 'travtime', 'delay','mode', 'dorp']].loc[trip['mode'].isin(drive_modes)]
+    drive_mode_delay =drive_trips[['delay', 'mode']].groupby('mode').sum()['delay'].reset_index()
+    drive_mode_delay.replace({'mode':mode_dict}, inplace=True)
+    for index, row in drive_mode_delay.iterrows():
         output_dict[('Average Auto Delay per Resident', 'Regional', row['mode'])] = (row['delay']/person['psexpfac'].sum())*weekday_to_annual/minutes_to_hour
 
-
+    only_driver = drive_trips.loc[drive_trips['dorp']==1]
     # VMT per resident per day
-    output_dict[('Average VMT per Resident', 'Regional', 'Total')]=driver_trips['travdist'].sum()/ person['psexpfac'].sum()
+    output_dict[('Average VMT per Resident', 'Regional', 'Total')]=only_driver['travdist'].sum()/ person['psexpfac'].sum()
 
     # VHT per resident per day
-    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(driver_trips['travtime'].sum()/ (person['psexpfac'].sum()))/minutes_to_hour
+    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(only_driver['travtime'].sum()/ (person['psexpfac'].sum()))/minutes_to_hour
 
     print 'calculating driver trip information by geography'
     # Driver Trip information by geography
     for geog in geog_list:
-        delay_geo(driver_trips,geog, output_dict, 'Average Auto Delay per Resident', person)
-        vmt_per_capita(driver_trips, geog, output_dict, 'Average VMT per Resident',person)
-        vht_per_capita(driver_trips,geog, output_dict, 'Average VHT per Resident', person)
+        delay_geo(drive_trips,geog, output_dict, 'Average Auto Delay per Resident', person)
+        vmt_per_capita(only_driver, geog, output_dict, 'Average VMT per Resident',person)
+        vht_per_capita(only_driver, geog, output_dict, 'Average VHT per Resident', person)
 
     return output_dict
 
@@ -284,9 +279,13 @@ if __name__ == "__main__":
     start_time = time.time()
     # Load network results
     print 'working on network summary'
-    network_df = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary_detailed.xlsx',
-                      sheetname='Network Summary')
-    output_dict = network_results(network_df)
+    network_df_vmt = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='VMT by FC')
+    network_df_vht = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='VHT by FC')
+    network_df_delay = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='delay by FC')
+    output_dict = network_results(network_df_vmt, network_df_vht, network_df_delay)
     network_time = time.time() 
     network_elapsed = network_time - start_time
     print 'network summary took '+ str(network_elapsed)
