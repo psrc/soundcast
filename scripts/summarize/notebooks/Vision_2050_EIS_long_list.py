@@ -8,8 +8,9 @@ import time
 # Relative path between notebooks and goruped output directories
 # for testing
 
-#os.chdir(r"P:\2014\scripts\summarize\notebooks")
-#os.chdir(r"P:\2014\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\integrated\final_runs\base_year\2014\scripts\summarize\notebooks")
+#os.chdir(r"H:\vision2050\soundcast\integrated\final_runs\stc\stc_run_5.run_2018_10_22_11_35\2050\scripts\summarize\notebooks")
+os.chdir(r"H:\vision2050\soundcast\integrated\final_runs\rug\rug_run_5.run_2018_10_25_09_07\2050\scripts\summarize\notebooks")
 
 relative_path = '../../../outputs'
 output_vision_file = os.path.join(relative_path, 'Vision2050_longlist.csv')
@@ -357,8 +358,9 @@ if __name__ == "__main__":
 
     geog_dict = {'King County': 1, 'Kitsap County' : 2, 'Pierce County': 3, 'Snohomish County': 4, 'Metropolitan Cities': 5,
                  'Core Cities': 6,  'HCT Communities':7, 'Cities and Towns':8, 'Urban Unincorporated':9, 'Rural': 10,
-                 'Over 50% Low Income': 11, 'Over 50% People of Color': 12, 'Under 50% Low Income': 13, 'Under 50% People of Color': 14,
-                 'Community Transit': 15, 'Everett Transit' :16, 'King County Metro' : 17, 'Kitsap Transit':18, 'Pierce Transit':19, 'Sound Transit':20,
+                 'Over 50% Low Income': 11, '50% Low Income and Under': 12, 'Over 50% People of Color': 13,
+                 '50% People of Color and Under': 14, 'Community Transit': 15, 'Everett Transit' :16, 
+                 'King County Metro' : 17, 'Kitsap Transit':18, 'Pierce Transit':19, 'Sound Transit':20,
                  'Washington Ferries': 21, 'Regional':22}
     geog_df= pd.DataFrame(geog_dict.items(), columns =['Geography', 'Order'])
 
@@ -367,4 +369,5 @@ if __name__ == "__main__":
     
     output_df = output_df.sort_values(by = ['Data Item', 'Order', 'Grouping'])
     output_df.to_csv(output_vision_file)
+
 
