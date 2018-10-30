@@ -8,11 +8,8 @@ import time
 # Relative path between notebooks and goruped output directories
 # for testing
 
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2014\scripts\summarize\notebooks")
-os.chdir(r"H:\vision2050\soundcast\integrated\draft_runs\stc\stc_run_3_2018_08_17_13_06\2050\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\tod\2050_tod_b_181008_run_12_2018_10_05_15_04\scripts\summarize\notebooks")
-#os.chdir(r"H:\vision2050\soundcast\non_integrated\2050\draft_versions\dug_water\2050_dug_water_jobhh_balance_181014\scripts\summarize\notebooks")
-
+#os.chdir(r"P:\2014\scripts\summarize\notebooks")
+#os.chdir(r"P:\2014\scripts\summarize\notebooks")
 
 relative_path = '../../../outputs'
 output_vision_file = os.path.join(relative_path, 'Vision2050_longlist.csv')
@@ -91,7 +88,7 @@ def vht_per_capita(driver_trips, geog_level, output_dict, name, person):
     driver_trips_geog.columns = [geog_level,'vht']
 
     for index, row in driver_trips_geog.iterrows():
-        output_dict[(name, row[geog_level], 'Total')]=row['vht']/minutes_to_hour
+        output_dict[(name, row[geog_level], 'Total')]=row['vht']
 
 def walk_bike_geo(df, geog_level, output_dict,person):
     df_geog_share=pd.DataFrame(df.groupby(geog_level).sum()['bike_walk_t']/person.groupby(geog_level).sum()['psexpfac'])
@@ -130,15 +127,42 @@ def network_results(network_df_vmt, network_df_vht, network_df_delay):
     output_dict = collections.OrderedDict(output_dict)
     output_dict[('Daily VMT','Regional', 'Total')] = total_vmt
 
+    # to do - put this in a function
+    network_df_county = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='VMT by County')
+    county_dict = {'King': 'King County', 'Kitsap': 'Kitsap County', 'Pierce':'Pierce County', 'Snohomish':'Snohomish County'}
+    county_df=pd.DataFrame(county_dict.items(), columns =['name', 'county_name'])
+    network_df_county = pd.merge(network_df_county, county_df, left_on='NAME', right_on = 'name')
+    for index, row in network_df_county.iterrows():
+        output_dict[('Daily VMT',row['county_name'], 'Total')]=row['VMT']
+
+
     #VHT
     network_df_vht['all_facility_vht'] = network_df_vht['arterial']+ network_df_vht['connector']+ network_df_vht['highway']
     total_vht = network_df_vht['all_facility_vht'].sum()
     output_dict[('Daily VHT', 'Regional', 'Total')] = total_vht
 
+    network_df_county = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='VHT by County')
+    county_dict = {'King': 'King County', 'Kitsap': 'Kitsap County', 'Pierce':'Pierce County', 'Snohomish':'Snohomish County'}
+    county_df=pd.DataFrame(county_dict.items(), columns =['name', 'county_name'])
+    network_df_county = pd.merge(network_df_county, county_df, left_on='NAME', right_on = 'name')
+    for index, row in network_df_county.iterrows():
+        output_dict[('Daily VHT',row['county_name'], 'Total')]=row['VHT']
+
+
     # Delay
     network_df_delay['all_facility_delay'] = network_df_delay['arterial']+ network_df_delay['connector']+ network_df_delay['highway']
     total_delay = network_df_delay['all_facility_delay'].sum()
     output_dict[('Daily Delay', 'Regional', 'Total')] = total_delay
+
+    network_df_county = pd.read_excel(os.path.join(relative_path,'network/') + r'network_summary.xlsx',
+                      sheetname='delay by County')
+    county_dict = {'King': 'King County', 'Kitsap': 'Kitsap County', 'Pierce':'Pierce County', 'Snohomish':'Snohomish County'}
+    county_df=pd.DataFrame(county_dict.items(), columns =['name', 'county_name'])
+    network_df_county = pd.merge(network_df_county, county_df, left_on='NAME', right_on = 'name')
+    for index, row in network_df_county.iterrows():
+        output_dict[('Daily Delay',row['county_name'], 'Total')]=row['delay']
 
     # Total Delay Hours Daily by Facility Type
     df_fac = pd.DataFrame(network_df_delay.sum()[['arterial','highway']])
@@ -180,7 +204,8 @@ def mode_results(trip, person, output_dict):
 
     # Average Trip Distance by Geography/Commute/Non-Commute
     output_dict[('Commute Trip Length', 'Regional', 'Total')]=hbw_trips['travdist'].mean()
-    
+    output_dict[('Other Trip Length', 'Regional', 'Total')]=nhbw_trips['travdist'].mean()
+
     # Trip distance by geography
     for geog in geog_list:
         dist_geo(hbw_trips, geog, output_dict, 'Commute Trip Length')
@@ -235,7 +260,7 @@ def person_vehicle_results(trip, person, output_dict):
     output_dict[('Average VMT per Resident', 'Regional', 'Total')]=only_driver['travdist'].sum()/ person['psexpfac'].sum()
 
     # VHT per resident per day
-    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(only_driver['travtime'].sum()/ (person['psexpfac'].sum()))/minutes_to_hour
+    output_dict[('Average VHT per Resident', 'Regional', 'Total')]=(only_driver['travtime'].sum()/ (person['psexpfac'].sum()))
 
     print 'calculating driver trip information by geography'
     # Driver Trip information by geography
@@ -328,7 +353,18 @@ if __name__ == "__main__":
     output_df = pd.DataFrame(output_dict.keys(), index = output_dict.values()).reset_index()
     output_df.columns = ['Value', 'Data Item', 'Geography', 'Grouping']
 
-
     output_df=output_df[output_df['Grouping']!='Other']
-    output_df = output_df.sort_values(by = ['Data Item', 'Geography', 'Grouping'])
+
+    geog_dict = {'King County': 1, 'Kitsap County' : 2, 'Pierce County': 3, 'Snohomish County': 4, 'Metropolitan Cities': 5,
+                 'Core Cities': 6,  'HCT Communities':7, 'Cities and Towns':8, 'Urban Unincorporated':9, 'Rural': 10,
+                 'Over 50% Low Income': 11, 'Over 50% People of Color': 12, 'Under 50% Low Income': 13, 'Under 50% People of Color': 14,
+                 'Community Transit': 15, 'Everett Transit' :16, 'King County Metro' : 17, 'Kitsap Transit':18, 'Pierce Transit':19, 'Sound Transit':20,
+                 'Washington Ferries': 21, 'Regional':22}
+    geog_df= pd.DataFrame(geog_dict.items(), columns =['Geography', 'Order'])
+
+
+    output_df  = pd.merge(output_df, geog_df, on ='Geography' )
+    
+    output_df = output_df.sort_values(by = ['Data Item', 'Order', 'Grouping'])
     output_df.to_csv(output_vision_file)
+
