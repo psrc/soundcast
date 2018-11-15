@@ -224,21 +224,29 @@ def export_skims(my_project, matrix_name, tod):
 
 
 def calc_total_vehicles(my_project):
-     '''For a given time period, calculate link level volume, store as extra attribute on the link'''
-    
-     #medium trucks
-     my_project.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
-     
-     #heavy trucks:
-     my_project.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
-     
-     #busses:
-     my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
-     
-     #calc total vehicles, store in @tveh 
-     str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1\
-                                + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
-     my_project.network_calculator("link_calculation", result = '@tveh', expression = str_expression)
+	'''For a given time period, calculate link level volume, store as extra attribute on the link'''
+
+	#medium trucks
+	my_project.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
+
+	#heavy trucks:
+	my_project.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
+
+	#busses:
+	my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
+
+	#calc total vehicles, store in @tveh 
+	modelist = ['@sov_inc1','@sov_inc2','@sov_inc3','@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc1',
+				'@av_sov_inc1','@av_sov_inc2','@av_sov_inc3','@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
+				'@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3','@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
+	str_expression = ''
+	for idx, mode in enumerate(modelist):
+	    if idx == len(modelist)-1:
+	        str_expression += mode
+	    else:
+	        str_expression += mode + ' + '
+
+	my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
 
 
 def get_aadt(my_project):

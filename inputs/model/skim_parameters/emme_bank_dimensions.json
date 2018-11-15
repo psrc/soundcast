@@ -8,10 +8,10 @@
   "turn_entries": 320000,
   "scalar_matrices": 9999,
   "functions": 99,
-  "destination_matrices": 125,
+  "destination_matrices": 150,
   "transit_segments": 640000,
-  "full_matrices": 125,
+  "full_matrices": 150,
   "scenarios": 10,
-  "origin_matrices": 125,
+  "origin_matrices": 150,
   "transit_vehicles": 37
 }

@@ -21,21 +21,17 @@ sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 
-
-
 def init_dir(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.mkdir(directory)
-
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
     input_filename = os.path.join('inputs/model/supplementals/',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
-         
-
+        
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
     with h5py.File(skim_file_loc, "r") as f:
@@ -45,7 +41,6 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
         return skim_file.astype(float)/100.0
     else:
         return skim_file
-
 
 def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
     # get am and pm skim
@@ -59,24 +54,23 @@ def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
     # calculate the bi_dictional skim
     return (am_skim + pm_skim) * .5
 
-
 def get_cost_time_distance_skim_data(trip_purpose):
     skim_dict = {}
-    input_skim = {'hbw1' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                            'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                            'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbw2' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
-                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
-                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw3' : {'cost' : {'svt' : 'svtl3c', 'h2v' : 'h2tl3c', 'h3v' : 'h3tl3c'}, 
-                           'time' : {'svt' : 'svtl3t', 'h2v' : 'h2tl3t', 'h3v' : 'h3tl3t'}, 
-                           'distance' : {'svt' : 'svtl3d', 'h2v' : 'h2tl3d', 'h3v' : 'h3tl3d'}},
-                  'nhb' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbo' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}}} 
+    input_skim = {'hbw1' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                            'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                            'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbw2' : {'cost' : {'svt' : 'sov_inc2c', 'h2v' : 'hov2_inc2c', 'h3v' : 'hov3_inc2c'}, 
+                            'time' : {'svt' : 'sov_inc2t', 'h2v' : 'hov2_inc2t', 'h3v' : 'hov3_inc2t'}, 
+                            'distance' : {'svt' : 'sov_inc2d', 'h2v' : 'hov2_inc2d', 'h3v' : 'hov3_inc2d'}},
+                  'hbw3' : {'cost' : {'svt' : 'sov_inc3c', 'h2v' : 'hov2_inc3c', 'h3v' : 'hov3_inc3c'}, 
+                           'time' : {'svt' : 'sov_inc3t', 'h2v' : 'hov2_inc3t', 'h3v' : 'hov3_inc3t'}, 
+                           'distance' : {'svt' : 'sov_inc3d', 'h2v' : 'hov2_inc3d', 'h3v' : 'hov3_inc3d'}},
+                  'nhb' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbo' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}}} 
     output_skim = {'cost' : {'svt' : 'dabcs', 'h2v' : 's2bcs', 'h3v' : 's3bcs'}, 
                    'time' : {'svt' : 'dabtm', 'h2v' : 's2btm', 'h3v' : 's3btm'}, 
                    'distance' : {'svt' : 'dabds', 'h2v' : 's2bds', 'h3v' : 's3bds'}}
@@ -87,13 +81,11 @@ def get_cost_time_distance_skim_data(trip_purpose):
     
     return skim_dict
 
-
 def get_walk_bike_skim_data():
     skim_dict = {}
     for skim_name in ['walkt', 'biket']:
         skim_dict[skim_name]= load_skims(r'inputs\model\roster\5to6.h5', mode_name=skim_name, divide_by_100=True)
     return skim_dict
-
 
 def get_transit_skim_data():
     transit_skim_dict = {'ivtwa' : 'ivtwa', 
@@ -130,7 +122,6 @@ def get_total_transit_time(tod):
                              divide_by_100=True) 
 
     return sum(skims.values())
-
 
 def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
     input_paramas_vot_name = {'hbw1': {'svt': 'avot1v', 'h2v': 'avots2', 'h3v': 'avots3'},
@@ -212,10 +203,6 @@ def get_destination_parking_costs(parcel_file):
     parking = parking.reindex([zone_lookup_dict[x] for x in zones])
     parking.fillna(0, inplace = True)
     return np.array(parking)
-
-
-
-
 
 def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict):
     '''
@@ -388,7 +375,7 @@ def main():
         print trip_purpose, 'is done'
 
 
-       
+output_dir = r'outputs/supplemental/'
 my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
 zones = my_project.current_scenario.zone_numbers
 #Create a dictionary lookup where key is the taz id and value is it's numpy index. 

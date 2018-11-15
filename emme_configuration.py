@@ -73,9 +73,7 @@ skim_matrix_designation_limited = ['d']    # Distance skim
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
-gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'svtl2'}
-
-
+gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2'}
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']
@@ -155,22 +153,12 @@ destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
 supplemental_loc = 'outputs/supplemental/'
 hdf_auto_filename = 'outputs/supplemental/auto.h5'
-hdf_transit_filename = 'outputs/supplemental/transit.h5' 
-group_quarters_trips = 'outputs/supplemental/group_quarters/'
-ext_spg_trips = 'outputs/supplemental/ext_spg/'
-supplemental_modes = ['svtl2', 'trnst', 'bike', 'h2tl2', 'h3tl2', 'walk', 'lttrk','metrk','hvtrk']
 special_gen_trips = 'inputs/scenario/supplemental/generation/special_generators.csv'
 airport_zone_list = [983] # zone numbers for airport special generator
-
-# Using one AM and one PM time period to represent AM and PM skims
-am_skim_file_loc = 'outputs/skims/7to8.h5'
-pm_skim_file_loc = 'outputs/skims/17to18.h5'
 trip_table_loc = 'inputs/scenario/supplemental/generation/prod_att.csv'
-output_dir = 'outputs/supplemental/'
-ext_spg_dir = 'outputs/supplemental/ext_spg'
-gq_directory = 'outputs/supplemental/group_quarters'
 gq_trips_loc = 'inputs/scenario/supplemental/generation/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
+
 # Iterations for fratar process in trip distribution
 bal_iters = 5
 # Define gravity model coefficients

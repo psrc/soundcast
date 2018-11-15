@@ -3,7 +3,7 @@
     "classes": [
         {
             "mode": "e",
-            "demand": "mfsvtl1v",
+            "demand": "sov_inc1_volume",
             "generalized_cost": {
                 "link_costs": "@toll1",
                 "perception_factor": 1.0
@@ -11,7 +11,7 @@
         },
         {
             "mode": "e",
-            "demand": "mfsvtl2v",
+            "demand": "sov_inc2_volume",
             "generalized_cost": {
                 "link_costs": "@toll1",
                 "perception_factor": 1.0
@@ -19,7 +19,7 @@
         },
         {
             "mode": "e",
-            "demand": "mfsvtl3v",
+            "demand": "sov_inc3_volume",
             "generalized_cost": {
                 "link_costs": "@toll1",
                 "perception_factor": 1.0
@@ -27,7 +27,7 @@
         },
         {
             "mode": "d",
-            "demand": "mfh2tl1v",
+            "demand": "hov2_inc1_volume",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0
@@ -35,7 +35,7 @@
         },
         {
             "mode": "d",
-            "demand": "mfh2tl2v",
+            "demand": "hov2_inc2_volume",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0
@@ -43,7 +43,7 @@
         },
         {
             "mode": "d",
-            "demand": "mfh2tl3v",
+            "demand": "hov2_inc3_volume",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0
@@ -51,7 +51,7 @@
         },
         {
             "mode": "m",
-            "demand": "mfh3tl1v",
+            "demand": "hov3_inc1_volume",
             "generalized_cost": {
                 "link_costs": "@toll3",
                 "perception_factor": 1.0
@@ -59,7 +59,7 @@
         },
         {
             "mode": "m",
-            "demand": "mfh3tl2v",
+            "demand": "hov3_inc2_volume",
             "generalized_cost": {
                 "link_costs": "@toll3",
                 "perception_factor": 1.0
@@ -67,7 +67,79 @@
         },
         {
             "mode": "m",
-            "demand": "mfh3tl3v",
+            "demand": "hov3_inc3_volume",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+                {
+            "mode": "e",
+            "demand": "av_sov_inc1_volume",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "e",
+            "demand": "av_sov_inc2_volume",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "e",
+            "demand": "av_sov_inc3_volume",
+            "generalized_cost": {
+                "link_costs": "@toll1",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "av_hov2_inc1_volume",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "av_hov2_inc2_volume",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "d",
+            "demand": "av_hov2_inc3_volume",
+            "generalized_cost": {
+                "link_costs": "@toll2",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "av_hov3_inc1_volume",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "av_hov3_inc2_volume",
+            "generalized_cost": {
+                "link_costs": "@toll3",
+                "perception_factor": 1.0
+            }
+        },
+        {
+            "mode": "m",
+            "demand": "av_hov3_inc3_volume",
             "generalized_cost": {
                 "link_costs": "@toll3",
                 "perception_factor": 1.0
@@ -75,7 +147,7 @@
         },
         {
             "mode": "y",
-            "demand": "mftnc1",
+            "demand": "tnc_inc1",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0
@@ -83,7 +155,7 @@
         },
         {
             "mode": "y",
-            "demand": "mftnc2",
+            "demand": "tnc_inc2",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0
@@ -91,7 +163,7 @@
         },
         {
             "mode": "y",
-            "demand": "mftnc3",
+            "demand": "tnc_inc3",
             "generalized_cost": {
                 "link_costs": "@toll2",
                 "perception_factor": 1.0

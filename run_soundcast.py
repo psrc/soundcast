@@ -298,9 +298,7 @@ def main():
 
             # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
             if not should_build_shadow_price:
-                print 'here'
                 if iteration == 0 or pop_sample[iteration-1] > 2:
-                    print 'here'
                     try:
                             #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
                             print "copying shadow prices" 
