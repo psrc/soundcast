@@ -51,6 +51,17 @@ HIGH_PNR = 4000
 vot_1_max = 13.07    # VOT for User Class 1 < vot_1_max
 vot_2_max = 26.14    # vot_1_max < VOT for User Class 2 < vot_2_max
 
+# TNC fraction to assign
+# Based on survey data from SANDAG for now
+tnc_occupancy = {
+  11: 1,    # non-AV, 1 passenger (+ driver)
+  12: 0.5,    # non-AV, 2 passengers
+  13: 0.3,    # non-AV 3.33 passengers on average
+  21: 1,    # AV, 1 passenger
+  22: 0.5,    # AV, 2 passenger
+  23: 0.4    # AV, 3+ passengers
+}
+
 SPECIAL_GENERATORS = {"SeaTac":983,"Tacoma Dome":3110,"exhibition center":631, "Seattle Center":438}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 

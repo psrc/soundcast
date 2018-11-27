@@ -348,7 +348,6 @@ def transit_skims(my_project, spec):
 
 def attribute_based_skims(my_project,my_skim_attribute):
     """ Generate time or distance skims """
-
     start_time_skim = time.time()
 
     skim_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
@@ -359,7 +358,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
     tod = my_project.tod 
 
     # Figure out what skim matrices to use based on attribute (either time or length)
-    if my_skim_attribute =="Time":
+    if my_skim_attribute == "Time":
         my_attribute = "timau"
         my_extra = "@timau"
         skim_type = "Time Skims"
@@ -369,7 +368,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
         t1 = my_project.create_extra_attribute("LINK", my_extra, "copy of "+ my_attribute, True)
 
         # Store timau (auto time on links) into an extra attribute so we can skim for it
-        my_project.network_calculator("link_calculation", result = my_extra, expression = my_attribute, selections_by_link = "all") 
+        my_project.network_calculator("link_calculation", result=my_extra, expression=my_attribute, selections_by_link="all") 
 
     if my_skim_attribute =="Distance":
         my_attribute = "length"
@@ -379,13 +378,13 @@ def attribute_based_skims(my_project,my_skim_attribute):
         
         t1 = my_project.create_extra_attribute("LINK", my_extra, "copy of "+ my_attribute, True)
         # Store Length (auto distance on links) into an extra attribute so we can skim for it
-        my_project.network_calculator("link_calculation", result = my_extra, expression = my_attribute, selections_by_link = "all") 
+        my_project.network_calculator("link_calculation", result=my_extra, expression=my_attribute, selections_by_link="all") 
         
     mod_skim = skim_specification
 
     for x in range (0, len(mod_skim["classes"])):
         my_extra = my_user_classes["Highway"][x][my_skim_attribute]
-        matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
+        matrix_name = my_user_classes["Highway"][x]["Name"] + skim_desig
         matrix_id = my_project.bank.matrix(matrix_name).id
         mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
         mod_skim["path_analysis"]["link_component"] = my_extra
@@ -763,8 +762,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         # Get matrix name from matrix_dict. Do not assign school bus trips (8) to the network.
         if mode[x] != 8 and mode[x] > 0:
             
-            # Only want driver (or primary TNC passenger) trips. Note: empty TNC trips not assigned.
-            auto_mode_ids = [3, 4, 5, 9]    # SOV, HOV2, HOV3, TNC
+            # Only want driver trips assigned to network, and non auto modes
+            # TNC trips are only assigned 
+            auto_mode_ids = [3, 4, 5]    # SOV, HOV2, HOV3
+            non_auto_mode_ids = [1, 2, 6]    # walk, bike, transit
 
             # Determine if trip is AV or conventional vehicle
             av_flag = 0    # conventional vehicle by default
@@ -772,15 +773,21 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 if dorp[x] == 3:
                     av_flag = 1
 
-            # Use "dorp" to select driver trips only; for non-auto trips, put all trips in the matrix                              
+            # Retrieve trip information from Daysim records
+            mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
+            myOtaz = dictZoneLookup[otaz[x]]
+            myDtaz = dictZoneLookup[dtaz[x]]
+            trips = np.asscalar(np.float32(trexpfac[x]))
+            trips = round(trips, 2)
+
+            # Assign TNC trips using fractional occupancy (factor of 1 for 1 passenger, 0.5 for 2 passengers, etc.)
+            if (mode[x] == 9) and (dorp[x] in tnc_occupancy.keys()):
+                trips = trips*tnc_occupancy[dorp[x]]
+                demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+
+            # Use "dorp" field to select driver trips only; for non-auto trips, add all trips for assignment                             
             # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
-            # for TNC dorp==1 for primary passenger; dorp==2 for additional passenger
-            if (dorp[x] <= 1 or dorp[x] == 3) or mode[x] not in auto_mode_ids:
-                mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
-                myOtaz = dictZoneLookup[otaz[x]]
-                myDtaz = dictZoneLookup[dtaz[x]]
-                trips = np.asscalar(np.float32(trexpfac[x]))
-                trips = round(trips, 2)
+            elif (dorp[x] <= 1 or dorp[x] == 3) or (mode[x] in non_auto_mode_ids):
                 demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
@@ -864,7 +871,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
     sub_demand_array = (np.asarray(sub_demand_matrix))
     demand_matrix[0:len(sub_demand_array), 0:len(sub_demand_array)] = sub_demand_array
-    print matrix_name
+
     return demand_matrix
 
 def create_trip_tod_indices(tod):
@@ -1141,6 +1148,7 @@ def run_assignments_parallel(project_name):
     start_of_run = time.time()
 
     my_project = EmmeProject(project_name)
+    test_tod = my_project.tod
    
     # Delete and create new demand and skim matrices:
     delete_matrices(my_project, "FULL")
@@ -1158,8 +1166,10 @@ def run_assignments_parallel(project_name):
     if my_project.tod in fare_matrices_tod:
         fare_dict = json_to_dictionary('transit_fare_dictionary')
         fare_file = fare_dict[my_project.tod]['Files']['fare_box_file']
+
         #fare box:
         create_fare_zones(my_project, zone_file, fare_file)
+
         #monthly:
         fare_file = fare_dict[my_project.tod]['Files']['monthly_pass_file']
         create_fare_zones(my_project, zone_file, fare_file)
@@ -1169,7 +1179,7 @@ def run_assignments_parallel(project_name):
     if my_project.tod in transit_tod:
         calc_bus_pce(my_project)
 
-    # Load volume-delay functinos (VDFs)
+    # Load volume-delay functions (VDFs)
     vdf_initial(my_project)
 
     # Run auto assignment and skimming
@@ -1193,7 +1203,7 @@ def run_assignments_parallel(project_name):
 
     # Clear emmebank in memory
     my_project.bank.dispose()
-    
+    print 'trying to dispose of emmebank...'
     print my_project.tod + " finished"
     
     end_of_run = time.time()
@@ -1213,7 +1223,7 @@ def main():
             start_pool(l)
 
         # want pooled processes finished before executing more code in main:
-        # run_assignments_parallel('projects/18to20/18to20.emp')
+        # run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
         # run_transit('projects/7to8/7to8.emp')

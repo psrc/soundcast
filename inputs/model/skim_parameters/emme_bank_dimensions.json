@@ -4,7 +4,7 @@
   "transit_lines": 16000,
   "centroids": 4000,
   "regular_nodes": 35999,
-  "extra_attribute_values": 6000000,
+  "extra_attribute_values": 10000000,
   "turn_entries": 320000,
   "scalar_matrices": 9999,
   "functions": 99,
