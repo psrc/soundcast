@@ -86,8 +86,14 @@ net_summary_file = 'network_summary.csv'
 counts_output_file = 'counts_output.csv'
 screenlines = 'screenline_volumes.csv'
 screenlines_file = 'scripts/summarize/inputs/network_summary/screenlines_2014.csv'
-uc_list = ['@svtl1', '@svtl2', '@svtl3', '@h2tl1', '@h2tl2', '@h2tl3', 
-           '@h3tl1', '@h3tl2', '@h3tl3', '@lttrk', '@mveh', '@hveh', '@bveh']
+
+uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
+            '@hov2_inc1','@hov2_inc2','@hov2_inc3',
+            '@hov3_inc1','@hov3_inc2','@hov3_inc3',
+            '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+            '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
+            '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+            '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
 
 output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
                'screenline_volumes']

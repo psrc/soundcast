@@ -71,9 +71,9 @@ def get_link_counts(EmmeProject, loop_id_df, tod):
 
 def get_intrazonal_vol(emmeproject, df_vol):
 
-    iz_uc_list = ['svtl','h2tl','h3tl']
+    iz_uc_list = ['sov_inc','hov2_inc','hov2_inc','av_sov_inc','av_hov2_inc','av_hov2_inc']
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
-    iz_uc_list += ['metrk','hvtrk']
+    iz_uc_list += ['metrk','hvtrk','tnc_inc1','tnc_inc2','tnc_inc3']
 
     for uc in iz_uc_list:
         df_vol[uc+'_'+emmeproject.tod] = emmeproject.bank.matrix(uc).get_numpy_data().diagonal()
@@ -235,7 +235,11 @@ def calc_total_vehicles(my_project):
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
      
     # Calculate total vehicles as @tveh 
-    str_expression = '@svtl1 + @svtl2 + @svtl3 + @h2tl1 + @h2tl2 + @h2tl3 + @h3tl1 + @h3tl2 + @h3tl3 + @lttrk + @mveh + @hveh + @bveh'
+    str_expression =  '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
+                      '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + ' + \
+                      '@av_sov_inc1 + @av_sov_inc2 + @av_sov_inc3 + @av_hov2_inc1 + @av_hov2_inc2 + @av_hov2_inc3 + ' + \
+                      '@av_hov3_inc1 + @av_hov3_inc2 + @av_hov3_inc3 + ' + \
+                      '@mveh + @hveh + @bveh'
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
 
 def get_aadt_trucks(my_project):
@@ -430,7 +434,7 @@ def freeflow_skims(my_project):
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
-    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['svtl3t'][:]
+    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['sov_inc3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -549,9 +553,13 @@ def export_network_attributes(network, tod_hour, filepath):
     """ Calculate link-level results by time-of-day, append to csv """
 
     network_data = {k: [] for k in ['auto_volume','data2','data3','data1',
-                                    'num_lanes','length','auto_time','@metrk','@hvtrk','@tveh','@svtl1','@svtl2',
-                                    '@svtl3','@h2tl1','@h2tl2','@h2tl3','@h3tl1','@h3tl2','@h3tl3','@bvol',
-                                    '@lttrk','@mveh','@hveh','@bveh','type','num_lanes','volume_delay_func']}
+                                    'num_lanes','length','auto_time','@metrk','@hvtrk','@tveh',
+                                    '@sov_inc1','@sov_inc2','@sov_inc3',
+                                    '@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
+                                    '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+                                    '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+                                    '@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@lttrk','@mveh','@hveh','@bveh',
+                                    'type','num_lanes','volume_delay_func']}
 
     network_nodes = {k: [] for k in ['i','j']}
 
