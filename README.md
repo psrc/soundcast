@@ -5,4 +5,4 @@ SoundCast is a travel demand model system built for the Puget Sound Region. The 
 Read the User's Guide to learn how to install and run Soundcast.
 
 ## [Releases](https://github.com/psrc/soundcast/releases/tag/v2.1)
-[Download official code releases and inputs].
+Download official code releases and inputs.
