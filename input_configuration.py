@@ -7,7 +7,7 @@ import os
 # Scenario and input paths
 #####################################################################
 base_year = '2014'  # This should always be 2014 unless the base year changes
-scenario_name = '2014_lodes'
+scenario_name = '2014'
 model_year = '2014'
 main_inputs_folder = 'R:/SoundCast/Inputs'
 #####################################################################
@@ -20,7 +20,7 @@ run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
 run_import_networks = True
 #only run_daysim_zone_inputs in the base year currently
-run_daysim_zone_inputs = True
+run_daysim_zone_inputs = False
 run_integrated = False
 
 # to get the first iteration of skims:
