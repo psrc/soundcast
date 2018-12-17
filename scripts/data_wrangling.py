@@ -30,12 +30,10 @@ from logcontroller import *
 from input_configuration import *
 from emme_configuration import *
 import pandas as pd
-import input_configuration # Import as a module to access inputs as a dictionary
 from emme_configuration import *
 import emme_configuration
 import input_configuration
 import glob
-
 
 def multipleReplace(text, wordDict):
     for key in wordDict:
@@ -65,9 +63,8 @@ def copy_seed_skims():
     print 'Done copying seed skims.'
 
 def text_to_dictionary(dict_name):
-
     input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
-    my_file=open(input_filename)
+    my_file = open(input_filename)
     my_dictionary = {}
 
     for line in my_file:
@@ -192,7 +189,6 @@ def copy_shadow_price_file():
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
-
 @timed
 def rename_network_outs(iter):
     for summary_name in network_summary_files:
@@ -200,7 +196,6 @@ def rename_network_outs(iter):
         if os.path.isfile(csv_output):
             shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
             os.remove(csv_output)
-
 
 @timed          
 def clean_up():
@@ -298,3 +293,70 @@ def import_integrated_inputs():
 
     # Delete parcels group
     del h5_inputs['parcels']
+
+def update_skim_parameters():
+    """
+    Update user classes to include only defined modes (AVs, TNCs)
+    Skim parameters are generated from full-size templates.
+    """
+
+    # Based on toggles from input_configuration, remove modes if not used
+    # from user_class and demand matrix list in skim_parameters input folder.
+
+    keywords = []
+    if not include_av:
+        keywords.append('av_')
+    if not include_tnc:
+        keywords.append('tnc_')
+
+    root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
+
+    for filename in ['user_classes', 'demand_matrix_dictionary']:
+        new_file_path = os.path.join(root_path, filename+'.json')
+        with open(os.path.join(root_path, filename+'_template.json')) as template_file, open(new_file_path, 'w') as newfile:
+            for line in template_file:
+                if not any(keyword in line for keyword in keywords):
+                    newfile.write(line)
+
+def update_daysim_modes():
+    """
+    Apply settings in input_configuration to daysim_configuration:
+
+    include_tnc: PaidRideShareModeIsAvailable,
+    include_av: AV_IncludeAutoTypeChoice,
+    tnc_av: AV_PaidRideShareModeUsesAVs 
+    """
+
+    # Store values from input_configuration in a dictionary:
+    av_settings = ['include_av', 'include_tnc', 'tnc_av']
+
+    daysim_dict = {
+        'AV_IncludeAutoTypeChoice': 'include_av',
+        'PaidRideShareModeIsAvailable':'include_tnc',
+        'AV_PaidRideShareModeUsesAVs': 'tnc_av',
+    }
+
+    mode_config_dict = {}    
+    for setting in av_settings:
+        mode_config_dict[setting] = globals()[setting]
+  
+    # Copy temp file to use 
+    daysim_config_path = os.path.join(os.getcwd(),'daysim_configuration_template.properties')
+    new_file_path = os.path.join(os.getcwd(),'daysim_configuration_template_tmp.properties')
+
+    with open(daysim_config_path) as template_file, open(new_file_path, 'w') as newfile:
+        for line in template_file:
+            if any(value in line for value in daysim_dict.keys()):
+                var = line.split(" = ")[0]
+                line = var + " = " + str(mode_config_dict[daysim_dict[var]]).lower() + "\n"
+                newfile.write(line)
+            else:
+                newfile.write(line)
+
+    # Replace the original file with the updated version
+    try:
+        os.remove(daysim_config_path)
+        os.rename(new_file_path, daysim_config_path)
+    except OSError as e:  ## if failed, report it back to the user ##
+        print ("Error: %s - %s." % (e.filename, e.strerror))
+

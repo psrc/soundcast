@@ -247,6 +247,8 @@ def main():
 ## SET UP INPUTS ##########################################################
 
     build_output_dirs()
+    update_daysim_modes()
+    update_skim_parameters()
 
     if run_setup_emme_bank_folders:
         setup_emme_bank_folders()
@@ -349,7 +351,6 @@ if __name__ == "__main__":
     logger = logcontroller.setup_custom_logger('main_logger')
     logger.info('------------------------NEW RUN STARTING----------------------------------------------')
     start_time = datetime.datetime.now()
-
 
     main()
 
