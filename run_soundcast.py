@@ -47,7 +47,7 @@ def accessibility_calcs():
     print 'adding JBLM workers to external workers'
     print 'adjusting non-work externals'
     print 'creating ixxi file for Daysim'
-    returncode=subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
+    returncode = subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
     if returncode != 0:
         print 'Military Job loading failed'
         sys.exit(1)

@@ -18,19 +18,19 @@ import inro.emme.desktop.app as app
 import json
 from shutil import copy2 as shcopy
 from distutils import dir_util
-import re
 import inro.emme.database.emmebank as _eb
 import random
 import shutil
 import h5py
+import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"inputs","model","skim_parameters"))
 sys.path.append(os.getcwd())
 from input_configuration import *
 from logcontroller import *
 from input_configuration import *
 from emme_configuration import *
-import pandas as pd
-from emme_configuration import *
+from skim_templates import *
 import emme_configuration
 import input_configuration
 import glob
@@ -62,8 +62,13 @@ def copy_seed_skims():
         shutil.copy(filename, 'inputs')
     print 'Done copying seed skims.'
 
-def text_to_dictionary(dict_name):
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
+def text_to_dictionary(dict_name, subdir=''):
+    """
+    Import text file as dictionary. Data must be in dictionary format.
+    e.g., key: value 
+    """
+
+    input_filename = os.path.join(r'inputs/model/skim_parameters',subdir,dict_name+'.txt')
     my_file = open(input_filename)
     my_dictionary = {}
 
@@ -71,35 +76,36 @@ def text_to_dictionary(dict_name):
         k, v = line.split(':')
         my_dictionary[eval(k)] = v.strip()
 
-    return(my_dictionary)
+    return my_dictionary
 
-def json_to_dictionary(dict_name):
+def json_to_dictionary(dict_name, subdir=''):
+    """
+    Import JSON-formatted input as dictionary. Expects file extension .json.
+    """
 
-    #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join(r'inputs/model/skim_parameters',subdir,dict_name+'.json')
     my_dictionary = json.load(open(input_filename))
 
-    return(my_dictionary)
+    return my_dictionary
     
 @timed    
 def setup_emme_bank_folders():
-    tod_dict = text_to_dictionary('time_of_day')
+    """ Generate folder and empty emmebanks for each time of day period."""
+
+    tod_dict = text_to_dictionary('time_of_day', 'lookup')
     emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
-    
+
+    # Remove and existing banks 
     if not os.path.exists('Banks'):
         os.makedirs('Banks')
     else:
-        # remove it
-        print 'deleting Banks folder'
         shutil.rmtree('Banks')
 
-    #gets time periods from the projects folder, so setup_emme_project_folder must be run first!
     time_periods = list(set(tod_dict.values()))
     time_periods.append('TruckModel')
     time_periods.append('Supplementals')
     for period in time_periods:
-        print period
-        print "creating bank for time period %s" % period
+        print "Creating bank for time period: %s" % period
         os.makedirs(os.path.join('Banks', period))
         path = os.path.join('Banks', period, 'emmebank')
         emmebank = _eb.create(path, emmebank_dimensions_dict)
@@ -108,30 +114,30 @@ def setup_emme_bank_folders():
         emmebank.coord_unit_length = coord_unit_length  
         scenario = emmebank.create_scenario(1002)
         network = scenario.get_network()
-        #need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
+        # At least one mode required per scenario. Other modes are imported in network_importer.py
         network.create_mode('AUTO', 'a')
         scenario.publish_network(network)
         emmebank.dispose()
 
 @timed
 def setup_emme_project_folders():
-    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
-    #tod_dict = json.load(open(os.path.join('inputs', 'skim_params', 'time_of_day.json')))
+    """Create Emme project folders for all time of day periods."""
 
-    tod_dict = text_to_dictionary('time_of_day')
+    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
+    tod_dict = text_to_dictionary('time_of_day','lookup')
     tod_list = list(set(tod_dict.values()))
 
     if os.path.exists(os.path.join('projects')):
-        print 'Delete Project Folder'
         shutil.rmtree('projects')
 
-    # Create master project, associate with all tod emmebanks
+    # Create master project, associate with all emmebanks by time of day
     project = app.create_project('projects', master_project)
-    desktop = app.start_dedicated(False, "cth", project)
-    data_explorer = desktop.data_explorer()   
+    desktop = app.start_dedicated(False, "psrc", project)
+    data_explorer = desktop.data_explorer()
     for tod in tod_list:
         database = data_explorer.add_database('Banks/' + tod + '/emmebank')
-    #open the last database added so that there is an active one
+    
+    # Open the last database added so that there is an active one
     database.open()
     desktop.project.save()
     desktop.close()
@@ -141,7 +147,6 @@ def setup_emme_project_folders():
     tod_list.append('TruckModel') 
     tod_list.append('Supplementals')
 
-    
     for tod in tod_list:
         project = app.create_project('projects', tod)
         desktop = app.start_dedicated(False, "cth", project)
@@ -150,8 +155,7 @@ def setup_emme_project_folders():
         database.open()
         desktop.project.save()
         desktop.close()
-        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))
-        
+        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))      
    
 @timed    
 def copy_scenario_inputs():
@@ -159,43 +163,11 @@ def copy_scenario_inputs():
     dir_util.copy_tree(scenario_inputs,'inputs/scenario')
 
 @timed
-def copy_large_inputs():
-    print 'Copying large inputs...' 
-    dir_util.copy_tree(scenario_inputs+'/networks','Inputs/networks')
-    dir_util.copy_tree(scenario_inputs+'/trucks','Inputs/trucks')
-    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
-    dir_util.copy_tree(scenario_inputs+'/supplemental','inputs/supplemental')
-    if run_supplemental_generation:
-        shcopy(scenario_inputs+'/tazdata/tazdata.in','inputs/trucks')
-    dir_util.copy_tree(scenario_inputs+'/tolls','Inputs/tolls')
-    dir_util.copy_tree(scenario_inputs+'/Fares','Inputs/Fares')
-    dir_util.copy_tree(scenario_inputs+'/bikes','Inputs/bikes')
-    dir_util.copy_tree(base_inputs+'/observed','Inputs/observed')
-    dir_util.copy_tree(base_inputs+'/corridors','inputs/corridors')
-    dir_util.copy_tree(scenario_inputs+'/parking','inputs/parking')
-    shcopy(scenario_inputs+'/landuse/hh_and_persons.h5','Inputs')
-    shcopy(base_inputs+'/etc/survey.h5','scripts/summarize/inputs/calibration')
-    
-    # node to node short distance files:
-    shcopy(base_inputs+'/short_distance_files/node_index_2014.txt', 'Inputs')
-    shcopy(base_inputs+'/short_distance_files/node_to_node_distance_2014.h5', 'Inputs')
-    shcopy(base_inputs+'/short_distance_files/parcel_nodes_2014.txt', 'Inputs')
-
-
-@timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
     if not os.path.exists('working'):
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
-
-@timed
-def rename_network_outs(iter):
-    for summary_name in network_summary_files:
-        csv_output = os.path.join(os.getcwd(), 'outputs',summary_name+'.csv')
-        if os.path.isfile(csv_output):
-            shcopy(csv_output, os.path.join(os.getcwd(), 'outputs',summary_name+str(iter)+'.csv'))
-            os.remove(csv_output)
 
 @timed          
 def clean_up():
@@ -218,51 +190,26 @@ def copy_accessibility_files():
         if not os.path.exists('inputs/scenario/landuse'):
             os.makedirs('inputs/scenario/landuse')
         
-        print 'Copying UrbanSim parcel file'
-        try:
-            shcopy(scenario_inputs+'/landuse/parcels_urbansim.txt','inputs/scenario/landuse')
-        except:
-            print 'error copying urbansim parcel file at ' + scenario_inputs + '/landuse/parcels_urbansim.txt'
-            sys.exit(1)
-          
-        
-        print 'Copying Transit stop file'
-        try:      
-            shcopy(scenario_inputs+'/networks/transit/transit_stops.csv','inputs/scenario/networks/transit')
-        except:
-            print 'error copying transit stops file at ' + scenario_inputs + '/networks/transit_transit_stops.csv'
-            sys.exit(1)
+        file_dict = {
+            'landuse/parcels_urbansim.txt': 'inputs/scenario/landuse',
+            'networks/transit/transit_stops.csv': 'inputs/scenario/networks/transit',
+            'landuse/parcels_military.csv': 'inputs/scenario/landuse',
+            'landuse/distribute_jblm_jobs.csv': 'inputs/scenario/landuse',
+        }
 
-        
-        print 'Copying Military parcel file'
-        try:
-            shcopy(scenario_inputs+'/landuse/parcels_military.csv','inputs/scenario/landuse')
-        except:
-            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/parcels_military.csv'
-            sys.exit(1)
+        for filename, dest_dir in file_dict.iteritems():
+            try:
+                shcopy(os.path.join(scenario_inputs,filename),dest_dir)
+            except:
+                print 'error copying accessibility file: %s' % filename
+                sys.exit(1)
 
-        
-        print 'Copying JBLM file'
-        try:
-            shcopy(scenario_inputs+'/landuse/distribute_jblm_jobs.csv','inputs/scenario/landuse')
-        except:
-            print 'error copying military parcel file at ' + scenario_inputs+'/landuse/distribute_jblm_jobs.csv'
-            sys.exit(1)
-
-        
-        print 'Copying Hourly and Daily Parking Files'
         if base_year != model_year: 
             try:
-                shcopy(scenario_inputs+'/landuse/parking_costs.csv','inputs/scenario/landuse')
+                shcopy(os.path.join(scenario_inputs,'landuse/parking_costs.csv'),'inputs/scenario/landuse')
             except:
                 print 'error copying parking file at' + scenario_inputs+'/landuse/parking_costs.csv'
                 sys.exit(1)
-
-def find_inputs(base_directory, save_list):
-    for root, dirs, files in os.walk(base_directory):
-        for file in files:
-            if '.' in file:
-                save_list.append(file)
 
 def build_output_dirs():
     for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse','outputs/emissions']:
@@ -276,7 +223,7 @@ def import_integrated_inputs():
     - hh_and_persons.h5
     """
 
-    print "Importing land use files from urbansim"
+    print "Importing land use files from urbansim..."
 
     # Copy soundcast inputs and separate input files
     h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
@@ -296,8 +243,7 @@ def import_integrated_inputs():
 
 def update_skim_parameters():
     """
-    Update user classes to include only defined modes (AVs, TNCs)
-    Skim parameters are generated from full-size templates.
+    Generate skim parameter spec files from templates.
     """
 
     # Based on toggles from input_configuration, remove modes if not used
@@ -311,16 +257,73 @@ def update_skim_parameters():
 
     root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
 
+    # Remove unused modes from user_classes and demand_matrix_dictionary
     for filename in ['user_classes', 'demand_matrix_dictionary']:
+        template_path = os.path.join(root_path, 'templates', filename+'_template.json')
         new_file_path = os.path.join(root_path, filename+'.json')
-        with open(os.path.join(root_path, filename+'_template.json')) as template_file, open(new_file_path, 'w') as newfile:
+        with open(template_path) as template_file, open(new_file_path, 'w') as newfile:
             for line in template_file:
                 if not any(keyword in line for keyword in keywords):
                     newfile.write(line)
 
+    #############################
+    # Path-Based Traffic Assignment Spec
+    #############################
+
+    # Create an empty assignment dictionary with number of assignment classes from user_class
+    user_class = json.load(open(os.path.join(root_path,'user_classes.json')))
+    uc_count = len(user_class['Highway'])
+
+    # Generate a dictionary for each user class to be assigned
+    assignment_spec['classes'] = assignment_spec_class*uc_count
+
+    # Fill in each user class with mode, name, toll, and perception factor
+    for i in xrange(len(user_class['Highway'])):
+        # Add this mode to the spec file
+        my_group = user_class['Highway'][i]        
+        assignment_spec['classes'][0]['mode'] = my_group['Mode']
+        assignment_spec['classes'][0]['demand'] = my_group['Name']
+        assignment_spec['classes'][0]['generalized_cost']['link_costs'] = my_group['Toll']
+        # assuming perception factor == 1 for all modes
+        assignment_spec['classes'][0]['generalized_cost']['perception_factor'] = 1.0
+
+    # Write spec to file to be used in assignment in SkimsAndPaths.py
+    with open(os.path.join(root_path,'auto','path_based_assignment.json'), 'w') as file:
+        file.write(json.dumps(assignment_spec, indent=4, sort_keys=True))
+
+    #############################
+    # Attribute-Base Skim
+    #############################
+
+    # Generate a dictionary for each user class to be assigned
+    attribute_based_skim_spec['classes'] = attribute_based_skim_spec_class *uc_count
+
+    with open(os.path.join(root_path,'auto','attribute_based_skim.json'), 'w') as file:
+        file.write(json.dumps(attribute_based_skim_spec, indent=4, sort_keys=True))
+
+    #############################
+    # Path-Based Volume
+    #############################
+
+    # Generate a dictionary for each user class to be assigned
+    volume_spec['classes'] = volume_spec_class *uc_count
+
+    with open(os.path.join(root_path,'auto','path_based_volume.json'), 'w') as file:
+        file.write(json.dumps(volume_spec, indent=4, sort_keys=True))
+
+    #############################
+    # Generalized Cost
+    #############################
+
+    # Generate a dictionary for each user class to be assigned
+    generalized_cost_spec['classes'] = generalized_cost_spec_class*uc_count
+
+    with open(os.path.join(root_path,'auto','path_based_generalized_cost.json'), 'w') as file:
+        file.write(json.dumps(generalized_cost_spec, indent=4, sort_keys=True))
+
 def update_daysim_modes():
     """
-    Apply settings in input_configuration to daysim_configuration:
+    Apply settings in input_configuration to daysim_configuration and roster files:
 
     include_tnc: PaidRideShareModeIsAvailable,
     include_av: AV_IncludeAutoTypeChoice,
@@ -353,10 +356,22 @@ def update_daysim_modes():
             else:
                 newfile.write(line)
 
-    # Replace the original file with the updated version
+    # Replace the original daysim_configuration_template file with the updated version
     try:
         os.remove(daysim_config_path)
         os.rename(new_file_path, daysim_config_path)
     except OSError as e:  ## if failed, report it back to the user ##
         print ("Error: %s - %s." % (e.filename, e.strerror))
 
+    # Write Daysim roster and roster-combination files from template
+    # Exclude AV alternatives if not included in scenario
+
+    df = pd.read_csv(r'inputs/model/roster/templates/psrc_roster_template.csv')
+    if not include_av:
+        df = df[-df['mode'].isin(['av1','av2','av3'])]
+    df.to_csv(r'inputs/model/roster/psrc_roster.csv',index=False)
+
+    df = pd.read_csv(r'inputs/model/roster/templates/psrc-roster.combinations_template.csv')
+    if not include_av:
+        df[['av1','av2','av3']] = 'FALSE'
+    df.to_csv(r'inputs/model/roster/psrc-roster.combinations.csv',index=False)

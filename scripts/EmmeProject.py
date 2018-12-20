@@ -145,7 +145,7 @@ class EmmeProject:
                           scenario=self.current_scenario)
 
     def matrix_calculator(self, **kwargs):
-        spec = json_to_dictionary('matrix_calc_spec')
+        spec = json_to_dictionary('templates/matrix_calc_spec')
         for name, value in kwargs.items():
             if name == 'aggregation_origins':
                 spec['aggregation']['origins'] = value
@@ -199,7 +199,7 @@ class EmmeProject:
         process(name)
 
     def network_calculator(self, type, **kwargs):
-        spec = json_to_dictionary(type)
+        spec = json_to_dictionary(os.path.join('lookup',type))
         for name, value in kwargs.items():
             if name == 'selections_by_link':
                 spec['selections']['link'] = value
@@ -215,7 +215,7 @@ class EmmeProject:
         process(file_name ,throw_on_error = True)
 
     def matrix_balancing(self, **kwargs):
-        spec = json_to_dictionary('matrix_balancing_spec')
+        spec = json_to_dictionary('templates/matrix_balancing_spec')
         for name, value in kwargs.items():
             if name == 'results_od_balanced_values':
                 spec['results']['od_balanced_values'] = value
@@ -249,7 +249,7 @@ class EmmeProject:
                 full_matrix_line_format="ONE_ENTRY_PER_LINE")
 
     def transit_line_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_line_calculation")
+        spec = json_to_dictionary("templates/transit_line_calculation")
         for name, value in kwargs.items():
             spec[name] = value
         
@@ -258,7 +258,7 @@ class EmmeProject:
         self.transit_line_calc_result = network_calc(spec)
 
     def transit_segment_calculator(self, **kwargs):
-        spec = json_to_dictionary("transit_segment_calculation")
+        spec = json_to_dictionary("templates/transit_segment_calculation")
         for name, value in kwargs.items():
             spec[name] = value
         

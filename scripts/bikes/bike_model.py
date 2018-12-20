@@ -8,6 +8,7 @@ from EmmeProject import *
 from input_configuration import *
 from bike_configuration import *
 from emme_configuration import *
+from data_wrangling import json_to_dictionary
 #from standard_summary_configuration import *
 
 # Get the auto time and length of each link
@@ -174,20 +175,20 @@ def bike_assignment(my_project, tod):
 
 	# Invoke the Emme assignment tool
 	extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
-	bike_spec = json.load(open('inputs/model/skim_parameters/bike_assignment.json'))
+	bike_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_assignment.json'))
 	extended_assign_transit(bike_spec, add_volumes=True)
 
 	print 'bike assignment complete, now skimming'
 
 	skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
-	bike_skim_spec = json.load(open('inputs/model/skim_parameters/bike_skim_setup.json'))
+	bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
 	skim_bike(bike_skim_spec)
 
 	# Add bike volumes to bvol network attribute
 	bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
 
 	# Skim for final bike assignment results
-	bike_network_spec = json.load(open('inputs/model/skim_parameters/bike_network_setup.json'))
+	bike_network_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_network_setup.json'))
 	bike_network_vol(bike_network_spec)
 
 	# Export skims to h5
@@ -236,9 +237,13 @@ def calc_total_vehicles(my_project):
 	my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
 
 	#calc total vehicles, store in @tveh 
-	modelist = ['@sov_inc1','@sov_inc2','@sov_inc3','@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc1',
-				'@av_sov_inc1','@av_sov_inc2','@av_sov_inc3','@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
-				'@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3','@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
+	user_classes = json_to_dictionary("user_classes")
+	modelist = ['@mveh','@hveh','@bveh']
+	for i in xrange(len(user_classes['Highway'])):
+	    mode = user_classes['Highway'][i]['Name']
+	    if mode not in ['lttrk','metrk','hvtrk']:
+	        modelist.append('@'+mode)
+
 	str_expression = ''
 	for idx, mode in enumerate(modelist):
 	    if idx == len(modelist)-1:

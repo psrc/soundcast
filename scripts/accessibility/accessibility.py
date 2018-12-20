@@ -32,7 +32,7 @@ def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion
     return x, y
 
 def process_net_attribute(network, attr, fun):
-    print "Processing %s" % attr
+
     newdf = None
     for dist_index, dist in distances.iteritems():        
         res_name = "%s_%s" % (re.sub("_?p$", "", attr), dist_index) # remove '_p' if present
@@ -129,9 +129,7 @@ def clean_up(parcels):
     parcels_final = pd.DataFrame()
     
     # currently Daysim just uses dist_lbus as actually meaning the minimum distance to transit, so we will match that setup for now.
-    print 'updating the distance to local bus field to actually hold the minimum to any transit because that is how Daysim is currently reading the field' 
     parcels['dist_lbus'] = parcels[['dist_lbus', 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt']].min(axis=1)
-
 
     for col in col_order:
         parcels_final[col] = parcels[col]

@@ -57,18 +57,13 @@ def skims_to_hdf5(EmmeProject):
         for name in truck_od_matrices:
             matrix_name = tod[0] + name       
             #export to hdf5
-            print 'exporting' 
             matrix_name = tod[0] + name
-            print matrix_name
             matrix_id = EmmeProject.bank.matrix(matrix_name).id
-            print matrix_id
             matrix = EmmeProject.bank.matrix(matrix_id)
             matrix_value = np.matrix(matrix.raw_data)
             if name == 'lttrk':
                 matrix_value = matrix_value * 0
             my_store[tod].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
-            print matrix_value.sum()
             matrix_value = None
                     
     my_store.close()
@@ -112,7 +107,6 @@ def import_emp_matrices():
                                  'medium_trucks_ee', 'medium_trucks_ei', 'medium_trucks_ie',
                                  'trucks']
     for name in truck_matrix_import_list:
-        print 'importing: ' + str(name)
         my_project.import_matrices('inputs/scenario/trucks/' + name + '.in')
 
     my_project.import_matrices('inputs/scenario/landuse/tazdata.in')
@@ -147,7 +141,6 @@ def truck_productions():
     # Apply land use restriction for heavy trucks to zones w/ no industrial parcels
     my_project.matrix_calculator(result = 'mohtpro', expression = 'mohtpro * motruck')
 
-
 def truck_attractions():
     #Calculate Attractions for 3 truck classes (Destination Matrices are populated)
    
@@ -180,17 +173,13 @@ def truck_attractions():
     for key, value in refactor_dict.iteritems():
         my_project.matrix_calculator(result = key, expression = value)
         matrix = my_project.bank.matrix(key)
-        print 'exporting ' + key
         my_project.export_matrix(matrix, 'inputs/scenario/trucks/' + key + '.in') 
-
 
 def import_productions_and_attractions():
     
     for item in ['moltprof', 'momtprof', 'mohtprof', 'mdltattf', 'mdmtattf', 'mdhtattf']:
-        print 'importing ' + item
         my_project.delete_matrix(item)
         my_project.import_matrices('inputs/scenario/trucks/' + item + '.in')
-
 
 def import_skims():
     # Import districts
@@ -402,7 +391,6 @@ def write_summary():
         truck_pa['attr'][truck_type] = my_project.bank.matrix('md' + truck_type + 'attf').get_numpy_data().sum()
 
     pd.DataFrame.from_dict(truck_pa).to_csv(r'outputs/network/trucks.csv')
-
 
 def main():
     create_landuse_correction()

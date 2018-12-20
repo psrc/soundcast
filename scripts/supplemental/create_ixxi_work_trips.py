@@ -87,9 +87,7 @@ for row in parcels_military.iterrows():
     # add enlisted jobs to existing gov jobs at the parcel
     parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPGOV_P'] = float(parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPGOV_P']) + enlisted_jobs
     # add enlisted jobs to existing total jobs at the parcel
-    print 'old total ' + str(float(parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPTOT_P']))
     parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPTOT_P'] = float(parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPTOT_P']) + enlisted_jobs
-    print 'new total ' + str(float(parcels_urbansim.ix[parcels_urbansim.PARCELID==parcel_id, 'EMPTOT_P']))
    
 parcels_urbansim.to_csv(parcel_file, sep = ' ', index = False)
 ###############
@@ -184,11 +182,9 @@ emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
 emp_by_taz.reset_index(inplace = True)
 
 person_df = h5_to_data_frame(hh_persons, 'Person')
-print len(person_df)
 person_df = person_df.loc[(person_df.pwtyp > 0)]
 hh_df = h5_to_data_frame(hh_persons, 'Household')
 merged = person_df.merge(hh_df, how= 'left', on = 'hhno')
-print len(merged)
 merged_grouped = merged.groupby('hhtaz')
 
 workers_by_taz = pd.DataFrame(merged_grouped['pno'].count())
