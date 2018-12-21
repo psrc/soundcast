@@ -258,9 +258,9 @@ def update_skim_parameters():
     root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
 
     # Remove unused modes from user_classes and demand_matrix_dictionary
-    for filename in ['user_classes', 'demand_matrix_dictionary']:
-        template_path = os.path.join(root_path, 'templates', filename+'_template.json')
-        new_file_path = os.path.join(root_path, filename+'.json')
+    for filename, ext in {'user_classes':'json', 'demand_matrix_dictionary':'txt'}.iteritems():
+        template_path = os.path.join(root_path, 'templates', filename+'_template.'+ext)
+        new_file_path = os.path.join(root_path, filename+'.'+ext)
         with open(template_path) as template_file, open(new_file_path, 'w') as newfile:
             for line in template_file:
                 if not any(keyword in line for keyword in keywords):

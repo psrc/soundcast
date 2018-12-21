@@ -258,10 +258,8 @@ def traffic_assignment(my_project):
     assign_extras(el1 = "@rdly", el2 = "@trnv3")
 
     if my_project.current_scenario.has_traffic_results:
-        print 'using warm starts'
         assign_traffic(mod_assign, warm_start = True)
     else:
-        print 'not using warm starts'
         assign_traffic(mod_assign, warm_start = False)    
     end_traffic_assignment = time.time()
 
@@ -283,7 +281,7 @@ def transit_assignment(my_project, spec, keep_exisiting_volumes):
     assignment_specification["waiting_time"]["headway_fraction"] = transit_node_attributes['headway_fraction']['name'] 
     assignment_specification["waiting_time"]["perception_factor"] = transit_node_attributes['wait_time_perception']['name'] 
     assignment_specification["in_vehicle_time"]["perception_factor"] = transit_node_attributes['in_vehicle_time']['name']
-    print assignment_specification
+
     assign_transit(assignment_specification, add_volumes=keep_exisiting_volumes)
 
     end_transit_assignment = time.time()
