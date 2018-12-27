@@ -97,7 +97,7 @@ def distance_pricing(distance_rate, hot_rate, emmeProject):
                     link[att] = link[att] + (link.length * distance_rate)
             if add_hot_lane_tolls:
                 # is the link a managed lane:
-                if int(link.i_node.id) > min_hov_node and int(link.j_node.id) > min_hov_node:
+                if int(link.i_node.id) > min_hov_node[model_year] and int(link.j_node.id) > min_hov_node[model_year]:
                     # get the modes allowed
                     test = [i[1].id for i in enumerate(link.modes)]
                     # if sov modes are allowed, they should be tolled
