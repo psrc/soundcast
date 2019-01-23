@@ -11,10 +11,10 @@ from scripts.EmmeProject import *
 
 daily_network_fname = 'outputs/network/daily_network_results.csv'
 keep_atts = ['@type']
+
 def json_to_dictionary(dict_name):
 
-    #Determine the Path to the input files and load them
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/skim_params")) 
+    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters")) 
     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
@@ -22,7 +22,7 @@ def json_to_dictionary(dict_name):
 
 def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.json').replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.txt').replace("\\","/")
     my_file=open(input_filename)
     my_dictionary = {}
 
@@ -35,7 +35,6 @@ def text_to_dictionary(dict_name):
 
 def create_emmebank(dir_name):
     
-    #tod_dict = text_to_dictionary('time_of_day')
     emmebank_dimensions_dict = json_to_dictionary('emme_bank_dimensions')
     
     path = os.path.join('Banks', dir_name)
@@ -98,7 +97,6 @@ def export_link_values(my_project):
         
         # merge temp df with the 'master df' that is filled iteratively
         df = pd.merge(df_attr,df,how='outer',on='nodes')
-
             
     df.to_csv(daily_network_fname)
 
@@ -146,7 +144,6 @@ def main():
                 hourly_arr = matrix.get_numpy_data()
                 daily_matrix_dict[matrix.name] = daily_matrix_dict[matrix.name] + hourly_arr
       
-
         # Network stuff:
         if len(time_period_list) == 0:
             daily_network = network
@@ -160,7 +157,6 @@ def main():
     # Write daily trip tables:
     for matrix in daily_emmebank.matrices():
         matrix.set_numpy_data(daily_matrix_dict[matrix.name])
-
 
     for extra_attribute in daily_scenario.extra_attributes():
         if extra_attribute not in keep_atts:
@@ -178,8 +174,6 @@ def main():
         attr = daily_scenario.create_extra_attribute('LINK', '@v' + tod[:4])
         values = scenario.get_attribute_values('LINK', ['@tveh'])
         daily_scenario.set_attribute_values('LINK', [attr], values)
-        #daily_scenario.publish_network(daily_network)
-        #daily_network = daily_scenario.get_network()
 
     daily_network = daily_scenario.get_network()
     attr_list = ['@tv' + x for x in tods]

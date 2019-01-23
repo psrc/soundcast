@@ -71,9 +71,13 @@ def get_link_counts(EmmeProject, loop_id_df, tod):
 
 def get_intrazonal_vol(emmeproject, df_vol):
 
-    iz_uc_list = ['sov_inc','hov2_inc','hov2_inc','av_sov_inc','av_hov2_inc','av_hov2_inc']
+    iz_uc_list = ['sov_inc','hov2_inc','hov3_inc']
+    if include_av:
+        iz_uc_list += 'av_sov_inc','av_hov2_inc','av_hov3_inc'
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
-    iz_uc_list += ['metrk','hvtrk','tnc_inc1','tnc_inc2','tnc_inc3']
+    if include_tnc:
+        iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
+    iz_uc_list += ['metrk','hvtrk']
 
     for uc in iz_uc_list:
         df_vol[uc+'_'+emmeproject.tod] = emmeproject.bank.matrix(uc).get_numpy_data().diagonal()
@@ -234,12 +238,22 @@ def calc_total_vehicles(my_project):
     my_project.network_calculator("link_calculation", result='@hveh', expression='@hvtrk/2.0') #heavy trucks     
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
      
-    # Calculate total vehicles as @tveh 
-    str_expression =  '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
-                      '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + ' + \
-                      '@av_sov_inc1 + @av_sov_inc2 + @av_sov_inc3 + @av_hov2_inc1 + @av_hov2_inc2 + @av_hov2_inc3 + ' + \
-                      '@av_hov3_inc1 + @av_hov3_inc2 + @av_hov3_inc3 + ' + \
-                      '@mveh + @hveh + @bveh'
+    # Calculate total vehicles as @tveh, depending on which modes are included
+    str_base = '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
+                      '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + @mveh + @hveh + @bveh '
+    av_str = '@av_sov_inc1 + @av_sov_inc2 + @av_sov_inc3 + @av_hov2_inc1 + @av_hov2_inc2 + @av_hov2_inc3 + ' + \
+                      '@av_hov3_inc1 + @av_hov3_inc2 + @av_hov3_inc3 '
+    tnc_str = '@tnc_inc1 + @tnc_inc2 + tnc_inc3 '
+    str_expression = str_base
+    if include_av:
+        str_expression += av_str
+    if include_tnc:
+        str_expression += tnc_str
+    # str_expression =  '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
+    #                   '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + ' + \
+    #                   '@av_sov_inc1 + @av_sov_inc2 + @av_sov_inc3 + @av_hov2_inc1 + @av_hov2_inc2 + @av_hov2_inc3 + ' + \
+    #                   '@av_hov3_inc1 + @av_hov3_inc2 + @av_hov3_inc3 + ' + \
+    #                   '@mveh + @hveh + @bveh'
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
 
 def get_aadt_trucks(my_project):
@@ -627,7 +641,7 @@ def summarize_network(filepath, excel_writer):
     df['delay'] = ((df['auto_time']-df['freeflow_time'])*df['@tveh'])/60    # sum of (volume)*(travtime diff from freeflow)
 
     # Add time-of-day group (AM, PM, etc.)
-    tod_df = pd.read_json(r'inputs/model/skim_parameters/time_of_day_crosswalk_ab_4k_dictionary.json', orient='index')
+    tod_df = pd.read_json(r'inputs/model/skim_parameters/lookup/time_of_day_crosswalk_ab_4k_dictionary.json', orient='index')
     tod_df = tod_df[['TripBasedTime']].reset_index()
     tod_df.columns = ['tod','period']
     df = pd.merge(df,tod_df,on='tod',how='left')
@@ -777,7 +791,7 @@ def main():
     df_iz_vol = pd.DataFrame()
     transit_atts = []
 
-    # Access global Emme project WITHOUTh all time-of-day banks available
+    # Access global Emme project WITHOUT all time-of-day banks available
     my_project = EmmeProject(project)
 
     zones = my_project.current_scenario.zone_numbers
@@ -908,8 +922,7 @@ def main():
     # Export number of jobs near transit stops
     jobs_transit(transit_writer)
 
-    if run_truck_summary:
-        truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=validation_writer)
+    truck_summary(df_counts=df_truck_counts, my_project=my_project, writer=validation_writer)
 
     # Finalize Excel output
     network_writer.save()
