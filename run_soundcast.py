@@ -16,7 +16,6 @@
 # PSRC SoundCast Model Runner
 # ===========================
 
-
 import os
 import sys
 import datetime
@@ -24,8 +23,8 @@ import re
 import subprocess
 import inro.emme.desktop.app as app
 import json
+import shutil
 from shutil import copy2 as shcopy
-from distutils import dir_util
 import re
 import logging
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
@@ -33,9 +32,7 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
-import datetime
 import pandas as pd
-import shutil 
 from input_configuration import *
 from emme_configuration import *
 from data_wrangling import *
@@ -133,7 +130,6 @@ def build_shadow_only():
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
         if returncode != 0:
-            #send_error_email(recipients, returncode)
             sys.exit(1)
         returncode = subprocess.call([sys.executable, 'scripts/utils/shadow_pricing_check.py'])
         shadow_con_file = open('outputs/shadow_rmse.txt', 'r')
@@ -146,66 +142,59 @@ def build_shadow_only():
             return
 
 def run_truck_supplemental(iteration):
-      ### RUN Truck Model ################################################################
-     if run_truck_model:
-         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-         if returncode != 0:
-            #send_error_email(recipients, returncode)
-            sys.exit(1)
 
-      ### RUN Supplemental Trips
-      ### ################################################################
-    ###Adds external, special generator, and group quarters trips to DaySim
-    ###outputs.'''
-     if run_supplemental_trips:
-         # Only run generation script once - does not change with feedback
-        if iteration == 0:
-            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-            if returncode != 0:
-                sys.exit(1)
+	if run_truck_model:
+		returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+		if returncode != 0:
+			sys.exit(1)
 
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
-        if returncode != 0:
-           sys.exit(1)
-        
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/mode_choice_supplemental.py'])
-        if returncode != 0:
-           sys.exit(1)
+	if run_supplemental_trips:
+		# Only run generation script once - does not change with feedback
+		if iteration == 0:
+			returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+			if returncode != 0:
+				sys.exit(1)
 
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips_combine_all.py'])
-        if returncode != 0:
-           sys.exit(1)
+		base_path = 'scripts/supplemental'
+		for script in ['distribute_non_work_ixxi', 'mode_choice_supplemental', 'create_airport_trips_combine_all']:
+			returncode = subprocess.call([sys.executable, os.path.join(sys.executable,script+'.py')])
+			if returncode != 0:
+				sys.exit(1)
 
 @timed
 def daysim_assignment(iteration):
      
-     ### RUN DAYSIM ################################################################
-     if run_daysim:
-         logger.info("Start of %s iteration of Daysim", str(iteration))
-         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
-         logger.info("End of %s iteration of Daysim", str(iteration))
-         if returncode != 0:
-             #send_error_email(recipients, returncode)
-             sys.exit(1)
+     ########################################
+     # Run Daysim Activity Models
+     ########################################
+
+	if run_daysim:
+		logger.info("Start of %s iteration of Daysim", str(iteration))
+		returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
+		logger.info("End of %s iteration of Daysim", str(iteration))
+		if returncode != 0:
+			sys.exit(1)
      
-     ### ADD SUPPLEMENTAL TRIPS
-     ### ####################################################
-     run_truck_supplemental(iteration)
-     #### ASSIGNMENTS
-     #### ###############################################################
-     if run_skims_and_paths:
-         logger.info("Start of %s iteration of Skims and Paths", str(iteration))
-         num_iterations = str(max_iterations_list[iteration])
-         returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, model_year])
-         logger.info("End of %s iteration of Skims and Paths", str(iteration))
-         print 'return code from skims and paths is ' + str(returncode)
-         if returncode != 0:
-            sys.exit(1)
+	########################################
+	# Calcualte Trucks and Supplemental Demand
+	########################################
+	run_truck_supplemental(iteration)
 
-         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
-         if returncode != 0:
-            sys.exit(1)
+	########################################
+	# Assign Demand to Networks
+	########################################
 
+	if run_skims_and_paths:
+		logger.info("Start of iteration %s of Skims and Paths", str(iteration))
+		num_iterations = str(max_iterations_list[iteration])
+		returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, model_year])
+		logger.info("End of iteration %s of Skims and Paths", str(iteration))
+		if returncode != 0:
+			sys.exit(1)
+
+		returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
+		if returncode != 0:
+			sys.exit(1)
 
 @timed
 def check_convergence(iteration, recipr_sample):
@@ -219,32 +208,15 @@ def check_convergence(iteration, recipr_sample):
 @timed
 def run_all_summaries():
 
-   if run_network_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/standard/daily_bank.py'])
-      subprocess.call([sys.executable, 'scripts/summarize/standard/network_summary.py'])
+	base_path = 'scripts/summarize/standard'
+	for script in ['daily_bank','network_summary','emissions','parcel_summary','summarize_land_use_inputs','group']:
+		subprocess.call([sys.executable, os.path.join(base_path, script+'.py'])
 
-      try:
-        subprocess.call([sys.executable, 'scripts/summarize/standard/emissions.py'])
-      except:
-        print 'unable to generate emissions summary; check required inputs.'
-
-      # if model_year == base_year:
-      #    subprocess.call([sys.executable, 'scripts/summarize/standard/roadway_base_year_validation.py'])
-      #    subprocess.call([sys.executable, 'scripts/summarize/standard/transit_base_year_validation.py'])
-
-   if run_soundcast_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/calibration/SCsummary.py'])
-      
-   if run_landuse_summary:
-      subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
-      subprocess.call([sys.executable, 'scripts/summarize/standard/summarize_land_use_inputs.py'])
-   
-   if run_grouped_summary:
-       subprocess.call([sys.executable, 'scripts/summarize/standard/group.py'])
-##################################################################################################### ###################################################################################################### 
-# Main Script:
 def main():
-## SET UP INPUTS ##########################################################
+
+    ########################################
+    # Initialize Banks, Projects, Directories
+    ########################################
 
     build_output_dirs()
     update_daysim_modes()
@@ -268,8 +240,10 @@ def main():
     if not os.path.exists('working'):
         os.makedirs('working')
 
-### IMPORT NETWORKS
-### ###############################################################
+    ########################################
+    # Initialize Networks
+    ########################################
+
     if run_import_networks:
         time_copy = datetime.datetime.now()
         logger.info("Start of network importer")
@@ -280,23 +254,27 @@ def main():
         if returncode != 0:
            sys.exit(1)
 
-### BUILD OR COPY SKIMS ###############################################################
+    ########################################
+    # Start with Free Flow Skims
+    ########################################
+
     if run_skims_and_paths_free_flow:
         build_free_flow_skims(10)
         returncode = subprocess.call([sys.executable,'scripts/bikes/bike_model.py'])
         if returncode != 0:
             sys.exit(1)
     
-### RUN DAYSIM AND ASSIGNMENT TO CONVERGENCE-- MAIN LOOP
-### ##########################################
-    
-    if(run_daysim or run_skims_and_paths):
-        
+    ########################################
+    # Generate Demand and Assign Volumes
+    # Main Loop
+    ########################################
+
+    if (run_daysim or run_skims_and_paths):
         for iteration in range(len(pop_sample)):
             print "We're on iteration %d" % (iteration)
             logger.info(("We're on iteration %d\r\n" % (iteration)))
             time_start = datetime.datetime.now()
-            logger.info("starting run %s" % str((time_start)))
+            logger.info("Starting run at %s" % str((time_start)))
 
             # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
             if not should_build_shadow_price:
@@ -316,47 +294,45 @@ def main():
                     modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
                 else:
                     modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
-            ## Run Skimming and/or Daysim
-
+            
+            # Run Skimming and/or Daysim
             daysim_assignment(iteration)
            
-            converge=check_convergence(iteration, pop_sample[iteration])
+            # Check Convergence 
+            converge = check_convergence(iteration, pop_sample[iteration])
             if converge == 'stop':
                 print "System converged!"
                 break
             print 'The system is not yet converged. Daysim and Assignment will be re-run.'
 
-# IF BUILDING SHADOW PRICES, UPDATING WORK AND SCHOOL SHADOW PRICES USING CONVERGED SKIMS FROM CURRENT RUN, THEN DAYSIM + ASSIGNMENT ############################
+    # If building shadow prices, update work and school shadow prices
+    # using converged skims from current run, then re-run daysim and assignment.
     if should_build_shadow_price:
            build_shadow_only()
            modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
            #This function needs an iteration parameter. Value of 1 is fine. 
            daysim_assignment(1)
 
-
+    # Export skims for use in Urbansim if needed
     if run_integrated:
         subprocess.call([sys.executable, 'scripts/utils/urbansim_skims.py'])
 
-### SUMMARIZE
-### ##################################################################
-    run_all_summaries()
+	if run_summaries:
+    	run_all_summaries()
 
-#### ALL DONE
-#### ##################################################################
     clean_up()
     print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
-##print '    Total run time:',time_assign_summ - time_start
 
 if __name__ == "__main__":
     logger = logcontroller.setup_custom_logger('main_logger')
-    logger.info('------------------------NEW RUN STARTING----------------------------------------------')
+    logger.info('--------------------NEW RUN STARTING--------------------')
     start_time = datetime.datetime.now()
 
     main()
 
     end_time = datetime.datetime.now()
     elapsed_total = end_time - start_time
-    logger.info('------------------------RUN ENDING_----------------------------------------------')
+    logger.info('--------------------RUN ENDING--------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
 
     if delete_banks:

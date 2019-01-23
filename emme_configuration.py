@@ -1,4 +1,7 @@
 ﻿from input_configuration import *
+
+base_year = '2014'
+
 ##################################### NETWORK IMPORTER ####################################
 import_shape = False    # use network shape
 master_project = 'LoadTripTables'
@@ -31,6 +34,26 @@ headway_file = 'headways.csv'
 # in the junctions shapefile in the inputs/networks folder, this is the
 # minimum scene_node value where facility type = 99
 min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205, '2050' : 199205}
+
+###### Model iterations, population sampling, log files, etc.######
+pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+# Assignment Iterations (must be same length as pop_sample:
+max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
+min_pop_sample_convergence_test = 10
+# start building shadow prices - only run work locations
+shadow_work = [2, 1, 1, 1]
+shadow_con = 30 #%RMSE for shadow pricing to consider being converged
+####################################
+
+# These files generally do not change and don't need to be toggled here usually
+parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
+# run daysim and assignment in feedback until convergence
+main_log_file = 'soundcast_log.txt'
+master_project = 'LoadTripTables'
+network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                         'counts_output', 'network_summary']
+
+
 
 ###################################
 ################################### SKIMS AND PATHS ####################################
@@ -179,3 +202,24 @@ airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '203
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
+
+# These files generally do not change and don't need to be toggled here usually
+parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
+# run daysim and assignment in feedback until convergence
+main_log_file = 'soundcast_log.txt'
+master_project = 'LoadTripTables'
+network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
+                         'counts_output', 'network_summary']
+
+#This is what you get if the model runs cleanly, but it's random:
+good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "sunshine", "nap","world peace"]
+
+# Integrated Run Settings
+#################################
+# Only required for integrated Urbans runs; leave as default for standard runs
+
+# Root dir for all Soundcast runs
+urbansim_skims_dir = r'E:\soundcast_root'
+
+# Urbansim outputs dir
+urbansim_outputs_dir = r'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'

@@ -162,6 +162,11 @@ def copy_scenario_inputs():
     print 'Copying scenario inputs...' 
     dir_util.copy_tree(scenario_inputs,'inputs/scenario')
 
+    # Copy base year inputs (too large for storing on Github)
+    src = os.path.join(os.path.join(base_inputs,'landuse/node_to_node_distance_2014.h5'))
+    dst = os.path.join(os.getcwd(),'inputs/scenario/landuse/node_to_node_distance_2014.h5')
+    shutil.copyfile(src,dst)
+
 @timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
