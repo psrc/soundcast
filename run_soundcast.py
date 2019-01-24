@@ -157,7 +157,7 @@ def run_truck_supplemental(iteration):
 
 		base_path = 'scripts/supplemental'
 		for script in ['distribute_non_work_ixxi', 'mode_choice_supplemental', 'create_airport_trips_combine_all']:
-			returncode = subprocess.call([sys.executable, os.path.join(sys.executable,script+'.py')])
+			returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
 			if returncode != 0:
 				sys.exit(1)
 
