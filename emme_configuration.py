@@ -61,9 +61,9 @@ log_file_name = 'outputs/logs/skims_log.txt'
 STOP_THRESHOLD = 0.026
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50             # Assignment Convergence Criteria
-best_relative_gap = 0.01  # Assignment Convergence Criteria
+best_relative_gap = 0.00  # Assignment Convergence Criteria
 relative_gap = .0001
-normalized_gap = 0.01
+normalized_gap = 0.00
 
 MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
 MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
