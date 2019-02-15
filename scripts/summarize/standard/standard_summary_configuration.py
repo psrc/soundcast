@@ -39,6 +39,37 @@ vehs_by_county = {
     'Snohomish': 643724
 }
 
+# Base year distribution of vehicles by type (2014)
+# Note that the totals by county above (for 2014) 
+# include buses, so the totals below do not match up
+# The difference is buses
+
+# For GHG Analysis see:
+# X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
+
+vehs_by_type = {
+    'king': {
+        'light': 1433538,
+        'medium': 174597,
+        'heavy': 10574
+    },
+    'kitsap': {
+        'light': 199872,
+        'medium': 28830,
+        'heavy': 1342
+    },
+    'pierce': {
+        'light': 585681,
+        'medium': 82607,
+        'heavy': 4305
+    },
+    'snohomish': {
+        'light': 559557,
+        'medium': 77685,
+        'heavy': 3884
+    },
+}
+
 # List of pollutants to be summarized for summer
 # All other are to be summarized for winter season
 # using wintertime rates for all start emission rates except for VOCs
