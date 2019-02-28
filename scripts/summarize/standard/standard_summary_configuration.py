@@ -20,9 +20,9 @@ transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'trans
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
 
-tod_lookup = {'5to6' : 6, '6to7' : 7, '7to8' : 8, '8to9' : 9, '9to10' : 10, 
-              '10to14' : 13, '14to15' : 15, '15to16' : 16, '16to17' : 17, 
-              '17to18' : 18, '18to20' : 19, '20to5' : 21}
+tod_lookup = {'5to6' : 5, '6to7' : 6, '7to8' : 7, '8to9' : 8, '9to10' : 9, 
+              '10to14' : 10, '14to15' : 14, '15to16' : 15, '16to17' : 16, 
+              '17to18' : 17, '18to20' : 18, '20to5' : 20}
 
 county_id = {	1: 'King',
 				2: 'Snohomish',
@@ -118,13 +118,14 @@ counts_output_file = 'counts_output.csv'
 screenlines = 'screenline_volumes.csv'
 screenlines_file = 'scripts/summarize/inputs/network_summary/screenlines_2014.csv'
 
-uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
-            '@hov2_inc1','@hov2_inc2','@hov2_inc3',
-            '@hov3_inc1','@hov3_inc2','@hov3_inc3',
-            '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
-            '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
-            '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-            '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
+# uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
+#             '@hov2_inc1','@hov2_inc2','@hov2_inc3',
+#             '@hov3_inc1','@hov3_inc2','@hov3_inc3',
+#             '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+#             '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
+#             '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+#             '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
+uc_list = ['@svtl1','@svtl2','@svtl3','@h2tl1','@h2tl2','@h2tl3','@h3tl1','@h3tl2','@h3tl3','@mveh','@hveh','@bveh']
 
 output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
                'screenline_volumes']

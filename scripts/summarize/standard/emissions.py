@@ -60,7 +60,7 @@ def calc_start_emissions():
     # Format table and calculate PM2.5, PM10 totals
     df = finalize_emissions(df)
 
-    # df.to_csv(r'outputs\emissions\start_emissions.csv', index=False) 
+    df.to_csv(r'outputs/emissions/regional/regional_start_emissions.csv', index=False) 
 
     return df
 
@@ -146,7 +146,7 @@ def calc_iz_emissions(df_iz, rates):
 	df.reset_index(drop=True, inplace=True)
 	df = finalize_emissions(df, '')
 
-	# df.to_csv(r'outputs\emissions\intrazonal_emissions_summary.csv')
+	df.to_csv(r'outputs/emissions/regional/regional_intrazonal_emissions_summary.csv')
 
 	return df
 
@@ -254,7 +254,7 @@ def finalize_emissions(df, col_suffix=""):
 
 	return df
 
-def calculate_emissions(df_iz_vol, rates):
+def calculate_regional_emissions(df_iz_vol, rates):
     """ Summarize total emissions from starts, intrazonal, and running emissions
         and export summary file. 
     """
@@ -262,7 +262,7 @@ def calculate_emissions(df_iz_vol, rates):
     # Calcualte start emissions; write results to CSV
     start_df = calc_start_emissions()
 
-    # Calcualte disaggregate (link-level) intrazonal emissions; write results to CSV
+    # # Calcualte disaggregate (link-level) intrazonal emissions; write results to CSV
     iz_df = calc_iz_emissions(df_iz_vol, rates)
     
     # Calculate disaggregate running (interzonal) emissions; write results to CSV
@@ -272,7 +272,7 @@ def calculate_emissions(df_iz_vol, rates):
     df = pd.merge(iz_df, running_df, how='left', on=['pollutant','pollutant_name']).fillna(0)
     df = pd.merge(df, start_df,how='left', on=['pollutant','pollutant_name']).fillna(0)
 
-    df.to_csv(r'outputs/emissions/emissions_summary_detailed.csv', index=False)
+    df.to_csv(r'outputs/emissions/regional/regional_emissions_summary_detailed.csv', index=False)
 
     # Generate brief summary of total starting, intrazonal, and interzonal emissions
     df_brief = df.copy()
@@ -284,66 +284,34 @@ def calculate_emissions(df_iz_vol, rates):
     df_brief['total_daily_tons'] = df_brief['start_tons']+df_brief['total_intrazonal_tons']+df_brief['total_interzonal_tons']
     df_brief = df_brief[['start_tons','total_intrazonal_tons','total_interzonal_tons',
                                     'total_daily_tons','pollutant','pollutant_name']]
-    df_brief.to_csv(r'outputs\emissions\emissions_summary.csv',index=False)
+    df_brief.to_csv(r'outputs/emissions/regional/regional_emissions_summary.csv',index=False)
 
 def calculate_tons_by_veh_type(df, df_rates):
-    df.rename(columns={'geog_name':'county', 'avgspeedbinId': 'avgSpeedBinID', 'roadtypeId': 'roadTypeID', 'hourId': 'hourID'},
-              inplace=True)
+	""" Calculate link emissions using rates unique to speed, road type, hour, county, and vehicle type. """
 
-    df['county'] = df['county'].apply(lambda row: row.lower())
-    
-    # Calculate total VMT by vehicle group
-    df['light'] = df['sov_vmt']+df['hov2_vmt']+df['hov3_vmt']
-    df['medium'] = df['medium_truck_vmt']
-    df['heavy'] = df['heavy_truck_vmt']
-    # What about buses??
-    df.drop(['sov_vmt','hov2_vmt','hov3_vmt','medium_truck_vmt','heavy_truck_vmt','bus_vmt'], inplace=True, axis=1)
+	df.rename(columns={'geog_name':'county', 'avgspeedbinId': 'avgSpeedBinID', 'roadtypeId': 'roadTypeID', 'hourId': 'hourID'}, inplace=True)
 
-    # Melt to pivot vmt by vehicle type columns as rows
-    df = pd.melt(df, id_vars=['avgSpeedBinID','roadTypeID','hourID','county'], var_name='veh_type', value_name='vmt')
+	df['county'] = df['county'].apply(lambda row: row.lower())
 
-    newdf = pd.merge(df, df_rates, on=['avgSpeedBinID','roadTypeID','hourID','county','veh_type'], how='left', left_index=False)
-    # Calculate total grams of emission 
-    newdf['grams_tot'] = newdf['grams_per_mile']*newdf['vmt']
-    newdf['tons_tot'] = grams_to_tons(newdf['grams_tot'])
-    
-    return newdf
+	# Calculate total VMT by vehicle group
+	df['light'] = df['sov_vmt']+df['hov2_vmt']+df['hov3_vmt']
+	df['medium'] = df['medium_truck_vmt']
+	df['heavy'] = df['heavy_truck_vmt']
+	# What about buses??
+	df.drop(['sov_vmt','hov2_vmt','hov3_vmt','medium_truck_vmt','heavy_truck_vmt','bus_vmt'], inplace=True, axis=1)
 
-def main():
+	# Melt to pivot vmt by vehicle type columns as rows
+	df = pd.melt(df, id_vars=['avgSpeedBinID','roadTypeID','hourID','county'], var_name='veh_type', value_name='vmt')
 
-    print 'Calculating emissions...'
+	newdf = pd.merge(df, df_rates, on=['avgSpeedBinID','roadTypeID','hourID','county','veh_type'], how='left', left_index=False)
+	# Calculate total grams of emission 
+	newdf['grams_tot'] = newdf['grams_per_mile']*newdf['vmt']
+	newdf['tons_tot'] = grams_to_tons(newdf['grams_tot'])
 
-    # Create fresh output directory
-    emissions_output_dir = r'outputs/emissions'
-    if os.path.exists(emissions_output_dir):
-        shutil.rmtree(emissions_output_dir)
-    os.makedirs(emissions_output_dir)
+	return newdf
 
-    # Load intrazonal volume data
-    df_iz_vol = pd.read_csv(r'outputs/network/iz_vol.csv')
-
-    # Load running emission rates for model year and replace county ID with name
-    rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates.csv')
-    rates['yearId'] = rates['yearId'].astype('str')
-    rates = rates[rates['yearId'] == model_year]
-    rates['geog_name'] = rates['countyId'].map(county_id)
-
-    # Calculate start, intra-, and inter-zonal emissions 
-    calculate_emissions(df_iz_vol=df_iz_vol, rates=rates)
-
-    # Calculate separate emissions using rates by vehicle type
-
-    # create directory for these output files
-	output_dir = r'outputs/emissions/by_vehicle_type'
-	if not os.path.exists(output_dir):
-		os.makedirs(output_dir)
-
-	# Calculate interzonal emissions by vehicle type
-	df_running_rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates_by_veh_type.csv')
-
-	df_running_rates.rename(columns={'sum(ratePerDistance)': 'grams_per_mile'}, inplace=True)
-	df_running_rates['year'] = df_running_rates['year'].astype('str')
-	df_running_rates = df_running_rates[df_running_rates['year'] == year]
+def calculate_interzonal_emissions_by_veh_type(df_running_rates, output_dir):
+	""" Calculate interzonal running emissions. Write intermediate calcs to file and return dataframe. """
 
 	df_inter = pd.read_csv(r'outputs/emissions/interzonal_vmt_grouped.csv')
 	df_inter = calculate_tons_by_veh_type(df_inter, df_running_rates)
@@ -351,7 +319,11 @@ def main():
 	# Write raw output to file
 	df_inter.to_csv(os.path.join(output_dir,'interzonal_emissions_by_veh_type.csv'), index=False)
 
-	# Calculate intrazonal emissions by vehicle type
+	return df_inter
+
+def calculate_intrazonal_emissions_by_veh_type(df_running_rates, output_dir):
+	""" Summarize intrazonal emissions by vehicle type. """
+
 	df_intra = pd.read_csv(r'outputs/emissions/intrazonal_vmt_grouped.csv')
 	df_intra.rename(columns={'vehicle_type':'veh_type', 'VMT': 'vmt', 'hourId': 'hourID', 'geog_name': 'county'},inplace=True)
 	df_intra.drop('tod', axis=1, inplace=True)
@@ -377,6 +349,7 @@ def main():
 	                    (df_running_rates['roadTypeID'] == roadtype)]
 
 	df_intra = pd.merge(df_intra, iz_rates, on=['hourID','county','veh_type'], how='left', left_index=False)
+
 	# Calculate total grams of emission 
 	df_intra['grams_tot'] = df_intra['grams_per_mile']*df_intra['vmt']
 	df_intra['tons_tot'] = grams_to_tons(df_intra['grams_tot'])
@@ -384,8 +357,10 @@ def main():
 	# Write raw output to file
 	df_intra.to_csv(os.path.join(output_dir,'intrazonal_emissions_by_veh_type.csv'), index=False)
 
-	# Calculate start emissions
-	start_rates_df = pd.read_csv(r'scripts/summarize/inputs/network_summary/start_emission_rates_by_veh_type.csv')
+	return df_intra
+
+def calculate_start_emissions_by_veh_type():
+	""" Calculate start emissions based on vehicle population by county and year. """
 
 	base_county_veh = pd.DataFrame.from_dict(vehs_by_type, orient='index')
 
@@ -398,7 +373,38 @@ def main():
 	vehicles_df = pd.DataFrame(scen_county_veh.unstack()).reset_index()
 	vehicles_df.columns = ['veh_type','county','vehicles']
 
+	return vehicles_df
+
+def calculate_emissions_by_veh_type():
+	"""
+	Calculate emissions totals for start, intrazonal, and interzonal running emissions.
+	Uses different average rates for light, medium, and heavy vehicles. 
+	This method was originally used for GHG strategy analyses, which tested scenarios
+	of improvements by vehicle types (e.g., 5% emissions reductions for medium and heavy trucks, 25% more light EVs).
+	"""
+
+	# create directory for these output files
+	output_dir = r'outputs/emissions/by_vehicle_type'
+
+	# Load running emission rates by vehicle type, for the model year
+	df_running_rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates_by_veh_type.csv')
+	df_running_rates.rename(columns={'sum(ratePerDistance)': 'grams_per_mile'}, inplace=True)
+	df_running_rates['year'] = df_running_rates['year'].astype('str')
+	df_running_rates = df_running_rates[df_running_rates['year'] == model_year]
+
+	# Calculate interzonal emissions by vehicle type
+	df_inter = calculate_interzonal_emissions_by_veh_type(df_running_rates, output_dir)
+
+	# Calculate intrazonal emissions by vehicle type
+	df_intra = calculate_intrazonal_emissions_by_veh_type(df_running_rates, output_dir)
+
+	# Calculate start emissions by vehicle type
+	vehicles_df = calculate_start_emissions_by_veh_type()
+	
 	# Join with rates to calculate total emissions
+	start_rates_df = pd.read_csv(r'scripts/summarize/inputs/network_summary/start_emission_rates_by_veh_type.csv')
+	start_rates_df = start_rates_df[start_rates_df['year'] == int(model_year)]
+
 	start_emissions_df = pd.merge(vehicles_df, start_rates_df, on=['veh_type','county'])
 	start_emissions_df['start_grams'] = start_emissions_df['vehicles']*start_emissions_df['ratePerVehicle'] 
 	start_emissions_df['start_tons'] = grams_to_tons(start_emissions_df['start_grams'])
@@ -418,6 +424,31 @@ def main():
 	summary_df = pd.merge(summary_df, df_start_group)
 
 	summary_df.to_csv(os.path.join(output_dir,'emissions_by_veh_type_summary.csv'),index=False)
+
+def main():
+
+	print 'Calculating emissions...'
+
+	# Create fresh output directory
+	for outdir in ['outputs/emissions','outputs/emissions/regional','outputs/emissions/by_vehicle_type']:
+		if os.path.exists(outdir):
+		    shutil.rmtree(outdir)
+		os.makedirs(outdir)
+
+	# Load intrazonal volume data
+	df_iz_vol = pd.read_csv(r'outputs/network/iz_vol.csv')
+
+	# Load running emission rates for model year and replace county ID with name
+	rates = pd.read_csv(r'scripts/summarize/inputs/network_summary/running_emission_rates.csv')
+	rates['yearId'] = rates['yearId'].astype('str')
+	rates = rates[rates['yearId'] == model_year]
+	rates['geog_name'] = rates['countyId'].map(county_id)
+
+	# Calculate start, intra-, and inter-zonal emissions using average regional rate across all vehicle types
+	calculate_regional_emissions(df_iz_vol=df_iz_vol, rates=rates)
+
+	# Calculate same emissions totals using rates specific to vehicle type
+	calculate_emissions_by_veh_type()
 
 if __name__ == '__main__':
     main()
