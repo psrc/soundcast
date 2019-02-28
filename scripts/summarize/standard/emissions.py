@@ -52,6 +52,8 @@ def calc_start_emissions():
     df['start_grams'] = df['ratePerVehicle']*df['vehicles']
     df['start_tons'] = grams_to_tons(df['start_grams'])
 
+    df.to_csv(r'outputs/emissions/regional/regional_start_emissions.csv', index=False) 
+
     # Sum across all counties
     df = df.groupby('pollutantID').sum()[['start_tons']]
     df['pollutant'] = df.index
@@ -59,8 +61,6 @@ def calc_start_emissions():
 
     # Format table and calculate PM2.5, PM10 totals
     df = finalize_emissions(df)
-
-    df.to_csv(r'outputs/emissions/regional/regional_start_emissions.csv', index=False) 
 
     return df
 
@@ -134,6 +134,8 @@ def calc_iz_emissions(df_iz, rates):
 	df = pd.merge(df, iz_rates, on=['geog_name','hourId'], how='left')
 	df['intrazonal_total'] = df['VMT']*df['gramsPerMile']
 
+	df.to_csv(r'outputs/emissions/regional/regional_intrazonal_emmisions.csv', index=False)
+
 	df = df.groupby(['pollutantId','vehicle_type']).sum()
 	df.reset_index(inplace=True)
 
@@ -145,8 +147,6 @@ def calc_iz_emissions(df_iz, rates):
 	df['pollutant'] = df.index
 	df.reset_index(drop=True, inplace=True)
 	df = finalize_emissions(df, '')
-
-	df.to_csv(r'outputs/emissions/regional/regional_intrazonal_emissions_summary.csv')
 
 	return df
 
@@ -212,6 +212,8 @@ def calc_running_emissions(rates):
 	# Calcualte total emissions by group in grams for all vehicle types 
 	for vehicle_type in vehicle_type_list:
 	    df[vehicle_type+'_interzonal'] = df[vehicle_type+'_vmt']*df['gramsPerMile']
+
+	df.to_csv(r'outputs/emissions/regional/regional_interzonal_emissions.csv', index=False)
 	    
 	# Calculate total emissions in grams for all pollutants
 	df = df.groupby('pollutantId').sum()[[i+'_interzonal' for i in vehicle_type_list]]
@@ -276,14 +278,13 @@ def calculate_regional_emissions(df_iz_vol, rates):
 
     # Generate brief summary of total starting, intrazonal, and interzonal emissions
     df_brief = df.copy()
-    df_brief['total_intrazonal_tons'] = df_brief['heavy_truck_intrazonal_tons']+df_brief['medium_truck_intrazonal_tons']\
+    df_brief['intrazonal_tons'] = df_brief['heavy_truck_intrazonal_tons']+df_brief['medium_truck_intrazonal_tons']\
                                    +df_brief['sov_intrazonal_tons']+df_brief['hov2_intrazonal_tons']+df_brief['hov3_intrazonal_tons']
-    df_brief['total_interzonal_tons'] = df_brief['heavy_truck_interzonal_tons']+df_brief['medium_truck_interzonal_tons']\
+    df_brief['interzonal_tons'] = df_brief['heavy_truck_interzonal_tons']+df_brief['medium_truck_interzonal_tons']\
                                    +df_brief['sov_interzonal_tons']+df_brief['hov2_interzonal_tons']+df_brief['hov3_interzonal_tons']\
                                    +df_brief['bus_interzonal_tons']
-    df_brief['total_daily_tons'] = df_brief['start_tons']+df_brief['total_intrazonal_tons']+df_brief['total_interzonal_tons']
-    df_brief = df_brief[['start_tons','total_intrazonal_tons','total_interzonal_tons',
-                                    'total_daily_tons','pollutant','pollutant_name']]
+    df_brief['total_daily_tons'] = df_brief['start_tons']+df_brief['intrazonal_tons']+df_brief['interzonal_tons']
+    df_brief = df_brief[['pollutant','pollutant_name','start_tons','intrazonal_tons','interzonal_tons','total_daily_tons']]
     df_brief.to_csv(r'outputs/emissions/regional/regional_emissions_summary.csv',index=False)
 
 def calculate_tons_by_veh_type(df, df_rates):
@@ -414,15 +415,19 @@ def calculate_emissions_by_veh_type():
 	start_emissions_df.to_csv(os.path.join(output_dir,'start_emissions_by_veh_type.csv'), index=False)
 
 	# Combine all rates and export as CSV
-	df_inter_group = df_inter.groupby(['pollutantID','county','veh_type']).sum()[['tons_tot']].reset_index()
+	df_inter_group = df_inter.groupby(['pollutantID','veh_type']).sum()[['tons_tot']].reset_index()
 	df_inter_group.rename(columns={'tons_tot': 'interzonal_tons'}, inplace=True)
-	df_intra_group = df_intra.groupby(['pollutantID','county','veh_type']).sum()[['tons_tot']].reset_index()
+	df_intra_group = df_intra.groupby(['pollutantID','veh_type']).sum()[['tons_tot']].reset_index()
 	df_intra_group.rename(columns={'tons_tot': 'intrazonal_tons'}, inplace=True)
-	df_start_group = start_emissions_df.groupby(['pollutantID','county','veh_type']).sum()[['start_tons']].reset_index()
+	df_start_group = start_emissions_df.groupby(['pollutantID','veh_type']).sum()[['start_tons']].reset_index()
 
 	summary_df = pd.merge(df_inter_group, df_intra_group)
 	summary_df = pd.merge(summary_df, df_start_group)
 
+	summary_df['pollutant_name'] = summary_df['pollutantID'].astype('str').map(pollutant_map)
+
+	summary_df['total_daily_tons'] = summary_df['start_tons']+summary_df['interzonal_tons']+summary_df['intrazonal_tons']
+	summary_df = summary_df[['pollutantID','pollutant_name','veh_type','start_tons','intrazonal_tons','interzonal_tons','total_daily_tons']]
 	summary_df.to_csv(os.path.join(output_dir,'emissions_by_veh_type_summary.csv'),index=False)
 
 def main():
