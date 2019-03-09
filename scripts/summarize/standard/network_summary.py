@@ -303,8 +303,8 @@ def daily_counts(writer, my_project):
     """ Export daily network volumes and compare to observed."""
 
     # Load observed data
-    count_id_df = pd.read_csv(r'inputs/base_year/screenline_count_ids.txt', sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
-    observed_count_df =  pd.read_csv(r'inputs/base_year/observed_daily_counts.csv')
+    count_id_df = pd.read_csv(screenline_counts_file, sep = ' ', header = None, names = ['NewINode', 'NewJNode','ScreenLineID'])
+    observed_count_df =  pd.read_csv(daily_counts_file)
     count_id_df = count_id_df.merge(observed_count_df, how = 'left', on = 'ScreenLineID')
     # add daily bank to project if it exists
     if os.path.isfile(r'Banks/Daily/emmebank'):
@@ -792,7 +792,7 @@ def main():
     transit_atts = []
 
     # Access global Emme project WITHOUT all time-of-day banks available
-    my_project = EmmeProject(project)
+    my_project = EmmeProject(network_summary_project)
 
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
@@ -809,7 +809,7 @@ def main():
        
     # Import observed count data
     loop_ids = pd.read_csv(r'inputs/scenario/networks/count_ids.txt', sep=' ', header=None, names=['NewINode', 'NewJNode','CountID'])
-    loop_counts = pd.read_csv(r'inputs/base_year/loop_counts_2014.csv')
+    loop_counts = pd.read_csv(loop_counts_file)
     loop_counts.set_index(['CountID_Type'], inplace=True)
     df_counts = pd.read_csv(counts_file, index_col=['loop_INode', 'loop_JNode'])
     df_aadt_counts = pd.read_csv(aadt_counts_file)
@@ -852,7 +852,6 @@ def main():
 
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
-            print my_project.tod
             stop_df, seg_df = transit_summary(project=my_project, seg_df=seg_df, 
                 transit_summary_dict=transit_summary_dict, transit_atts=transit_atts,
                 stop_df=stop_df)

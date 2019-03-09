@@ -1,20 +1,10 @@
 #################################### NETWORK SUMMARY ####################################
-network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
-                         'counts_output', 'network_summary']
-network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
-project = 'Projects/LoadTripTables/LoadTripTables.emp'
-report_output_location = 'Outputs/network'
+
 fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
                  'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
                  'connectors' : 'ul3 = 5'}
-extra_attributes_dict = {'@tveh' : 'total vehicles', 
-                         '@mveh' : 'medium trucks', 
-                         '@hveh' : 'heavy trucks', 
-                         '@vmt' : 'vmt',\
-                         '@vht' : 'vht', 
-                         '@trnv' : 'buses in auto equivalents',
-                         '@ovol' : 'observed volume', 
-                         '@bveh' : 'number of buses'}
+
+
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
 
 income_bins = [-9999,25000,100000,9999999999]
@@ -24,6 +14,9 @@ tod_lookup = {'5to6' : 5, '6to7' : 6, '7to8' : 7, '8to9' : 8, '9to10' : 9,
               '10to14' : 10, '14to15' : 14, '15to16' : 15, '16to17' : 16, 
               '17to18' : 17, '18to20' : 18, '20to5' : 20}
 
+################################################
+# Emissions calculations
+################################################
 county_id = {	1: 'King',
 				2: 'Snohomish',
 				3: 'Pierce',
@@ -107,39 +100,38 @@ pollutant_map = {
     '119': 'H20 Aerosol'
 }
 
-# Input Files:
-counts_file = r'scripts/summarize/inputs/network_summary/TrafficCounts_Mid.txt'
-aadt_counts_file = r'scripts/summarize/inputs/network_summary/soundcast_aadt.csv'
-tptt_counts_file = r'scripts/summarize/inputs/network_summary/soundcast_tptt.csv'
-# Output Files: 
-daily_network_fname = 'outputs/network/daily_network_results.csv'
-net_summary_file = 'network_summary.csv'
-counts_output_file = 'counts_output.csv'
-screenlines = 'screenline_volumes.csv'
-screenlines_file = 'scripts/summarize/inputs/network_summary/screenlines_2014.csv'
+################################################################
+# Summary input files and output directory names
+################################################################
 
-# uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
-#             '@hov2_inc1','@hov2_inc2','@hov2_inc3',
-#             '@hov3_inc1','@hov3_inc2','@hov3_inc3',
-#             '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
-#             '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
-#             '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-#             '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
-uc_list = ['@svtl1','@svtl2','@svtl3','@h2tl1','@h2tl2','@h2tl3','@h3tl1','@h3tl2','@h3tl3','@mveh','@hveh','@bveh']
+# Input Files
+counts_file = 'inputs/base_year/observed/TrafficCounts_Mid.txt'
+aadt_counts_file = 'inputs/base_year/observed/observed_aadt.csv'
+tptt_counts_file = 'inputs/base_year/observed/observed_tptt.csv'
+loop_counts_file = 'inputs/base_year/observed/observed_loop_counts.csv'
+screenlines_file = 'inputs/base_year/observed/observed_screenline_volumes.csv'
+truck_counts_file = 'inputs/base_year/observed/observed_truck_counts.csv' 
+observed_boardings_file = 'inputs/base_year/observed/observed_transit_boardings.csv'
+light_rail_boardings = 'inputs/base_year/observed/observed_light_rail_boardings.csv'
+screenline_counts_file = 'inputs/base_year/observed/observed_screenline_counts.txt'
+daily_counts_file = 'inputs/base_year/observed/observed_daily_counts.csv'
 
-output_list = ['prod_att.csv', 'gq_prod_att.csv', 'network_summary.csv', 'counts_output.csv', 'daysim_outputs.h5',
-               'screenline_volumes']
+# Output Files 
+network_summary_dir = 'outputs/network/network_summary.xlsx'
+validation_summary_dir = 'outputs/network/validation.xlsx'
+transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
 
-########## Land Use Summary ##################################################
-out_lu_summary = r'outputs/landuse/landuse_summary.xlsx'
-households_persons_file = r'inputs/scenario/landuse/hh_and_persons.h5'
-
-######## Truck Counts ########################################################
-truck_counts_file = r'scripts/summarize/inputs/network_summary/truck_counts_2014.csv' 
+uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
+            '@hov2_inc1','@hov2_inc2','@hov2_inc3',
+            '@hov3_inc1','@hov3_inc2','@hov3_inc3',
+            '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+            '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
+            '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+            '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
+# Note: use the below uc_list to run emissions.py with older runs, v2.1.1 and earlier
+# uc_list = ['@svtl1','@svtl2','@svtl3','@h2tl1','@h2tl2','@h2tl3','@h3tl1','@h3tl2','@h3tl3','@mveh','@hveh','@bveh']
 
 ######## Observed Transit Boardings############################################
-observed_boardings_file = 'scripts/summarize/inputs/network_summary/transit_boardings_2014.csv'
-light_rail_boardings = r'scripts/summarize/inputs/network_summary/light_rail_boardings.csv'
 
 # Grouped outputs
 
@@ -150,26 +142,16 @@ comparison_runs = {}
 compare_survey = True    # compare daysim results in Tableau and topsheet outputs
 
 #### Transit Groupings ###############################################################
-transit_time_group_file= 'scripts/summarize/inputs/network_summary/transit_time_groups.csv'
-route_group_file = 'scripts/summarize/inputs/network_summary/transit_route_groups.csv'
-special_routes_file = 'scripts/summarize/inputs/network_summary/transit_special_routes.csv'
-
-
-##### Output File Locations ######################################################
-network_summary_dir = 'outputs/network/network_summary.xlsx'
-validation_summary_dir = 'outputs/network/validation.xlsx'
-transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
-
-roadway_summary = 'outputs/network/roadway_summary.xlsx'
-transit_summary_out = 'outputs/transit/transit_summary.xlsx'
+transit_time_group_file= 'inputs/model/lookup/transit_time_groups.csv'
+route_group_file = 'inputs/model/lookup/transit_route_groups.csv'
+special_routes_file = 'inputs/model/lookup/transit_special_routes.csv'
 
 # Bikes
 bike_link_vol = 'outputs/bike/bike_volumes.csv'
-bike_count_data = 'inputs/base_year/bike_count_links.csv'
+bike_count_data = 'inputs/base_year/observed/bike_count_links.csv'
 edges_file = 'inputs/scenario/bike/edges_0.txt'
 
 # Parcel Summary
-buffered_parcels = 'buffered_parcels.txt'   # Parcel data
 parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
 parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
 parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'

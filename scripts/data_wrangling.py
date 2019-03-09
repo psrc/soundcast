@@ -159,13 +159,19 @@ def setup_emme_project_folders():
    
 @timed    
 def copy_scenario_inputs():
-    print 'Copying scenario inputs...' 
+
+    for path in ['inputs/base_year','inputs/scenario']:
+        if os.path.exists(os.path.join(os.getcwd(),path)):
+            shutil.rmtree(os.path.join(os.getcwd(),path), ignore_errors=True)
+
     dir_util.copy_tree(scenario_inputs,'inputs/scenario')
 
-    # Copy base year inputs (too large for storing on Github)
-    src = os.path.join(os.path.join(base_inputs,'landuse/node_to_node_distance_2014.h5'))
-    dst = os.path.join(os.getcwd(),'inputs/scenario/landuse/node_to_node_distance_2014.h5')
-    shutil.copyfile(src,dst)
+    if model_year == base_year:
+        # Move base_inputs folder up a directory
+        shutil.move('inputs/scenario/base_year','inputs')
+    else:
+        # Copy base_year folder from inputs directory
+        dir_util.copy_tree(os.path.join(base_inputs,'base_year'),'inputs/base_year')
 
 @timed
 def copy_shadow_price_file():

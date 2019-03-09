@@ -322,7 +322,7 @@ def main():
 		run_all_summaries()
 
 	clean_up()
-	print '###### OH HAPPY DAY!  ALL DONE. GO GET A ' + random.choice(good_thing)
+	print '###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(good_thing)
 
 if __name__ == "__main__":
 	logger = logcontroller.setup_custom_logger('main_logger')

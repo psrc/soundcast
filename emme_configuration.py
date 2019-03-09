@@ -1,8 +1,35 @@
 ﻿from input_configuration import *
 
-base_year = '2014'
+###################################
+# Assignment Criteria
+################################### 
+log_file_name = 'outputs/logs/skims_log.txt'
+STOP_THRESHOLD = 0.026    # Global convergence criteria
+parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
+max_iter = 50             # Max number of iterations for assignment
+relative_gap = .0001      # Assignment Convergence Criteria
+best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
+normalized_gap = 0.00     # See above
 
-##################################### NETWORK IMPORTER ####################################
+pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+# Assignment Iterations (must be same length as pop_sample:
+max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
+min_pop_sample_convergence_test = 10
+shadow_work = [2, 1, 1, 1]
+shadow_con = 30 #%RMSE for shadow pricing to consider being converged
+
+###################################
+# Zone Defintions
+################################### 
+MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
+MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
+HIGH_TAZ = 3700
+LOW_PNR = 3751
+HIGH_PNR = 4000
+
+#####################################
+# Network Import Settings
+####################################
 import_shape = False    # use network shape
 master_project = 'LoadTripTables'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -19,6 +46,16 @@ mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : '
                       'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
                       'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
                       'ahijstuvbw' : 'asehdimjvutbpw'}
+
+extra_attributes_dict = {'@tveh' : 'total vehicles', 
+                         '@mveh' : 'medium trucks', 
+                         '@hveh' : 'heavy trucks', 
+                         '@vmt' : 'vmt',\
+                         '@vht' : 'vht', 
+                         '@trnv' : 'buses in auto equivalents',
+                         '@ovol' : 'observed volume', 
+                         '@bveh' : 'number of buses'}
+                         
 mode_file = 'modes.txt'
 transit_vehicle_file = 'vehicles.txt' 
 base_net_name = '_roadway.in'
@@ -35,41 +72,11 @@ headway_file = 'headways.csv'
 # minimum scene_node value where facility type = 99
 min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205, '2050' : 199205}
 
-###### Model iterations, population sampling, log files, etc.######
-pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
-# Assignment Iterations (must be same length as pop_sample:
-max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
-min_pop_sample_convergence_test = 10
-# start building shadow prices - only run work locations
-shadow_work = [2, 1, 1, 1]
-shadow_con = 30 #%RMSE for shadow pricing to consider being converged
-####################################
-
 # These files generally do not change and don't need to be toggled here usually
 parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
 # run daysim and assignment in feedback until convergence
 main_log_file = 'soundcast_log.txt'
 master_project = 'LoadTripTables'
-network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
-                         'counts_output', 'network_summary']
-
-
-
-###################################
-################################### SKIMS AND PATHS ####################################
-log_file_name = 'outputs/logs/skims_log.txt'
-STOP_THRESHOLD = 0.026
-parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
-max_iter = 50             # Assignment Convergence Criteria
-best_relative_gap = 0.00  # Assignment Convergence Criteria
-relative_gap = .0001
-normalized_gap = 0.00
-
-MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
-MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
-HIGH_TAZ = 3700
-LOW_PNR = 3751
-HIGH_PNR = 4000
 
 vot_1_max = 13.07    # VOT for User Class 1 < vot_1_max
 vot_2_max = 26.14    # vot_1_max < VOT for User Class 2 < vot_2_max
@@ -92,13 +99,7 @@ feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
 project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
-## HDF5 Groups and Subgroups
-hdf5_maingroups = ["Daysim","Emme","Truck Model","UrbanSim"]
-hdf5_emme_subgroups = tods
 emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit", 'LightRail']
-hdf5_urbansim_subgroups = ["Households","Parcels","Persons"]
-hdf5_freight_subgroups = ["Inputs","Outputs","Rates"]
-hdf5_daysim_subgroups = ["Household","Person","Trip","Tour"]
 
 # Skim for time, cost
 skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
@@ -146,12 +147,7 @@ transit_node_constants = {'2014':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt'
                           '0056':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '0057':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '0058':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
-
-transit_network_tod_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am',
-                            '9to10' : 'md', '10to14' : 'md', '14to15' : 'md',
-                            '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm',
-                            '18to20' : 'ev'}                  
-
+               
 transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
@@ -162,16 +158,10 @@ transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '15to16' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
                '16to17' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
                '17to18' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
-               '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}
-                
+               '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}           
 
 # Transit Fare:
-fares_dir = 'inputs/scenario/networks/fares/'
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
-peak_fare_box = 'inputs/scenario/networks/fares/am_fares_farebox.in'
-peak_monthly_pass = 'inputs/scenario/networks/fares/am_fares_monthly_pass.in'
-offpeak_fare_box = 'inputs/scenario/networks/fares/Fares/md_fares_farebox.in'
-offpeak_monthly_pass = 'inputs/scenario/networks/fares/md_fares_monthly_pass.in'
 fare_matrices_tod = ['6to7', '9to10']
 
 # Intrazonals
@@ -180,12 +170,11 @@ taz_area_file = 'inputs/model/intrazonals/taz_acres.in'
 origin_tt_file = 'inputs/model/intrazonals/origin_tt.in'
 destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
 
-# Zone Index
-#tazIndexFile = '/inputs/TAZIndex_5_28_14.txt'
+#################################
+# Supplementals Settings
+#################################
 
-# SUPPLEMENTAL#######################################################
 #Trip-Based Matrices for External, Trucks, and Special Generator Inputs
-supplemental_loc = 'outputs/supplemental/'
 hdf_auto_filename = 'outputs/supplemental/auto.h5'
 special_gen_trips = 'inputs/scenario/supplemental/generation/special_generators.csv'
 airport_zone_list = [983] # zone numbers for airport special generator
@@ -193,8 +182,6 @@ trip_table_loc = 'inputs/scenario/supplemental/generation/prod_att.csv'
 gq_trips_loc = 'inputs/scenario/supplemental/generation/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 
-# Iterations for fratar process in trip distribution
-bal_iters = 5
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
@@ -203,17 +190,10 @@ airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '203
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
 
-# These files generally do not change and don't need to be toggled here usually
-parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
-# run daysim and assignment in feedback until convergence
-main_log_file = 'soundcast_log.txt'
-master_project = 'LoadTripTables'
-network_summary_files = ['6to7_transit', '7to8_transit', '8to9_transit', '9to10_transit',
-                         'counts_output', 'network_summary']
-
 #This is what you get if the model runs cleanly, but it's random:
-good_thing = ["cookie", "run", "puppy", "seal sighting",  "beer", "sunshine", "nap","world peace"]
+good_thing = ["a cookie", "a run", "a puppy", "a seal sighting",  "a beer", "some sunshine", "a nap"]
 
+#################################
 # Integrated Run Settings
 #################################
 # Only required for integrated Urbans runs; leave as default for standard runs
