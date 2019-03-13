@@ -181,6 +181,7 @@ airport_zone_list = [983] # zone numbers for airport special generator
 trip_table_loc = 'inputs/scenario/supplemental/generation/prod_att.csv'
 gq_trips_loc = 'inputs/scenario/supplemental/generation/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
+supplemental_output_dir = 'outputs/supplemental'
 
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)

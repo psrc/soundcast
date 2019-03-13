@@ -3,16 +3,13 @@ import pandas as pd
 import numpy as np
 import os, sys
 os.chdir(r"D:\stefan\sc_calibration\soundcast")
-#from accessibility_configuration import *
+from accessibility_configuration import *
 from emme_configuration import *
 import re
 import sys
 from pyproj import Proj, transform
 import h5py 
 
-parcels_file_name = 'inputs/accessibility/parcels_urbansim.txt'
-nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
-links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
 max_dist = 24140.2
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):

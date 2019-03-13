@@ -773,7 +773,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     tod = my_project.tod
     # Create empty array to fill with trips
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
-    hdf_file = h5py.File(supplemental_loc + tod + '.h5', "r")
+    hdf_file = h5py.File(os.path.join(supplemental_output_dir,tod + '.h5'), "r")
     # Call correct mode name by removing income class value when needed
     if matrix_name not in ['bike', 'litrat', 'trnst', 'walk']:
         mode_name = matrix_name.split('_')[0]

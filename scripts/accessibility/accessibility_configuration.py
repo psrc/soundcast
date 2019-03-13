@@ -4,9 +4,9 @@ from input_configuration import *
 
 parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
 output_parcels = 'outputs/landuse/buffered_parcels.txt'
+nodes_file_name = 'inputs/base_year/all_streets_nodes.csv'
+links_file_name = 'inputs/base_year/all_streets_links.csv'
 transit_stops_name = 'inputs/scenario/networks/transit/transit_stops.csv'
-nodes_file_name = 'inputs/base_year/all_streets_nodes_2014.csv'
-links_file_name = 'inputs/base_year/all_streets_links_2014.csv'
 
 max_dist = 24140.2 # 3 miles in meters
 
