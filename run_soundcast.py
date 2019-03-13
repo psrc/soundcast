@@ -53,7 +53,7 @@ def accessibility_calcs():
     if base_year != model_year:
         print 'Starting to update UrbanSim parcel data with 4k parking data file'
         returncode = subprocess.call([sys.executable,
-                                  'scripts/utils/update_parking.py', scenario_inputs])
+                                  'scripts/utils/update_parking.py'])
         if returncode != 0:
             print 'Update Parking failed'
             sys.exit(1)
@@ -249,7 +249,7 @@ def main():
 		time_copy = datetime.datetime.now()
 		logger.info("Start of network importer")
 		returncode = subprocess.call([sys.executable,
-		'scripts/network/network_importer.py', scenario_inputs])
+		'scripts/network/network_importer.py'])
 		logger.info("End of network importer")
 		time_network = datetime.datetime.now()
 		if returncode != 0:
@@ -279,13 +279,13 @@ def main():
 
             # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
 			if not should_build_shadow_price:
-				if iteration == 0 or pop_sample[iteration-1] > 2:
-					try:
-					        #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
-						print "copying shadow prices" 
-					except:
-						print ' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt'
-						sys.exit(1)
+				# if iteration == 0 or pop_sample[iteration-1] > 2:
+				# 	try:
+				# 	        #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
+				# 		print "copying shadow prices" 
+				# 	except:
+				# 		print ' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt'
+				# 		sys.exit(1)
                 # Set up your Daysim Configration
 				modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
 

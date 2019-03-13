@@ -3,28 +3,29 @@ import os
 ##############################
 # Input paths and model years
 ##############################
-base_inputs = r'R:/SoundCast/Inputs/lodes/vision/2014'
-scenario_inputs = r'R:/SoundCast/Inputs/lodes/vision/2014'
 model_year = '2014'
 base_year = '2014'
+landuse_inputs = 'lodes'
+network_inputs = '2014_base'
+soundcast_inputs_dir = 'R:/SoundCast/Inputs/dev'
 
 ##############################
 # Initial Setup
 ##############################
-run_accessibility_calcs = False
-run_setup_emme_project_folders = False
-run_setup_emme_bank_folders = False
+run_accessibility_calcs = True
+run_setup_emme_project_folders = True
+run_setup_emme_bank_folders = True
 run_copy_scenario_inputs = True
-run_import_networks = False
+run_import_networks = True
 
 ##############################
 # Model Procedures
 ##############################
-run_skims_and_paths_free_flow = False
-run_skims_and_paths = False
-run_truck_model = False
-run_supplemental_trips = False
-run_daysim = False
+run_skims_and_paths_free_flow = True
+run_skims_and_paths = True
+run_truck_model = True
+run_supplemental_trips = True
+run_daysim = True
 run_summaries = True
 
 ##############################

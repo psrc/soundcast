@@ -16,14 +16,11 @@ import os,sys,datetime,re
 import subprocess
 import inro.emme.desktop.app as app
 import json
-from shutil import copy2 as shcopy
-from distutils import dir_util
+import shutil, errno
 import inro.emme.database.emmebank as _eb
 import random
-import shutil
 import h5py
 import pandas as pd
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"inputs","model","skim_parameters"))
 sys.path.append(os.getcwd())
 from input_configuration import *
@@ -141,7 +138,7 @@ def setup_emme_project_folders():
     database.open()
     desktop.project.save()
     desktop.close()
-    shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
+    copyanything(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
 
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
@@ -155,30 +152,30 @@ def setup_emme_project_folders():
         database.open()
         desktop.project.save()
         desktop.close()
-        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))      
+        copyanything(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))      
    
 @timed    
 def copy_scenario_inputs():
 
+    # Clear existing base_year and scenario folders
     for path in ['inputs/base_year','inputs/scenario']:
         if os.path.exists(os.path.join(os.getcwd(),path)):
             shutil.rmtree(os.path.join(os.getcwd(),path), ignore_errors=True)
 
-    dir_util.copy_tree(scenario_inputs,'inputs/scenario')
-
-    if model_year == base_year:
-        # Move base_inputs folder up a directory
-        shutil.move('inputs/scenario/base_year','inputs')
-    else:
-        # Copy base_year folder from inputs directory
-        dir_util.copy_tree(os.path.join(base_inputs,'base_year'),'inputs/base_year')
-
+    # Copy base_year folder from inputs directory
+    copyanything(os.path.join(soundcast_inputs_dir, 'base_year', base_year), 'inputs/base_year')
+    
+    # Copy network, landuse, and general (year-based) inputs
+    copyanything(os.path.join(soundcast_inputs_dir, 'general', model_year),'inputs/scenario')
+    copyanything(os.path.join(soundcast_inputs_dir, 'landuse', model_year, landuse_inputs),'inputs/scenario/landuse')
+    copyanything(os.path.join(soundcast_inputs_dir, 'networks', model_year, network_inputs),'inputs/scenario/networks')
+    
 @timed
 def copy_shadow_price_file():
     print 'Copying shadow price file.' 
     if not os.path.exists('working'):
        os.makedirs('working')
-    shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
+    copyanything(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
 @timed          
 def clean_up():
@@ -210,14 +207,14 @@ def copy_accessibility_files():
 
         for filename, dest_dir in file_dict.iteritems():
             try:
-                shcopy(os.path.join(scenario_inputs,filename),dest_dir)
+                copyanything(os.path.join(scenario_inputs,filename),dest_dir)
             except:
                 print 'error copying accessibility file: %s' % filename
                 sys.exit(1)
 
         if base_year != model_year: 
             try:
-                shcopy(os.path.join(scenario_inputs,'landuse/parking_costs.csv'),'inputs/scenario/landuse')
+                copyanything(os.path.join(scenario_inputs,'landuse/parking_costs.csv'),'inputs/scenario/landuse')
             except:
                 print 'error copying parking file at' + scenario_inputs+'/landuse/parking_costs.csv'
                 sys.exit(1)
@@ -238,7 +235,7 @@ def import_integrated_inputs():
 
     # Copy soundcast inputs and separate input files
     h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
-    shcopy(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
+    copyanything(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
 
     h5_inputs = h5_inputs = h5py.File('inputs/scenario/landuse/hh_and_persons.h5')
 
@@ -386,3 +383,11 @@ def update_daysim_modes():
     if not include_av:
         df[['av1','av2','av3']] = 'FALSE'
     df.to_csv(r'inputs/model/roster/psrc-roster.combinations.csv',index=False)
+
+def copyanything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise
