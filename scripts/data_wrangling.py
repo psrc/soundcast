@@ -17,6 +17,7 @@ import subprocess
 import inro.emme.desktop.app as app
 import json
 import shutil, errno
+from shutil import copy2 as shcopy
 import inro.emme.database.emmebank as _eb
 import random
 import h5py
@@ -138,7 +139,7 @@ def setup_emme_project_folders():
     database.open()
     desktop.project.save()
     desktop.close()
-    copyanything(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
+    shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
 
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
@@ -152,7 +153,7 @@ def setup_emme_project_folders():
         database.open()
         desktop.project.save()
         desktop.close()
-        copyanything(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))      
+        shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', tod))      
    
 @timed    
 def copy_scenario_inputs():
@@ -175,7 +176,7 @@ def copy_shadow_price_file():
     print 'Copying shadow price file.' 
     if not os.path.exists('working'):
        os.makedirs('working')
-    copyanything(base_inputs+'/shadow_prices/shadow_prices.txt','working')
+    shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
 
 @timed          
 def clean_up():
@@ -199,24 +200,24 @@ def copy_accessibility_files():
             os.makedirs('inputs/scenario/landuse')
         
         file_dict = {
-            'landuse/parcels_urbansim.txt': 'inputs/scenario/landuse',
-            'networks/transit/transit_stops.csv': 'inputs/scenario/networks/transit',
-            'landuse/parcels_military.csv': 'inputs/scenario/landuse',
-            'landuse/distribute_jblm_jobs.csv': 'inputs/scenario/landuse',
+            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_urbansim.txt'): 'inputs/scenario/landuse',
+            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_military.csv'): 'inputs/scenario/landuse',
+            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'distribute_jblm_jobs.csv'): 'inputs/scenario/landuse',
+            os.path.join(soundcast_inputs_dir,'networks',model_year,network_inputs,'transit/transit_stops.csv'): 'inputs/scenario/networks/transit',
         }
 
-        for filename, dest_dir in file_dict.iteritems():
+        for src_file, dest_dir in file_dict.iteritems():
             try:
-                copyanything(os.path.join(scenario_inputs,filename),dest_dir)
+                shcopy(src_file,dest_dir)
             except:
                 print 'error copying accessibility file: %s' % filename
                 sys.exit(1)
 
         if base_year != model_year: 
             try:
-                copyanything(os.path.join(scenario_inputs,'landuse/parking_costs.csv'),'inputs/scenario/landuse')
+                shcopy(os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parking_costs.csv'),'inputs/scenario/landuse')
             except:
-                print 'error copying parking file at' + scenario_inputs+'/landuse/parking_costs.csv'
+                print 'error copying parking file' 
                 sys.exit(1)
 
 def build_output_dirs():
@@ -235,7 +236,7 @@ def import_integrated_inputs():
 
     # Copy soundcast inputs and separate input files
     h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
-    copyanything(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
+    shcopy(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
 
     h5_inputs = h5_inputs = h5py.File('inputs/scenario/landuse/hh_and_persons.h5')
 
