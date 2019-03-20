@@ -344,6 +344,7 @@ def update_daysim_modes():
 
     daysim_dict = {
         'AV_IncludeAutoTypeChoice': 'include_av',
+        'AV_UseSeparateAVSkimMatricesByOccupancy': 'include_av',    # Must be updated or causes issues with roster 
         'PaidRideShareModeIsAvailable':'include_tnc',
         'AV_PaidRideShareModeUsesAVs': 'tnc_av',
     }

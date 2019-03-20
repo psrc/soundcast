@@ -3,6 +3,9 @@ Created by ALOGIT version 4                             10:51:21 on  6 Apr 17
 END
    1  costutil  F    .461846060850       .743264873766E-01
    2  timeutil  F    .659611637063       .357174532657E-01
+   5  dt-const  T   -2.3                 .000000000000
+   6 dt-nocars  T   -2.0                 .000000000000
+   7 dt-carsltw F   -1.0                 .000000000000
   20  wt-const  F   -3.19348608595       .364317534671    
   21 wt-nocars  F    1.59176056618       .182769557926    
   30  s3-const  F   -1.78022496899       .159066664518    

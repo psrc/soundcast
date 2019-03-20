@@ -680,14 +680,13 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         if mode[x] != 8 and mode[x] > 0:
             
             # Only want driver trips assigned to network, and non auto modes
-            # TNC trips are only assigned 
             auto_mode_ids = [3, 4, 5]    # SOV, HOV2, HOV3
             non_auto_mode_ids = [1, 2, 6]    # walk, bike, transit
 
             # Determine if trip is AV or conventional vehicle
             av_flag = 0    # conventional vehicle by default
             if mode[x] in auto_mode_ids:
-                if dorp[x] == 3:
+                if dorp[x] == 3 and include_av:
                     av_flag = 1
 
             # Retrieve trip information from Daysim records

@@ -3,6 +3,9 @@ Created by ALOGIT version 4                             11:29:54 on  6 Apr 17
 END
    1  costutil  F    1.63662149705       .195013615205    
    2  timeutil  F    .912894595304       .835249730602E-01
+   5  dt-const  T   -2.3                 .000000000000
+   6 dt-nocars  T   -2.0                 .000000000000
+   7 dt-carsltw F   -1.0                 .000000000000
   10  sb-const  F   -.389142666043       .344312790406    
   17  sb-chun5  T   -5.74750000000       .000000000000    
   18 sb-univtr  F   -5.26936239483       .683548354914    
