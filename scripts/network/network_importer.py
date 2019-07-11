@@ -259,14 +259,21 @@ def run_importer(project_name):
         
         my_project.process_base_network('inputs/scenario/networks/roadway/' + value + base_net_name)
         if import_shape:
-            my_project.process_shape('inputs/scenario/networks/shapefiles/' + value + shape_name)
+            my_project.process_shape('inputs/scenario/networks/shape/' + value + shape_name)
         my_project.process_turn('inputs/scenario/networks/turns/' + value + turns_name)
         if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/scenario/networks/' + transit_vehicle_file)
            my_project.process_transit('inputs/scenario/networks/transit/' + value + transit_name)
            update_headways(my_project, headway_df)
         #import tolls
-        import_tolls(my_project)
+        print value
+        for att in link_extra_attributes:
+            my_project.create_extra_attribute('LINK', att)
+        for att in node_extra_attributes:
+            my_project.create_extra_attribute('NODE', att)
+        my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_links.txt')
+        my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_nodes.txt')
+        #import_tolls(my_project)
         arterial_delay(my_project, rdly_factor)
         if add_distance_pricing or add_hot_lane_tolls:
             distance_pricing(distance_rate_dict[value], hot_rate_dict[value], my_project)     
@@ -274,11 +281,6 @@ def run_importer(project_name):
 def main():
 
     run_importer(network_summary_project)
-    
-    if create_daysim_zone_inputs:
-        returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
-        if returncode != 0:
-            sys.exit(1)
     
     print 'networks imported'
 

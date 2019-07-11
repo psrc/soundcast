@@ -185,7 +185,7 @@ class EmmeProject:
                        throw_on_error = True,
                        scenario = self.current_scenario)
 
-    def create_extra_attribute(self, type, name, description, overwrite):
+    def create_extra_attribute(self, type, name, description= None, overwrite = True):
         NAMESPACE=("inro.emme.data.extra_attribute.create_extra_attribute")
         process = self.m.tool(NAMESPACE)
         process(extra_attribute_type=type,
@@ -197,6 +197,13 @@ class EmmeProject:
         NAMESPACE=("inro.emme.data.extra_attribute.delete_extra_attribute")
         process = self.m.tool(NAMESPACE)
         process(name)
+
+    def import_extra_attributes(self, folder_name):
+        NAMESPACE = "inro.emme.data.network.import_attribute_values"
+        process = self.m.tool(NAMESPACE)
+        process(folder_name,
+              scenario = self.m.scenario,
+              revert_on_error=True)
 
     def network_calculator(self, type, **kwargs):
         spec = json_to_dictionary(os.path.join('lookup',type))

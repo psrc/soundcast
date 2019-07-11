@@ -67,6 +67,8 @@ unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 headway_file = 'headways.csv'
+link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
+node_extra_attributes = ['@lr_walk']
 
 # in the junctions shapefile in the inputs/networks folder, this is the
 # minimum scene_node value where facility type = 99
@@ -186,7 +188,7 @@ supplemental_output_dir = 'outputs/supplemental'
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
-airport_control_total = {'2014' : 101838, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228, '2050' : 257500} 
+airport_control_total = {'2014' : 101838, '2018' : 116156, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228, '2050' : 257500} 
 
 # Change modes for toll links
 toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}

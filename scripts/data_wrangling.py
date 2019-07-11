@@ -210,7 +210,7 @@ def copy_accessibility_files():
             try:
                 shcopy(src_file,dest_dir)
             except:
-                print 'error copying accessibility file: %s' % filename
+                print 'error copying accessibility file: %s' % src_file
                 sys.exit(1)
 
         if base_year != model_year: 

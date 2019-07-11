@@ -3,19 +3,19 @@ import os
 ##############################
 # Input paths and model years
 ##############################
-model_year = '2014'
-base_year = '2014'
+model_year = '2018'
+base_year = '2018'
 landuse_inputs = 'lodes'
-network_inputs = '2014_base'
+network_inputs = 'OSM'
 soundcast_inputs_dir = 'R:/SoundCast/Inputs/dev'
 
 ##############################
 # Initial Setup
 ##############################
-run_accessibility_calcs = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_scenario_inputs = True
+run_accessibility_calcs = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_scenario_inputs = False
 run_import_networks = True
 
 ##############################
