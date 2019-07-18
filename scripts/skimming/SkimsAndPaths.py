@@ -689,6 +689,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 if dorp[x] == 3 and include_av:
                     av_flag = 1
 
+            # Light Rail Trips:
+            if mode[x] == 6 and toll_path[x] == 4:
+                av_flag = 4 
+
             # Retrieve trip information from Daysim records
             mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
             myOtaz = dictZoneLookup[otaz[x]]
