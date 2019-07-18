@@ -11,7 +11,7 @@ relative_gap = .0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
-pop_sample = [1, 1, 1, 1, 1, 1, 1, 1, 1]
+pop_sample = [1, 1, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
 max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
@@ -121,7 +121,7 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'2014':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
+transit_node_constants = {'2018':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
                           '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
                           '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
                           '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
