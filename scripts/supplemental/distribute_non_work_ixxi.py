@@ -131,7 +131,7 @@ def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
             # Load zonal production and attractions from CSV (output from trip generation)
             
             trips = np.array(trip_table_in[purpose + p_a])
-            trips.resize(zonesDim)
+            trips = np.resize(trips, zonesDim)
             #code below does not work for GQs because there are only 3700 records in the csv file. Not sure if code above is ideal.
             #trips = np.array(trip_table_in.loc[0:zonesDim - 1][purpose + p_a])    # Less 1 because NumPy is 0-based\
             matrix_id = my_project.bank.matrix(purpose + p_a).id    
