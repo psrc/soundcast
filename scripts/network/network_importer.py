@@ -102,7 +102,7 @@ def distance_pricing(distance_rate, hot_rate, emmeProject):
                     test = [i[1].id for i in enumerate(link.modes)]
                     # if sov modes are allowed, they should be tolled
                     if 's' in test or 'e' in test:
-                        print hot_rate
+                        print(hot_rate)
                         link['@toll1'] = link['@toll1'] + (link.length * hot_rate)
                         link['@toll2'] = link['@toll2'] + (link.length * hot_rate)          
     
@@ -266,7 +266,7 @@ def run_importer(project_name):
            my_project.process_transit('inputs/scenario/networks/transit/' + value + transit_name)
            update_headways(my_project, headway_df)
         #import tolls
-        print value
+        print(value)
         for att in link_extra_attributes:
             my_project.create_extra_attribute('LINK', att)
         for att in node_extra_attributes:
@@ -282,7 +282,7 @@ def main():
 
     run_importer(network_summary_project)
     
-    print 'networks imported'
+    print('networks imported')
 
 if __name__ == "__main__":
     main()

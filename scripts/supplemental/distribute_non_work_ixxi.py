@@ -115,7 +115,7 @@ def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
 
     # Create Emme matrices if they don't already exist
     for purpose in trip_purps:
-        print purpose
+        print(purpose)
         if purpose + 'pro' not in matrix_name_list:
             my_project.create_matrix(str(purpose)+ "pro" , str(purpose) + " productions", "ORIGIN")
         if purpose + 'att' not in matrix_name_list:
@@ -156,7 +156,7 @@ def balance_matrices(trip_purps, my_project):
         my_project.matrix_calculator(result = 'mf' + purpose + 'fri', expression = '0', 
                                  constraint_by_zone_destinations = str(LOW_STATION) + '-' + str(HIGH_STATION), 
                                  constraint_by_zone_origins = str(LOW_STATION) + '-' + str(HIGH_STATION))
-        print "Balancing trips for purpose: " + str(purpose)
+        print("Balancing trips for purpose: " + str(purpose))
         my_project.matrix_balancing(results_od_balanced_values = 'mf' + purpose + 'dis', 
                                     od_values_to_balance = 'mf' + purpose + 'fri', 
                                     origin_totals = 'mo' + purpose + 'pro', 
@@ -193,7 +193,7 @@ def export_trips(split_by_mode_tod, output_dir):
     del mode_dict['h3tl']
 
     for tod in time_periods:
-        print "Exporting supplemental trips for time period: " + str(tod)
+        print("Exporting supplemental trips for time period: " + str(tod))
         my_store = h5py.File(output_dir + str(tod) + '.h5', "w-")
         for mode in mode_dict.keys(): 
             my_store.create_dataset(str(mode), data=split_by_mode_tod[mode][tod])
@@ -206,15 +206,15 @@ def apply_ratio_to_trips(trip_table, ratio_table):
         # iterate through columns
         for j in range(len(trip_table[0])):
             result[i][j] = trip_table[i][j] * ratio_table[i][j]
-    print result[:1]
-    print result[-1:]
+    print(result[:1])
+    print(result[-1:])
     return result
 
 # Apply supplemental mode choice ratios into the trip tables, which were created from trip distribution step
 def repalce_previous_trip_table(new_purp_list, new_to_old_purp_list, new_mode_list, old_mode_list, trip_table_dict):
     new_trip_dict = {}
     for new_purp in new_purp_list:
-        print 'trip purp', new_purp, 'is transfering...'
+        print('trip purp', new_purp, 'is transfering...')
         # read in the mode choice ratios from h5 file, which was created in "mode_choice_supplemental.py"
         mode_choice = h5py.File('outputs/supplemental/mode_choice/' + new_purp + '_ratio.h5', 'r')
         
@@ -251,7 +251,7 @@ def repalce_previous_trip_table(new_purp_list, new_to_old_purp_list, new_mode_li
                 new_trip_dict[old_purp] = {old_mode_list[i] : new_trip_table }
             else:
                 new_trip_dict[old_purp][old_mode_list[i]] = new_trip_table
-        print new_purp, 'finished transfered to', new_trip_dict[old_purp].keys(), 'done'
+        print(new_purp, 'finished transfered to', new_trip_dict[old_purp].keys(), 'done')
 
         mode_choice.close()
     return new_trip_dict
@@ -307,10 +307,8 @@ def trips_by_tod(trips_by_mode, trip_purps):
         for tod in time_periods:
             if mode in trips_by_mode.keys():
                 tod_df[tod] = trips_by_mode[mode] * time_dict[mode][tod]
-                print tod
         trips_by_tod[mode] = tod_df
         tod_df = {}
-        print mode
     return trips_by_tod
 
 def distribute_trips_externals(trip_table_in, results_dir, trip_purps, fric_facs, my_project):
@@ -341,7 +339,6 @@ def sum_by_purp(trip_purps, my_project):
     ''' For error checking, sum trips by trip purpose '''
     total_sum_by_purp = {}
     for purpose in trip_purps:
-        print purpose
         # Load Emme O-D total trip data by purpose
         matrix_id = my_project.bank.matrix(purpose + 'od').id    
         emme_matrix = my_project.bank.matrix(matrix_id)  
@@ -382,7 +379,6 @@ def ext_spg_selected(trip_purps):
     ''' Select only external and special generator zones '''
     total_sum_by_purp = {}
     for purpose in trip_purps:
-        print purpose
         # Load Emme O-D total trip data by purpose
         matrix_id = my_project.bank.matrix(purpose + 'od').id    
         emme_matrix = my_project.bank.matrix(matrix_id)  

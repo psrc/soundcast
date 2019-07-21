@@ -226,7 +226,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['euda'][zone_start_constraint:] = 0
     utility_matrices['euda'][:, zone_start_constraint:] = 0
-    print 'euda done'
     
     # Calculate Shared Ride 2 utility
     utility_matrices['eus2'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccs2'] + parameters_dict[trip_purpose]['modechoice']['autivt'] * auto_skim_dict['s2btm'] + parameters_dict[trip_purpose]['modechoice']['autcos'] * auto_cost_dict['s2bct'])
@@ -234,7 +233,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus2'][zone_start_constraint:] = 0
     utility_matrices['eus2'][:, zone_start_constraint:] = 0
-    print 'eus2 done'
 
     # Calculate Shared Ride 3+ Utility
     utility_matrices['eus3'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccs3'] + parameters_dict[trip_purpose]['modechoice']['autivt'] * auto_skim_dict['s3btm'] + parameters_dict[trip_purpose]['modechoice']['autcos'] * auto_cost_dict['s3bct'])
@@ -242,7 +240,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus3'][zone_start_constraint:] = 0
     utility_matrices['eus3'][:, zone_start_constraint:] = 0
-    print 'eus3 done'
 
     # Calculate Walk to Transit Utility
     utility_matrices['eutw'] = np.exp(parameters_dict[trip_purpose]['modechoice']['ascctw'] + parameters_dict[trip_purpose]['modechoice']['trwivt'] * transit_skim_dict['ivtwa'] + parameters_dict[trip_purpose]['modechoice']['trwovt'] * (transit_skim_dict['auxwa'] + transit_skim_dict["iwtwa"] + transit_skim_dict['xfrwa']) + parameters_dict[trip_purpose]['modechoice']['trwcos'] * transit_skim_dict['farwa'])
@@ -250,7 +247,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eutw'][zone_start_constraint:] = 0
     utility_matrices['eutw'][:, zone_start_constraint:] = 0
-    print 'eutw done'
 
     # Calculate Walk to Light Rail Utility
     utility_matrices['eurw'] = np.exp(parameters_dict[trip_purpose]['modechoice']['ascctw'] + parameters_dict[trip_purpose]['modechoice']['trwivt'] * transit_skim_dict['ivtwr'] + parameters_dict[trip_purpose]['modechoice']['trwovt'] * (transit_skim_dict['auxwr'] + transit_skim_dict["iwtwr"] + transit_skim_dict['xfrwr']) + parameters_dict[trip_purpose]['modechoice']['trwcos'] * transit_skim_dict['farwa'])
@@ -258,7 +254,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eurw'][zone_start_constraint:] = 0
     utility_matrices['eurw'][:, zone_start_constraint:] = 0
-    print 'eurw done'
 
     # keep best utility between regular transit and light rail. Give to light rail if there is a tie. 
     utility_matrices['eutw'][utility_matrices['eurw'] >= utility_matrices['eutw']] = 0
@@ -270,7 +265,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['euwk'][zone_start_constraint:] = 0
     utility_matrices['euwk'][:, zone_start_constraint:] = 0
-    print 'euwk done'
     
     # Calculate Bike Utility
     utility_matrices['eubk'] = np.exp(parameters_dict[trip_purpose]['modechoice']['asccbk'] + parameters_dict[trip_purpose]['modechoice']['biketm'] * walk_bike_skim_dict['biket'])
@@ -278,7 +272,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eubk'][zone_start_constraint:] = 0
     utility_matrices['eubk'][:, zone_start_constraint:] = 0
-    print 'eubk done'
 
     return utility_matrices
     
@@ -311,7 +304,7 @@ def test_results():
             if sum[i][j] > 0.1 and sum[i][j] < 0.9:
                # every value should be very close to 1, so that means nothing would print out at this step.
                error += 1
-    print 'there are', error, 'cells might have error.'
+    print('there are', error, ' cells that might have error.')
 
 
 def mode_choice_to_h5(trip_purpose, mode_shares_dict):
@@ -327,7 +320,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     grp = my_store.create_group(trip_purpose)
     for mode in output_mode_share_name[trip_purpose]:
             grp.create_dataset(mode, data = mode_shares_dict[mode])
-            print mode
+            print(mode)
     my_store.close()
 
 def urbansim_skims_to_h5(h5_name):
@@ -338,7 +331,7 @@ def urbansim_skims_to_h5(h5_name):
     for skim in output_skims:
             skim_np = my_project.bank.matrix(skim).get_numpy_data()
             grp.create_dataset(skim, data = skim_np)
-            print skim
+            print(skim)
     grp.create_dataset('atrtwa', data = atrtwa)
     my_store.close()
 
@@ -348,32 +341,22 @@ def main():
     trip_purpose_list = ['hbo']
 
     for trip_purpose in trip_purpose_list:
-        
-        print trip_purpose
-        
+             
         auto_skim_dict = get_cost_time_distance_skim_data(trip_purpose)
-        print 'get auto skim done'
-        
+
         walk_bike_skim_dict = get_walk_bike_skim_data()
-        print 'get walk bike skim done'
-        
+
         transit_skim_dict = get_transit_skim_data()
-        print 'transit skim done'
 
         parking_costs = get_destination_parking_costs(parcels_file_name)
         
         auto_cost_dict = calculate_auto_cost(trip_purpose, auto_skim_dict, parking_costs)
-        print 'calculate auto cost done'
-        
-        mode_utilities_dict = calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict)
-        print 'calculate mode done'
-        
-        mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
-        print 'calculate mode shares done'
-       
-        mode_choice_to_h5(trip_purpose, mode_shares_dict)
-        print trip_purpose, 'is done'
 
+        mode_utilities_dict = calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict)
+
+        mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
+
+        mode_choice_to_h5(trip_purpose, mode_shares_dict)
 
 output_dir = r'outputs/supplemental/'
 my_project = EmmeProject(r'projects\Supplementals\Supplementals.emp')
@@ -387,9 +370,3 @@ parcels_file_name = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
 if __name__ == "__main__":
     main()
-
-
-print 'end'
-
-
-

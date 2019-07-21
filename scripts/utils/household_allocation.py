@@ -52,11 +52,11 @@ def df_to_h5(df, h5_store, group_name):
     if group_name in h5_store:
         del h5_store[group_name]
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Exists. Group deleSted then created"
+        print("Group Skims Exists. Group deleSted then created")
         #If not there, create the group
     else:
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Created"
+        print("Group Skims Created")
     
     for col in df.columns:
         h5_store[group_name].create_dataset(col, data=df[col].values.astype('int32'))
@@ -113,7 +113,6 @@ def get_sample_frequencies(number_of_samples, data, field, taz_id_list = None):
     taz_id_list: A list of TAZ's that for which frequencies will be based on. 
     """
     if taz_id_list:
-        print 'here'
         data = data[data['hhtaz'].isin(taz_id_list)]
     df = pd.DataFrame(data[field].value_counts())
     df['nostoextract'] = df[field]/df[field].sum() * number_of_samples
@@ -156,16 +155,13 @@ for hh_dict in allocation_list:
         parcel = hh_dict['parcel_ids'][0]
         # hh_df should have more households at the parcel because they were moved there
         assert len(hh_df[hh_df.hhparcel==parcel]) > int(parcel_df[parcel_df.parcelid == parcel].hh_p) 
-        print len(hh_df)
     else:
-        print len(hh_df)
         hh_df = hh_df.append(sample2)
         # nummber of households should be the same
         assert len(hh_df) > parcel_df.hh_p.sum()
         parcel = hh_dict['parcel_ids'][0]
         # hh_df should have more households at the parcel because they were moved there
         assert len(hh_df[hh_df.hhparcel==parcel]) > int(parcel_df[parcel_df.parcelid == parcel].hh_p) 
-        print len(hh_df)
 
 hh_df.drop(['income_cat', 'class', 'cross_class'], axis=1, inplace=True)
 hh_count = pd.DataFrame(hh_df['hhparcel'].value_counts())
@@ -186,4 +182,4 @@ parcel_df.to_csv(output_dir + 'parcels_urbansim.txt', sep = ' ', index = False)
 df_to_h5(hh_df, out_h5_file, 'Household')
 df_to_h5(person_df, out_h5_file, 'Person')
 out_h5_file.close()
-print 'Done!'
+print('Household allocation complete.')

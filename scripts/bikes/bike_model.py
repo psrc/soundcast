@@ -81,7 +81,7 @@ def process_attributes(my_project):
 				my_project.current_scenario.delete_extra_attribute(attr)
 				my_project.current_scenario.create_extra_attribute('LINK',attr)
 			except:
-				print 'unable to recreate bike link attributes'
+				print('unable to recreate bike link attributes')
 
 	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
 	filename = 'inputs/scenario/bike/bike_attributes.csv'
@@ -122,7 +122,7 @@ def write_generalized_time(df):
 	filename = 'working/bike_link_weights.csv'
 	df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
 
-	print "results written to working/bike_link_weights.csv"
+	print('results written to working/bike_link_weights.csv')
 
 def calc_bike_weight(my_project, link_df):
 	''' Calculate perceived travel time weight for bikes
@@ -178,7 +178,7 @@ def bike_assignment(my_project, tod):
 	bike_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_assignment.json'))
 	extended_assign_transit(bike_spec, add_volumes=True)
 
-	print 'bike assignment complete, now skimming'
+	print('bike assignment complete, now skimming')
 
 	skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
 	bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
@@ -193,10 +193,10 @@ def bike_assignment(my_project, tod):
 
 	# Export skims to h5
 	for matrix in ["mfbkpt", "mfbkat"]:
-		print 'exporting skim: ' + str(matrix)
+		print('exporting skim: ' + str(matrix))
 		export_skims(my_project, matrix_name=matrix, tod=tod)
 
-	print "bike assignment complete"
+	print('bike assignment complete')
 
 def export_skims(my_project, matrix_name, tod):
 	'''Write skim matrix to h5 container'''
@@ -286,7 +286,7 @@ def get_aadt(my_project):
     
 def main():
 	
-	print 'running bike model'
+	print('running bike model')
 
 	filepath = r'projects/' + master_project + r'/' + master_project + '.emp'
 	my_project = EmmeProject(filepath)
@@ -299,7 +299,7 @@ def main():
 
 	# Assign all AM trips (unable to assign trips without transit networks)
 	for tod in transit_skim_tod:
-		print 'assigning bike trips for: ' + str(tod)
+		print('assigning bike trips for: ' + str(tod))
 		bike_assignment(my_project, tod)
 
 if __name__ == "__main__":

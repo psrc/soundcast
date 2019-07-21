@@ -88,4 +88,4 @@ df.fillna(0, inplace =True)
 df.to_csv(input_parcels, sep = ' ', index = False)
 
 # End the script
-print "Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_spaces)) + " parcels were updated." 
+print("Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_spaces)) + " parcels were updated.")

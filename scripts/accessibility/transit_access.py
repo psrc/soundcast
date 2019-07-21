@@ -22,7 +22,7 @@ def h5_to_df(h5_set, columns = None):
         columns = h5_set.keys()
     for col in columns:
         my_array = np.asarray(h5_set[col])
-        print col, len(my_array)
+        print(col, len(my_array))
         col_dict[col] = my_array
     df = pd.DataFrame(col_dict)
     return df

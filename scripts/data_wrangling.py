@@ -40,7 +40,7 @@ def multipleReplace(text, wordDict):
 
 @timed
 def copy_daysim_code():
-    print 'Copying Daysim executables...'
+    print('Copying Daysim executables...')
     if not os.path.exists(os.path.join(os.getcwd(), 'daysim')):
        os.makedirs(os.path.join(os.getcwd(), 'daysim'))
     try:
@@ -48,17 +48,17 @@ def copy_daysim_code():
     except Exception as ex:
         template = "An exception of type {0} occured. Arguments:\n{1!r}"
         message = template.format(type(ex).__name__, ex.args)
-        print message
+        print(message)
         sys.exit(1)
 
 @timed
 def copy_seed_skims():
-    print 'You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...'
+    print('You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now...')
     if not(os.path.isdir(scenario_inputs+'/seed_skims')):
-           print 'It looks like you do not hava directory called' + scenario_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.'
+           print( 'It looks like you do not hava directory called' + scenario_inputs+'/seed_skims, where the code is expecting the files to be. Please make sure to put your seed_skims there.')
     for filename in glob.glob(os.path.join(scenario_inputs+'/seed_skims', '*.*')):
         shutil.copy(filename, 'inputs')
-    print 'Done copying seed skims.'
+    print('Done copying seed skims.')
 
 def text_to_dictionary(dict_name, subdir=''):
     """
@@ -103,7 +103,7 @@ def setup_emme_bank_folders():
     time_periods.append('TruckModel')
     time_periods.append('Supplementals')
     for period in time_periods:
-        print "Creating bank for time period: %s" % period
+        print( "Creating bank for time period: %s") % period
         os.makedirs(os.path.join('Banks', period))
         path = os.path.join('Banks', period, 'emmebank')
         emmebank = _eb.create(path, emmebank_dimensions_dict)
@@ -173,7 +173,7 @@ def copy_scenario_inputs():
     
 @timed
 def copy_shadow_price_file():
-    print 'Copying shadow price file.' 
+    print('Copying shadow price file.')
     if not os.path.exists('working'):
        os.makedirs('working')
     shcopy(base_inputs+'/shadow_prices/shadow_prices.txt','working')
@@ -189,7 +189,7 @@ def clean_up():
         if(os.path.isfile(os.path.join(os.getcwd(), file))):
             os.remove(os.path.join(os.getcwd(), file))
         else:
-            print file
+            print(file)
 
 @timed
 def copy_accessibility_files():
@@ -210,14 +210,14 @@ def copy_accessibility_files():
             try:
                 shcopy(src_file,dest_dir)
             except:
-                print 'error copying accessibility file: %s' % src_file
+                print('error copying accessibility file: %s' % src_file)
                 sys.exit(1)
 
         if base_year != model_year: 
             try:
                 shcopy(os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parking_costs.csv'),'inputs/scenario/landuse')
             except:
-                print 'error copying parking file' 
+                print('error copying parking file')
                 sys.exit(1)
 
 def build_output_dirs():
@@ -232,7 +232,7 @@ def import_integrated_inputs():
     - hh_and_persons.h5
     """
 
-    print "Importing land use files from urbansim..."
+    print('Importing land use files from urbansim...')
 
     # Copy soundcast inputs and separate input files
     h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
@@ -371,7 +371,7 @@ def update_daysim_modes():
         os.remove(daysim_config_path)
         os.rename(new_file_path, daysim_config_path)
     except OSError as e:  ## if failed, report it back to the user ##
-        print ("Error: %s - %s." % (e.filename, e.strerror))
+        print("Error: %s - %s." % (e.filename, e.strerror))
 
     # Write Daysim roster and roster-combination files from template
     # Exclude AV alternatives if not included in scenario

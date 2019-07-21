@@ -40,35 +40,35 @@ from data_wrangling import *
 @timed
 def accessibility_calcs():
     copy_accessibility_files()
-    print 'adding military jobs to regular jobs'
-    print 'adding JBLM workers to external workers'
-    print 'adjusting non-work externals'
-    print 'creating ixxi file for Daysim'
+    print('adding military jobs to regular jobs')
+    print('adding JBLM workers to external workers')
+    print('adjusting non-work externals')
+    print('creating ixxi file for Daysim')
     returncode = subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
     if returncode != 0:
-        print 'Military Job loading failed'
+        print('Military Job loading failed')
         sys.exit(1)
-    print 'military jobs loaded'
+    print('military jobs loaded')
 
     if base_year != model_year:
-        print 'Starting to update UrbanSim parcel data with 4k parking data file'
+        print('Starting to update UrbanSim parcel data with 4k parking data file')
         returncode = subprocess.call([sys.executable,
                                   'scripts/utils/update_parking.py'])
         if returncode != 0:
-            print 'Update Parking failed'
+            print('Update Parking failed')
             sys.exit(1)
-        print 'Finished updating parking data on parcel file'
+        print('Finished updating parking data on parcel file')
 
-    print 'Beginning Accessibility Calculations'
+    print('Beginning Accessibility Calculations')
     returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
     if returncode != 0:
-        print 'Accessibility Calculations Failed For Some Reason :('
+        print('Accessibility Calculations Failed For Some Reason :(')
         sys.exit(1)
-    print 'Done with accessibility calculations'
+    print('Done with accessibility calculations')
 
 @timed    
 def build_seed_skims(max_iterations):
-    print "Processing skims and paths."
+    print("Processing skims and paths.")
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
@@ -78,10 +78,10 @@ def build_seed_skims(max_iterations):
         sys.exit(1)
                   
     time_skims = datetime.datetime.now()
-    print '###### Finished skimbuilding:', str(time_skims - time_copy)
+    print('###### Finished skimbuilding:', str(time_skims - time_copy))
 
 def build_free_flow_skims(max_iterations):
-    print "Building free flow skims."
+    print("Building free flow skims.")
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
@@ -91,7 +91,7 @@ def build_free_flow_skims(max_iterations):
         sys.exit(1)
                   
     time_skims = datetime.datetime.now()
-    print '###### Finished skimbuilding:', str(time_skims - time_copy)
+    print('###### Finished skimbuilding:', str(time_skims - time_copy))
  
 @timed   
 def modify_config(config_vals):
@@ -102,7 +102,7 @@ def modify_config(config_vals):
 
     abs_config_path_template = os.path.join(script_dir, config_template_path)
     abs_config_path_out =os.path.join(script_dir, config_path)
-    print abs_config_path_template
+    print(abs_config_path_template)
     config_template = open(abs_config_path_template,'r')
     config = open(abs_config_path_out,'w')
   
@@ -119,7 +119,7 @@ def modify_config(config_vals):
     except:
      config_template.close()
      config.close()
-     print ' Error creating configuration template file'
+     print(' Error creating configuration template file')
      sys.exit(1)
     
 @timed
@@ -137,7 +137,7 @@ def build_shadow_only():
         iteration_number = len(rmse_list)
         current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
         if current_rmse < shadow_con:
-            print "done with shadow prices"
+            print("done with shadow prices")
             shadow_con_file.close()
             return
 
@@ -210,7 +210,7 @@ def run_all_summaries():
 
 	base_path = 'scripts/summarize/standard'
 	for script in ['daily_bank','network_summary','emissions','parcel_summary','group']:
-		print script
+		print(script)
 		subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
 
 def main():
@@ -272,7 +272,7 @@ def main():
 
 	if (run_daysim or run_skims_and_paths):
 		for iteration in range(len(pop_sample)):
-			print "We're on iteration %d" % (iteration)
+			print("We're on iteration %d" % (iteration))
 			logger.info(("We're on iteration %d\r\n" % (iteration)))
 			time_start = datetime.datetime.now()
 			logger.info("Starting run at %s" % str((time_start)))
@@ -282,9 +282,9 @@ def main():
 				# if iteration == 0 or pop_sample[iteration-1] > 2:
 				# 	try:
 				# 	        #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
-				# 		print "copying shadow prices" 
+				# 		print("copying shadow prices")
 				# 	except:
-				# 		print ' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt'
+				# 		print(' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt')
 				# 		sys.exit(1)
                 # Set up your Daysim Configration
 				modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
@@ -302,9 +302,9 @@ def main():
 			# Check Convergence 
 			converge = check_convergence(iteration, pop_sample[iteration])
 			if converge == 'stop':
-				print "System converged!"
+				print("System converged!")
 				break
-			print 'The system is not yet converged. Daysim and Assignment will be re-run.'
+			print('The system is not yet converged. Daysim and Assignment will be re-run.')
 
     # If building shadow prices, update work and school shadow prices
     # using converged skims from current run, then re-run daysim and assignment.
@@ -322,7 +322,7 @@ def main():
 		run_all_summaries()
 
 	clean_up()
-	print '###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(good_thing)
+	print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(good_thing))
 
 if __name__ == "__main__":
 	logger = logcontroller.setup_custom_logger('main_logger')
