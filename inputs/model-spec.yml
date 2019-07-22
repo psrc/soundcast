@@ -4,7 +4,6 @@ channels:
   - conda-forge
   - udst
   - synthicity
-  - defaults
 dependencies:
   - asn1crypto=0.24.0=py27_0
   - backports=1.0=py27h6492d98_1
@@ -114,40 +113,39 @@ dependencies:
   - winpty=0.4.3=4
   - xlrd=1.1.0=py27h2b87a7f_1
   - xlsxwriter=1.0.2=py27h5ed79b1_0
-  - bleach=2.1.3=py_0
-  - bzip2=1.0.6=vc9_1
-  - ca-certificates=2018.4.16=0
-  - certifi=2018.1.18=py27_0
-  - curl=7.49.1=vc9_2
-  - fiona=1.7.0=np111py27_0
-  - freetype=2.7=vc9_2
-  - geos=3.5.1=vc9_1
-  - html5lib=1.0.1=py_0
-  - kealib=1.4.6=vc9_0
-  - libpq=9.5.4=vc9_3
-  - libspatialindex=1.8.5=vc9_1
-  - matplotlib=2.0.0=np111py27_2
-  - nbconvert=5.3.1=py_1
-  - openssl=1.0.2l=vc9_0
-  - osmnet=0.1.4=py27_0
-  - pandoc=2.2.2=hde52d81_1
-  - pandocfilters=1.4.2=py_1
-  - proj4=5.0.1=vc9_0
-  - shapely=1.6.2=py27_0
-  - testpath=0.3.1=py27_0
-  - webencodings=0.5.1=py27_0
-  - xerces-c=3.1.4=vc9_3
-  - zlib=1.2.11=vc9_0
-  - m2w64-gcc-libgfortran=5.3.0=6
-  - m2w64-gcc-libs=5.3.0=7
-  - m2w64-gcc-libs-core=5.3.0=7
-  - m2w64-gmp=6.1.0=2
-  - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
-  - msys2-conda-epoch=20160418=1
-  - brewer2mpl=1.4=py27_0
-  - pandana=0.3.0=py27_0
   - pip:
     - elixir==0.7.1
     - tables==3.2.2
+    - curl==7.49.1
+    - matplotlib==2.0.0
+    - libspatialindex==1.8.5
+    - geos==3.5.1
+    - nbconvert==5.3.1
+    - proj4==5.0.1
+    - bleach==2.1.3=py_0
+    - bzip2==1.0.6=vc9_1
+    - ca-certificates==2018.4.16
+    - certifi==2018.1.18=py27_0
+    - fiona==1.7.0
+    - freetype==2.7
+    - html5lib==1.0.1
+    - kealib==1.4.6
+    - libpq==9.5.4
+    - openssl==1.0.2
+    - osmnet==0.1.4
+    - pandoc==2.2.2
+    - pandocfilters==1.4.2
+    - shapely==1.6.2
+    - testpath==0.3.1
+    - webencodings==0.5.1
+    - xerces-c==3.1.4
+    - zlib==1.2.11
+    - m2w64-gcc-libgfortran==5.3.0
+    - m2w64-gcc-libs==5.3.0
+    - m2w64-gcc-libs-core==5.3.0
+    - m2w64-gmp==6.1.0
+    - m2w64-libwinpthread-git==5.0.0
+    - brewer2mpl==1.4
+    - pandana==0.3.0
 prefix: C:\Anaconda\envs\model
 

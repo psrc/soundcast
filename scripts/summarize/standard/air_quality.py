@@ -192,9 +192,9 @@ df['yearid'] = model_year
 df['avgspeedbinId'] = pd.cut(df['congested_speed'], speed_bins, labels=speed_bins_labels)
 df['roadtypeId'] = df["facility_type"].map(fac_type_lookup)
 
-# print out min and max values for each speed bin to show if recode is working correctly
-print df.groupby(df.avgspeedbinId)['congested_speed'].min()
-print df.groupby(df.avgspeedbinId)['congested_speed'].max()
+# print(out min and max values for each speed bin to show if recode is working correctly
+print(df.groupby(df.avgspeedbinId)['congested_speed'].min())
+print(df.groupby(df.avgspeedbinId)['congested_speed'].max())
 
 # replicate each row for each month (1 & 7)
 df = pd.concat([df]*2)

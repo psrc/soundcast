@@ -231,7 +231,7 @@ def calc_bus_pce(my_project):
 def traffic_assignment(my_project):
 
     start_traffic_assignment = time.time()
-    print 'starting traffic assignment for' +  my_project.tod
+    print('starting traffic assignment for' +  my_project.tod)
     #Define the Emme Tools used in this function
     assign_extras = my_project.m.tool("inro.emme.traffic_assignment.set_extra_function_parameters")
     assign_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_assignment")
@@ -263,7 +263,7 @@ def traffic_assignment(my_project):
         assign_traffic(mod_assign, warm_start = False)    
     end_traffic_assignment = time.time()
 
-    print 'It took', round((end_traffic_assignment-start_traffic_assignment)/60,2), 'minutes to run the assignment.'
+    print('It took', round((end_traffic_assignment-start_traffic_assignment)/60,2), 'minutes to run the assignment.')
     text = 'It took ' + str(round((end_traffic_assignment-start_traffic_assignment)/60,2)) + ' minutes to run the traffic assignment.'
     logging.debug(text)
 
@@ -285,7 +285,7 @@ def transit_assignment(my_project, spec, keep_exisiting_volumes):
     assign_transit(assignment_specification, add_volumes=keep_exisiting_volumes)
 
     end_transit_assignment = time.time()
-    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.'
+    print('It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'minutes to run the assignment.')
 
 def transit_skims(my_project, spec):
 
@@ -374,7 +374,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
 
     end_time_skim = time.time()
 
-    print 'It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the ' +skim_type+'.'
+    print('It took', round((end_time_skim-start_time_skim)/60,2), 'minutes to calculate the ' +skim_type+'.')
     text = 'It took ' + str(round((end_time_skim-start_time_skim)/60,2)) + ' minutes to calculate the ' + skim_type + '.'
     logging.debug(text)
 
@@ -424,7 +424,7 @@ def class_specific_volumes(my_project):
 
     end_vol_skim = time.time()
 
-    print 'It took', round((end_vol_skim-start_vol_skim),2), 'seconds to generate class specific volumes.'
+    print('It took', round((end_vol_skim-start_vol_skim),2), 'seconds to generate class specific volumes.')
     text = 'It took ' + str(round((end_vol_skim-start_vol_skim),2)) + ' seconds to generate class specific volumes.'
     logging.debug(text)
 
@@ -512,7 +512,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             #delete old skim so new one can be written out to h5 container
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
         #transit
     if my_project.tod in transit_skim_tod:
@@ -523,17 +523,17 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
             # Must use light rail assignment
             matrix_name= 'ivtwr' + item
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            print matrix_name
+            print(matrix_name
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
 
@@ -544,7 +544,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
     #bike/walk
     if my_project.tod in bike_walk_skim_tod:
@@ -555,7 +555,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
     #transit/fare
     fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
@@ -567,7 +567,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
     if my_project.tod in generalized_cost_tod:
         for value in gc_skims.values():
@@ -577,11 +577,11 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
-            print matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.'
 
     my_store.close()
     end_export_hdf5 = time.time()
-    print 'It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.'
+    print('It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.')
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
@@ -689,6 +689,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 if dorp[x] == 3 and include_av:
                     av_flag = 1
 
+            # Light Rail Trips:
+            if mode[x] == 6 and toll_path[x] == 4:
+                av_flag = 4 
+
             # Retrieve trip information from Daysim records
             mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
             myOtaz = dictZoneLookup[otaz[x]]
@@ -716,7 +720,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     
     end_time = time.time()
 
-    print 'It took', round((end_time-start_time)/60,2), ' minutes to import trip tables to emme.'
+    print('It took', round((end_time-start_time)/60,2), ' minutes to import trip tables to emme.')
     text = 'It took ' + str(round((end_time-start_time)/60,2)) + ' minutes to import trip tables to emme.'
     logging.debug(text)
 
@@ -966,7 +970,7 @@ def bike_walk_assignment(my_project, assign_for_all_tods):
 
 
     end_transit_assignment = time.time()
-    print 'It took', round((end_transit_assignment-start_transit_assignment)/60,2), ' minutes to run the bike/walk assignment.'
+    print('It took', round((end_transit_assignment-start_transit_assignment)/60,2), ' minutes to run the bike/walk assignment.')
     text = 'It took ' + str(round((end_transit_assignment-start_transit_assignment)/60,2)) + ' minutes to run the bike/walk assignment.'
     logging.debug(text)
 
@@ -1091,11 +1095,11 @@ def run_assignments_parallel(project_name):
 
     # Clear emmebank in memory
     my_project.bank.dispose()
-    print 'Clearing emmebank from local memory...'
-    print my_project.tod + " emmebank cleared."
+    print('Clearing emmebank from local memory...')
+    print(my_project.tod + " emmebank cleared.")
     
     end_of_run = time.time()
-    print 'It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + my_project.tod
+    print('It took', round((end_of_run-start_of_run)/60,2), ' minutes to execute all processes for ' + my_project.tod)
     text = 'It took ' + str(round((end_of_run-start_of_run)/60,2)) + ' minutes to execute all processes for ' + my_project.tod
     logging.debug(text)
 
@@ -1141,10 +1145,10 @@ def main():
         end_of_run = time.time()
 
         text = "Emme Skim Creation and Export to HDF5 completed normally"
-        print text
+        print(text)
         logging.debug(text)
         text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
-        print text
+        print(text)
         logging.debug(text)
 
 if __name__ == "__main__":

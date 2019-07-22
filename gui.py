@@ -376,7 +376,7 @@ def update_input_config(var_name, var_value, bool=False):
         os.remove(config_path)
         os.rename(new_file_path, config_path)
     except OSError as e:  ## if failed, report it back to the user ##
-        print ("Error: %s - %s." % (e.filename, e.strerror))
+        print("Error: %s - %s." % (e.filename, e.strerror))
 
 ##############################
 # Main Program

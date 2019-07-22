@@ -147,7 +147,7 @@ def split_tod_internal(airport_trips):
 # Output trips
 def output_trips(path, matrix_dict):
     for tod in matrix_dict.iterkeys():
-        print "Exporting supplemental trips for time period: " + str(tod)
+        print("Exporting supplemental trips for time period: " + str(tod))
         my_store = h5py.File(path + str(tod) + '.h5', "w")
         for mode, value in matrix_dict[tod].iteritems():
             my_store.create_dataset(str(mode), data=value)

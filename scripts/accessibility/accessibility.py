@@ -159,7 +159,7 @@ def main():
         # daysim does not use EMPRSC_P
         if col_name <> 'EMPRSC_P':
             if parcels[col_name].sum() == 0:
-                print col_name + ' column sum is zero! Exiting program.'
+                print(col_name + ' column sum is zero! Exiting program.')
                 sys.exit(1)
 
     # Not using, causes bug in Daysim
