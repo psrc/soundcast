@@ -514,7 +514,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.'
 
-        #transit
+    #transit
     if my_project.tod in transit_skim_tod:
         for item in transit_submodes:
             matrix_name= 'ivtwa' + item
@@ -1047,7 +1047,7 @@ def run_assignments_parallel(project_name):
    
     # Delete and create new demand and skim matrices:
     for matrix_type in ['FULL','ORIGIN','DESTINATION']:
-	    delete_matrices(my_project, matrix_type)
+        delete_matrices(my_project, matrix_type)
 
     define_matrices(my_project)
 

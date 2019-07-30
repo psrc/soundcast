@@ -68,10 +68,7 @@ def main():
     # Load input data from DB and CSVs
     conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
 
-    # Load enlisted military jobs
     parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+model_year, con=conn)
-    # Load total non-work external trips for each external station
-    non_worker_external = pd.read_sql('SELECT * FROM externals_unadjusted', con=conn)
     parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
     parcels_urbansim.index = parcels_urbansim['PARCELID']
     # FIXME: uniform upper/lower
@@ -129,11 +126,7 @@ def main():
     work[ixxi_cols] = work[ixxi_cols]*emp_scaling
 
     # FIXME: add some logging here to verify the results are as expected
-
-    # FIXME: remove this step and read directly from DB in supplementals work
-    # Export as CSV
-    non_worker_external.to_csv('inputs/scenario/supplemental/generation/externals.csv', index = False)
-
+    
     # Create empty numpy matrices for SOV, HOV2 and HOV3, populate with results
     w_SOV = np.zeros((zonesDim,zonesDim), np.float16)
     w_HOV2 = np.zeros((zonesDim,zonesDim), np.float16)

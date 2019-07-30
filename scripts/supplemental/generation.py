@@ -50,13 +50,13 @@ pums_list = ['pumshhxc_income-collegestudents.in',
 bal_to_attractions = ["colpro"]
 
 # Input locations
-db_path = r'R:\e2projects_two\SoundCast\Inputs\dev\db\soundcast_inputs.db'
+db_path = 'inputs/db/soundcast_inputs.db'
+
 hh_trip_loc = 'inputs/scenario/supplemental/generation/rates/hh_triprates.in'
 nonhh_trip_loc = 'inputs/scenario/supplemental/generation/rates/nonhh_triprates.in'
 puma_taz_loc = 'inputs/scenario/supplemental/generation/ensembles/puma00.ens'
 taz_data_loc = 'inputs/scenario/landuse/tazdata.in'
 pums_data_loc = 'inputs/scenario/supplemental/generation/pums/' 
-externals_loc = 'inputs/scenario/supplemental/generation/externals.csv'
 
 # Number of header lines for input files (keep these standard for all scenarios)
 tazdata_header_len = 5      
