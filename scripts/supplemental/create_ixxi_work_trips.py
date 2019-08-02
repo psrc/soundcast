@@ -70,7 +70,7 @@ def main():
 
     parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+model_year, con=conn)
     parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
-    parcels_urbansim.index = parcels_urbansim['PARCELID']
+    parcels_urbansim.index = parcels_urbansim['parcelid']
     # FIXME: uniform upper/lower
     # Convert columns to upper case for now
     parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]
@@ -93,9 +93,8 @@ def main():
     # Log summary of jobs per TAZ added for verification
     parcels_urbansim[parcels_urbansim['military_jobs'] > 0].groupby('TAZ_P').sum()[['military_jobs']].to_csv(r'outputs\supplemental\military_jobs_added.csv')
 
-    # Write updated parcels to file
+    # Drop military jobs column
     parcels_urbansim.drop('military_jobs', axis=1, inplace=True)
-    parcels_urbansim.to_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=' ', index=False)
 
     #####################################################################################
     # Calculate Trip Distribution for Internal-External and External-Internal Work Trips
@@ -176,10 +175,9 @@ def main():
 
     # Remove jobs from JBLM Military zones so they are NOT available in Daysim choice models
     # These jobs are assumed "locked" and not available to civilian uses so are excluded from choice sets
-    parcel_df = pd.read_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep=' ')
-    parcel_df = remove_employment_by_taz(parcel_df, jblm_taz_list, parcel_emp_cols)
+    parcels_urbansim = remove_employment_by_taz(parcels_urbansim, jblm_taz_list, parcel_emp_cols)
     hh_persons = h5py.File(r'inputs/scenario/landuse/hh_and_persons.h5', "r")
-    parcel_grouped = parcel_df.groupby('TAZ_P')
+    parcel_grouped = parcels_urbansim.groupby('TAZ_P')
     emp_by_taz = pd.DataFrame(parcel_grouped['EMPTOT_P'].sum())
     emp_by_taz.reset_index(inplace = True)
 
@@ -214,7 +212,7 @@ def main():
     final_df = final_df.round(3)
 
     final_df.to_csv('outputs/landuse/psrc_worker_ixxifractions.dat', sep = '\t', index = False, header = False)
-    parcel_df.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ', index = False)
+    parcels_urbansim.to_csv(r'inputs/scenario/landuse/parcels_urbansim.txt',  sep = ' ', index = False)
 
 if __name__ == '__main__':
     main()

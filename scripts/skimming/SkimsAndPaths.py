@@ -512,9 +512,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             #delete old skim so new one can be written out to h5 container
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
-    #transit
+    ##transit
     if my_project.tod in transit_skim_tod:
         for item in transit_submodes:
             matrix_name= 'ivtwa' + item
@@ -523,17 +523,17 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
             # Must use light rail assignment
             matrix_name= 'ivtwr' + item
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
-            print(matrix_name
+            print(matrix_name)
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
 
@@ -544,7 +544,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             #if average_skims:
             #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
     #bike/walk
     if my_project.tod in bike_walk_skim_tod:
@@ -555,7 +555,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
     #transit/fare
     fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
@@ -567,7 +567,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
     if my_project.tod in generalized_cost_tod:
         for value in gc_skims.values():
@@ -577,7 +577,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if average_skims:
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.'
+            print(matrix_name+' was transferred to the HDF5 container.')
 
     my_store.close()
     end_export_hdf5 = time.time()
