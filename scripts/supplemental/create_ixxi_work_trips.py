@@ -148,8 +148,7 @@ def main():
     hov2 = w_HOV2 + w_HOV2.transpose()
     hov3 = w_HOV3 + w_HOV3.transpose()
 
-    matrix_dict = {}
-    matrix_dict = {'svtl' : sov, 'h2tl' : hov2, 'h3tl' : hov3}
+    matrix_dict = {'sov' : sov, 'hov2' : hov2, 'hov3' : hov3}
 
     # Create h5 files for export
     if not os.path.exists(output_dir):

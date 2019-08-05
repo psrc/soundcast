@@ -1,7 +1,6 @@
 ﻿import array as _array
 import os
 import shutil
-import json
 import csv
 import pandas as pd
 import h5py

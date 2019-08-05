@@ -4,34 +4,15 @@ import h5py
 import glob, os
 import os
 import sys
+from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
 from emme_configuration import *
 from input_configuration import *
 from EmmeProject import *
 
+### FIXME: do we need this?
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
-
-DAYSIM = 'inputs/scenario/landuse/hh_and_persons.h5'
-PARCEL = 'inputs/scenario/landuse/parcels_urbansim.txt'
-OUT_PUT = 'outputs/supplemental/AIRPORT_TRIPS.csv'
-daysim = h5py.File(DAYSIM,'r+')
-parcel = pd.read_csv(PARCEL, ' ')
-my_project = EmmeProject('projects/Supplementals/Supplementals.emp')
-zonesDim = len(my_project.current_scenario.zone_numbers)
-zones = my_project.current_scenario.zone_numbers
-# returns the ordinal (0-based, sequential) numpy index for our zone system
-dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
-# apply mode shares
-hbo_ratio = h5py.File('outputs/supplemental/hbo_ratio.h5', 'r')
-mode_dict = {'walk':'nwshwk', 'bike':'nwshbk','trnst':'nwshtw', 'litrat':'nwshrw', 'sov': 'nwshda', 'hov2':'nwshs2', 'hov3':'nwshs3'}
-#Time of the day factors
-test = {'5to6' : {'sov' : .04, 'hov' : .035, 'transit' : .04}, '6to7' : {'sov' : .053, 'hov' : .056, 'transit' : .053}, '7to8' : {'sov' : .06, 'hov' : .061, 'transit' : .06}, 
-        '8to9' : {'sov' : .057, 'hov' : .057, 'transit' : .057}, '9to10' : {'sov' : .055, 'hov' : .051, 'transit' : .055}, '10to14' : {'sov' : .2250, 'hov' : .1880, 'transit' : .2250}, 
-        '14to15' : {'sov' : .061, 'hov' : .07, 'transit' : .061}, '15to16' : {'sov' : .061, 'hov' : .082, 'transit' : .061}, '16to17' : {'sov' : .06, 'hov' : .084, 'transit' : .06}, 
-        '17to18' : {'sov' : .06, 'hov' : .08, 'transit' : .06}, '18to20' : {'sov' : .10, 'hov' : .108, 'transit' : .269}, '20to5' : {'sov' : .169, 'hov' : .125, 'transit' : 0.0}}
-
-output_dir = r'outputs/supplemental/'
 
 def build_df(h5file, h5table, var_dict, nested):
     ''' Convert H5 into dataframe '''
@@ -45,7 +26,6 @@ def build_df(h5file, h5table, var_dict, nested):
             data[col_name] = [i for i in h5file[h5table][var][:]]
     return pd.DataFrame(data)
 
-
 def daysim_sort(daysim):
     hhdict={'Household ID': 'hhno',
         'Household Size': 'hhsize',
@@ -58,7 +38,6 @@ def daysim_sort(daysim):
     daysim_sorted['pop_trip'] = daysim_sorted['Household Size']*0.02112
     return daysim_sorted
 
-
 def parcel_sort(parcel):
     parcel['Employment Size'] = parcel['EMPTOT_P'] - parcel['EMPEDU_P'] + parcel['EMPGOV_P']
     parcel['emp_trip'] = parcel['Employment Size']*0.01486
@@ -67,13 +46,11 @@ def parcel_sort(parcel):
     parcel_sorted['TAZ'] = parcel_sorted.index
     return parcel_sorted
 
-
 # estimated trips
 def trips_estimation(parcel_sorted, daysim_sorted):
     trips = pd.DataFrame.merge(parcel_sorted, daysim_sorted, on='TAZ')
     trips['est_trips'] = trips['pop_trip'] + trips['emp_trip']
     return trips
-
 
 # Adjust estimated trips by appling observed control total 
 def trips_adjustment(trips, control_total):
@@ -89,15 +66,15 @@ def trips_adjustment(trips, control_total):
 
 
 #open shares for hbo:
-def create_demand_matrix(airport_trips, org_zones, dest_zones):
+def create_demand_matrix(airport_trips, org_zones, dest_zones, dict_zone_lookup):
   
     demand_matrix = np.zeros((org_zones, dest_zones), np.float16) #IndexError: index 3868 is out of bounds for axis 0 with size 3868
     
     #convert to matrix
     for rec in airport_trips.iterrows():
         demand = rec[1].adj_trips
-        origin = dictZoneLookup[rec[1].TAZ]
-        destination = dictZoneLookup[rec[1].SeaTac_Taz]
+        origin = dict_zone_lookup[rec[1].TAZ]
+        destination = dict_zone_lookup[rec[1].SeaTac_Taz]
         demand_matrix[origin, destination] = demand
     return demand_matrix
 
@@ -109,7 +86,7 @@ def apply_ratio_to_trips(trip_table, ratio_table):
 
 
 # split and output trip tables by mode and directions
-def split_trips_into_modes(direction_trips):
+def split_trips_into_modes(direction_trips, mode_dict, hbo_ratio):
     table_dict = {}
     for mode, ratio in mode_dict.iteritems():
         ratio = hbo_ratio['hbo'][ratio][:]
@@ -124,25 +101,28 @@ def split_trips_into_modes(direction_trips):
 
 
 # Split trips into time of a day: apply time of the day factors to internal trips
-def split_tod_internal(airport_trips):
+def split_tod_internal(airport_trips, tod_factors_df):
     matrix_dict = {}
-    for tod, dict in test.iteritems():
+    #for tod, dict in test.iteritems():
+    for tod in tod_factors_df.time_of_day.unique():
         #open work externals:
         tod_dict = {}
-        ixxi_work_store = h5py.File('outputs/supplemental/external_work_' + tod + '.h5', 'r')
-        tod_dict['sov'] = np.array(airport_trips['sov']) * float(test[tod]['sov']) + np.array(ixxi_work_store['svtl'])
-        tod_dict['hov2'] = np.array(airport_trips['hov2']) * float(test[tod]['hov']) + np.array(ixxi_work_store['h2tl'])
-        tod_dict['hov3'] = np.array(airport_trips['hov3']) * float(test[tod]['hov']) + np.array(ixxi_work_store['h3tl'])
-        ixxi_work_store.close()
-        ''' At this point, We determine to use SOV factors on transit, bike and walk '''
-        tod_dict['litrat'] = np.array(airport_trips['litrat']) * float(test[tod]['transit'])
-        tod_dict['trnst'] = np.array(airport_trips['trnst']) * float(test[tod]['transit'])
-        tod_dict['walk'] = np.array(airport_trips['walk']) * float(test[tod]['sov'])
-        tod_dict['bike'] = np.array(airport_trips['bike']) * float(test[tod]['sov'])
-        matrix_dict[tod] = tod_dict
-        #matrix_dict[tod]= {'svtl' : sov, 'h2tl' : hov2, 'h3tl' : hov3, 'litrat': litrat, 'trnst' : trnst, 'walk': walk, 'bike': bike}
-    return matrix_dict
+        tod_df = tod_factors_df[tod_factors_df['time_of_day'] == tod]
 
+        ixxi_work_store = h5py.File('outputs/supplemental/external_work_' + tod + '.h5', 'r')
+
+        tod_dict['sov'] = np.array(airport_trips['sov']) * tod_df[tod_df['mode'] == 'sov']['value'].values[0] + np.array(ixxi_work_store['sov'])
+        tod_dict['hov2'] = np.array(airport_trips['hov2']) * tod_df[tod_df['mode'] == 'hov']['value'].values[0] + np.array(ixxi_work_store['hov2'])
+        tod_dict['hov3'] = np.array(airport_trips['hov3']) * tod_df[tod_df['mode'] == 'hov']['value'].values[0] + np.array(ixxi_work_store['hov3'])
+        ixxi_work_store.close()
+
+        tod_dict['litrat'] = np.array(airport_trips['litrat']) * tod_df[tod_df['mode'] == 'transit']['value'].values[0]
+        tod_dict['trnst'] = np.array(airport_trips['trnst']) * tod_df[tod_df['mode'] == 'transit']['value'].values[0]
+        tod_dict['walk'] = np.array(airport_trips['walk']) * tod_df[tod_df['mode'] == 'sov']['value'].values[0]
+        tod_dict['bike'] = np.array(airport_trips['bike']) * tod_df[tod_df['mode'] == 'sov']['value'].values[0]
+        matrix_dict[tod] = tod_dict
+
+    return matrix_dict
 
 # Output trips
 def output_trips(path, matrix_dict):
@@ -153,37 +133,68 @@ def output_trips(path, matrix_dict):
             my_store.create_dataset(str(mode), data=value)
         my_store.close()
         
-########################### Calculation ##########################
-# Get airport trip table  (all-in-one table) 
-daysim_sorted = daysim_sort(daysim)
-parcel_sorted = parcel_sort(parcel)
-trips = trips_estimation(parcel_sorted, daysim_sorted)
-airport_trips = trips_adjustment(trips, airport_control_total[model_year])
-demand_matrix = create_demand_matrix(airport_trips, zonesDim, zonesDim)
+def main():
 
-# split airport trips into different modes, by appling HBO ratios
-# we would like to seperate airport trips by two directions, since the mode choice ratio are different between 'to' and 'from airport'
-to_airport = demand_matrix/2
-from_airport = to_airport.transpose()
-all = to_airport+from_airport
-airport_trips_by_mode = split_trips_into_modes(all)
+    DAYSIM = 'inputs/scenario/landuse/hh_and_persons.h5'
+    PARCEL = 'inputs/scenario/landuse/parcels_urbansim.txt'
+    OUT_PUT = 'outputs/supplemental/AIRPORT_TRIPS.csv'
+    daysim = h5py.File(DAYSIM,'r+')
+    parcel = pd.read_csv(PARCEL, ' ')
+    my_project = EmmeProject('projects/Supplementals/Supplementals.emp')
+    zonesDim = len(my_project.current_scenario.zone_numbers)
+    zones = my_project.current_scenario.zone_numbers
+    # returns the ordinal (0-based, sequential) numpy index for our zone system
+    dict_zone_lookup = dict((value,index) for index,value in enumerate(zones))
+    # apply mode shares
+    hbo_ratio = h5py.File('outputs/supplemental/hbo_ratio.h5', 'r')
 
-#open external trip tables:
-ixxi_non_work_store = h5py.File('outputs/supplemental/external_non_work.h5', 'r')
-external_modes = ['svtl', 'h2tl', 'h3tl']
-ext_trip_table_dict = {}
-ext_tod_dict = {}
-# get the non work external trips
-for mode in external_modes:
-    ext_trip_table_dict[mode] = np.array(ixxi_non_work_store[mode])
+    mode_dict = {'walk':'nwshwk', 
+                 'bike':'nwshbk',
+                 'trnst':'nwshtw',
+                 'litrat':'nwshrw',
+                 'sov': 'nwshda', 
+                 'hov2':'nwshs2', 
+                 'hov3':'nwshs3'}
+    
+    # Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
+    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    tod_factors_df = pd.read_sql('SELECT * FROM time_of_day_factors', con=conn)
 
-# add external non work to airport trips
-airport_trips_by_mode['sov'] = airport_trips_by_mode['sov'] + ext_trip_table_dict['svtl']
-airport_trips_by_mode['hov2'] = airport_trips_by_mode['hov2'] + ext_trip_table_dict['h2tl']
-airport_trips_by_mode['hov3'] = airport_trips_by_mode['hov3'] + ext_trip_table_dict['h3tl']
+    output_dir = r'outputs/supplemental/'
 
-#apply time of day factors:
-airport_matrix_dict = split_tod_internal(airport_trips_by_mode)
+    # Get airport trip table  (all-in-one table) 
+    daysim_sorted = daysim_sort(daysim)
+    parcel_sorted = parcel_sort(parcel)
+    trips = trips_estimation(parcel_sorted, daysim_sorted)
+    airport_trips = trips_adjustment(trips, airport_control_total[model_year])
+    demand_matrix = create_demand_matrix(airport_trips, zonesDim, zonesDim, dict_zone_lookup)
 
-## Output final trip tables, which are by time of the day and trip mode. 
-output_trips(output_dir, airport_matrix_dict)
+    # split airport trips into different modes, by applying HBO ratios
+    # we would like to seperate airport trips by two directions, since the mode choice ratio are different between 'to' and 'from airport'
+    to_airport = demand_matrix/2
+    from_airport = to_airport.transpose()
+    all = to_airport+from_airport
+    airport_trips_by_mode = split_trips_into_modes(all, mode_dict, hbo_ratio)
+
+    #open external trip tables:
+    ixxi_non_work_store = h5py.File('outputs/supplemental/external_non_work.h5', 'r')
+    external_modes = ['sov', 'hov2', 'hov3']
+    ext_trip_table_dict = {}
+    ext_tod_dict = {}
+    # get the non work external trips
+    for mode in external_modes:
+        ext_trip_table_dict[mode] = np.array(ixxi_non_work_store[mode])
+
+    # add external non work to airport trips
+    airport_trips_by_mode['sov'] = airport_trips_by_mode['sov'] + ext_trip_table_dict['sov']
+    airport_trips_by_mode['hov2'] = airport_trips_by_mode['hov2'] + ext_trip_table_dict['hov2']
+    airport_trips_by_mode['hov3'] = airport_trips_by_mode['hov3'] + ext_trip_table_dict['hov3']
+
+    #apply time of day factors:
+    airport_matrix_dict = split_tod_internal(airport_trips_by_mode, tod_factors_df)
+
+    ## Output final trip tables, which are by time of the day and trip mode. 
+    output_trips(output_dir, airport_matrix_dict)
+
+if __name__ == '__main__':
+    main()
