@@ -7,25 +7,13 @@ import pandas as pd
 import h5py
 import numpy as np
 import sys
+from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 from truck_configuration import *
-
-
-def json_to_dictionary(dict_name):
-    ''' Load supplemental input files as dictionary '''
-    input_filename = os.path.join('inputs/model/supplementals', dict_name+'.json').replace("\\","/")
-    my_dictionary = json.load(open(input_filename))
-
-    return my_dictionary
-
-def init_dir(directory):
-    if os.path.exists(directory):
-        shutil.rmtree(directory)
-    os.mkdir(directory)
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
@@ -37,14 +25,14 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     else:
         return skim_file
 
-def calc_fric_fac(cost_skim, dist_skim, coeff):
+def calc_fric_fac(cost_skim, dist_skim, _coeff_df):
     ''' Calculate friction factors for all trip purposes '''
     friction_fac_dic = {}
-    for purpose, coeff_val in coeff.iteritems():
-        friction_fac_dic[purpose] = np.exp((coeff[purpose])*(cost_skim + (dist_skim * autoop * avotda)))
+    for index, row in _coeff_df.iterrows():
+        friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * autoop * avotda)))
         ## Set external zones to zero to prevent external-external trips
-        friction_fac_dic[purpose][LOW_STATION:] = 0
-        friction_fac_dic[purpose][:,[x for x in range(LOW_STATION, len(cost_skim))]] = 0
+        friction_fac_dic[row['purpose']][LOW_STATION:] = 0
+        friction_fac_dic[row['purpose']][:,[x for x in range(LOW_STATION, len(cost_skim))]] = 0
 
     return friction_fac_dic
 
@@ -100,12 +88,13 @@ def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
                   
 def balance_matrices(trip_purps, my_project):
     ''' Balances productions and attractions by purpose for all internal zones '''
+
     for purpose in trip_purps:
-        # For friction factors, have to make sure 0s in Externals are actually 0, otherwise you will get intrazonal trips
+        # For friction factors, make sure 0s in Externals are actually 0 and not fractional to avoid intrazonal trips
         my_project.matrix_calculator(result = 'mf' + purpose + 'fri', expression = '0', 
                                  constraint_by_zone_destinations = str(LOW_STATION) + '-' + str(HIGH_STATION), 
                                  constraint_by_zone_origins = str(LOW_STATION) + '-' + str(HIGH_STATION))
-        print("Balancing trips for purpose: " + str(purpose))
+        print("Balancing non-work external trips, for purpose: " + str(purpose))
         my_project.matrix_balancing(results_od_balanced_values = 'mf' + purpose + 'dis', 
                                     od_values_to_balance = 'mf' + purpose + 'fri', 
                                     origin_totals = 'mo' + purpose + 'pro', 
@@ -114,16 +103,15 @@ def balance_matrices(trip_purps, my_project):
                                     constraint_by_zone_origins = '1-' + str(HIGH_STATION))
 
 def calculate_daily_trips_externals(trip_purps, my_project):
-    # Accounting for out- and in-bound trips.
-    # The distribution matrices (e.g. 'mfcoldis') are in PA format. Need to convert to OD format by transposing
-    #Stefan- changing code for externals- we are sending half the daily trips from external to internal. Now we need add the transpose to get the other direction. 
+    """ Transpose matrices to get return trips (internal-external -> external-internal) """
+
     for purpose in trip_purps:
         my_project.matrix_calculator(result = 'mf' + purpose + 'od', 
                                      expression = 'mf' + purpose + 'dis + mf' + purpose + 'dis'+ "'")
   
 def distribute_trips_externals(trip_table_in, trip_purps, fric_facs, my_project):
     ''' Load data in Emme, balance trips by purpose, and produce O-D trip tables '''
-    #print 'in distribute trips function: ' + trip_purps
+
     # Clear all existing matrices
     delete_matrices(my_project, "ORIGIN")
     delete_matrices(my_project, "DESTINATION")
@@ -138,10 +126,12 @@ def distribute_trips_externals(trip_table_in, trip_purps, fric_facs, my_project)
     # Calculate daily trips
     calculate_daily_trips_externals(trip_purps, my_project)
 
-def ext_spg_selected(trip_purps, my_project):
-    ''' Select only external and special generator zones '''
-    total_sum_by_purp = {}
-    for purpose in trip_purps:
+def emme_matrix_to_np(trip_purp_list, my_project):
+    ''' Export results from emme to numpy, for external zones only.
+        Returns dictionary of arrays with keys as trip purpose. '''
+
+    trips_by_purpose = {}
+    for purpose in trip_purp_list:
         # Load Emme O-D total trip data by purpose
         matrix_id = my_project.bank.matrix(purpose + 'od').id    
         emme_matrix = my_project.bank.matrix(matrix_id)  
@@ -149,26 +139,24 @@ def ext_spg_selected(trip_purps, my_project):
         emme_data = np.array(emme_data.raw_data, dtype='float64')
         filtered = np.zeros_like(emme_data)
 
-        # Add only external rows and columns
-        filtered[3700:,:] = emme_data[3700:,:]
-        filtered[:,3700:] = emme_data[:,3700:]
+        # Add only external rows and columns from emme data
+        filtered[HIGH_TAZ:,:] = emme_data[HIGH_TAZ:,:]
+        filtered[:,HIGH_TAZ:] = emme_data[:,HIGH_TAZ:]
+        trips_by_purpose[purpose] = filtered
 
-        total_sum_by_purp[purpose] = filtered
-    return total_sum_by_purp
+    return trips_by_purpose
 
 def main():
 
     # Load the trip productions and attractions
     trip_table = pd.read_csv(trip_table_loc, index_col="taz")  # total 4K Ps and As by trip purpose
 
-    # Import JSON inputs as dictionaries
-    ###
-    ### FIXME: save table in database or in model inputs (part of github versioning)
-    ###
-    coeff = json_to_dictionary('gravity_model')
+    # Import gravity model coefficients by trip purpose from db
+    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    coeff_df = pd.read_sql('SELECT * FROM gravity_model_coefficients', con=conn)
                                
-    # All Non-work external trips assumed as HSP (home-based shopping trips)
-    trip_purp_full = ['hsp']
+    # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)
+    trip_purpose_list = ['hsp']
 
     output_dir = os.path.join(os.getcwd(),r'outputs\supplemental')
 
@@ -187,27 +175,28 @@ def main():
     dist_skim = (am_cost_skim + pm_dist_skim) * .5
    
     # Compute friction factors by trip purpose
-    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff)
+    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df)
 
     # Create trip table for externals 
-    distribute_trips_externals(trip_table, trip_purp_full, fric_facs, my_project)
+    distribute_trips_externals(trip_table, trip_purpose_list, fric_facs, my_project)
 
-    #removed special generators for now
-    ext_spg_trimmed = ext_spg_selected(trip_purp_full, my_project)    # Include only external and special gen. zones
+    # Export results as array to write to h5 file
+    ixxi_trips = emme_matrix_to_np(trip_purpose_list, my_project)    
 
-    #Just IXXI trips for now:
-    ixxi_trips = ext_spg_trimmed['hsp']
-    svtl = ixxi_trips * .8
-    h2tl = ixxi_trips * .13
-    h3tl = ixxi_trips * .07
+    # Distribute trips by auto mode, taken from observed splits
+    # All ixxi trips are HSP purpose
+    # Export to h5 container
+    ixxi_trips = ixxi_trips['hsp']
 
-    #write out trip table for now:
-    my_store = h5py.File(output_dir + '/' + 'external_non_work' + '.h5', "w")
-    my_store.create_dataset('svtl', data=svtl)
-    my_store.create_dataset('h2tl', data=h2tl)
-    my_store.create_dataset('h3tl', data=h3tl)
+    ixxi_mode_share_df = pd.read_sql('SELECT * FROM ixxi_mode_share', con=conn)
+    ixxi_h5 = h5py.File(output_dir + '/' + 'external_non_work' + '.h5', "w")
 
-    my_store.close()
+    for mode in ['sov','hov2','hov3']:
+        mode_share = ixxi_mode_share_df.loc[ixxi_mode_share_df['mode']==mode,'ixxi_mode_share'].values[0]
+        ixxi_data = ixxi_trips * mode_share
+        ixxi_h5.create_dataset(mode, data=ixxi_data)
+
+    ixxi_h5.close()
 
 if __name__ == "__main__":
     main()
