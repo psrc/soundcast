@@ -12,7 +12,6 @@ sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
-from truck_configuration import *
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''

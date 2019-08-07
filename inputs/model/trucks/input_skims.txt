@@ -1,10 +1,4 @@
 {
-  "light_trucks": {
-    "dist_bidir_name": "blgtds",
-    "gc_name": "lttrkg",
-    "dist_name": "lttrkd",
-    "gc_bidir_name": "blgtcs"
-  },
   "heavy_trucks": {
     "dist_bidir_name": "bhvyds",
     "gc_name": "hvtrkg",

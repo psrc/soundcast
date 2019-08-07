@@ -647,7 +647,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #also load up the external and truck trips
     demand_matrices={}
    
-    for matrix_name in ['lttrk','metrk','hvtrk']:
+    for matrix_name in ['metrk','hvtrk']:
         demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
         
@@ -727,7 +727,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 def load_trucks_external(my_project, matrix_name, zonesDim):
 
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
-    hdf_file = h5py.File(hdf_auto_filename, "r")
+    hdf_file = h5py.File(truck_trips_h5_filename, "r")
     tod = my_project.tod
 
     time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary', 'lookup')
@@ -760,7 +760,7 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
     np_matrix_1 = np_matrix_1.astype(float)
 
     # Copy truck trip tables with a time of day factor
-    if matrix_name == "lttrk" or matrix_name == "metrk" or matrix_name == "hvtrk":
+    if matrix_name == "metrk" or matrix_name == "hvtrk":
        sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']

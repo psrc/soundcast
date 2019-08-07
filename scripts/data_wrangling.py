@@ -222,7 +222,7 @@ def copy_accessibility_files():
                 sys.exit(1)
 
 def build_output_dirs():
-    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit','outputs/landuse','outputs/emissions']:
+    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit', 'outputs/landuse','outputs/emissions', r'outputs/trucks']:
         if not os.path.exists(path):
             os.makedirs(path)
 
