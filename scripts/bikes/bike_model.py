@@ -228,10 +228,10 @@ def calc_total_vehicles(my_project):
 	'''For a given time period, calculate link level volume, store as extra attribute on the link'''
 
 	#medium trucks
-	my_project.network_calculator("link_calculation", result = '@mveh', expression = '@metrk/1.5')
+	my_project.network_calculator("link_calculation", result = '@mveh', expression = '@medium_truck/1.5')
 
 	#heavy trucks:
-	my_project.network_calculator("link_calculation", result = '@hveh', expression = '@hvtrk/2.0')
+	my_project.network_calculator("link_calculation", result = '@hveh', expression = '@heavy_truck/2.0')
 
 	#busses:
 	my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
@@ -241,7 +241,7 @@ def calc_total_vehicles(my_project):
 	modelist = ['@mveh','@hveh','@bveh']
 	for i in xrange(len(user_classes['Highway'])):
 	    mode = user_classes['Highway'][i]['Name']
-	    if mode not in ['lttrk','metrk','hvtrk']:
+	    if mode not in ['medium_truck','heavy_truck']:
 	        modelist.append('@'+mode)
 
 	str_expression = ''

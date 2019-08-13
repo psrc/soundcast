@@ -32,12 +32,12 @@
   "metrk": {
     "FirstTripBasedFactor": 1,
     "TripBasedMode": "auto",
-    "FirstTripBasedClass": "amdtrk"
+    "FirstTripBasedClass": "am_medtrk_trips"
   },
   "hvtrk": {
     "FirstTripBasedFactor": 1,
     "TripBasedMode": "auto",
-    "FirstTripBasedClass": "ahvtrk"
+    "FirstTripBasedClass": "am_hvytrk_trips"
   },
   "svtl1": {
     "SecondTripBasedFactor": 1,
@@ -64,10 +64,5 @@
     "FirstTripBasedFactor": 1,
     "TripBasedMode": "transit",
     "FirstTripBasedClass": "atrnwa"
-  },
-  "lttrk": {
-    "FirstTripBasedFactor": 1,
-    "TripBasedMode": "auto",
-    "FirstTripBasedClass": "alttrk"
   }
 }

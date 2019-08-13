@@ -29,8 +29,8 @@ def calc_fric_fac(cost_skim, dist_skim, _coeff_df):
     for index, row in _coeff_df.iterrows():
         friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * autoop * avotda)))
         ## Set external zones to zero to prevent external-external trips
-        friction_fac_dic[row['purpose']][LOW_STATION:] = 0
-        friction_fac_dic[row['purpose']][:,[x for x in range(LOW_STATION, len(cost_skim))]] = 0
+        friction_fac_dic[row['purpose']][MIN_EXTERNAL:] = 0
+        friction_fac_dic[row['purpose']][:,[x for x in range(MIN_EXTERNAL, len(cost_skim))]] = 0
 
     return friction_fac_dic
 
@@ -90,15 +90,15 @@ def balance_matrices(trip_purps, my_project):
     for purpose in trip_purps:
         # For friction factors, make sure 0s in Externals are actually 0 and not fractional to avoid intrazonal trips
         my_project.matrix_calculator(result = 'mf' + purpose + 'fri', expression = '0', 
-                                 constraint_by_zone_destinations = str(LOW_STATION) + '-' + str(HIGH_STATION), 
-                                 constraint_by_zone_origins = str(LOW_STATION) + '-' + str(HIGH_STATION))
+                                 constraint_by_zone_destinations = str(MIN_EXTERNAL) + '-' + str(MAX_EXTERNAL), 
+                                 constraint_by_zone_origins = str(MIN_EXTERNAL) + '-' + str(MAX_EXTERNAL))
         print("Balancing non-work external trips, for purpose: " + str(purpose))
         my_project.matrix_balancing(results_od_balanced_values = 'mf' + purpose + 'dis', 
                                     od_values_to_balance = 'mf' + purpose + 'fri', 
                                     origin_totals = 'mo' + purpose + 'pro', 
                                     destination_totals = 'md' + purpose + 'att', 
-                                    constraint_by_zone_destinations = '1-' + str(HIGH_STATION), 
-                                    constraint_by_zone_origins = '1-' + str(HIGH_STATION))
+                                    constraint_by_zone_destinations = '1-' + str(MAX_EXTERNAL), 
+                                    constraint_by_zone_origins = '1-' + str(MAX_EXTERNAL))
 
 def calculate_daily_trips_externals(trip_purps, my_project):
     """ Transpose matrices to get return trips (internal-external -> external-internal) """

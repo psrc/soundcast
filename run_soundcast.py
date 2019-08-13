@@ -143,23 +143,23 @@ def build_shadow_only():
 
 def run_truck_supplemental(iteration):
 
-	if run_truck_model:
-		returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-		if returncode != 0:
-			sys.exit(1)
+    if run_supplemental_trips:
+	    # Only run generation script once - does not change with feedback
+        if iteration == 0:
+            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+        if returncode != 0:
+            sys.exit(1)
 
-	if run_supplemental_trips:
-		# Only run generation script once - does not change with feedback
-		if iteration == 0:
-			returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-			if returncode != 0:
-				sys.exit(1)
+        base_path = 'scripts/supplemental'
+        for script in ['distribute_non_work_ixxi', 'mode_choice_supplemental', 'create_airport_trips_combine_all']:
+            returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
+        if returncode != 0:
+            sys.exit(1)
 
-		base_path = 'scripts/supplemental'
-		for script in ['distribute_non_work_ixxi', 'mode_choice_supplemental', 'create_airport_trips_combine_all']:
-			returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
-			if returncode != 0:
-				sys.exit(1)
+    if run_truck_model:
+        returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+        if returncode != 0:
+            sys.exit(1)
 
 @timed
 def daysim_assignment(iteration):
@@ -174,7 +174,7 @@ def daysim_assignment(iteration):
 		logger.info("End of %s iteration of Daysim", str(iteration))
 		if returncode != 0:
 			sys.exit(1)
-     
+
 	########################################
 	# Calcualte Trucks and Supplemental Demand
 	########################################
@@ -272,20 +272,13 @@ def main():
 
 	if (run_daysim or run_skims_and_paths):
 		for iteration in range(len(pop_sample)):
+
 			print("We're on iteration %d" % (iteration))
 			logger.info(("We're on iteration %d\r\n" % (iteration)))
 			time_start = datetime.datetime.now()
 			logger.info("Starting run at %s" % str((time_start)))
 
-            # Copy shadow pricing? Need to know what the sample size of the previous iteration was:
 			if not should_build_shadow_price:
-				# if iteration == 0 or pop_sample[iteration-1] > 2:
-				# 	try:
-				# 	        #shcopy(scenario_inputs+'/shadow_pricing/shadow_prices.txt','working/shadow_prices.txt')
-				# 		print("copying shadow prices")
-				# 	except:
-				# 		print(' error copying shadow pricing file from shadow_pricing at ' + scenario_inputs+'/shadow_pricing/shadow_prices.txt')
-				# 		sys.exit(1)
                 # Set up your Daysim Configration
 				modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
 

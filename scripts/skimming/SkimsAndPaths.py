@@ -647,7 +647,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #also load up the external and truck trips
     demand_matrices={}
    
-    for matrix_name in ['metrk','hvtrk']:
+    for matrix_name in ['medium_truck','heavy_truck']:
         demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
         
@@ -739,29 +739,20 @@ def load_trucks_external(my_project, matrix_name, zonesDim):
 
     this_time_dictionary = time_dictionary[tod]
     this_class_dictionary = class_dictionary[matrix_name]
-    trip_time= this_time_dictionary['TripBasedTime']
-
-    #now we are constructing the name of the trip-based matrices needed for this matrix_name
+    trip_time = this_time_dictionary['TripBasedTime']
 
     #replace the third letter for the time period in the trip based model
     time_class_name_1 = list(this_class_dictionary['FirstTripBasedClass'])
-
-    #pm transit gets an am name
-    if this_class_dictionary['TripBasedMode']=='transit' and this_time_dictionary['TripBasedTime'] == 'pm':
-         time_class_name_1[0]=this_time_dictionary['TransitTripLetter']
-         trip_time= this_time_dictionary['TransitTripTime']
-    else:
-        time_class_name_1[0]=this_time_dictionary['TripTimeLetter']
-
    
-    trip_name_1=''.join(time_class_name_1)
+    trip_name_1 = ''.join(time_class_name_1)
+    print(trip_name_1)
     matrix_4k_1 = hdf_file[trip_time][trip_name_1]
     np_matrix_1 = np.matrix(matrix_4k_1)
     np_matrix_1 = np_matrix_1.astype(float)
 
     # Copy truck trip tables with a time of day factor
-    if matrix_name == "metrk" or matrix_name == "hvtrk":
-       sub_demand_matrix= np_matrix_1[0:zonesDim, 0:zonesDim]
+    if matrix_name == "medium_truck" or matrix_name == "heavy_truck":
+       sub_demand_matrix = np_matrix_1[0:zonesDim, 0:zonesDim]
        #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
        np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
        demand_matrix = np.squeeze(np.asarray(np_matrix))
@@ -1115,7 +1106,7 @@ def main():
             l = project_list[i:i+parallel_instances]
             start_pool(l)
 
-        # run_assignments_parallel('projects/8to9/8to9.emp')
+        #run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
         # run_transit('projects8to9/8to9.emp')

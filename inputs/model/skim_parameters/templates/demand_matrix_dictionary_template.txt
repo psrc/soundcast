@@ -49,6 +49,5 @@
 (9,1,0):tnc_inc1
 (9,2,0):tnc_inc2
 (9,3,0):tnc_inc3
-(10,1,1):lttrk
-(11,1,1):metrk
-(12,1,1):hvtrk
+(11,1,1):medium_truck
+(12,1,1):heavy_truck
