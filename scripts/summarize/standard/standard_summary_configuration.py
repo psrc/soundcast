@@ -40,6 +40,9 @@ vehs_by_county = {
 # For GHG Analysis see:
 # X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
 
+###
+### FIXME: put in db
+###
 vehs_by_type = {
     'king': {
         'light': 1433538,
@@ -75,6 +78,9 @@ speed_bins_labels =  range(1, len(speed_bins))
 fac_type_lookup = {0:0, 1:4, 2:4, 3:5, 4:5, 5:5, 6:3, 7:5, 8:0}
 
 # Map pollutant name and ID
+###
+### FIXME: put in db
+###
 pollutant_map = {
     '1': 'Total Gaseous HCs',
     '2': 'CO',
@@ -105,6 +111,9 @@ pollutant_map = {
 ################################################################
 
 # Input Files
+###
+### FIXME: put in db
+###
 counts_file = 'inputs/base_year/observed/TrafficCounts_Mid.txt'
 aadt_counts_file = 'inputs/base_year/observed/observed_aadt.csv'
 tptt_counts_file = 'inputs/base_year/observed/observed_tptt.csv'
@@ -128,8 +137,6 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
             '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
             '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
             '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
-# Note: use the below uc_list to run emissions.py with older runs, v2.1.1 and earlier
-# uc_list = ['@svtl1','@svtl2','@svtl3','@h2tl1','@h2tl2','@h2tl3','@h3tl1','@h3tl2','@h3tl3','@mveh','@hveh','@bveh']
 
 ######## Observed Transit Boardings############################################
 

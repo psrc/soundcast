@@ -1,3 +1,17 @@
+#Copyright [2014] [Puget Sound Regional Council]
+
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+
 import inro.emme.database.emmebank as _emmebank
 import os, sys
 import numpy as np
@@ -102,11 +116,9 @@ def export_link_values(my_project):
 
 def main():
     print 'creating daily bank'
-    #Use a copy of an existing bank for the daily bank
+    # Use a copy of an existing bank for the daily bank and rename
     copy_emmebank('Banks/7to8', 'Banks/Daily')
-
     daily_emmebank =_emmebank.Emmebank(r'Banks/Daily/emmebank')
-    # Set the emmebank title
     daily_emmebank.title = 'daily'
     daily_scenario = daily_emmebank.scenario(1002)
     daily_network = daily_scenario.get_network()
@@ -114,16 +126,13 @@ def main():
     matrix_dict = text_to_dictionary('demand_matrix_dictionary')
     uniqueMatrices = set(matrix_dict.values())
 
-    ################## delete all matrices #################
-
+    # delete and create new matrices since this is a full copy of another time period
     for matrix in daily_emmebank.matrices():
         daily_emmebank.delete_matrix(matrix.id)
        
-    ################ create new matrices in daily emmebank for trip tables only ##############
-
-    for unique_name in uniqueMatrices:
-        daily_matrix = daily_emmebank.create_matrix(daily_emmebank.available_matrix_identifier('FULL')) #'FULL' means the full-type of trip table
-        daily_matrix.name = unique_name
+    for matrix in uniqueMatrices:
+        daily_matrix = daily_emmebank.create_matrix(daily_emmebank.available_matrix_identifier('FULL'))
+        daily_matrix.name = matrix
 
     daily_matrix_dict = {}
     for matrix in daily_emmebank.matrices():
@@ -132,19 +141,19 @@ def main():
 
     time_period_list = []
 
-
     for tod, time_period in sound_cast_net_dict.iteritems():
         path = os.path.join('Banks', tod, 'emmebank')
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
         network = scenario.get_network()
-        # Trip  table stuff:
+        
+        # Trip table data:
         for matrix in bank.matrices():
             if matrix.name in daily_matrix_dict:
                 hourly_arr = matrix.get_numpy_data()
                 daily_matrix_dict[matrix.name] = daily_matrix_dict[matrix.name] + hourly_arr
       
-        # Network stuff:
+        # Network data:
         if len(time_period_list) == 0:
             daily_network = network
             time_period_list.append(time_period)
@@ -182,22 +191,6 @@ def main():
         for item in tods:
             link['@tveh'] = link['@tveh'] + link['@v' + item[:4]]
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
-
-    ######################## Validate results ##########################
-
-    zone1 = 100
-    zone2 = 100
-
-    for matrix1 in daily_emmebank.matrices():
-        NAME = matrix1.name
-        a = 0
-        for tod, time_period in sound_cast_net_dict.iteritems():
-            path = os.path.join('banks', tod, 'emmebank')
-            bank = _emmebank.Emmebank(path)
-            for matrix2 in bank.matrices():
-                if matrix2.name == NAME:
-                    my_arr = matrix2.get_numpy_data()
-                    a += my_arr[zone1][zone2]
 
     print 'daily bank created'
 

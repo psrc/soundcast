@@ -27,6 +27,9 @@ def build_df(h5file, h5table, var_dict, nested):
     return pd.DataFrame(data)
 
 def daysim_sort(daysim):
+        ###
+    ### FIXME: remove magic number
+    ###
     hhdict={'Household ID': 'hhno',
         'Household Size': 'hhsize',
         'Household TAZ': 'hhtaz',
@@ -39,6 +42,9 @@ def daysim_sort(daysim):
     return daysim_sorted
 
 def parcel_sort(parcel):
+    ###
+    ### FIXME: remove magic number
+    ###
     parcel['Employment Size'] = parcel['EMPTOT_P'] - parcel['EMPEDU_P'] + parcel['EMPGOV_P']
     parcel['emp_trip'] = parcel['Employment Size']*0.01486
     parcel_sorted = pd.DataFrame(parcel.groupby('TAZ_P').sum()[['emp_trip','Employment Size']])
@@ -54,7 +60,9 @@ def trips_estimation(parcel_sorted, daysim_sorted):
 
 # Adjust estimated trips by appling observed control total 
 def trips_adjustment(trips, control_total):
-    #obs_trips = 101838
+    ###
+    ### FIXME: remove magic number
+    ###
     est_trips = trips['est_trips'].sum()
     adj_factor = control_total/est_trips
     trips['adj_trips'] = trips['est_trips']*adj_factor

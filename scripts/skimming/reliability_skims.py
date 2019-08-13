@@ -1,19 +1,12 @@
 import array as _array
 import inro.emme.desktop.app as app
 import inro.modeller as _m
-import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
 import time
 import os,sys
-#os.chdir(r"D:\stefan\sc_calibration\soundcast")
-import h5py
-import Tkinter, tkFileDialog
-import multiprocessing as mp
-import subprocess
-from multiprocessing import Pool
 import logging
 import datetime
 import argparse
