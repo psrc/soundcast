@@ -63,7 +63,7 @@ def write_truck_trips(EmmeProject):
 def create_matrices(my_project, truck_matrix_df):
 
     for matrix_type in ['scalar','origin','destination','full']:
-        df = truck_matrix_df[truck_matrix_df['﻿matrix_type'] == matrix_type]
+        df = truck_matrix_df[truck_matrix_df['matrix_type'] == matrix_type]
         for index, row in df.iterrows():
             my_project.create_matrix(row['matrix_name'], row['description'],matrix_type.upper())
 
@@ -293,6 +293,11 @@ def main():
     balanced_prod_att = pd.read_csv(r'outputs/supplemental/7_balance_trip_ends.csv')
 
     network_importer(my_project)
+
+    # Load zone partitions (used to identify external zones)
+    my_project.initialize_zone_partition('ga')
+    my_project.process_zone_partition('inputs/model/trucks/' + districts_file)
+    
     my_project.delete_matrices("ALL")
     create_matrices(my_project, truck_matrix_list)
     load_data_to_emme(balanced_prod_att, my_project, zones, conn)

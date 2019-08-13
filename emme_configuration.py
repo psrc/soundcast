@@ -111,6 +111,7 @@ skim_matrix_designation_limited = ['d']    # Distance skim
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
 gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2'}
+truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 
 # Bike/Walk Skims
 bike_walk_skim_tod = ['5to6']

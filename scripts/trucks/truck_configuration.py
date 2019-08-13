@@ -1,7 +1,6 @@
 #################################### TRUCK MODEL ####################################
 truck_model_project = 'Projects/TruckModel/TruckModel.emp'
-districts_file = 'districts19_ga.ens'
-truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
+districts_file = 'truck_districts.ens'
 truck_base_net_name = 'am_roadway.in'
 
 #TOD to create Bi-Dir skims (AM/EV Peak)

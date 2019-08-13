@@ -1,4 +1,4 @@
-﻿#Copyright [2014] [Puget Sound Regional Council]
+#Copyright [2014] [Puget Sound Regional Council]
 
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -202,9 +202,6 @@ def copy_accessibility_files():
         
         file_dict = {
             os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_urbansim.txt'): 'inputs/scenario/landuse',
-            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_military.csv'): 'inputs/scenario/landuse',
-            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'distribute_jblm_jobs.csv'): 'inputs/scenario/landuse',
-            os.path.join(soundcast_inputs_dir,'networks',model_year,network_inputs,'transit/transit_stops.csv'): 'inputs/scenario/networks/transit',
         }
 
         for src_file, dest_dir in file_dict.iteritems():
@@ -214,15 +211,8 @@ def copy_accessibility_files():
                 print('error copying accessibility file: %s' % src_file)
                 sys.exit(1)
 
-        if base_year != model_year: 
-            try:
-                shcopy(os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parking_costs.csv'),'inputs/scenario/landuse')
-            except:
-                print('error copying parking file')
-                sys.exit(1)
-
 def build_output_dirs():
-    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit', 'outputs/landuse','outputs/emissions', r'outputs/trucks']:
+    for path in ['outputs',r'outputs/daysim','outputs/bike','outputs/network','outputs/transit', 'outputs/landuse','outputs/emissions', r'outputs/trucks', 'outputs/supplemental']:
         if not os.path.exists(path):
             os.makedirs(path)
 
