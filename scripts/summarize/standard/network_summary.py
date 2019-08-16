@@ -272,7 +272,7 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
     # Extract Transit Line Data
     transit_line_data = []
     for line in network.transit_lines():
-        transit_line_data.append({'id': line.id, 
+        transit_line_data.append({'line_id': line.id, 
                                   'route_code': line.data1,
                                   'agency_code': line.data3,
                                   'mode': str(line.mode),
@@ -280,18 +280,16 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
                                   'boardings': line['@board'], 
                                   'time': line['@timtr']})
     _df_transit_line = pd.DataFrame(transit_line_data)
-    _df_transit_line = _df_transit_line.set_index(['id'])
     _df_transit_line['tod'] = tod
    
     # Extract Transit Node Data
     transit_node_data = []
     for node in network.nodes():
-        transit_node_data.append({'id': node.id, 
-                                  'initial_boardings': node.initial_boardings, 
+        transit_node_data.append({'node_id': int(node.id), 
+                                  'initial_boardings': node.initial_boardings,
                                   'final_alightings': node.final_alightings})
 
     _df_transit_node = pd.DataFrame(transit_node_data)
-    _df_transit_node = _df_transit_node.set_index(['id'])
     _df_transit_node['tod'] = tod
     
     # Extract Transit Segment Data
@@ -302,10 +300,42 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
                                   'i_node': tseg.i_node.number})
     
     _df_transit_segment = pd.DataFrame(transit_segment_data)
-    _df_transit_segment = _df_transit_segment.set_index(['line_id'])
     _df_transit_segment['tod'] = tod
 
     return _df_transit_line, _df_transit_node, _df_transit_segment
+
+def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment):
+    """Sumarize various transit measures."""
+
+    df_transit_line['agency_code'] = df_transit_line['agency_code'].astype('int')
+    df_transit_line['route_code'] = df_transit_line['route_code'].astype('int')
+
+    # Boardings by agency
+    df_transit_line['agency_name'] = df_transit_line['agency_code'].map(agency_lookup)
+    df_daily = df_transit_line.groupby('agency_name').sum()[['boardings']].reset_index().sort_values('boardings', ascending=False)
+    df_daily.to_csv(boardings_by_agency_path, index=False)
+
+    # Boardings for special routes
+    df_special = df_transit_line[df_transit_line['route_code'].isin(special_route_lookup.keys())].groupby('route_code').sum()[['boardings']].sort_values('boardings', ascending=False)
+    df_special = df_special.reset_index()
+    df_special['description'] = df_special['route_code'].map(special_route_lookup)
+    df_special[['route_code','description','boardings']].to_csv(special_routes_path, index=False)
+
+    # Boardings by Time of Day
+    df_tod_agency  = df_transit_line.pivot_table(columns='tod',index='agency_name',values='boardings',aggfunc='sum')
+    df_tod_agency.columns = load_transit_tod
+    df_tod_agency = df_tod_agency.sort_values('7to8', ascending=False).reset_index()
+    df_tod_agency.to_csv(boardings_by_tod_agency_path, index=False)
+
+    # Daily Boardings by Stop
+    df_transit_segment = pd.read_csv(r'outputs\transit\transit_segment_results.csv')
+    df_transit_node = pd.read_csv(r'outputs\transit\transit_node_results.csv')
+    df_transit_segment = df_transit_segment.groupby('i_node').sum().reset_index()
+    df_transit_node = df_transit_node.groupby('node_id').sum().reset_index()
+    df = pd.merge(df_transit_node, df_transit_segment, left_on='node_id', right_on='i_node')
+    df.rename(columns={'segment_boarding': 'total_boardings'}, inplace=True)
+    df['transfers'] = df['total_boardings'] - df['initial_boardings']
+    df.to_csv(boardings_by_stop_path)
 
 def write_topsheet(sheet):
     """ Write jupyter notebook to HTML as topsheet """
@@ -392,6 +422,9 @@ def main():
     # Create basic spreadsheet summary of network
     writer = pd.ExcelWriter(r'outputs\network\network_summary.xlsx', engine='xlsxwriter')
     summarize_network(network_df, writer)
+
+    # Create detailed transit summaries
+    summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment)
 
 if __name__ == "__main__":
     main()
