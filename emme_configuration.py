@@ -7,7 +7,7 @@ log_file_name = 'outputs/logs/skims_log.txt'
 STOP_THRESHOLD = 0.026    # Global convergence criteria
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
 max_iter = 50             # Max number of iterations for assignment
-relative_gap = .0001      # Assignment Convergence Criteria
+relative_gap = 0.0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
@@ -110,7 +110,7 @@ skim_matrix_designation_limited = ['d']    # Distance skim
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
-gc_skims = {'light_trucks' : 'lttrk', 'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2'}
+gc_skims = {'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2'}
 truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 
 # Bike/Walk Skims

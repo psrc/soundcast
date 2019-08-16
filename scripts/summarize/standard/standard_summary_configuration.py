@@ -1,8 +1,18 @@
 #################################### NETWORK SUMMARY ####################################
 
-fac_type_dict = {'highway' : 'ul3 = 1 or ul3 = 2',
-                 'arterial' : 'ul3 = 3 or ul3 = 4 or ul3 = 6',
-                 'connectors' : 'ul3 = 5'}
+network_results_path = r'outputs/network/network_results.csv'
+transit_line_path = r'outputs/transit/transit_line_results.csv'
+transit_node_path = r'outputs/transit/transit_node_results.csv'
+transit_segment_path = r'outputs/transit/transit_segment_results.csv'
+
+attribute_list = ['auto_volume','data1','data2','data3','type',
+'num_lanes','length','auto_time','@metrk','@hvtrk','@tveh',
+'@sov_inc1','@sov_inc2','@sov_inc3',
+'@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
+'@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+'@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+'@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@lttrk','@mveh','@hveh','@bveh',
+'type','num_lanes','volume_delay_func','@countyid']
 
 
 transit_extra_attributes_dict = {'@board' : 'total boardings', '@timtr' : 'transit line time'}
@@ -13,6 +23,36 @@ income_bin_labels = ['low','medium','high']
 tod_lookup = {'5to6' : 5, '6to7' : 6, '7to8' : 7, '8to9' : 8, '9to10' : 9, 
               '10to14' : 10, '14to15' : 14, '15to16' : 15, '16to17' : 16, 
               '17to18' : 17, '18to20' : 18, '20to5' : 20}
+
+agency_lookup = {
+    1: 'King County Metro',
+    2: 'Pierce Transit',
+    3: 'Community Transit',
+    4: 'Kitsap Transit',
+    5: 'Washington Ferries',
+    6: 'Sound Transit',
+    7: 'Everett Transit'
+}
+
+county_map = {
+        33: 'King',
+        35: 'Kitsap',
+        53: 'Pierce',
+        61: 'Snohomish'
+    }
+
+special_route_lookup = {
+    1671: 'A-Line Rapid Ride',
+    1672: 'B-Line Rapid Ride',
+    1673: 'C-Line Rapid Ride',
+    1674: 'D-Line Rapid Ride',
+    1675: 'E-Line Rapid Ride',
+    4950: 'Central Link',
+    6995: 'Tacoma Link',
+    6998: 'Sounder South',
+    6999: 'Sounder North',
+    3701: 'Swift Blue Line'
+}
 
 ################################################
 # Emissions calculations

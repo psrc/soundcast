@@ -50,7 +50,7 @@ def get_intrazonal_vol(emmeproject, df_vol):
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
     if include_tnc:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
-    iz_uc_list += ['metrk','hvtrk']
+    iz_uc_list += ['medium_truck','heavy_truck']
 
     for uc in iz_uc_list:
         df_vol[uc+'_'+emmeproject.tod] = emmeproject.bank.matrix(uc).get_numpy_data().diagonal()
@@ -183,10 +183,8 @@ def sort_df(df, sort_list, sort_column):
 
     return df
 
-def summarize_network(filepath, excel_writer):
+def summarize_network(df, writer):
     """ Calculate VMT, VHT, and Delay from link-level results """
-
-    df = pd.read_csv(filepath)
 
     # Exclude trips taken on non-designated facilities (facility_type == 0)
     # These are artificial (weave lanes to connect HOV) or for non-auto uses 
@@ -218,55 +216,54 @@ def summarize_network(filepath, excel_writer):
     tod_df.columns = ['tod','period']
     df = pd.merge(df,tod_df,on='tod',how='left')
 
-    sort_list = tods    # list of ordered time periods defined in emme_configuration.py
-
     # Totals by functional classification
     for metric in ['VMT','VHT','delay']:
         _df = pd.pivot_table(df, values=metric, index=['tod','period'],columns='facility_type', aggfunc='sum').reset_index()
-        _df = sort_df(df=_df, sort_list=sort_list, sort_column='tod')
+        _df = sort_df(df=_df, sort_list=tods , sort_column='tod')
         _df = _df.reset_index(drop=True)
-        _df.to_excel(excel_writer=excel_writer, sheet_name=metric+' by FC')
+        _df.to_excel(excel_writer=writer, sheet_name=metric+' by FC')
 
     # Totals by user classification
-    
+
     # VMT
     _df = df.copy()
     for uc in uc_list:
         _df[uc] = df[uc]*df['length']
     _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=sort_list, sort_column='tod')
-    _df.to_excel(excel_writer=excel_writer, sheet_name="VMT by UC")
+    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
+    _df.to_excel(excel_writer=writer, sheet_name="VMT by UC")
 
     # VHT
     _df = df.copy()
     for uc in uc_list:
         _df[uc] = df[uc]*df['auto_time']/60
     _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=sort_list, sort_column='tod')
+    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
-    _df.to_excel(excel_writer=excel_writer, sheet_name="VHT by UC")
+    _df.to_excel(excel_writer=writer, sheet_name="VHT by UC")
 
     # Delay
     _df = df.copy()
     for uc in uc_list:
         _df[uc] = ((_df['auto_time']-_df['freeflow_time'])*_df[uc])/60
     _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=sort_list, sort_column='tod')
+    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
-    _df.to_excel(excel_writer=excel_writer, sheet_name="Delay by UC")
+    _df.to_excel(excel_writer=writer, sheet_name="Delay by UC")
 
-    # Summarize by county
-    try:
-        county_df = pd.read_csv(r'inputs/scenario/networks/county_flag_' + model_year + '.csv')
-        df = pd.merge(df,county_df,how='left',left_on='ij',right_on='ID')
-        for metric in ['VMT','VHT','delay']:
-            _df = df.groupby('NAME').sum()[[metric]]
-            _df.to_excel(excel_writer=excel_writer, sheet_name=metric+' by County')
-    except:
-        OSError('county flag unavailable')
+    # Results by County
+    
+    df['county_name'] = df['@countyid'].map(county_map)
+    _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
+    _df.to_excel(excel_writer=writer, sheet_name='County Results')
 
-def transit_summary(emme_project, network, df_transit_line, df_transit_node, df_transit_segment):
-    """ For each time period and transit line, calculate total boarding and alighting"""
+    writer.save()
+
+def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_segment):
+    """Export transit line, segment, and mode attributes"""
+
+    network = emme_project.current_scenario.get_network()
+    tod = emme_project.tod
 
     for name, desc in transit_extra_attributes_dict.iteritems():
         emme_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
@@ -277,14 +274,14 @@ def transit_summary(emme_project, network, df_transit_line, df_transit_node, df_
     for line in network.transit_lines():
         transit_line_data.append({'id': line.id, 
                                   'route_code': line.data1,
+                                  'agency_code': line.data3,
                                   'mode': str(line.mode),
                                   'description': line.description,
                                   'boardings': line['@board'], 
                                   'time': line['@timtr']})
-    df = pd.DataFrame(transit_line_data)
-    df = df.set_index(['id'])
-    df['tod'] = tod
-    df_transit_line = df_transit_line.append(df)
+    _df_transit_line = pd.DataFrame(transit_line_data)
+    _df_transit_line = _df_transit_line.set_index(['id'])
+    _df_transit_line['tod'] = tod
    
     # Extract Transit Node Data
     transit_node_data = []
@@ -293,10 +290,9 @@ def transit_summary(emme_project, network, df_transit_line, df_transit_node, df_
                                   'initial_boardings': node.initial_boardings, 
                                   'final_alightings': node.final_alightings})
 
-    df = pd.DataFrame(transit_node_data)
-    df = df.set_index(['id'])
-    df['tod'] = tod
-    df_transit_node = df_transit_node.append(df)
+    _df_transit_node = pd.DataFrame(transit_node_data)
+    _df_transit_node = _df_transit_node.set_index(['id'])
+    _df_transit_node['tod'] = tod
     
     # Extract Transit Segment Data
     transit_segment_data = []
@@ -305,24 +301,11 @@ def transit_summary(emme_project, network, df_transit_line, df_transit_node, df_
                                   'segment_boarding': tseg.transit_boardings, 
                                   'i_node': tseg.i_node.number})
     
-    df = pd.DataFrame(transit_segment_data)
-    df = df.set_index(['line_id'])
-    df['tod'] = tod
-    df_transit_segment = df_transit_segment.append(df)
+    _df_transit_segment = pd.DataFrame(transit_segment_data)
+    _df_transit_segment = _df_transit_segment.set_index(['line_id'])
+    _df_transit_segment['tod'] = tod
 
-    return df_transit_line, df_transit_node, df_transit_segment
-
-def transfers(seg_df, stop_df, writer):
-    """ Summarize stop-level transit results. """
-
-    seg_df = seg_df.groupby('inode').sum().reset_index()
-    seg_df = seg_df.drop(['tod','line'], axis=1)
-    stop_df = stop_df.groupby('inode').sum().reset_index()
-    transfer_df = pd.merge(stop_df, seg_df, on='inode')
-    transfer_df['transfers'] = transfer_df['total_boardings'] - transfer_df['initial_boardings']
-    transfer_df.to_excel(excel_writer=writer, sheet_name='Transit Stop Activity')
-
-    return transfer_df
+    return _df_transit_line, _df_transit_node, _df_transit_segment
 
 def write_topsheet(sheet):
     """ Write jupyter notebook to HTML as topsheet """
@@ -341,29 +324,16 @@ def write_topsheet(sheet):
 
 def main():
 
-    ### FIXME: move these things
-    ###
-    network_results_path = r'outputs/network/network_results.csv'
-    transit_line_path = r'outputs/transit/transit_line_results.csv'
-    transit_node_path = r'outputs/transit/transit_node_results.csv'
-    transit_segment_path = r'outputs/transit/transit_segment_results.csv'
-
-    attribute_list = ['auto_volume','data1','data2','data3','type',
-    'num_lanes','length','auto_time','@metrk','@hvtrk','@tveh',
-    '@sov_inc1','@sov_inc2','@sov_inc3',
-    '@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
-    '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
-    '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-    '@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@lttrk','@mveh','@hveh','@bveh',
-    'type','num_lanes','volume_delay_func']
-
-    if os.path.exists(network_results_path):
-        os.remove(network_results_path)
+    # Delete any existing files
+    for _path in [transit_line_path,transit_node_path,transit_segment_path,network_results_path]:
+        if os.path.exists(_path ):
+            os.remove(_path )
 
     # Initialize result dataframes
     df_transit_line = pd.DataFrame()
     df_transit_node = pd.DataFrame()
     df_transit_segment = pd.DataFrame()
+    network_df = pd.DataFrame()
 
     ## Access global Emme project WITHOUT all time-of-day banks available
     my_project = EmmeProject(network_summary_project)
@@ -376,40 +346,39 @@ def main():
         for name, description in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, description, 'True')
 
-    #    ## Add total vehicle sum for each link (@tveh)
+        # Add total vehicle sum for each link (@tveh)
         calc_total_vehicles(my_project)
 
-        network = my_project.current_scenario.get_network()
-
-    ##    # Calculate intrazonal VMT
+        # Calculate intrazonal VMT
         df_iz_vol = pd.DataFrame(my_project.bank.matrix('izdist').get_numpy_data().diagonal(),columns=['izdist'])
         df_iz_vol = get_intrazonal_vol(my_project, df_iz_vol)
 
-    #    # Export link-level results for multiple attributes
-        network_df = export_network_attributes(network, attribute_list)
-        network_df['tod'] = my_project.tod
-    #    # Append to existing file if it exists, see the old code for this
+         # Export link-level results for multiple attributes
+        network = my_project.current_scenario.get_network()
+        _network_df = export_network_attributes(network, attribute_list)
+        _network_df['tod'] = my_project.tod
+        network_df = network_df.append(_network_df)
 
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
-            print my_project.tod
-            df_transit_line, df_transit_node, df_transit_segment = transit_summary(emme_project=my_project, 
-                                                                                     network=network,
+            _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
                                                                                      df_transit_line=df_transit_line,
                                                                                      df_transit_node=df_transit_node, 
                                                                                      df_transit_segment=df_transit_segment)
-        
-         # Append hourly results to file output
-        for filepath, df in {network_results_path: network_df,
-                             transit_line_path: df_transit_line,
-                             transit_node_path: df_transit_node,
-                             transit_segment_path: df_transit_segment}.iteritems():
+            
+            df_transit_line = df_transit_line.append(_df_transit_line)
+            df_transit_node = df_transit_node.append(_df_transit_node)
+            df_transit_segment = df_transit_segment.append(_df_transit_segment)
 
-            if os.path.exists(filepath):
-                df.to_csv(filepath, mode='a', index=False, header=False)
-            else:
-                df.to_csv(filepath, index=False)
 
+    output_dict = {network_results_path: network_df,
+                    transit_line_path: df_transit_line,
+                    transit_node_path: df_transit_node,
+                    transit_segment_path: df_transit_segment}
+
+    # Append hourly results to file output
+    for filepath, df in output_dict.iteritems():
+        df.to_csv(filepath, index=False)
 
     # Export intrazonal trip totals
     df_iz_vol.to_csv(r'outputs/network/iz_vol.csv', index=False)
@@ -417,8 +386,12 @@ def main():
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
     freeflow_skims(my_project)
 
-    ## Export number of jobs near transit stops
-    jobs_transit('output/transit/transit_access.csv')
+    # Export number of jobs near transit stops
+    jobs_transit('outputs/transit/transit_access.csv')
+
+    # Create basic spreadsheet summary of network
+    writer = pd.ExcelWriter(r'outputs\network\network_summary.xlsx', engine='xlsxwriter')
+    summarize_network(network_df, writer)
 
 if __name__ == "__main__":
     main()
