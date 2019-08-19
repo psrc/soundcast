@@ -1,0 +1,54 @@
+matrix_type,matrix_name,description
+scalar,medop,medium truck op cost cents per mile
+scalar,hvyop,heavy truck op cost cents per mile
+scalar,mtprof,medium truck productions refactored total
+scalar,htprof,heavy truck productions refactored total
+scalar,mtattf,medium truck attractions refactored total
+scalar,htattf,heavy truck attractions refactored total
+scalar,mtprfe,medium truck productions refactored total externals
+scalar,htprfe,heavy truck productions refactored total externals
+scalar,mtatfe,medium truck attractions refactored total externals
+scalar,htatfe,heavy truck attractions refactored total externals
+origin,mtpro,medium truck productions
+origin,htpro,heavy truck productions
+origin,mtatt,medium truck attractions
+origin,htatt,heavy truck attractions
+origin,mtattf,medium truck attractions factored
+origin,htattf,heavy truck attractions factored
+origin,mtprof,medium truck productions refactored 
+origin,htprof,heavy truck productions refactored 
+origin,truck,truck allowable land use flag
+destination,mtatt,medium truck attractions
+destination,htatt,heavy truck attractions
+destination,mtattf,medium truck attractions
+destination,htattf,heavy truck attractions
+destination,mtattf,medium truck productions refactored 
+destination,htattf,heavy truck productions refactored 
+destination,truck,truck allowable land use flag
+full,bmedcs,medium truck bidirectional cost
+full,bhvycs,heavy truck bidirectional cost
+full,bmedds,medium truck bidirectional distance
+full,bhvyds,heavy truck bidirectional distance
+full,medimp,medium truck distribution impedances
+full,hvyimp,heavy truck distribution impedances
+full,meddis,medium truck distribution
+full,hvydis,heavy truck distribution
+full,intflg,flag 1 for non ext-ext od pairs
+full,medod,medium truck daily od trips
+full,medee,medium truck daily ee trips
+full,medie,medium truck daily ie trips
+full,medei,medium truck daily ei trips
+full,hvyod,heavy truck daily od trips
+full,hvyee,heavy truck daily ee trips
+full,hvyie,heavy truck daily ie trips
+full,hvyei,heavy truck daily ei trips
+full,am_medtrk_trips,am medium truck od trip table
+full,am_hvytrk_trips,am heavy truck od trip table
+full,md_medtrk_trips,md medium truck od trip table
+full,md_hvytrk_trips,md heavy truck od trip table
+full,pm_medtrk_trips,pm medium truck od trip table
+full,pm_hvytrk_trips,pm heavy truck od trip table
+full,ev_medtrk_trips,ev medium truck od trip table
+full,ev_hvytrk_trips,ev heavy truck od trip table
+full,ni_medtrk_trips,ni medium truck od trip table
+full,ni_hvytrk_trips,ni heavy truck od trip table

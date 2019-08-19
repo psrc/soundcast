@@ -1109,7 +1109,7 @@ def main():
         #run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
-        # run_transit('projects8to9/8to9.emp')
+        #run_transit(r'projects/8to9/8to9.emp')
        
         f = open('outputs/logs/converge.txt', 'w')
        
