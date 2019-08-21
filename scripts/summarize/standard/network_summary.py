@@ -79,7 +79,7 @@ def calc_total_vehicles(my_project):
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
     
-def freeflow_skims(my_project):
+def freeflow_skims(my_project, dictZoneLookup):
     """ Attach "freeflow" (20to5) SOV skims to daysim_outputs """
 
     # Load daysim_outputs as dataframe
@@ -88,10 +88,6 @@ def freeflow_skims(my_project):
     for field in ['travtime','otaz','dtaz']:
         df[field] = daysim['Trip'][field][:]
     df['od']=df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
-
-    # Look up zone ID from index location
-    zones = my_project.current_scenario.zone_numbers
-    dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
 
     skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['sov_inc3t'][:]
 
@@ -265,9 +261,7 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
     network = emme_project.current_scenario.get_network()
     tod = emme_project.tod
 
-    for name, desc in transit_extra_attributes_dict.iteritems():
-        emme_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-        emme_project.transit_line_calculator(result=name, expression=name[1:])
+    
 
     # Extract Transit Line Data
     transit_line_data = []
@@ -359,29 +353,42 @@ def main():
         if os.path.exists(_path ):
             os.remove(_path )
 
-    # Initialize result dataframes
+    ## Access Emme project with all time-of-day banks available
+    my_project = EmmeProject(network_summary_project)
+    network = my_project.current_scenario.get_network()
+    zones = my_project.current_scenario.zone_numbers
+    dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
+
+        # Initialize result dataframes
     df_transit_line = pd.DataFrame()
     df_transit_node = pd.DataFrame()
     df_transit_segment = pd.DataFrame()
     network_df = pd.DataFrame()
-
-    ## Access global Emme project WITHOUT all time-of-day banks available
-    my_project = EmmeProject(network_summary_project)
-    network = my_project.current_scenario.get_network()
+    df_iz_vol = pd.DataFrame()
+    df_iz_vol['taz'] = dictZoneLookup.values()
 
     # Loop through all Time-of-Day banks to get network summaries
+    # Initialize extra network and transit attributes
     for tod_hour, tod_segment in sound_cast_net_dict.iteritems():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
         for name, description in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, description, 'True')
+        if my_project.tod in transit_tod.keys():
+            for name, desc in transit_extra_attributes_dict.iteritems():
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
+                my_project.transit_line_calculator(result=name, expression=name[1:])
 
         # Add total vehicle sum for each link (@tveh)
         calc_total_vehicles(my_project)
 
         # Calculate intrazonal VMT
-        df_iz_vol = pd.DataFrame(my_project.bank.matrix('izdist').get_numpy_data().diagonal(),columns=['izdist'])
-        df_iz_vol = get_intrazonal_vol(my_project, df_iz_vol)
+        _df_iz_vol = pd.DataFrame(my_project.bank.matrix('izdist').get_numpy_data().diagonal(),columns=['izdist'])
+        _df_iz_vol['taz'] = dictZoneLookup.values()
+        _df_iz_vol = get_intrazonal_vol(my_project, _df_iz_vol)
+        if 'izdist' in df_iz_vol.columns:
+            _df_iz_vol = _df_iz_vol.drop('izdist', axis=1)
+        df_iz_vol = df_iz_vol.merge(_df_iz_vol, on='taz', how='left')
 
          # Export link-level results for multiple attributes
         network = my_project.current_scenario.get_network()
@@ -391,6 +398,7 @@ def main():
 
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
+
             _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
                                                                                      df_transit_line=df_transit_line,
                                                                                      df_transit_node=df_transit_node, 
@@ -402,6 +410,7 @@ def main():
 
 
     output_dict = {network_results_path: network_df,
+                   iz_vol_path: df_iz_vol,
                     transit_line_path: df_transit_line,
                     transit_node_path: df_transit_node,
                     transit_segment_path: df_transit_segment}
@@ -410,17 +419,14 @@ def main():
     for filepath, df in output_dict.iteritems():
         df.to_csv(filepath, index=False)
 
-    # Export intrazonal trip totals
-    df_iz_vol.to_csv(r'outputs/network/iz_vol.csv', index=False)
-
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
-    freeflow_skims(my_project)
+    freeflow_skims(my_project, dictZoneLookup)
 
     # Export number of jobs near transit stops
     jobs_transit('outputs/transit/transit_access.csv')
 
     # Create basic spreadsheet summary of network
-    writer = pd.ExcelWriter(r'outputs\network\network_summary.xlsx', engine='xlsxwriter')
+    writer = pd.ExcelWriter(r'outputs/network/network_summary.xlsx', engine='xlsxwriter')
     summarize_network(network_df, writer)
 
     # Create detailed transit summaries

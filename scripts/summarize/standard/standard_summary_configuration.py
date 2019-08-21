@@ -1,6 +1,7 @@
 #################################### NETWORK SUMMARY ####################################
 
 network_results_path = r'outputs/network/network_results.csv'
+iz_vol_path = r'outputs/network/iz_vol.csv'
 transit_line_path = r'outputs/transit/transit_line_results.csv'
 transit_node_path = r'outputs/transit/transit_node_results.csv'
 transit_segment_path = r'outputs/transit/transit_segment_results.csv'
@@ -10,12 +11,12 @@ boardings_by_tod_agency_path = r'outputs/transit/boardings_by_tod_agency.csv'
 boardings_by_stop_path = r'outputs/transit/boardings_by_stop.csv'
 
 attribute_list = ['auto_volume','data1','data2','data3','type',
-'num_lanes','length','auto_time','@metrk','@hvtrk','@tveh',
+'num_lanes','length','auto_time','@medium_truck','@heavy_truck','@tveh',
 '@sov_inc1','@sov_inc2','@sov_inc3',
 '@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
 '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
 '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-'@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@lttrk','@mveh','@hveh','@bveh',
+'@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@mveh','@hveh','@bveh',
 'type','num_lanes','volume_delay_func','@countyid']
 
 

@@ -147,14 +147,14 @@ def run_truck_supplemental(iteration):
 	    # Only run generation script once - does not change with feedback
         if iteration == 0:
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-        if returncode != 0:
-            sys.exit(1)
+            if returncode != 0:
+                sys.exit(1)
 
         base_path = 'scripts/supplemental'
         for script in ['distribute_non_work_ixxi', 'mode_choice_supplemental', 'create_airport_trips_combine_all']:
             returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
-        if returncode != 0:
-            sys.exit(1)
+            if returncode != 0:
+                sys.exit(1)
 
     if run_truck_model:
         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
