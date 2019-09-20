@@ -432,5 +432,19 @@ def main():
     # Create detailed transit summaries
     summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment)
 
+    # Create topsheet and metric HTML outputs
+    for sheet in ['topsheet']:
+        with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
+                nb = nbformat.read(f, as_version=4)
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
+        ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
+        with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
+            nbformat.write(nb, f)
+        os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
+        # Move these files to output
+        if os.path.exists(r"outputs/"+sheet+".html"):
+            os.remove(r"outputs/"+sheet+".html")
+        os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
+
 if __name__ == "__main__":
     main()
