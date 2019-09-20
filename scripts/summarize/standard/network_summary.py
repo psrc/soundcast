@@ -317,7 +317,7 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
 
     # Boardings by Time of Day
     df_tod_agency  = df_transit_line.pivot_table(columns='tod',index='agency_name',values='boardings',aggfunc='sum')
-    df_tod_agency.columns = load_transit_tod
+    df_tod_agency = df_tod_agency[load_transit_tod]
     df_tod_agency = df_tod_agency.sort_values('7to8', ascending=False).reset_index()
     df_tod_agency.to_csv(boardings_by_tod_agency_path, index=False)
 
