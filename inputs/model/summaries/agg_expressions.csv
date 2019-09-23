@@ -1,0 +1,11 @@
+table,target,agg_fields,values,aggfunc,description
+household,household_size_vehs_workers,"hhsize, hhvehs, hhftw",hhexpfac,sum,"households by size, vehicles, and workers"
+person,person_type,pptyp,psexpfac,sum,persons by type
+tour,tour_averages,"tmodetp, pdpurp","tautodist, tautotime",mean,tour averages by purpose and mode
+tour,tour_purpose_mode,"tmodetp, pdpurp",toexpfac,sum,tours by purpose and mode
+trip,trip_purpose_mode,"dpurp, mode, deptm_hr",trexpfac,sum,"trips by purpose, mode, and dpearture time"
+trip,trip_averages,"dpurp, mode","travdist, travtime, travcost",mean,trip averages by purpose and mode
+trip,trip_dtaz,"dtaz,dpurp,mode",trexpfac,sum,"trips by dtaz, purpose, and mode"
+trip,trip_otaz,"otaz,dpurp,mode",trexpfac,sum,"trips by otaz, purpose, and mode"
+trip,trip_deptm,deptm_hr,trexpfac,sum,trips by departure time (hour)
+trip,trip_arrtm,arrtm_hr,trexpfac,sum,trips by arrival time (hour)
