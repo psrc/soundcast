@@ -648,7 +648,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     demand_matrices={}
    
     for matrix_name in ['medium_truck','heavy_truck']:
-        demand_matrix = load_trucks_external(my_project, matrix_name, zonesDim)
+        demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
         
     # Load in supplemental trips
@@ -724,38 +724,28 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     text = 'It took ' + str(round((end_time-start_time)/60,2)) + ' minutes to import trip tables to emme.'
     logging.debug(text)
 
-def load_trucks_external(my_project, matrix_name, zonesDim):
+def load_trucks(my_project, matrix_name, zonesDim):
+    """ Load truck trip tables, apply time of day (TOD) factor from aggregate time periods to Soundcast TOD periods"""
 
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(truck_trips_h5_filename, "r")
     tod = my_project.tod
 
+    truck_matrix_name_dict = {'medium_truck': 'medtrk_trips',
+                              'heavy_truck': 'hvytrk_trips'}
+
     time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary', 'lookup')
-    class_dictionary = json_to_dictionary('demand_crosswalk_ab_4k_dictionary', 'lookup')
 
-    # don't do anything for the classes not in the dictionary
-    if matrix_name not in class_dictionary:
-        return demand_matrix
+    # Prepend an aggregate time period (e.g., AM, PM, NI) to the truck demand matrix to import from h5
+    aggregate_time_period = time_dictionary[tod]['TripBasedTime']
+    truck_demand_matrix_name = 'mf' + aggregate_time_period + '_' + truck_matrix_name_dict[matrix_name]
 
-    this_time_dictionary = time_dictionary[tod]
-    this_class_dictionary = class_dictionary[matrix_name]
-    trip_time = this_time_dictionary['TripBasedTime']
+    np_matrix = np.matrix(hdf_file[aggregate_time_period][truck_demand_matrix_name]).astype(float)
 
-    #replace the third letter for the time period in the trip based model
-    time_class_name_1 = list(this_class_dictionary['FirstTripBasedClass'])
-   
-    trip_name_1 = ''.join(time_class_name_1)
-    print(trip_name_1)
-    matrix_4k_1 = hdf_file[trip_time][trip_name_1]
-    np_matrix_1 = np.matrix(matrix_4k_1)
-    np_matrix_1 = np_matrix_1.astype(float)
-
-    # Copy truck trip tables with a time of day factor
-    if matrix_name == "medium_truck" or matrix_name == "heavy_truck":
-       sub_demand_matrix = np_matrix_1[0:zonesDim, 0:zonesDim]
-       #hdf5 matrix is brought into numpy as a matrix, need to put back into emme as an arry
-       np_matrix =  sub_demand_matrix*this_time_dictionary['TimeFactor']
-       demand_matrix = np.squeeze(np.asarray(np_matrix))
+    # Apply time of day factor to convert from aggregate time periods to 12 soundcast periods
+    sub_demand_matrix = np_matrix[0:zonesDim, 0:zonesDim]
+    demand_matrix = sub_demand_matrix * time_dictionary[tod]['TimeFactor']
+    demand_matrix = np.squeeze(np.asarray(demand_matrix))
        
     return demand_matrix
 
