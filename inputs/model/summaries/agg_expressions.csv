@@ -9,3 +9,7 @@ trip,trip_dtaz,"dtaz,dpurp,mode",trexpfac,sum,"trips by dtaz, purpose, and mode"
 trip,trip_otaz,"otaz,dpurp,mode",trexpfac,sum,"trips by otaz, purpose, and mode"
 trip,trip_deptm,deptm_hr,trexpfac,sum,trips by departure time (hour)
 trip,trip_arrtm,arrtm_hr,trexpfac,sum,trips by arrival time (hour)
+trip,pathtype_otaz,"mode,pathtype,otaz",trexpfac,sum,trips by pathtype from origin taz
+trip,pathtype_dtaz,"mode,pathtype,dtaz",trexpfac,sum,trips by pathtype from destination taz
+trip,dorp_otaz,"mode,dorp,otaz",trexpfac,sum,driver field by mode and origin taz
+trip,dorp_dtaz,"mode,dorp,dtaz",trexpfac,sum,driver field by mode and destination taz
