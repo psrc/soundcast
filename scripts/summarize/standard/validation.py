@@ -10,7 +10,7 @@ from input_configuration import base_year
 from emme_configuration import sound_cast_net_dict
 
 # output directory
-os.chdir('C:/sc_2018_osm')
+
 validation_output_dir = 'outputs/validation'
 
 # Create a clean output directory
@@ -28,6 +28,17 @@ agency_lookup = {
     6: 'Sound Transit',
     7: 'Everett Transit'
 }
+# List of route IDs to separate for analysis
+special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,4200,4201,4202,1671,1672,1673,1674,1675,1676,1040,1007,6550]
+
+facility_type_lookup = {
+    1:'Freeway',   # Interstate
+    2:'Freeway',   # Ohter Freeway
+    4:'Ramp',
+    5:'Prinicpal Arterial',
+    19:'HOV',    # HOV Only Freeway
+    999:'HOV'    # HOV Flag
+    }
 
 tod_lookup = {  0:'20to5',
                 1:'20to5',
@@ -74,19 +85,20 @@ def main():
     # Merge modeled with observed boarding data
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
     df['agency_name'] = df['agency_id'].map(agency_lookup)
-    df.rename(columns={'boardings': 'model_boardings', 'daily_boardings': 'observed_boardings'}, inplace=True)
-    df['diff'] = df['model_boardings']-df['observed_boardings']
-    df['perc_diff'] = df['diff']/df['observed_boardings']
+    df.rename(columns={'boardings': 'modeled', 'daily_boardings': 'observed'}, inplace=True)
+    df['diff'] = df['modeled']-df['observed']
+    df['perc_diff'] = df['diff']/df['observed']
+    df[['modeled','observed']] = df[['modeled','observed']].fillna(-1)
 
     # Write to file
     df.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_line.csv'), index=False)
 
     # Boardings by agency
     df_agency = df.groupby(['agency_name']).sum().reset_index()
-    df_agency['diff'] = df_agency['model_boardings']-df_agency['observed_boardings']
-    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_boardings']
+    df_agency['diff'] = df_agency['modeled']-df_agency['observed']
+    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                     index=False, columns=['agency_name','observed_boardings','model_boardings','diff','perc_diff'])
+                     index=False, columns=['agency_name','observed','modeled','diff','perc_diff'])
 
     # Boardings by time of day
 
@@ -95,6 +107,9 @@ def main():
 
 
     # Boardings for special lines
+    df_special = df[df['route_code'].isin(special_route_list)]
+    df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
+                     index=False, columns=['description','agency_name','observed','modeled','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
@@ -114,6 +129,7 @@ def main():
 
     # Get the flag ID from network attributes
     extra_attr_df = pd.read_csv(r'\\modelsrv1\c$\sc_2018_osm\inputs\scenario\networks\extra_attributes\am_link_attributes.in\extra_links.txt', delim_whitespace=True)
+    extra_attr_df['@facilitytype'] = extra_attr_df['@facilitytype'].map(facility_type_lookup)
 
     # Get daily and model volumes
     daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
@@ -124,17 +140,16 @@ def main():
     # Merge observed with model
     df_daily = df_daily.merge(daily_counts, left_on='@countid', right_on='flag')
     # Merge with attributes
-    df_daily.rename(columns={'@tveh': 'model_volume','vehicles': 'observed_volume'}, inplace=True)
-    df_daily['diff'] = df_daily['model_volume']-df_daily['observed_volume']
-    df_daily['perc_diff'] = df_daily['diff']/df_daily['observed_volume']
-
+    df_daily.rename(columns={'@tveh': 'modeled','vehicles': 'observed'}, inplace=True)
+    df_daily['diff'] = df_daily['modeled']-df_daily['observed']
+    df_daily['perc_diff'] = df_daily['diff']/df_daily['observed']
+    df_daily[['modeled','observed']] = df_daily[['modeled','observed']].astype('int')
     df_daily = df_daily.merge(df, on='@countid')
     df_daily.to_csv(os.path.join(validation_output_dir,'daily_volume.csv'), 
-                     index=False, columns=['inode','jnode','@countid','@countyid','@facilitytype','model_volume','observed_volume','diff','perc_diff'])
+                     index=False, columns=['inode','jnode','@countid','@countyid','@facilitytype','modeled','observed','diff','perc_diff'])
 
     # Counts by county and facility type
-    ### FIXME: add county and facility labels; make sure facility types are combined appropriately
-    df_county_facility_counts = df_daily.groupby(['@countyid','@facilitytype']).sum()[['observed_volume','model_volume']].reset_index()
+    df_county_facility_counts = df_daily.groupby(['@countyid','@facilitytype']).sum()[['observed','modeled']].reset_index()
     df_county_facility_counts.to_csv(os.path.join(validation_output_dir,'daily_volume_county_facility.csv'))
 
     # hourly counts
@@ -146,9 +161,9 @@ def main():
     model_df = pd.merge(model_vol_df, extra_attr_df[['inode','jnode','@countid','@facilitytype','@countyid']], left_on=['i_node','j_node'], right_on=['inode','jnode'])
 
     df = pd.merge(model_df, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
-    df.rename(columns={'@tveh': 'model_volume', 'vehicles': 'observed_volume'}, inplace=True)
+    df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
-              columns=['flag','inode','jnode','auto_time','type','@facilitytype','@countyid','tod','observed_volume','model_volume',], index=False)
+              columns=['flag','inode','jnode','auto_time','type','@facilitytype','@countyid','tod','observed','modeled',], index=False)
 
     # Roll up results to assignment periods
     df['time_period'] = df['tod'].map(sound_cast_net_dict)
@@ -164,6 +179,7 @@ def main():
     df = df.groupby('type').sum()[['@tveh']].reset_index()
 
     # Observed screenline data
+
 
 if __name__ == '__main__':
     main()

@@ -433,7 +433,7 @@ def main():
     summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment)
 
     # Create topsheet and metric HTML outputs
-    for sheet in ['topsheet']:
+    for sheet in ['topsheet','metrics','validation']:
         with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
                 nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=600, kernel_name='python2')

@@ -373,6 +373,8 @@ def update_daysim_modes():
         df = df[-df['mode'].isin(['av1','av2','av3'])]
     if not include_tnc:    # remove TNC-to-transit from potential path types
         df = df[-df['path-type'].isin(filter(lambda x: 'tnc' in x, df['path-type'].unique()))]
+	if not include_knr_to_transit:
+		df = df[-df['path-type'].isin(filter(lambda x: 'knr' in x, df['path-type'].unique()))]
     df.to_csv(r'inputs/model/roster/psrc_roster.csv',index=False)
 
     df = pd.read_csv(r'inputs/model/roster/templates/psrc-roster.combinations_template.csv', index_col='#')
