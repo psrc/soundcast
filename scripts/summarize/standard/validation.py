@@ -35,9 +35,15 @@ facility_type_lookup = {
     1:'Freeway',   # Interstate
     2:'Freeway',   # Ohter Freeway
     4:'Ramp',
-    5:'Prinicpal Arterial',
+    5:'Principal Arterial',
     19:'HOV',    # HOV Only Freeway
     999:'HOV'    # HOV Flag
+    }
+	
+county_lookup = {
+    33: 'King',
+    53: 'Pierce',
+    61: 'Snohomish'	
     }
 
 tod_lookup = {  0:'20to5',
@@ -128,7 +134,7 @@ def main():
     model_vol_df = pd.read_csv(r'outputs\network\network_results.csv')
 
     # Get the flag ID from network attributes
-    extra_attr_df = pd.read_csv(r'\\modelsrv1\c$\sc_2018_osm\inputs\scenario\networks\extra_attributes\am_link_attributes.in\extra_links.txt', delim_whitespace=True)
+    extra_attr_df = pd.read_csv(r'inputs\scenario\networks\extra_attributes\am_link_attributes.in\extra_links_1.txt', delim_whitespace=True)
     extra_attr_df['@facilitytype'] = extra_attr_df['@facilitytype'].map(facility_type_lookup)
 
     # Get daily and model volumes
@@ -145,11 +151,12 @@ def main():
     df_daily['perc_diff'] = df_daily['diff']/df_daily['observed']
     df_daily[['modeled','observed']] = df_daily[['modeled','observed']].astype('int')
     df_daily = df_daily.merge(df, on='@countid')
+    df_daily['county'] = df_daily['@countyid'].map(county_lookup)
     df_daily.to_csv(os.path.join(validation_output_dir,'daily_volume.csv'), 
-                     index=False, columns=['inode','jnode','@countid','@countyid','@facilitytype','modeled','observed','diff','perc_diff'])
+                     index=False, columns=['inode','jnode','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
 
     # Counts by county and facility type
-    df_county_facility_counts = df_daily.groupby(['@countyid','@facilitytype']).sum()[['observed','modeled']].reset_index()
+    df_county_facility_counts = df_daily.groupby(['county','@facilitytype']).sum()[['observed','modeled']].reset_index()
     df_county_facility_counts.to_csv(os.path.join(validation_output_dir,'daily_volume_county_facility.csv'))
 
     # hourly counts
@@ -162,8 +169,9 @@ def main():
 
     df = pd.merge(model_df, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
     df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
+    df_daily['county'] = df_daily['@countyid'].map(county_lookup)
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
-              columns=['flag','inode','jnode','auto_time','type','@facilitytype','@countyid','tod','observed','modeled',], index=False)
+              columns=['flag','inode','jnode','auto_time','type','@facilitytype','county','tod','observed','modeled',], index=False)
 
     # Roll up results to assignment periods
     df['time_period'] = df['tod'].map(sound_cast_net_dict)

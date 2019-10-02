@@ -209,7 +209,7 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
 	base_path = 'scripts/summarize/standard'
-	for script in ['daily_bank','network_summary','emissions','agg','validation']:
+	for script in ['daily_bank','network_summary','emissions','agg','validation','write_html']:
 		print(script)
 		subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
 

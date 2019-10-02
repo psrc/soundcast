@@ -261,8 +261,6 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
     network = emme_project.current_scenario.get_network()
     tod = emme_project.tod
 
-    
-
     # Extract Transit Line Data
     transit_line_data = []
     for line in network.transit_lines():
@@ -330,21 +328,6 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df.rename(columns={'segment_boarding': 'total_boardings'}, inplace=True)
     df['transfers'] = df['total_boardings'] - df['initial_boardings']
     df.to_csv(boardings_by_stop_path)
-
-def write_topsheet(sheet):
-    """ Write jupyter notebook to HTML as topsheet """
-
-    with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
-        nb = nbformat.read(f, as_version=4)
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
-        ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
-        with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
-            nbformat.write(nb, f)
-        os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
-        # Move these files to output
-        if os.path.exists(r"outputs/"+sheet+".html"):
-            os.remove(r"outputs/"+sheet+".html")
-        os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
 
 def main():
 
@@ -431,20 +414,6 @@ def main():
 
     # Create detailed transit summaries
     summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment)
-
-    # Create topsheet and metric HTML outputs
-    for sheet in ['topsheet','metrics','validation']:
-        with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
-                nb = nbformat.read(f, as_version=4)
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
-        ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
-        with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
-            nbformat.write(nb, f)
-        os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
-        # Move these files to output
-        if os.path.exists(r"outputs/"+sheet+".html"):
-            os.remove(r"outputs/"+sheet+".html")
-        os.rename(r"scripts/summarize/notebooks/"+sheet+".html", r"outputs/"+sheet+".html")
 
 if __name__ == "__main__":
     main()
