@@ -120,6 +120,27 @@ def main():
     ########################################
     # Transit Boardings by Stop
     ########################################
+	
+    # Light Rail
+    df_obs = pd.read_csv(r'R:\e2projects_two\2018_base_year\transit\light_rail_station_boardings.csv')
+    df_obs = df_obs[df_obs['year'] == int(base_year)]
+    df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
+    df = df[df['i_node'].isin(df_obs['emme_node'])]
+    df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
+    df.rename(columns={'total_boardings':'modeled','boardings':'observed'},inplace=True)
+    df['observed'] = df['observed'].astype('float')
+    df.index = df['station_name']
+    df_total = df.copy()[['observed','modeled']]
+    df_total.ix['Total',['observed','modeled']] = df[['observed','modeled']].sum().values
+    df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
+
+    # Light Rail Transfers
+    df_transfer = df.copy() 
+    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled']
+    df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
+    df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
+    df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]
+    df_transfer.to_csv(r'outputs\validation\light_rail_transfers.csv', index=True)
 
     ########################################
     # Traffic Volumes
@@ -187,7 +208,21 @@ def main():
     df = df.groupby('type').sum()[['@tveh']].reset_index()
 
     # Observed screenline data
+    df_obs = pd.read_csv(r'R:\e2projects_two\2018_base_year\screenlines\observed_screenline_volumes.csv')
+    df_obs['observed'] = df_obs['observed'].astype('float')
 
+    df_model = pd.read_csv(r'D:\sc_2018_dev_new\outputs\network\network_results.csv')
+    df_model['screenline_id'] = df_model['type'].astype('str')
+    # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label
+    df_model.ix[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
+    _df = df_model.groupby('screenline_id').sum()[['@tveh']].reset_index()
+
+    _df = _df.merge(df_obs, on='screenline_id')
+    _df.rename(columns={'@tveh':'modeled'},inplace=True)
+    _df = _df[['name','observed','modeled']]
+    _df['diff'] = _df['modeled']-_df['observed']
+    _df = _df.sort_values('observed',ascending=False)
+    _df.to_csv(r'outputs\validation\screenlines.csv', index=False)
 
 if __name__ == '__main__':
     main()
