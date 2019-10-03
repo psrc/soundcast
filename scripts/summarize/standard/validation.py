@@ -7,9 +7,11 @@ import os, shutil
 import pandas as pd
 from sqlalchemy import create_engine
 from input_configuration import base_year
-from emme_configuration import sound_cast_net_dict
+from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL 
 
 # output directory
+
+os.chdir(r'D:\\sc_2018_dev_new')
 
 validation_output_dir = 'outputs/validation'
 
@@ -104,26 +106,19 @@ def main():
     df_agency['diff'] = df_agency['modeled']-df_agency['observed']
     df_agency['perc_diff'] = df_agency['diff']/df_agency['observed']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                     index=False, columns=['agency_name','observed','modeled','diff','perc_diff'])
-
-    # Boardings by time of day
-
-
-    # Boardings by agency and time of day (Peak/Off-Peak, by 5 assignment periods
-
+                        index=False, columns=['agency_name','observed','modeled','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
-                     index=False, columns=['description','agency_name','observed','modeled','diff','perc_diff'])
+                        index=False, columns=['description','agency_name','observed','modeled','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
     ########################################
 	
     # Light Rail
-    df_obs = pd.read_csv(r'R:\e2projects_two\2018_base_year\transit\light_rail_station_boardings.csv')
-    df_obs = df_obs[df_obs['year'] == int(base_year)]
+    df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(base_year), con=conn)
     df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
     df = df[df['i_node'].isin(df_obs['emme_node'])]
     df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
@@ -136,6 +131,7 @@ def main():
 
     # Light Rail Transfers
     df_transfer = df.copy() 
+    df_transfer['observed_transfer_rate'] = df_transfer['observed_transfer_rate'].fillna(-99).astype('float')
     df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled']
     df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
     df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
@@ -147,9 +143,7 @@ def main():
     ########################################
 
     # Count data
-    counts = pd.read_csv(r'R:\e2projects_two\2018_base_year\counts\highway\hourly_counts.csv')
-    counts['year'] = counts['year'].astype('str')
-    counts = counts[counts['year'] == base_year]
+    counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(base_year), con=conn)
 
     # Model results
     model_vol_df = pd.read_csv(r'outputs\network\network_results.csv')
@@ -174,7 +168,7 @@ def main():
     df_daily = df_daily.merge(df, on='@countid')
     df_daily['county'] = df_daily['@countyid'].map(county_lookup)
     df_daily.to_csv(os.path.join(validation_output_dir,'daily_volume.csv'), 
-                     index=False, columns=['inode','jnode','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
+                        index=False, columns=['inode','jnode','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
 
     # Counts by county and facility type
     df_county_facility_counts = df_daily.groupby(['county','@facilitytype']).sum()[['observed','modeled']].reset_index()
@@ -192,7 +186,7 @@ def main():
     df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
     df_daily['county'] = df_daily['@countyid'].map(county_lookup)
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
-              columns=['flag','inode','jnode','auto_time','type','@facilitytype','county','tod','observed','modeled',], index=False)
+                columns=['flag','inode','jnode','auto_time','type','@facilitytype','county','tod','observed','modeled',], index=False)
 
     # Roll up results to assignment periods
     df['time_period'] = df['tod'].map(sound_cast_net_dict)
@@ -208,10 +202,10 @@ def main():
     df = df.groupby('type').sum()[['@tveh']].reset_index()
 
     # Observed screenline data
-    df_obs = pd.read_csv(r'R:\e2projects_two\2018_base_year\screenlines\observed_screenline_volumes.csv')
+    df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(base_year), con=conn)
     df_obs['observed'] = df_obs['observed'].astype('float')
 
-    df_model = pd.read_csv(r'D:\sc_2018_dev_new\outputs\network\network_results.csv')
+    df_model = pd.read_csv(r'outputs\network\network_results.csv')
     df_model['screenline_id'] = df_model['type'].astype('str')
     # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label
     df_model.ix[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
@@ -223,6 +217,27 @@ def main():
     _df['diff'] = _df['modeled']-_df['observed']
     _df = _df.sort_values('observed',ascending=False)
     _df.to_csv(r'outputs\validation\screenlines.csv', index=False)
+    
+    ########################################
+    # External Volumes
+    ########################################
+
+    # External stations
+    external_stations = xrange(MIN_EXTERNAL,MAX_EXTERNAL+1)
+    _df = df_model[(df_model['i_node'].isin(external_stations)) | (df_model['j_node'].isin(external_stations))]
+    _df.ix[_df['i_node'].isin(external_stations),'external_station'] = _df[_df['i_node'].isin(external_stations)]['i_node']
+    _df.ix[_df['j_node'].isin(external_stations),'external_station'] = _df[_df['j_node'].isin(external_stations)]['j_node']
+    _df = _df.groupby('external_station').sum()[['@tveh']].reset_index()
+
+    # Join to observed
+    # By Mode
+    df_obs = pd.read_sql("SELECT * FROM observed_external_volumes WHERE year=" + str(base_year), con=conn)
+    newdf = _df.merge(df_obs,on='external_station')
+    newdf.rename(columns={'@tveh':'modeled','AWDT':'observed'},inplace=True)
+    newdf['observed'] = newdf['observed'].astype('float')
+    newdf['diff'] = newdf['modeled'] - newdf['observed']
+    newdf = newdf[['external_station','location','observed','modeled','diff']].sort_values('observed',ascending=False)
+    newdf.to_csv(r'outputs\validation\external_volumes.csv',index=False)
 
 if __name__ == '__main__':
     main()
