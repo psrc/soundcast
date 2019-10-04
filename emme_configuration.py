@@ -56,12 +56,6 @@ extra_attributes_dict = {'@tveh' : 'total vehicles',
                          '@ovol' : 'observed volume', 
                          '@bveh' : 'number of buses'}
                          
-mode_file = 'modes.txt'
-transit_vehicle_file = 'vehicles.txt' 
-base_net_name = '_roadway.in'
-shape_name = '_link_shape.txt'
-turns_name = '_turns.in'
-transit_name = '_transit.in'
 no_toll_modes = ['s', 'h', 'i', 'j']
 unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = .25

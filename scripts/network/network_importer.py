@@ -245,15 +245,14 @@ def run_importer(project_name):
         my_project.delete_links()
         my_project.delete_nodes()
       
-        my_project.process_modes('inputs/scenario/networks/' + mode_file)
+        my_project.process_modes('inputs/scenario/networks/modes.txt')
         
-        my_project.process_base_network('inputs/scenario/networks/roadway/' + value + base_net_name)
-        if import_shape:
-            my_project.process_shape('inputs/scenario/networks/shape/' + value + shape_name)
-        my_project.process_turn('inputs/scenario/networks/turns/' + value + turns_name)
+        my_project.process_base_network('inputs/scenario/networks/roadway/' + value + '_roadway.in')
+        my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
+        my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
         if my_project.tod in load_transit_tod:
-           my_project.process_vehicles('inputs/scenario/networks/' + transit_vehicle_file)
-           my_project.process_transit('inputs/scenario/networks/transit/' + value + transit_name)
+           my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
+           my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
            update_headways(my_project, headway_df)
         #import tolls
         print(value)
