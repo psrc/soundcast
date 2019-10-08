@@ -38,7 +38,7 @@ def network_importer(EmmeProject):
     EmmeProject.change_scenario()
     EmmeProject.delete_links()
     EmmeProject.delete_nodes()
-    EmmeProject.process_modes('inputs/scenario/networks/' + mode_file)
+    EmmeProject.process_modes('inputs/scenario/networks/modes.txt')
     EmmeProject.process_base_network('inputs/scenario/networks/roadway/' + truck_base_net_name)
 
 def h5_to_data_frame(h5_file, group_name):

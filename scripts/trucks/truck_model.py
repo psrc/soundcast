@@ -29,7 +29,7 @@ def network_importer(my_project):
     my_project.change_scenario()
     my_project.delete_links()
     my_project.delete_nodes()
-    my_project.process_modes('inputs/scenario/networks/' + mode_file)
+    my_project.process_modes('inputs/scenario/networks/modes.txt')
     my_project.process_base_network('inputs/scenario/networks/roadway/' + truck_base_net_name)  
 
 def json_to_dictionary(dict_name):
