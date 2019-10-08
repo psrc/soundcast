@@ -61,8 +61,8 @@ unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 headway_file = 'headways.csv'
-link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
-node_extra_attributes = ['@lr_walk']
+link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@is_managed', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
+node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
 
 # in the junctions shapefile in the inputs/networks folder, this is the
 # minimum scene_node value where facility type = 99
