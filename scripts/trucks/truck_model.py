@@ -113,7 +113,7 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, conn):
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         my_project.bank.matrix(matrix_id).set_numpy_data(op_cost, my_project.current_scenario)
 
-def import_skims(my_project, input_skims):
+def import_skims(my_project, input_skims, zones, zonesDim):
     
     # Open GC skims from H5 container, average am/pm, import to emme:
     np_gc_skims = {}
@@ -133,8 +133,8 @@ def import_skims(my_project, input_skims):
             np_skim = np.matrix(h5_skim)
             np_gc_skims[skim_name + '_' + truck_generalized_cost_tod[tod]] = np_skim
 
-    zones = my_project.current_scenario.zone_numbers
-    zonesDim = len(my_project.current_scenario.zone_numbers)
+    #zones = my_project.current_scenario.zone_numbers
+    #zonesDim = len(my_project.current_scenario.zone_numbers)
 
     for truck_type in input_skims.values():
         #gc:
@@ -284,7 +284,7 @@ def write_summary(my_project):
 def main():
 
     my_project = EmmeProject(truck_model_project)
-    zones = my_project.current_scenario.zone_numbers
+    #zones = my_project.current_scenario.zone_numbers
 
     input_skims = json_to_dictionary('input_skims')
     truck_matrix_list = pd.read_csv(r'inputs/model/trucks/truck_matrices.csv')
@@ -293,6 +293,8 @@ def main():
     balanced_prod_att = pd.read_csv(r'outputs/supplemental/7_balance_trip_ends.csv')
 
     network_importer(my_project)
+    zones = my_project.current_scenario.zone_numbers
+    zonesDim = len(zones)
 
     # Load zone partitions (used to identify external zones)
     my_project.initialize_zone_partition('ga')
@@ -301,7 +303,7 @@ def main():
     my_project.delete_matrices("ALL")
     create_matrices(my_project, truck_matrix_list)
     load_data_to_emme(balanced_prod_att, my_project, zones, conn)
-    import_skims(my_project, input_skims)
+    import_skims(my_project, input_skims, zones, zonesDim)
     balance_attractions(my_project)
     calculate_impedance(my_project, conn)
     balance_matrices(my_project)
