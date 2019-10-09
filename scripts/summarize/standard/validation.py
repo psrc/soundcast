@@ -11,7 +11,7 @@ from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL
 
 # output directory
 
-os.chdir(r'D:\\sc_2018_dev_new')
+#os.chdir(r'D:\\sc_2018_dev_new')
 
 validation_output_dir = 'outputs/validation'
 
