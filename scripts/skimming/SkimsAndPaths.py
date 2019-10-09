@@ -856,7 +856,6 @@ def run_transit(project_name):
     
     my_bank = m.emmebank
 
-    create_node_attributes(transit_node_attributes, m)
     # Non light rail demand
     transit_assignment(m, "transit/extended_transit_assignment", False)
     transit_skims(m, "transit/transit_skim_setup")
@@ -993,32 +992,6 @@ def feedback_check(emmebank_path_list):
         my_bank.dispose()
      return passed
 
-def create_node_attributes(node_attribute_dict, my_project):
-        current_scenario = my_project.desktop.data_explorer().primary_scenario.core_scenario.ref
-        my_bank = current_scenario.emmebank
-        tod = my_bank.title
-        NAMESPACE = "inro.emme.data.extra_attribute.create_extra_attribute"
-        create_extra = my_project.tool(NAMESPACE)
-        for key, value in node_attribute_dict.iteritems():
-            new_att = create_extra(extra_attribute_type="NODE",
-                       extra_attribute_name=value['name'],
-                       extra_attribute_description=key,
-                       extra_attribute_default_value = value['init_value'],
-                       overwrite=True)
-        
-        network_calc = my_project.tool("inro.emme.network_calculation.network_calculator")  
-        node_calculator_spec = json_to_dictionary("node_calculation", "templates")
-        model_year = get_model_year()
-      
-        for line_id, attribute_dict in transit_node_constants[model_year].iteritems():
-
-            for attribute_name, value in attribute_dict.iteritems():
-            #Load in the necessary Dictionarie
-                mod_calc = node_calculator_spec
-                mod_calc["result"] = attribute_name
-                mod_calc["expression"] = value
-                mod_calc["selections"]["node"] = "Line = " + line_id
-                network_calc(mod_calc)
 
 def run_assignments_parallel(project_name):
 

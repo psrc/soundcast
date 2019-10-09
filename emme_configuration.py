@@ -113,38 +113,11 @@ bike_walk_skim_tod = ['5to6']
 # Transit Inputs:
 transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
+
 transit_node_attributes = {'headway_fraction' : {'name' : '@hdwfr', 'init_value': .5}, 
                            'wait_time_perception' :  {'name' : '@wait', 'init_value': 2},
                            'in_vehicle_time' :  {'name' : '@invt', 'init_value': 1}}
-transit_node_constants = {'2018':{'4943':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '4944':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4945':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '4952':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4960':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '4961':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
-                          '2025':{'5165':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '5166':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '5167':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '5168':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '5670':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '5671':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
-                          '2040':{'0041':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0042':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0043':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0044':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0055':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0056':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0057':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0058':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}},
-                          '2050':{'0041':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0042':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0043':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}, 
-                          '0044':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0055':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0056':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0057':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'},
-                          '0058':{'@hdwfr': '.1', '@wait' : '1', '@invt' : '.70'}}}
-               
+
 transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '6to7' : {'4k_tp' : 'am', 'num_of_hours' : 1}, 
                '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
