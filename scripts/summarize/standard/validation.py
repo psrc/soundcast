@@ -10,9 +10,6 @@ from input_configuration import base_year
 from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL 
 
 # output directory
-
-#os.chdir(r'D:\\sc_2018_dev_new')
-
 validation_output_dir = 'outputs/validation'
 
 # Create a clean output directory
@@ -31,7 +28,9 @@ agency_lookup = {
     7: 'Everett Transit'
 }
 # List of route IDs to separate for analysis
-special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,4200,4201,4202,1671,1672,1673,1674,1675,1676,1040,1007,6550]
+special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,
+                        4200,4201,4202,1671,1672,1673,1674,1675,1676,1040,1007,6550,
+                        5001,5002,5003,5004,5005,5006,5007]
 
 facility_type_lookup = {
     1:'Freeway',   # Interstate
@@ -85,33 +84,34 @@ def main():
     # Load observed data for given base year
     df_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(base_year), con=conn)
     df_obs['route_id'] = df_obs['route_id'].astype('int')
+    df_line_obs = df_obs.copy()
 
     # Load model results and calculate modeled daily boarding by line
     df_model = pd.read_csv(r'outputs\transit\transit_line_results.csv')
-    df_model_daily = df_model.groupby('route_code').sum()[['boardings']].reset_index()
+    df_model_daily = df_model.groupby('route_code').agg({   'description': 'first',
+                                                            'boardings': 'sum'}).reset_index()
 
     # Merge modeled with observed boarding data
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
-    df['agency_name'] = df['agency_id'].map(agency_lookup)
-    df.rename(columns={'boardings': 'modeled', 'daily_boardings': 'observed'}, inplace=True)
-    df['diff'] = df['modeled']-df['observed']
-    df['perc_diff'] = df['diff']/df['observed']
-    df[['modeled','observed']] = df[['modeled','observed']].fillna(-1)
+    df.rename(columns={'boardings': 'modeled_20to5'}, inplace=True)
+    df['diff'] = df['modeled_20to5']-df['observed_20to5']
+    df['perc_diff'] = df['diff']/df['observed_20to5']
+    df[['modeled_20to5','observed_20to5']] = df[['modeled_20to5','observed_20to5']].fillna(-1)
 
     # Write to file
     df.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_line.csv'), index=False)
 
     # Boardings by agency
-    df_agency = df.groupby(['agency_name']).sum().reset_index()
-    df_agency['diff'] = df_agency['modeled']-df_agency['observed']
-    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed']
+    df_agency = df.groupby(['agency']).sum().reset_index()
+    df_agency['diff'] = df_agency['modeled_20to5']-df_agency['observed_20to5']
+    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_20to5']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                        index=False, columns=['agency_name','observed','modeled','diff','perc_diff'])
+                        index=False, columns=['agency','observed_20to5','modeled_20to5','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
-                        index=False, columns=['description','agency_name','observed','modeled','diff','perc_diff'])
+                        index=False, columns=['description','route_code','agency','observed_20to5','modeled_20to5','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
@@ -119,20 +119,26 @@ def main():
 	
     # Light Rail
     df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(base_year), con=conn)
+
+    # Scale boardings for model period 5to20, based on boardings along entire line
+    light_rail_list = [6996]
+    daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
+    df_obs['observed_20to5'] = df_obs['boardings']/daily_factor
+
     df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
     df = df[df['i_node'].isin(df_obs['emme_node'])]
     df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
-    df.rename(columns={'total_boardings':'modeled','boardings':'observed'},inplace=True)
-    df['observed'] = df['observed'].astype('float')
+    df.rename(columns={'total_boardings':'modeled_20to5'},inplace=True)
+    df['observed_20to5'] = df['observed_20to5'].astype('float')
     df.index = df['station_name']
-    df_total = df.copy()[['observed','modeled']]
-    df_total.ix['Total',['observed','modeled']] = df[['observed','modeled']].sum().values
+    df_total = df.copy()[['observed_20to5','modeled_20to5']]
+    df_total.ix['Total',['observed_20to5','modeled_20to5']] = df[['observed_20to5','modeled_20to5']].sum().values
     df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
 
     # Light Rail Transfers
     df_transfer = df.copy() 
     df_transfer['observed_transfer_rate'] = df_transfer['observed_transfer_rate'].fillna(-99).astype('float')
-    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled']
+    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled_20to5']
     df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
     df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
     df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]

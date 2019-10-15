@@ -174,7 +174,9 @@ def main():
     daysim_sorted = daysim_sort(daysim)
     parcel_sorted = parcel_sort(parcel)
     trips = trips_estimation(parcel_sorted, daysim_sorted)
-    airport_trips = trips_adjustment(trips, airport_control_total[model_year])
+
+    airport_control_total = pd.read_sql('SELECT * FROM seatac WHERE year=='+str(model_year), con=conn)
+    airport_trips = trips_adjustment(trips, airport_control_total['enplanements'].values[0])
     demand_matrix = create_demand_matrix(airport_trips, zonesDim, zonesDim, dict_zone_lookup)
 
     # split airport trips into different modes, by applying HBO ratios

@@ -25,51 +25,6 @@ def json_to_dictionary(dict_name):
 
     return(my_dictionary)
           
-def import_tolls(emmeProject):
-    #create extra attributes:
-    create_extras = emmeProject.m.tool("inro.emme.data.extra_attribute.create_extra_attribute")
-    t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
-    t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
-    t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
-    t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
-    t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@brfer",extra_attribute_description="Bridge & Ferrry Flag",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@rdly",extra_attribute_description="Intersection Delay",overwrite=True)
- 
-    
-    import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
-
-    tod_4k = sound_cast_net_dict[emmeProject.tod]
-
-    attr_file= ['inputs/scenario/networks/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/scenario/networks/tolls/ferry_vehicle_fares.in']
-
-    # set tolls
-    #for file in attr_file:
-    import_attributes(attr_file[0], scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@toll1",
-                             3: "@toll2",
-                             4: "@toll3",
-                             5: "@trkc1",
-                             6: "@trkc2",
-                             7: "@trkc3"},
-              revert_on_error=True)
-
-    import_attributes(attr_file[1], scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@toll1",
-                             3: "@toll2",
-                             4: "@toll3",
-                             5: "@trkc1",
-                             6: "@trkc2",
-                             7: "@trkc3"},
-              revert_on_error=True)
-
-
-
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
     def translate(match):
@@ -233,7 +188,7 @@ def arterial_delay(emmeProject, factor):
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
-    headway_df = pd.DataFrame.from_csv('inputs/scenario/networks/' + headway_file)
+    headway_df = pd.DataFrame.from_csv('inputs/scenario/networks/headways.csv')
     tod_index = pd.Series(xrange(1,len(tod_networks)+1),index=tod_networks)
     for key, value in sound_cast_net_dict.iteritems():
         my_project.change_active_database(key)
@@ -250,11 +205,11 @@ def run_importer(project_name):
         my_project.process_base_network('inputs/scenario/networks/roadway/' + value + '_roadway.in')
         my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
         my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
-        if my_project.tod in load_transit_tod:
+        if my_project.tod in transit_tod_list:
            my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
            my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
            update_headways(my_project, headway_df)
-        #import tolls
+
         print(value)
         for att in link_extra_attributes:
             my_project.create_extra_attribute('LINK', att)
@@ -262,7 +217,7 @@ def run_importer(project_name):
             my_project.create_extra_attribute('NODE', att)
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_links_'+ str(tod_index[value]) +'.txt')
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_nodes_'+ str(tod_index[value]) +'.txt')
-        #import_tolls(my_project)
+
         arterial_delay(my_project, rdly_factor)
         if add_distance_pricing:
             distance_pricing(distance_rate_dict[value], my_project)     
