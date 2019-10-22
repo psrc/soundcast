@@ -34,5 +34,8 @@
 ],
 "LightRail": [
 {"Name": "litrat", "Description": "Light Rail Trips","Mode": "t","Time": "@timau","Distance": "@dist"} 
-]
+],
+"Ferry": [
+{"Name": "ferry", "Description": "Ferry Trips","Mode": "t","Time": "@timau","Distance": "@dist"}
+] 
 }

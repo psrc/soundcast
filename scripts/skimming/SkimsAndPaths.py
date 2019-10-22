@@ -123,7 +123,9 @@ def define_matrices(my_project):
             my_project.create_matrix('ivtwa' + item, "Actual IVTs by Mode: " + item, "FULL")
         for item in transit_submodes:
             my_project.create_matrix('ivtwr' + item, "Actual IVTs by Mode, Light Rail Assignment: " + item, "FULL")
-             
+        for item in transit_submodes:
+            my_project.create_matrix('ivtwf' + item, "Actual IVTs by Mode, Ferry Assignment: " + item, "FULL")
+
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', "transit")
 
@@ -479,7 +481,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
    # First Store a Dataset containing the Indicices for the Array to Matrix using mf01
     try:
-        mat_id=my_project.bank.matrix("mf01")
+        mat_id = my_project.bank.matrix("mf01")
         emme_matrix = my_project.bank.matrix(mat_id)
         em_val = emme_matrix.get_data()
         my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
@@ -501,6 +503,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
         for y in range (0, len(matrix_dict["Highway"])):
             matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
+            print matrix_name
             if my_skim_matrix_designation[x] == 'c':
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
             elif my_skim_matrix_designation[x] == 'd':
@@ -514,39 +517,23 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
 
-    ##transit
+    # Transit Skims
     if my_project.tod in transit_skim_tod:
-        for item in transit_submodes:
-            matrix_name= 'ivtwa' + item
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            #open old skim and average
-            #if average_skims:
-            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
+        for path_mode in ['a','r','f']:    # assignment path types - a: all, r: light rail, f: ferry
+            for item in transit_submodes:
+                matrix_name= 'ivtw' + path_mode + item
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
+                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                print(matrix_name+' was transferred to the HDF5 container.')
 
-            # Must use light rail assignment
-            matrix_name= 'ivtwr' + item
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            #open old skim and average
-            print(matrix_name)
-            #if average_skims:
-            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
-        #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
 
-        for key, value in dct_aggregate_transit_skim_names.iteritems():
-            matrix_name= key
+        for matrix_name, description in dct_aggregate_transit_skim_names.iteritems():
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            #open old skim and average
-            #if average_skims:
-            #    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
 
-    #bike/walk
+    # Bike/Walk 
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -557,7 +544,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
 
-    #transit/fare
+    # Transit Fare
     fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
     if my_project.tod in fare_matrices_tod:
         for value in fare_dict[my_project.tod]['Names'].values():
@@ -637,9 +624,9 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     dorp = dorp.astype('int')
     dorp = dorp[tod_index]
 
-    toll_path = np.asarray(daysim_set["pathtype"])
-    toll_path = toll_path.astype('int')
-    toll_path = toll_path[tod_index]
+    pathtype = np.asarray(daysim_set["pathtype"])
+    pathtype = pathtype.astype('int')
+    pathtype = pathtype[tod_index]
 
     my_store.close
 
@@ -690,8 +677,13 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                     av_flag = 1
 
             # Light Rail Trips:
-            if mode[x] == 6 and toll_path[x] == 4:
-                av_flag = 4 
+            if mode[x] == 6 and pathtype[x] == 4:
+                av_flag = 4
+
+            # Ferry Trips
+            if mode[x] == 6 and pathtype[x] == 7:
+                av_flag = 7
+
 
             # Retrieve trip information from Daysim records
             mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
@@ -864,6 +856,10 @@ def run_transit(project_name):
     transit_assignment(m, "transit/extended_transit_assignment_lr", True)
     transit_skims(m, "transit/transit_skim_setup_lr")
 
+    #Light Rail demand:
+    transit_assignment(m, "transit/extended_transit_assignment_ferry", True)
+    transit_skims(m, "transit/transit_skim_setup_lr")
+
     #Calc Wait Times
     app.App.refresh_data
     matrix_calculator = json_to_dictionary("matrix_calculation", "templates")
@@ -883,6 +879,16 @@ def run_transit(project_name):
     total_wait_matrix = my_bank.matrix('twtwr').id
     initial_wait_matrix = my_bank.matrix('iwtwr').id
     transfer_wait_matrix = my_bank.matrix('xfrwr').id
+
+    mod_calc = matrix_calculator
+    mod_calc["result"] = transfer_wait_matrix
+    mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
+    matrix_calc(mod_calc)
+
+    # Ferry wait times
+    total_wait_matrix = my_bank.matrix('twtwf').id
+    initial_wait_matrix = my_bank.matrix('iwtwf').id
+    transfer_wait_matrix = my_bank.matrix('xfrwf').id
 
     mod_calc = matrix_calculator
     mod_calc["result"] = transfer_wait_matrix
@@ -1069,10 +1075,10 @@ def main():
             l = project_list[i:i+parallel_instances]
             start_pool(l)
 
-        #run_assignments_parallel('projects/8to9/8to9.emp')
+        # run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
-        #run_transit(r'projects/8to9/8to9.emp')
+        # run_transit(r'projects/8to9/8to9.emp'))
        
         f = open('outputs/logs/converge.txt', 'w')
        
@@ -1091,8 +1097,9 @@ def main():
 
         # export skims even if skims converged
         for i in range (0, 12, parallel_instances):
-                l = project_list[i:i+parallel_instances]
-                export_to_hdf5_pool(l)
+            l = project_list[i:i+parallel_instances]
+            export_to_hdf5_pool(l)
+        # average_skims_to_hdf5_concurrent(EmmeProject('projects/8to9/8to9.emp'), False)
            
         f.close()
 

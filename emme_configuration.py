@@ -30,7 +30,6 @@ HIGH_PNR = 4000
 #####################################
 # Network Import Settings
 ####################################
-import_shape = False    # use network shape
 master_project = 'LoadTripTables'
 project = 'Projects/LoadTripTables/LoadTripTables.emp'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
@@ -39,41 +38,26 @@ sound_cast_net_dict = {'5to6' : 'am', '6to7' : 'am', '7to8' : 'am', '8to9' : 'am
                        '9to10' : 'md', '10to14' : 'md', '14to15' : 'md', 
                        '15to16' : 'pm', '16to17' : 'pm', '17to18' : 'pm', 
                        '18to20' : 'ev', '20to5' : 'ni'}
-load_transit_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 
-mode_crosswalk_dict = {'b': 'bp', 'bwl' : 'bpwl', 'aijb' : 'aimjbp', 'ahijb' : 'ahdimjbp', 
-                      'ashijtuvb': 'asehdimjvutbp', 'r' : 'rc', 'br' : 'bprc', 
-                      'ashijtuvbwl' : 'asehdimjvutbpwl', 'ashijtuvbfl' : 'asehdimjvutbpfl', 
-                      'asbw' : 'asehdimjvutbpwl', 'ashijtuvbxl' : 'asehdimjvutbpxl', 
-                      'ahijstuvbw' : 'asehdimjvutbpw'}
-
+transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 extra_attributes_dict = {'@tveh' : 'total vehicles', 
                          '@mveh' : 'medium trucks', 
                          '@hveh' : 'heavy trucks', 
-                         '@vmt' : 'vmt',\
+                         '@vmt' : 'vmt',
                          '@vht' : 'vht', 
                          '@trnv' : 'buses in auto equivalents',
                          '@ovol' : 'observed volume', 
                          '@bveh' : 'number of buses'}
                          
-no_toll_modes = ['s', 'h', 'i', 'j']
 unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
-headway_file = 'headways.csv'
+main_log_file = 'soundcast_log.txt'
+
 link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@is_managed', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
 
-# in the junctions shapefile in the inputs/networks folder, this is the
-# minimum scene_node value where facility type = 99
-min_hov_node = {'2014' : 199203, '2025' : 199026, '2040' : 199205, '2050' : 199205}
-
-# These files generally do not change and don't need to be toggled here usually
-parcel_decay_file = 'inputs/buffered_parcels.txt' #File with parcel data to be compared to
-# run daysim and assignment in feedback until convergence
-main_log_file = 'soundcast_log.txt'
-master_project = 'LoadTripTables'
-
+# VOT ranges for assignment classes
 vot_1_max = 13.07    # VOT for User Class 1 < vot_1_max
 vot_2_max = 26.14    # vot_1_max < VOT for User Class 2 < vot_2_max
 
@@ -88,14 +72,13 @@ tnc_occupancy = {
   23: 0.4    # AV, 3+ passengers
 }
 
-SPECIAL_GENERATORS = {"SeaTac":983,"Tacoma Dome":3110,"exhibition center":631, "Seattle Center":438}
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
 # Time of day periods
 tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
 project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
-emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit", 'LightRail']
+emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit", 'LightRail','Ferry']
 
 # Skim for time, cost
 skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
@@ -144,22 +127,13 @@ destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
 # Supplementals Settings
 #################################
 
-#Trip-Based Matrices for External, Trucks, and Special Generator Inputs
-hdf_auto_filename = 'outputs/supplemental/auto.h5'
-special_gen_trips = 'inputs/scenario/supplemental/generation/special_generators.csv'
-airport_zone_list = [983] # zone numbers for airport special generator
 trip_table_loc = 'outputs/supplemental/7_balance_trip_ends.csv'
-gq_trips_loc = 'inputs/scenario/supplemental/generation/gq_prod_att.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 supplemental_output_dir = 'outputs/supplemental'
 
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
-airport_control_total = {'2014' : 101838, '2018' : 116156, '2020' : 130475, '2025' : 149027, '2030' : 170216, '2035' : 189617, '2040' : 211228, '2050' : 257500} 
-
-# Change modes for toll links
-toll_modes_dict = {'asehdimjvutbpfl' : 'aedmvutbpfl', 'asehdimjvutbpwl' :	'aedmvutbpwl', 'ahdimjbp' : 'admbp'}
 
 #This is what you get if the model runs cleanly, but it's random:
 good_thing = ["a cookie", "a run", "a puppy", "a seal sighting",  "a beer", "some sunshine", "a nap"]

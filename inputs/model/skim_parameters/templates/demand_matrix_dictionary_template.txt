@@ -43,9 +43,9 @@
 (6,1,6):trnst
 (6,2,6):trnst
 (6,3,6):trnst
-(6,1,7):trnst
-(6,2,7):trnst
-(6,3,7):trnst
+(6,1,7):ferry
+(6,2,7):ferry
+(6,3,7):ferry
 (9,1,0):tnc_inc1
 (9,2,0):tnc_inc2
 (9,3,0):tnc_inc3

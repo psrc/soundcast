@@ -1,1 +1,17 @@
-{"ndbwa": "ABs All Modes","ndbwr": "ABs Light Rail", "twtwa": "Total Wait Time All Modes","twtwr": "Total Wait Time Light Rail", "ivtwa": "Actual IVTs All Modes", "ivtwr": "Actual IVTs Light Rail", "iwtwa": "First Wait Time All Modes", "iwtwr": "First Wait Time Light Rail", "xfrwa": "Transfer Time All Modes", "xfrwr": "Transfer Time Light Rail", "auxwa" :  "Walk Access Transit All Modes", "auxwr" :  "Walk Access Light Rail All Modes"}
+{"ndbwa": "ABs All Modes",
+"ndbwr": "ABs Light Rail", 
+"twtwa": "Total Wait Time All Modes",
+"twtwr": "Total Wait Time Light Rail", 
+"twtwf": "Total Wait Time Ferry", 
+"ivtwa": "Actual IVTs All Modes", 
+"ivtwr": "Actual IVTs Light Rail", 
+"ivtwf": "Actual IVTs Ferry", 
+"iwtwa": "First Wait Time All Modes", 
+"iwtwr": "First Wait Time Light Rail", 
+"iwtwf": "First Wait Time Ferry", 
+"xfrwa": "Transfer Time All Modes", 
+"xfrwr": "Transfer Time Light Rail", 
+"xfrwf": "Transfer Time Ferry", 
+"auxwa" :  "Walk Access Transit All Modes", 
+"auxwr" :  "Walk Access Light Rail All Modes",
+"auxwf" :  "Walk Access Ferry All Modes"}
