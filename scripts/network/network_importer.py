@@ -205,7 +205,7 @@ def run_importer(project_name):
         my_project.process_base_network('inputs/scenario/networks/roadway/' + value + '_roadway.in')
         my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
         my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
-        if my_project.tod in transit_tod_list:
+        if my_project.tod in load_transit_tod:
            my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
            my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
            update_headways(my_project, headway_df)
