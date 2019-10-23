@@ -858,7 +858,7 @@ def run_transit(project_name):
 
     #Light Rail demand:
     transit_assignment(m, "transit/extended_transit_assignment_ferry", True)
-    transit_skims(m, "transit/transit_skim_setup_lr")
+    transit_skims(m, "transit/transit_skim_setup_ferry")
 
     #Calc Wait Times
     app.App.refresh_data
