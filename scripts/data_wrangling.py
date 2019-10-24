@@ -384,7 +384,7 @@ def update_daysim_modes():
         df.loc[df.index[['tnc' in i for i in df.index]],'transit'] = 'FALSE'
     # Adjust KNR path types
     if not include_knr_to_transit:
-	    df.ix[['local-bus-knr','light-rail-knr'],'transit'] = 'FALSE'
+	    df.ix[['ferry-knr'],'transit'] = 'FALSE'
     if not include_tnc_to_transit:
         df.ix[['local-bus-tnc','light-rail-tnc'],'transit'] = 'FALSE'
     df.to_csv(r'inputs/model/roster/psrc-roster.combinations.csv')

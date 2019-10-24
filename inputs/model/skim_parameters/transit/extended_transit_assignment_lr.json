@@ -2,7 +2,6 @@
     "modes": [
         "b",
         "c",
-        "f",
         "n",
         "o",
         "p",
@@ -67,10 +66,6 @@
                     "next_journey_level": 0
                 },
                 {
-                    "mode": "f",
-                    "next_journey_level": 0
-                },
-                {
                     "mode": "n",
                     "next_journey_level": 0
                 },
@@ -101,10 +96,6 @@
                 },
                 {
                     "mode": "c",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "f",
                     "next_journey_level": 1
                 },
                 {
