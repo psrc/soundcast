@@ -681,7 +681,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 av_flag = 4
 
             # Ferry Trips
-            if mode[x] == 6 and pathtype[x] == 7:
+            if mode[x] == 6 and pathtype[x] in [7,12]:
                 av_flag = 7
 
 
