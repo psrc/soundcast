@@ -17,9 +17,9 @@
 {"Name": "av_hov3_inc1", "Description": "AV HOV 3 Income Level 1","Value of Time": 2614,"Mode": "m","Toll": "@toll3","Time": "@timau","Distance": "@dist"}, 
 {"Name": "av_hov3_inc2", "Description": "AV HOV 3 Income Level 2","Value of Time": 3811,"Mode": "m","Toll": "@toll3","Time": "@timau","Distance": "@dist"}, 
 {"Name": "av_hov3_inc3", "Description": "AV HOV 3 Income Level 3","Value of Time": 5989,"Mode": "m","Toll": "@toll3","Time": "@timau","Distance": "@dist"},    
-{"Name": "tnc_inc1", "Description": "TNC Level 1", "Value of Time": 2178,"Mode": "y","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
-{"Name": "tnc_inc2", "Description": "TNC Level 2", "Value of Time": 3267,"Mode": "y","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
-{"Name": "tnc_inc3", "Description": "TNC Level 3", "Value of Time": 5445,"Mode": "y","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "tnc_inc1", "Description": "TNC Level 1", "Value of Time": 2178,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "tnc_inc2", "Description": "TNC Level 2", "Value of Time": 3267,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "tnc_inc3", "Description": "TNC Level 3", "Value of Time": 5445,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
 {"Name": "medium_truck", "Description": "Medium Trucks","atrr_Name": "svtl1","Value of Time": 4900,"Mode": "u","Toll": "@trkc2","Time": "@timau","Distance": "@dist"}, 
 {"Name": "heavy_truck", "Description": "Heavy Trucks","atrr_Name": "svtl1","Value of Time": 5445,"Mode": "t","Toll": "@trkc3","Time": "@timau","Distance": "@dist"}
 ],
