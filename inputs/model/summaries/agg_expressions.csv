@@ -1,15 +1,16 @@
 table,target,agg_fields,values,aggfunc,description
 household,household_size_vehs_workers,"hhsize, hhvehs, hhftw",hhexpfac,sum,"households by size, vehicles, and workers"
-person,person_type,pptyp,psexpfac,sum,persons by type
+person,person_type,"pptyp,hhtaz",psexpfac,sum,persons by type by taz
 tour,tour_averages,"tmodetp, pdpurp","tautodist, tautotime",mean,tour averages by purpose and mode
-tour,tour_purpose_mode,"tmodetp, pdpurp",toexpfac,sum,tours by purpose and mode
-trip,trip_purpose_mode,"dpurp, mode, deptm_hr",trexpfac,sum,"trips by purpose, mode, and dpearture time"
+tour,tour_purpose_mode,"tmodetp, pdpurp,pptyp,tpathtp",toexpfac,sum,"tours by purpose, mode, path type and person type"
+trip,trip_purpose_mode,"dpurp, mode, pathtype,deptm_hr,pptyp",trexpfac,sum,"trips by purpose, mode, person type and departure time"
 trip,trip_averages,"dpurp, mode","travdist, travtime, travcost",mean,trip averages by purpose and mode
-trip,trip_dtaz,"dtaz,dpurp,mode",trexpfac,sum,"trips by dtaz, purpose, and mode"
-trip,trip_otaz,"otaz,dpurp,mode",trexpfac,sum,"trips by otaz, purpose, and mode"
-trip,trip_deptm,deptm_hr,trexpfac,sum,trips by departure time (hour)
-trip,trip_arrtm,arrtm_hr,trexpfac,sum,trips by arrival time (hour)
-trip,pathtype_otaz,"mode,pathtype,otaz",trexpfac,sum,trips by pathtype from origin taz
-trip,pathtype_dtaz,"mode,pathtype,dtaz",trexpfac,sum,trips by pathtype from destination taz
+trip,trip_dtaz,"dtaz,dpurp,mode,pathtype",trexpfac,sum,"trips by dtaz, purpose, and mode"
+trip,trip_otaz,"otaz,dpurp,mode,pathtype",trexpfac,sum,"trips by otaz, purpose, and mode"
+tour,tour_dtaz,"tdtaz,pdpurp,tmodetp,tpathtp",toexpfac,sum,"tours by tdtaz, purpose, mode, and pathtype"
 trip,dorp_otaz,"mode,dorp,otaz",trexpfac,sum,driver field by mode and origin taz
 trip,dorp_dtaz,"mode,dorp,dtaz",trexpfac,sum,driver field by mode and destination taz
+person,work_flows,"hhtaz,pwtaz",psexpfac,sum,"distribution of home and workplace, by taz for aggregation"
+household,auto_ownership,"hhvehs,hhtaz,hhincome_thousands",hhexpfac,sum,vehicles owned by hhtaz
+person,parking_transit_pass,"ppaidprk,pptyp,ptpass,pwtyp",psexpfac,sum,paid parking and transit pass by person and worker type
+tour,tour_scheduling,"tlvorg_hr,tlvdest_hr,pdpurp",toexpfac,sum,tour departure and return hours

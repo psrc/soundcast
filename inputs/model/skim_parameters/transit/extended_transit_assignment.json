@@ -1,10 +1,8 @@
 {
     "modes": [
         "b",
-        "c",
         "n",
         "o",
-        "p",
         "w",
         "x"
     ],
@@ -51,17 +49,11 @@
     "od_results": {
         "total_impedance": null
     },
-    "journey_levels": [
-        {
+    "journey_levels": [{
             "description": "not_on_transit_yet",
             "boarding_cost": null,
-            "transition_rules": [
-                {
+            "transition_rules": [{
                     "mode": "b",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "c",
                     "next_journey_level": 1
                 },
                 {
@@ -70,10 +62,6 @@
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "p",
                     "next_journey_level": 1
                 }
             ],
@@ -82,15 +70,10 @@
             "waiting_time": null
         },
         {
-            "description": "on _transit",
+            "description": "on_transit",
             "boarding_cost": null,
-            "transition_rules": [
-                {
+            "transition_rules": [{
                     "mode": "b",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "c",
                     "next_journey_level": 1
                 },
                 {
@@ -99,10 +82,6 @@
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "p",
                     "next_journey_level": 1
                 }
             ],

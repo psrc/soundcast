@@ -121,11 +121,11 @@ def define_matrices(my_project):
     if my_project.tod in transit_skim_tod:
         for item in transit_submodes:
             my_project.create_matrix('ivtwa' + item, "Actual IVTs by Mode: " + item, "FULL")
-        for item in transit_submodes:
             my_project.create_matrix('ivtwr' + item, "Actual IVTs by Mode, Light Rail Assignment: " + item, "FULL")
-        for item in transit_submodes:
             my_project.create_matrix('ivtwf' + item, "Actual IVTs by Mode, Ferry Assignment: " + item, "FULL")
-
+            my_project.create_matrix('ivtwc' + item, "Actual IVTs by Mode, Commuter Rail: " + item, "FULL")
+            my_project.create_matrix('ivtwp' + item, "Actual IVTs by Mode, Passenger Ferry Assignment: " + item, "FULL")
+            
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', "transit")
 
@@ -503,7 +503,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
         for y in range (0, len(matrix_dict["Highway"])):
             matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-            print matrix_name
             if my_skim_matrix_designation[x] == 'c':
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
             elif my_skim_matrix_designation[x] == 'd':
@@ -519,7 +518,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     # Transit Skims
     if my_project.tod in transit_skim_tod:
-        for path_mode in ['a','r','f']:    # assignment path types - a: all, r: light rail, f: ferry
+    	# assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
+        for path_mode in ['a','r','f','c','p']:    
             for item in transit_submodes:
                 matrix_name= 'ivtw' + path_mode + item
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
@@ -680,6 +680,14 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             if mode[x] == 6 and pathtype[x] == 4:
                 av_flag = 4
 
+            # Passenger-Only Ferrry Trips:
+            if mode[x] == 6 and pathtype[x] == 5:
+                av_flag = 5
+
+            # Commuter Rail:
+            if mode[x] == 6 and pathtype[x] == 6:
+                av_flag = 6
+
             # Ferry Trips
             if mode[x] == 6 and pathtype[x] in [7,12]:
                 av_flag = 7
@@ -838,7 +846,7 @@ def run_transit(project_name):
     start_of_run = time.time()
 
     my_desktop = app.start_dedicated(True, "sc", project_name) 
-    
+
     m = _m.Modeller(my_desktop)
     for t in m.toolboxes:
         t.connection.execute("PRAGMA busy_timeout=1000")
@@ -852,20 +860,17 @@ def run_transit(project_name):
     transit_assignment(m, "transit/extended_transit_assignment", False)
     transit_skims(m, "transit/transit_skim_setup")
 
-    #Light Rail demand:
-    transit_assignment(m, "transit/extended_transit_assignment_lr", True)
-    transit_skims(m, "transit/transit_skim_setup_lr")
-
-    #Light Rail demand:
-    transit_assignment(m, "transit/extended_transit_assignment_ferry", True)
-    transit_skims(m, "transit/transit_skim_setup_ferry")
+    # Transit submode demand:
+    for submode in ['light_rail','ferry','passenger_ferry','commuter_rail']:
+        transit_assignment(m, "transit/extended_transit_assignment_"+submode, True)
+        transit_skims(m, "transit/transit_skim_setup_"+submode)    
 
     #Calc Wait Times
     app.App.refresh_data
     matrix_calculator = json_to_dictionary("matrix_calculation", "templates")
     matrix_calc = m.tool("inro.emme.matrix_calculation.matrix_calculator")
 
-    #Hard coded for now, generalize later
+    # Wait times for general transit
     total_wait_matrix = my_bank.matrix('twtwa').id
     initial_wait_matrix = my_bank.matrix('iwtwa').id
     transfer_wait_matrix = my_bank.matrix('xfrwa').id
@@ -875,25 +880,17 @@ def run_transit(project_name):
     mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
     matrix_calc(mod_calc)
     
-    #Light rail Wait Times
-    total_wait_matrix = my_bank.matrix('twtwr').id
-    initial_wait_matrix = my_bank.matrix('iwtwr').id
-    transfer_wait_matrix = my_bank.matrix('xfrwr').id
+    # Wait times for transit submodes
+    for submode in ['r','f','p','c']:
 
-    mod_calc = matrix_calculator
-    mod_calc["result"] = transfer_wait_matrix
-    mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
-    matrix_calc(mod_calc)
+        total_wait_matrix = my_bank.matrix('twtw'+submode).id
+        initial_wait_matrix = my_bank.matrix('iwtw'+submode).id
+        transfer_wait_matrix = my_bank.matrix('xfrw'+submode).id
 
-    # Ferry wait times
-    total_wait_matrix = my_bank.matrix('twtwf').id
-    initial_wait_matrix = my_bank.matrix('iwtwf').id
-    transfer_wait_matrix = my_bank.matrix('xfrwf').id
-
-    mod_calc = matrix_calculator
-    mod_calc["result"] = transfer_wait_matrix
-    mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
-    matrix_calc(mod_calc)
+        mod_calc = matrix_calculator
+        mod_calc["result"] = transfer_wait_matrix
+        mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
+        matrix_calc(mod_calc)
 
     my_bank.dispose()
  
@@ -1075,10 +1072,11 @@ def main():
             l = project_list[i:i+parallel_instances]
             start_pool(l)
 
-        # run_assignments_parallel('projects/8to9/8to9.emp')
+        #run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
-        # run_transit(r'projects/8to9/8to9.emp'))
+        
+        # run_transit(r'projects/8to9/8to9.emp')
        
         f = open('outputs/logs/converge.txt', 'w')
        
