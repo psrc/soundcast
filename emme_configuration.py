@@ -11,9 +11,9 @@ relative_gap = 0.0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
-pop_sample = [1, 1, 1, 1, 1, 1, 1, 1]
+pop_sample = [1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
-max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
+max_iterations_list = [100, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
 shadow_work = [2, 1, 1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
@@ -78,7 +78,7 @@ feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
 project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
-emme_matrix_subgroups = ["Highway", "Walk", "Bike", "Transit", 'LightRail','Ferry']
+emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
 
 # Skim for time, cost
 skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
