@@ -14,3 +14,4 @@ person,work_flows,"hhtaz,pwtaz",psexpfac,sum,"distribution of home and workplace
 household,auto_ownership,"hhvehs,hhtaz,hhincome_thousands",hhexpfac,sum,vehicles owned by hhtaz
 person,parking_transit_pass,"ppaidprk,pptyp,ptpass,pwtyp",psexpfac,sum,paid parking and transit pass by person and worker type
 tour,tour_scheduling,"tlvorg_hr,tlvdest_hr,pdpurp",toexpfac,sum,tour departure and return hours
+trip,trip_dtract,"d_tract,dpurp,mode,pathtype",trexpfac,sum,"trips by dtract, purpose, and mode"
