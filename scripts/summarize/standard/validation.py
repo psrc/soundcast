@@ -245,5 +245,114 @@ def main():
     newdf = newdf[['external_station','location','observed','modeled','diff']].sort_values('observed',ascending=False)
     newdf.to_csv(r'outputs\validation\external_volumes.csv',index=False)
 
+    ########################################
+    # ACS Comparisons
+    ########################################
+
+    # Commute Mode Share by Workplace Geography
+    # Model Data
+    df_model = pd.read_csv(r'outputs\agg\tour_place.csv')
+    df_model = df_model[df_model['pdpurp'] == 'Work']
+    df_model = df_model.groupby(['t_o_place','t_d_place','tmodetp']).sum()[['toexpfac']].reset_index()
+    # rename columns
+    df_model.loc[df_model['tmodetp'] == 'SOV','mode'] = 'auto'
+    df_model.loc[df_model['tmodetp'] == 'HOV2','mode'] = 'auto'
+    df_model.loc[df_model['tmodetp'] == 'HOV3+','mode'] = 'auto'
+    df_model.loc[df_model['tmodetp'] == 'Transit','mode'] = 'transit'
+    df_model.loc[df_model['tmodetp'] == 'Walk','mode'] = 'walk_and_bike'
+    df_model.loc[df_model['tmodetp'] == 'Bike','mode'] = 'walk_and_bike'
+    df_model = df_model.groupby(['mode','t_d_place']).sum()[['toexpfac']].reset_index()
+
+    # Observed Data
+    df = pd.read_sql("SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year=" + str(base_year), con=conn)
+    df = df[df['geography'] == 'place']
+    df = df[df['mode'] != 'worked_at_home']
+    df['geog_name'] = df['geog_name'].apply(lambda row: row.split(' city')[0])
+
+    # FIXME: 
+    # no HOV modes - is SOV including all auto trips?
+    df.loc[df['mode']=='sov','mode'] = 'auto'
+
+    # Merge modeled and observed
+    df = df.merge(df_model, left_on=['geog_name','mode'], right_on=['t_d_place','mode'])
+    df.rename(columns={'trips': 'observed', 'toexpfac': 'modeled', 'geog_name': 'work_place'}, inplace=True)
+    df = df[['work_place','mode','modeled','observed']]
+    df['percent_diff'] = (df['modeled']-df['observed'])/df['observed']
+    df['diff'] = df['modeled']-df['observed']
+
+    df.to_csv(r'outputs\validation\acs_commute_share_by_workplace_geog.csv',index=False)
+
+    # Commute Mode Share by Home Tract
+    df_model = pd.read_csv(r'outputs\agg\tour_dtract.csv')
+
+    df_model[['to_tract','td_tract']] = df_model[['to_tract','td_tract']].astype('str')
+    df_model['to_tract'] = df_model['to_tract'].apply(lambda row: row.split('.')[0])
+    df_model['td_tract'] = df_model['td_tract'].apply(lambda row: row.split('.')[0])
+
+    df_model = df_model[df_model['pdpurp'] == 'Work']
+    df_model = df_model.groupby(['to_tract','tmodetp']).sum()[['toexpfac']].reset_index()
+
+    # # Group all HOV together
+    df_model['mode'] = df_model['tmodetp']
+    df_model.loc[df_model['tmodetp'] == 'HOV2', 'mode'] = 'HOV'
+    df_model.loc[df_model['tmodetp'] == 'HOV3+', 'mode'] = 'HOV'
+    df_model = df_model.groupby(['to_tract','mode']).sum().reset_index()
+
+    df_model['to_tract']=df_model['to_tract'].astype('int64')
+    df_model['modeled'] = df_model['toexpfac']
+
+    # Load the census data
+    df_acs = pd.read_sql("SELECT * FROM acs_commute_mode_home_tract WHERE year=" + str(base_year), con=conn)
+    
+    # Select only tract records
+    df_acs = df_acs[df_acs['place_type'] == 'tr']
+
+    # Only include modes for people that travel to work (exclude telecommuters and others)
+    mode_map = {'Drove Alone': 'SOV',
+                'Carpooled': 'HOV',
+                'Walked': 'Walk',
+                'Other': 'Other',
+               'Transit':'Transit'}
+
+    df_acs['mode'] = df_acs['variable_description'].map(mode_map)
+    df_acs = df_acs[-df_acs['mode'].isnull()]
+
+    # Drop the Other mode for now
+    df_acs = df_acs[df_acs['mode'] != 'Other']
+
+    # Merge the model and observed data
+    df = df_acs[['mode','geoid','place_name','estimate','margin_of_error']].merge(df_model,left_on=['geoid','mode'], 
+                                                                             right_on=['to_tract','mode'])
+    df.rename(columns={'estimate': 'observed', 'trexpfac': 'modeled'}, inplace=True)
+    df[['observed','modeled']] = df[['observed','modeled']].astype('float')
+
+    # Add geography columns based on tract
+    parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(base_year)+"_geography", con=conn) 
+
+    tract_geog = parcel_geog.groupby('Census2010Tract').first()[['CountyName','CityRGProposed','CityRGExisting','GrowthCenterName','TAZID',
+                                              'FAZLargeAreaName','ZoneAreaType','District']].reset_index()
+    df = df.merge(tract_geog, left_on='geoid', right_on='Census2010Tract', how='left')
+    df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
+
+    # Commute Flows
+    df_model = pd.read_csv(r'outputs\agg\work_home_location.csv')
+    df_model = df_model[df_model['pwpcl'] >= 0]
+
+    # Add geography
+    df_o = df_model.merge(parcel_geog, left_on='hhparcel', right_on='ParcelID', how='left')
+    df = df_o.merge(parcel_geog, left_on='pwpcl', right_on='ParcelID', how='left', suffixes=['_o','_d'])
+    df_model = df.groupby(['District_d','District_o']).sum()[['psexpfac']].reset_index()
+    df_model.rename(columns={'psexpfac': 'modeled'}, inplace=True)
+
+    # Observed Data
+    df_obs = pd.read_sql("SELECT * FROM district_worker_flows", con=conn) 
+    df_obs.rename(columns={'residence_district':'District_o', 'workplace_district': 'District_d',
+                      'workers': 'observed'}, inplace=True)
+    df = df_obs.merge(df_model, on=['District_o','District_d'])
+
+
+    df.to_csv(r'outputs\validation\district_worker_flows.csv', index=False)
+
+
 if __name__ == '__main__':
     main()
