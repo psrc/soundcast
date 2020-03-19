@@ -312,6 +312,9 @@ def main():
 
     # Apply land-use restrictions for productions/attraction in TAZs without appropriate industrial uses
     allowed_tazs = calc_heavy_truck_restrictions()
+    external_taz_list = range(MIN_EXTERNAL, MAX_EXTERNAL + 1)
+    allowed_tazs = allowed_tazs.tolist() + external_taz_list
+
     heavy_trucks_taz = heavy_trucks_taz[heavy_trucks_taz['taz'].isin(allowed_tazs)]
 
     # Join to full TAZ file to ensure final merging works
@@ -553,6 +556,13 @@ def main():
     for purpose in all_purposes:
         df_taz[purpose] = df_taz[purpose] + revised_external_taz[purpose]
     df_taz.to_csv(output_directory+'/5_add_externals.csv',index=True)
+
+    #Soundcast uses pre-determined HSP trips to meet external counts. Need to adjust these here for non-work-ixxi:
+    external_trip_table =  pd.read_sql('SELECT * FROM externals_unadjusted', con=conn) 
+    external_trip_table.set_index('taz', inplace = True)
+    external_trip_table = external_trip_table[['hsppro', 'hspatt']]
+    df_taz.update(external_trip_table)
+
 
     # Zero out JBLM trips that were generated above (so only inlcude Shopping, HBO, OtO and WtO)
     df_taz['jblm'] = df_taz['jblm'].apply(int)
