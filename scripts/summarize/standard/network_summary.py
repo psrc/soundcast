@@ -149,10 +149,14 @@ def jobs_transit(output_path):
 
     df.to_csv(output_path)
 
-def export_network_attributes(network, attribute_list):
+def export_network_attributes(my_project):
     """ Calculate link-level results by time-of-day, append to csv """
+	
+    my_project.change_active_database('daily')
+    network = my_project.current_scenario.get_network()
 
-    network_data = {k: [] for k in attribute_list}
+    _attribute_list = network.attributes('LINK')  
+    network_data = {k: [] for k in _attribute_list}
     i_node_list = []
     j_node_list = []
     for link in network.links():
@@ -221,28 +225,47 @@ def summarize_network(df, writer):
 
     # Totals by user classification
 
+    # Update uc_list based on inclusion of TNC and AVs
+    new_uc_list = []
+
+    if (not include_tnc) & (not include_av):
+        for uc in uc_list:
+            if ('@tnc' not in uc) & ('@av' not in uc):
+                new_uc_list.append(uc)
+                
+    if (include_tnc) & (not include_av):
+        for uc in uc_list:
+            if '@av' not in uc:
+                new_uc_list.append(uc)
+                
+    if (not include_tnc) & (include_av):
+        for uc in uc_list:
+            if '@tnc' not in uc:
+                new_uc_list.append(uc)
+                
+
     # VMT
     _df = df.copy()
-    for uc in uc_list:
+    for uc in new_uc_list:
         _df[uc] = df[uc]*df['length']
-    _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
+    _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df.to_excel(excel_writer=writer, sheet_name="VMT by UC")
 
     # VHT
     _df = df.copy()
-    for uc in uc_list:
+    for uc in new_uc_list:
         _df[uc] = df[uc]*df['auto_time']/60
-    _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
+    _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="VHT by UC")
 
     # Delay
     _df = df.copy()
-    for uc in uc_list:
+    for uc in new_uc_list:
         _df[uc] = ((_df['auto_time']-_df['freeflow_time'])*_df[uc])/60
-    _df = _df[uc_list+['tod']].groupby('tod').sum().reset_index()
+    _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="Delay by UC")
@@ -375,7 +398,7 @@ def main():
 
          # Export link-level results for multiple attributes
         network = my_project.current_scenario.get_network()
-        _network_df = export_network_attributes(network, attribute_list)
+        _network_df = export_network_attributes(my_project)
         _network_df['tod'] = my_project.tod
         network_df = network_df.append(_network_df)
 
