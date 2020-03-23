@@ -93,25 +93,25 @@ def main():
 
     # Merge modeled with observed boarding data
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
-    df.rename(columns={'boardings': 'modeled_20to5'}, inplace=True)
-    df['diff'] = df['modeled_20to5']-df['observed_20to5']
-    df['perc_diff'] = df['diff']/df['observed_20to5']
-    df[['modeled_20to5','observed_20to5']] = df[['modeled_20to5','observed_20to5']].fillna(-1)
+    df.rename(columns={'boardings': 'modeled_5to20', 'observed_20to5': 'observed_5to20'}, inplace=True)
+    df['diff'] = df['modeled_5to20']-df['observed_5to20']
+    df['perc_diff'] = df['diff']/df['observed_5to20']
+    df[['modeled_5to20','observed_5to20']] = df[['modeled_5to20','observed_5to20']].fillna(-1)
 
     # Write to file
     df.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_line.csv'), index=False)
 
     # Boardings by agency
     df_agency = df.groupby(['agency']).sum().reset_index()
-    df_agency['diff'] = df_agency['modeled_20to5']-df_agency['observed_20to5']
-    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_20to5']
+    df_agency['diff'] = df_agency['modeled_5to20']-df_agency['observed_5to20']
+    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_5to20']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                        index=False, columns=['agency','observed_20to5','modeled_20to5','diff','perc_diff'])
+                        index=False, columns=['agency','observed_5to20','modeled_5to20','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
-                        index=False, columns=['description','route_code','agency','observed_20to5','modeled_20to5','diff','perc_diff'])
+                        index=False, columns=['description','route_code','agency','observed_5to20','modeled_5to20','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
@@ -123,22 +123,22 @@ def main():
     # Scale boardings for model period 5to20, based on boardings along entire line
     light_rail_list = [6996]
     daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
-    df_obs['observed_20to5'] = df_obs['boardings']/daily_factor
+    df_obs['observed_5to20'] = df_obs['boardings']/daily_factor
 
     df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
     df = df[df['i_node'].isin(df_obs['emme_node'])]
     df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
-    df.rename(columns={'total_boardings':'modeled_20to5'},inplace=True)
-    df['observed_20to5'] = df['observed_20to5'].astype('float')
+    df.rename(columns={'total_boardings':'modeled_5to20'},inplace=True)
+    df['observed_5to20'] = df['observed_5to20'].astype('float')
     df.index = df['station_name']
-    df_total = df.copy()[['observed_20to5','modeled_20to5']]
-    df_total.ix['Total',['observed_20to5','modeled_20to5']] = df[['observed_20to5','modeled_20to5']].sum().values
+    df_total = df.copy()[['observed_5to20','modeled_5to20']]
+    df_total.ix['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
     df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
 
     # Light Rail Transfers
     df_transfer = df.copy() 
     df_transfer['observed_transfer_rate'] = df_transfer['observed_transfer_rate'].fillna(-99).astype('float')
-    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled_20to5']
+    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled_5to20']
     df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
     df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
     df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]
@@ -153,28 +153,24 @@ def main():
 
     # Model results
     model_vol_df = pd.read_csv(r'outputs\network\network_results.csv')
-
-    # Get the flag ID from network attributes
-    extra_attr_df = pd.read_csv(r'inputs\scenario\networks\extra_attributes\am_link_attributes.in\extra_links_1.txt', delim_whitespace=True)
-    extra_attr_df['@facilitytype'] = extra_attr_df['@facilitytype'].map(facility_type_lookup)
+    model_vol_df['@facilitytype'] = model_vol_df['@facilitytype'].map(facility_type_lookup)
 
     # Get daily and model volumes
     daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
-    model_daily_vol_df = model_vol_df.groupby(['i_node','j_node']).sum()[['@tveh']].reset_index()
-    df = pd.merge(model_daily_vol_df, extra_attr_df[['inode','jnode','@countid','@facilitytype','@countyid']], left_on=['i_node','j_node'], right_on=['inode','jnode'])
-    df_daily = df.groupby('@countid').sum()[['@tveh']].reset_index()
+    df_daily = model_vol_df.groupby(['@countid']).sum()[['@tveh']].reset_index()
 
     # Merge observed with model
     df_daily = df_daily.merge(daily_counts, left_on='@countid', right_on='flag')
+
     # Merge with attributes
     df_daily.rename(columns={'@tveh': 'modeled','vehicles': 'observed'}, inplace=True)
     df_daily['diff'] = df_daily['modeled']-df_daily['observed']
     df_daily['perc_diff'] = df_daily['diff']/df_daily['observed']
     df_daily[['modeled','observed']] = df_daily[['modeled','observed']].astype('int')
-    df_daily = df_daily.merge(df, on='@countid')
+    df_daily = df_daily.merge(model_vol_df, on='@countid', how='left')
     df_daily['county'] = df_daily['@countyid'].map(county_lookup)
     df_daily.to_csv(os.path.join(validation_output_dir,'daily_volume.csv'), 
-                        index=False, columns=['inode','jnode','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
+                        index=False, columns=['@countid','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
 
     # Counts by county and facility type
     df_county_facility_counts = df_daily.groupby(['county','@facilitytype']).sum()[['observed','modeled']].reset_index()
@@ -186,11 +182,11 @@ def main():
     counts_tod = counts.groupby(['tod','flag']).sum()[['vehicles']].reset_index()
 
     # Join by time of day and flag ID
-    model_df = pd.merge(model_vol_df, extra_attr_df[['inode','jnode','@countid','@facilitytype','@countyid']], left_on=['i_node','j_node'], right_on=['inode','jnode'])
+    #model_df = pd.merge(model_vol_df, extra_attr_df[['inode','jnode','@countid','@facilitytype','@countyid']], left_on=['i_node','j_node'], right_on=['inode','jnode'])
 
-    df = pd.merge(model_df, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
+    df = pd.merge(model_vol_df, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
     df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
-    df_daily['county'] = df_daily['@countyid'].map(county_lookup)
+    df['county'] = df['@countyid'].map(county_lookup)
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
                 columns=['flag','inode','jnode','auto_time','type','@facilitytype','county','tod','observed','modeled',], index=False)
 
@@ -204,14 +200,16 @@ def main():
     # Screenline is defined in "type" field for network links, all values other than 90 represent a screenline
 
     # Daily volume screenlines
-    df = model_daily_vol_df.merge(model_vol_df[['i_node','j_node','type']], on=['i_node','j_node'], how='left').drop_duplicates()
-    df = df.groupby('type').sum()[['@tveh']].reset_index()
+    #df = model_vol_df.merge(model_vol_df[['i_node','j_node','type']], on=['i_node','j_node'], how='left').drop_duplicates()
+    #df = model_vol_df.copy()
+    #df = df.groupby('type').sum()[['@tveh']].reset_index()
 
     # Observed screenline data
     df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(base_year), con=conn)
     df_obs['observed'] = df_obs['observed'].astype('float')
 
-    df_model = pd.read_csv(r'outputs\network\network_results.csv')
+    #df_model = pd.read_csv(r'outputs\network\network_results.csv')
+    df_model = model_vol_df.copy()
     df_model['screenline_id'] = df_model['type'].astype('str')
     # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label
     df_model.ix[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
@@ -230,15 +228,13 @@ def main():
 
     # External stations
     external_stations = xrange(MIN_EXTERNAL,MAX_EXTERNAL+1)
-    _df = df_model[(df_model['i_node'].isin(external_stations)) | (df_model['j_node'].isin(external_stations))]
-    _df.ix[_df['i_node'].isin(external_stations),'external_station'] = _df[_df['i_node'].isin(external_stations)]['i_node']
-    _df.ix[_df['j_node'].isin(external_stations),'external_station'] = _df[_df['j_node'].isin(external_stations)]['j_node']
-    _df = _df.groupby('external_station').sum()[['@tveh']].reset_index()
+    df_model = df_model[df_model['@countid'].isin(external_stations)]
+    _df = df_model.groupby('@countid').sum()[['@tveh']].reset_index()
 
     # Join to observed
     # By Mode
     df_obs = pd.read_sql("SELECT * FROM observed_external_volumes WHERE year=" + str(base_year), con=conn)
-    newdf = _df.merge(df_obs,on='external_station')
+    newdf = _df.merge(df_obs,left_on='@countid' ,right_on='external_station')
     newdf.rename(columns={'@tveh':'modeled','AWDT':'observed'},inplace=True)
     newdf['observed'] = newdf['observed'].astype('float')
     newdf['diff'] = newdf['modeled'] - newdf['observed']
