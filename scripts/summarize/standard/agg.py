@@ -31,16 +31,15 @@ def get_dict_values(d):
 
     return(_list)
 
-def main():
+def create_agg_outputs(path_dir_base, output_dir_base):
 
     # Load the expression file
     expr_df = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/agg_expressions.csv'))
 
     # Create output folder for flattened output
-    agg_output_dir = os.path.join(os.getcwd(),'outputs/agg')
-    if os.path.exists(agg_output_dir):
-        shutil.rmtree(agg_output_dir)
-    os.makedirs(agg_output_dir)
+    if os.path.exists(output_dir_base):
+        shutil.rmtree(output_dir_base)
+    os.makedirs(output_dir_base)
 
     # Expression log
     expr_log_path = r'outputs/agg/expr_log.csv'
@@ -51,12 +50,13 @@ def main():
     parcel_geog = pd.read_sql_table('parcel_'+base_year+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db') 
 
     # Load daysim outputs
-    trip = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_trip.tsv'), sep='\t')
-    tour = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_tour.tsv'), sep='\t')
-    person = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_person.tsv'), sep='\t')
-    household = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_household.tsv'), sep='\t')
-    person_day = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_person_day.tsv'), sep='\t')
-    household_day = pd.read_csv(os.path.join(os.getcwd(),r'outputs/daysim/_household_day.tsv'), sep='\t')
+
+    trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True)
+    tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True)
+    person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True)
+    household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True)
+    person_day = pd.read_csv(os.path.join(path_dir_base,'_person_day.tsv'), delim_whitespace=True)
+    household_day = pd.read_csv(os.path.join(path_dir_base,'_household_day.tsv'), delim_whitespace=True)
     # Add departure time hour to trips and tours
     trip['deptm_hr'] = trip['deptm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     trip['arrtm_hr'] = trip['arrtm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
@@ -173,9 +173,17 @@ def main():
 
         # Write results to target output    
         df = pd.eval(expr)
-        df.to_csv(os.path.join(os.getcwd(),r'outputs\agg',str(row['target'])+'.csv'))
+        df.to_csv(os.path.join(output_dir_base,str(row['target'])+'.csv'))
 
         del df
+
+def main():
+
+    dir_dict = {os.path.join(os.getcwd(),r'inputs/base_year/survey'): os.path.join(os.getcwd(),r'outputs/agg/survey'),
+                os.path.join(os.getcwd(),r'outputs/daysim'): os.path.join(os.getcwd(),r'outputs/agg')}
+
+    for path_dir_base, output_dir_base in dir_dict.items():
+        create_agg_outputs(path_dir_base, output_dir_base)
         
 if __name__ == '__main__':
     main()
