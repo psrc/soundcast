@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os, shutil
 import math
+from collections import OrderedDict
 from input_configuration import base_year
 
 # Define relationships between daysim files
@@ -36,6 +37,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     # Load the expression file
     expr_df = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/agg_expressions.csv'))
 
+    print(output_dir_base)
     # Create output folder for flattened output
     if os.path.exists(output_dir_base):
         shutil.rmtree(output_dir_base)
@@ -179,8 +181,9 @@ def create_agg_outputs(path_dir_base, output_dir_base):
 
 def main():
 
-    dir_dict = {os.path.join(os.getcwd(),r'inputs/base_year/survey'): os.path.join(os.getcwd(),r'outputs/agg/survey'),
-                os.path.join(os.getcwd(),r'outputs/daysim'): os.path.join(os.getcwd(),r'outputs/agg')}
+    dir_dict = OrderedDict()
+    dir_dict[os.path.join(os.getcwd(),r'outputs/daysim')] = os.path.join(os.getcwd(),r'outputs/agg')
+    dir_dict[os.path.join(os.getcwd(),r'inputs/base_year/survey')] = os.path.join(os.getcwd(),r'outputs/agg/survey')
 
     for path_dir_base, output_dir_base in dir_dict.items():
         create_agg_outputs(path_dir_base, output_dir_base)
