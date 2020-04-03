@@ -240,6 +240,64 @@ def main():
     newdf['diff'] = newdf['modeled'] - newdf['observed']
     newdf = newdf[['external_station','location','observed','modeled','diff']].sort_values('observed',ascending=False)
     newdf.to_csv(r'outputs\validation\external_volumes.csv',index=False)
+	
+	
+	########################################
+	# Corridor Speeds
+	########################################
+	
+    df_model = model_vol_df.copy()
+    df_model['@corridorid'] = df_model['@corridorid'].astype('int')
+
+    df_obs = pd.read_sql_table('observed_corridor_speed', conn) 
+
+    df_obs[['Flag1','Flag2','Flag3','Flag4','Flag5','Flag6']] = df_obs[['Flag1','Flag2','Flag3','Flag4','Flag5','Flag6']].fillna(-1).astype('int')
+
+    tod_cols = [u'ff_spd', u'5am_spd', u'6am_spd',
+    	   u'7am_spd', u'8am_spd', u'9am_spd', u'3pm_spd', u'4pm_spd', u'5pm_spd',
+    	   u'6pm_spd', u'7pm_spd']
+
+    _df_obs = pd.melt(df_obs, id_vars='Corridor_Number', value_vars=tod_cols, var_name='tod', value_name='observed_speed')
+    _df_obs = _df_obs[_df_obs['tod'] != 'ff_spd']
+
+
+    # Set TOD
+    tod_dict = {
+    	'5am_spd': '12to5',
+    	'6am_spd': '5to6',
+    	'7am_spd': '6to7',
+    	'8am_spd': '7to8',
+    	'9am_spd': '8to9',
+    	'3pm_spd': '14to15',
+    	'4pm_spd': '15to16',
+    	'5pm_spd': '16to17',
+    	'6pm_spd': '17to18',
+    	'7pm_spd': '18to20',
+    }
+    _df_obs['tod'] = _df_obs['tod'].map(tod_dict)
+
+    _df = _df_obs.merge(df_obs, on=['Corridor_Number'])
+    _df.drop(tod_cols, axis=1, inplace=True)
+
+    # Get the corridor number from the flag file
+    flag_lookup_df = pd.melt(df_obs[['Corridor_Number','Flag1', 'Flag2','Flag3','Flag4','Flag5','Flag6']], 
+    		id_vars='Corridor_Number', value_vars=['Flag1', 'Flag2','Flag3','Flag4','Flag5','Flag6'], 
+    		var_name='flag_number', value_name='flag_value')
+
+    df_speed = df_model.merge(flag_lookup_df,left_on='@corridorid',right_on='flag_value')
+
+    # Note that we need to separate out the Managed HOV lanes
+    df_speed = df_speed[df_speed['@is_managed'] == 0]
+
+    df_speed = df_speed.groupby(['Corridor_Number','tod']).sum()[['auto_time','length']].reset_index()
+    df_speed['model_speed'] = (df_speed['length']/df_speed['auto_time'])*60
+    df_speed = df_speed[(df_speed['model_speed'] < 80) & ((df_speed['model_speed'] > 0))]
+
+    # Join to the observed data
+    df_speed = df_speed.merge(_df,on=['Corridor_Number','tod'])
+
+    df_speed.plot(kind='scatter', y='model_speed', x='observed_speed')
+    df_speed.to_csv(r'outputs\validation\corridor_speeds.csv', index=False)
 
     ########################################
     # ACS Comparisons
