@@ -149,11 +149,8 @@ def jobs_transit(output_path):
 
     df.to_csv(output_path)
 
-def export_network_attributes(my_project):
+def export_network_attributes(network):
     """ Calculate link-level results by time-of-day, append to csv """
-	
-    my_project.change_active_database('daily')
-    network = my_project.current_scenario.get_network()
 
     _attribute_list = network.attributes('LINK')  
     network_data = {k: [] for k in _attribute_list}
@@ -398,7 +395,7 @@ def main():
 
          # Export link-level results for multiple attributes
         network = my_project.current_scenario.get_network()
-        _network_df = export_network_attributes(my_project)
+        _network_df = export_network_attributes(network)
         _network_df['tod'] = my_project.tod
         network_df = network_df.append(_network_df)
 
