@@ -2,7 +2,7 @@ table,target,agg_fields,values,aggfunc,description
 household,household_size_vehs_workers,"hhsize, hhvehs, hhftw",hhexpfac,sum,"households by size, vehicles, and workers"
 person,person_type,"pptyp,hhtaz",psexpfac,sum,persons by type by taz
 tour,tour_averages,"tmodetp, pdpurp","tautodist, tautotime",mean,tour averages by purpose and mode
-tour,tour_purpose_mode,"tmodetp, pdpurp,pptyp,tpathtp",toexpfac,sum,"tours by purpose, mode, path type and person type"
+tour,tour_purpose_mode,"tmodetp, pdpurp,pptyp,tpathtp,tlvorg_hr",toexpfac,sum,"tours by purpose, mode, path type and person type"
 trip,trip_purpose_mode,"dpurp, mode, pathtype,deptm_hr,pptyp",trexpfac,sum,"trips by purpose, mode, person type and departure time"
 trip,trip_averages,"dpurp, mode","travdist, travtime, travcost",mean,trip averages by purpose and mode
 trip,trip_dtaz,"dtaz,dpurp,mode,pathtype",trexpfac,sum,"trips by dtaz, purpose, and mode"
