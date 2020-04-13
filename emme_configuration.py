@@ -11,9 +11,9 @@ relative_gap = 0.0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
-pop_sample = [1, 1, 1, 1]
+pop_sample = [1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
-max_iterations_list = [100, 100, 100, 100, 100, 100, 100, 100, 100]
+max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
 shadow_work = [2, 1, 1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
@@ -54,7 +54,7 @@ rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 main_log_file = 'soundcast_log.txt'
 
-link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@is_managed', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
+link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
 
 # VOT ranges for assignment classes
