@@ -30,7 +30,7 @@ Tour,tmodetp,5,HOV3+
 Tour,tmodetp,6,Transit
 Tour,tmodetp,7,Park
 Tour,tmodetp,8,School Bus
-Tour,tmodetp,9,Other
+Tour,tmodetp,9,TNC
 Tour,tpathtp,0,None
 Tour,tpathtp,1,Full Network
 Tour,tpathtp,2,No-Toll Network
