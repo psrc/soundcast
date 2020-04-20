@@ -54,7 +54,7 @@ rdly_factor = .25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 main_log_file = 'soundcast_log.txt'
 
-link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
+link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed','@bkfac','@upslp', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3'] 
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
 
 # VOT ranges for assignment classes

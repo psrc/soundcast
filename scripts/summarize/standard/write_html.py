@@ -5,7 +5,8 @@ from nbconvert.preprocessors import ExecutePreprocessor
 def main():
 
     # Create HTML sheets from jupyter notebooks
-    for sheet in ['topsheet','metrics','validation','validation_census','validation_tour','validation_daysim']:
+    for sheet in ['topsheet','metrics','validation','validation_census',
+                    'validation_tour','validation_daysim']:
         with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
                 nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
