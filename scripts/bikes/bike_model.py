@@ -128,9 +128,6 @@ def calc_bike_weight(my_project, link_df):
 	''' Calculate perceived travel time weight for bikes
 	    based on facility attributes, slope, and vehicle traffic.'''
 
-	# Import link attributes for elevation gain and bike facilities
-	process_attributes(my_project)
-
 	# Calculate weight of bike facilities
 	bike_fac_df = bike_facility_weight(my_project, link_df)
 
