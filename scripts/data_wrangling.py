@@ -168,7 +168,6 @@ def copy_scenario_inputs():
     
     # Copy network, landuse, and general (year-based) inputs
     copyanything(os.path.join(soundcast_inputs_dir, 'db'),'inputs/db')
-    copyanything(os.path.join(soundcast_inputs_dir, 'general', model_year),'inputs/scenario')
     copyanything(os.path.join(soundcast_inputs_dir, 'landuse', model_year, landuse_inputs),'inputs/scenario/landuse')
     copyanything(os.path.join(soundcast_inputs_dir, 'networks', model_year, network_inputs),'inputs/scenario/networks')
     shcopy(os.path.join(soundcast_inputs_dir, 'networks', model_year, 'transit_stops_'+str(model_year)+'.csv'),'inputs/scenario/networks/transit')
