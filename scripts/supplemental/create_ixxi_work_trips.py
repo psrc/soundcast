@@ -127,7 +127,7 @@ def main():
     # FIXME: add some logging here to verify the results are as expected
     
     # Create empty numpy matrices for SOV, HOV2 and HOV3, populate with results
-    w_SOV = np.zeros((zonesDim,zonesDim), np.float16)
+    w_SOV = np.zeros((zonesDim,zonesDim), np.float64)
     w_HOV2 = np.zeros((zonesDim,zonesDim), np.float16)
     w_HOV3 = np.zeros((zonesDim,zonesDim), np.float16)
 
