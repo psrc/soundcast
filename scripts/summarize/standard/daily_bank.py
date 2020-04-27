@@ -15,6 +15,7 @@
 import inro.emme.database.emmebank as _emmebank
 import os, sys
 import numpy as np
+from shutil import copy2 as shcopy
 import json
 import shutil
 from distutils import dir_util
@@ -95,22 +96,47 @@ def export_link_values(my_project):
     link_attr = network.attributes(link_type)
 
     # Initialize a dataframe to store results
-    df = pd.DataFrame(np.zeros(len(link_attr)+1)).T    # column for each attr +1 for node id (used as merge field)
-    df.columns = np.insert(link_attr, 0, 'nodes')    # columns are attrs w/ node id inserted to front of array
-
+    df = pd.DataFrame()
     for attr in link_attr:
         print "processing: " + str(attr)
         # store values and node id for a single attr in a temp df 
         df_attr = pd.DataFrame([network.get_attribute_values(link_type, [attr])[1].keys(),
                           network.get_attribute_values(link_type, [attr])[1].values()]).T
-        df_attr.columns = ['nodes',attr]
-        df.drop(attr, inplace=True, axis=1)
-        # merge temp df with the 'master df' that is filled iteratively
-        df = pd.merge(df,df_attr,on='nodes')
+        df_attr.columns = ['nodes','value']
+        df_attr['measure'] = str(attr)
+
+        df = df.append(df_attr)
     
+    # Lengthen tablewise
+    df = df.pivot(index='nodes',columns='measure',values='value').reset_index()
     df.to_csv(daily_network_fname)
 
 def main():
+
+    # Create a project to hold daily bank
+    if not os.path.exists('projects/daily'):
+        os.makedirs('projects/daily')
+    else:
+        shutil.rmtree('projects/daily')
+
+    project = app.create_project('projects','Daily')
+    desktop = app.start_dedicated(False, "cth", project)
+    data_explorer = desktop.data_explorer()
+
+    # Use a copy of an existing bank for the daily bank and rename
+    copy_emmebank('Banks/7to8', 'Banks/Daily')
+    daily_emmebank =_emmebank.Emmebank(r'Banks/Daily/emmebank')
+    daily_emmebank.title = 'daily'
+    daily_scenario = daily_emmebank.scenario(1002)
+    daily_network = daily_scenario.get_network()
+
+
+    database = data_explorer.add_database('Banks/Daily/emmebank')
+    database.open()
+    desktop.project.save()
+    desktop.close()
+    emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
+    shcopy(emme_toolbox_path + '/standard.mtbx', 'projects/daily')
 
     # Use a copy of an existing bank for the daily bank and rename
     # copy_emmebank('Banks/7to8', 'Banks/Daily')
@@ -119,88 +145,81 @@ def main():
     # daily_scenario = daily_emmebank.scenario(1002)
     # daily_network = daily_scenario.get_network()
 
-    # matrix_dict = text_to_dictionary('demand_matrix_dictionary')
-    # uniqueMatrices = set(matrix_dict.values())
+    matrix_dict = text_to_dictionary('demand_matrix_dictionary')
+    uniqueMatrices = set(matrix_dict.values())
 
-    # # delete and create new matrices since this is a full copy of another time period
-    # for matrix in daily_emmebank.matrices():
-    #    daily_emmebank.delete_matrix(matrix.id)
+    # delete and create new matrices since this is a full copy of another time period
+    for matrix in daily_emmebank.matrices():
+       daily_emmebank.delete_matrix(matrix.id)
        
-    # for matrix in uniqueMatrices:
-    #    daily_matrix = daily_emmebank.create_matrix(daily_emmebank.available_matrix_identifier('FULL'))
-    #    daily_matrix.name = matrix
+    for matrix in uniqueMatrices:
+       daily_matrix = daily_emmebank.create_matrix(daily_emmebank.available_matrix_identifier('FULL'))
+       daily_matrix.name = matrix
 
-    # daily_matrix_dict = {}
-    # for matrix in daily_emmebank.matrices():
-    #    daily_arr = matrix.get_numpy_data()
-    #    daily_matrix_dict[matrix.name] = daily_arr
+    daily_matrix_dict = {}
+    for matrix in daily_emmebank.matrices():
+       daily_arr = matrix.get_numpy_data()
+       daily_matrix_dict[matrix.name] = daily_arr
 
-    # time_period_list = []
+    time_period_list = []
 
-    # for tod, time_period in sound_cast_net_dict.iteritems():
-    #    path = os.path.join('Banks', tod, 'emmebank')
-    #    bank = _emmebank.Emmebank(path)
-    #    scenario = bank.scenario(1002)
-    #    network = scenario.get_network()
+    for tod, time_period in sound_cast_net_dict.iteritems():
+       path = os.path.join('Banks', tod, 'emmebank')
+       bank = _emmebank.Emmebank(path)
+       scenario = bank.scenario(1002)
+       network = scenario.get_network()
         
-    #    # Trip table data:
-    #    for matrix in bank.matrices():
-    #        if matrix.name in daily_matrix_dict:
-    #            hourly_arr = matrix.get_numpy_data()
-    #            daily_matrix_dict[matrix.name] = daily_matrix_dict[matrix.name] + hourly_arr
+       # Trip table data:
+       for matrix in bank.matrices():
+           if matrix.name in daily_matrix_dict:
+               hourly_arr = matrix.get_numpy_data()
+               daily_matrix_dict[matrix.name] = daily_matrix_dict[matrix.name] + hourly_arr
       
-    #    # Network data:
-    #    if len(time_period_list) == 0:
-    #        daily_network = network
-    #        time_period_list.append(time_period)
-    #    elif time_period not in time_period_list:
-    #        time_period_list.append(time_period) #this line was repeated below
-    #        daily_network = merge_networks(daily_network, network)
-    #        time_period_list.append(time_period) #this line was repeated above
-    # daily_scenario.publish_network(daily_network, resolve_attributes=True)
+       # Network data:
+       if len(time_period_list) == 0:
+           daily_network = network
+           time_period_list.append(time_period)
+       elif time_period not in time_period_list:
+           time_period_list.append(time_period) #this line was repeated below
+           daily_network = merge_networks(daily_network, network)
+           time_period_list.append(time_period) #this line was repeated above
+    daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
-    # # Write daily trip tables:
-    # for matrix in daily_emmebank.matrices():
-    #    matrix.set_numpy_data(daily_matrix_dict[matrix.name])
+    # Write daily trip tables:
+    for matrix in daily_emmebank.matrices():
+       matrix.set_numpy_data(daily_matrix_dict[matrix.name])
 
-    # for extra_attribute in daily_scenario.extra_attributes():
-    #    if extra_attribute not in keep_atts:
-    #        daily_scenario.delete_extra_attribute(extra_attribute)
-    # daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
-    # daily_network = daily_scenario.get_network()
+    for extra_attribute in daily_scenario.extra_attributes():
+       if extra_attribute not in keep_atts:
+           daily_scenario.delete_extra_attribute(extra_attribute)
+    daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
+    daily_network = daily_scenario.get_network()
 
-    # for tod, time_period in sound_cast_net_dict.iteritems():
-    #    path = os.path.join('Banks', tod, 'emmebank')
-    #    bank = _emmebank.Emmebank(path)
-    #    scenario = bank.scenario(1002)
-    #    network = scenario.get_network()
-    #    if daily_scenario.extra_attribute('@v' + tod):
-    #        daily_scenario.delete_extra_attribute('@v' + tod)
-    #    attr = daily_scenario.create_extra_attribute('LINK', '@v' + tod)
-    #    values = scenario.get_attribute_values('LINK', ['@tveh'])
-    #    daily_scenario.set_attribute_values('LINK', [attr], values)
+    for tod, time_period in sound_cast_net_dict.iteritems():
+       path = os.path.join('Banks', tod, 'emmebank')
+       bank = _emmebank.Emmebank(path)
+       scenario = bank.scenario(1002)
+       network = scenario.get_network()
+       if daily_scenario.extra_attribute('@v' + tod):
+           daily_scenario.delete_extra_attribute('@v' + tod)
+       attr = daily_scenario.create_extra_attribute('LINK', '@v' + tod)
+       values = scenario.get_attribute_values('LINK', ['@tveh'])
+       daily_scenario.set_attribute_values('LINK', [attr], values)
 
-    # daily_network = daily_scenario.get_network()
-    # attr_list = ['@tv' + x for x in tods]
+    daily_network = daily_scenario.get_network()
+    attr_list = ['@tv' + x for x in tods]
 
-    # for link in daily_network.links():
-    #    for item in tods:
-    #        link['@tveh'] = link['@tveh'] + link['@v' + item]
-    # daily_scenario.publish_network(daily_network, resolve_attributes=True)
+    for link in daily_network.links():
+       for item in tods:
+           link['@tveh'] = link['@tveh'] + link['@v' + item]
+    daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     # Write daily link-level results
 
-    # Add daily bank if it's not already included
-    my_project = EmmeProject(network_summary_project)
-    db_list = [i.title() for i in my_project.data_explorer.databases()]
-    if 'daily' not in db_list:
-        database = my_project.data_explorer.add_database('Banks/daily/emmebank')
-        database.open()
-    
+
+    my_project = EmmeProject('projects/daily/daily.emp')
     my_project.change_active_database('daily')
     export_link_values(my_project)
-    my_project.desktop.project.save()
-    my_project.desktop.close()
 
 if __name__ == '__main__':
     main()

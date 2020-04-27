@@ -1,12 +1,16 @@
 import os
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
+from input_configuration import model_year, base_year
 
 def main():
 
+    nb_list = ['topsheet','metrics','validation_census','validation_daysim','validation_tour']
+    if str(model_year)==str(base_year):
+        nb_list += ['validation']
+
     # Create HTML sheets from jupyter notebooks
-    for sheet in ['topsheet','metrics','validation','validation_census',
-                    'validation_tour','validation_daysim']:
+    for sheet in nb_list:
         with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
                 nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
