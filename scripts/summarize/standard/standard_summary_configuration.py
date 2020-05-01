@@ -9,6 +9,7 @@ boardings_by_agency_path = r'outputs/transit/daily_boardings_by_agency.csv'
 special_routes_path = r'outputs/transit/daily_boardings_special_routes.csv'
 boardings_by_tod_agency_path = r'outputs/transit/boardings_by_tod_agency.csv'
 boardings_by_stop_path = r'outputs/transit/boardings_by_stop.csv'
+light_rail_boardings_path = r'outputs/transit/light_rail_boardings.csv'
 
 attribute_list = ['auto_volume','data1','data2','data3','type',
 'num_lanes','length','auto_time','@medium_truck','@heavy_truck','@tveh',

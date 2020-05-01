@@ -19,3 +19,4 @@ tour,tour_dtract,"td_tract,to_tract,pdpurp,tmodetp,pptyp",toexpfac,sum,"tours by
 person,work_home_location,"pwpcl, hhparcel",psexpfac,sum,household and work location parcels
 person,person_place,"hh_place_name,pw_place_name",psexpfac,sum,"work place, home place, person type"
 tour,tour_place,"t_o_place, t_d_place, pdpurp, tmodetp, pptyp",toexpfac,sum,"tours by place, purpose, mode, and person type"
+tour,tour_district,"t_o_district, t_d_district, pdpurp, tmodetp, pptyp",toexpfac,sum,"tours by district, purpose, mode, and person type"

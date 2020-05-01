@@ -25,6 +25,7 @@ import json
 import h5py
 from pyproj import Proj, transform
 import nbformat
+from sqlalchemy import create_engine
 from nbconvert.preprocessors import ExecutePreprocessor
 from EmmeProject import *
 from standard_summary_configuration import *
@@ -316,7 +317,7 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
 
     return _df_transit_line, _df_transit_node, _df_transit_segment
 
-def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment):
+def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn):
     """Sumarize various transit measures."""
 
     df_transit_line['agency_code'] = df_transit_line['agency_code'].astype('int')
@@ -349,7 +350,33 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df['transfers'] = df['total_boardings'] - df['initial_boardings']
     df.to_csv(boardings_by_stop_path)
 
+    # Light rail station boardings
+    df = pd.read_csv(boardings_by_stop_path)
+    df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings", con=conn)
+    df_obs['year'] = df_obs['year'].fillna(0).astype('int')
+    df_obs = df_obs[(df_obs['year'] == int(base_year)) | (df_obs['year'] == 0)]
+
+    # Translate daily boardings to 5 to 20
+    df_line_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(base_year), con=conn)
+    df_line_obs['route_id'] = df_line_obs['route_id'].astype('int')
+    light_rail_list = [6996]
+    daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
+    df_obs['observed_5to20'] = df_obs['boardings']/daily_factor
+
+    df = df[df['i_node'].isin(df_obs['emme_node'])]
+    df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
+    df.rename(columns={'total_boardings':'modeled_5to20'},inplace=True)
+
+    df['modeled_5to20'] = df['modeled_5to20'].astype('float')
+    df.index = df['station_name']
+    df_total = df.copy()[['observed_5to20','modeled_5to20']]
+    df_total.ix['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
+    df_total.to_csv(light_rail_boardings_path)
+
+
 def main():
+
+    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
 
     # Delete any existing files
     for _path in [transit_line_path,transit_node_path,transit_segment_path,network_results_path]:
@@ -433,7 +460,7 @@ def main():
     summarize_network(network_df, writer)
 
     # Create detailed transit summaries
-    summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment)
+    summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
 
 if __name__ == "__main__":
     main()
