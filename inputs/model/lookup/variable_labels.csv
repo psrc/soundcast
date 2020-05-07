@@ -149,7 +149,7 @@ Trip,mode,4,HOV2
 Trip,mode,5,HOV3+
 Trip,mode,6,Transit
 Trip,mode,8,School Bus
-Trip,mode,9,Other
+Trip,mode,9,TNC
 Trip,pathtype,0,None
 Trip,pathtype,1,Full Network
 Trip,pathtype,2,No-Toll Network
