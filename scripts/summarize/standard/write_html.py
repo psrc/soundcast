@@ -5,7 +5,7 @@ from input_configuration import model_year, base_year
 
 def main():
 
-    nb_list = ['topsheet','metrics','validation_census','validation_daysim','validation_tour']
+    nb_list = ['topsheet','metrics','validation_census','validation_daysim','validation_tour','work']
     if str(model_year)==str(base_year):
         nb_list += ['validation']
 
