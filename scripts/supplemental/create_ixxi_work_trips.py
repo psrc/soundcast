@@ -111,9 +111,6 @@ def main():
     ixxi_cols = ['Total_IE', 'Total_EI', 'SOV_Veh_IE', 'SOV_Veh_EI','HOV2_Veh_IE','HOV2_Veh_EI','HOV3_Veh_IE','HOV3_Veh_EI']
     work = work[['PSRC_TAZ','External_Station']+ixxi_cols]
 
-    # group trips by O-D TAZ's (trips from external stations to internal TAZs)
-    w_grp = work.groupby(['PSRC_TAZ','External_Station']).sum()
-
     # Scale this based on forecasted employment growth between model and base year
     base_year_scaling = pd.read_sql('SELECT * FROM base_year_scaling', con=conn)
 
@@ -123,6 +120,9 @@ def main():
     model_year_totemp = parcels_urbansim['EMPTOT_P'].sum()
     emp_scaling = model_year_totemp/base_year_totemp
     work[ixxi_cols] = work[ixxi_cols]*emp_scaling
+
+    # group trips by O-D TAZ's (trips from external stations to internal TAZs)
+    w_grp = work.groupby(['PSRC_TAZ','External_Station']).sum()
 
     # FIXME: add some logging here to verify the results are as expected
     
