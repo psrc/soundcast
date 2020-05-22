@@ -1,4 +1,5 @@
 table,target,agg_fields,values,aggfunc,description
+tour,work_from_home_tours,"pwpcl, hhparcel,pwtaz,hhtaz,pptyp,pdpurp",toexpfac,sum,tours by purpose for people that work at home
 household,household_size_vehs_workers,"hhsize, hhvehs, hhftw",hhexpfac,sum,"households by size, vehicles, and workers"
 person,person_type,"pptyp,hhtaz",psexpfac,sum,persons by type by taz
 tour,tour_averages,"tmodetp, pdpurp","tautodist, tautotime",mean,tour averages by purpose and mode
@@ -18,7 +19,7 @@ tour,tour_scheduling,"tlvorg_hr,tlvdest_hr,pdpurp",toexpfac,sum,tour departure h
 tour,tour_scheduling_arrival,"tardest_hr,tarorig_hr,pdpurp",toexpfac,sum,tour arrival and return hours
 trip,trip_dtract,"o_tract,d_tract,opurp,dpurp,mode,pathtype,pptyp",trexpfac,sum,"trips by dtract, purpose, and mode"
 tour,tour_dtract,"td_tract,to_tract,pdpurp,tmodetp,pptyp",toexpfac,sum,"tours by dtract, purpose, and mode"
-person,work_home_location,"pwpcl, hhparcel",psexpfac,sum,household and work location parcels
+person,work_home_location,"pwpcl, hhparcel,pwtaz,hhtaz",psexpfac,sum,household and work location parcels
 person,person_place,"hh_place_name,pw_place_name",psexpfac,sum,"work place, home place, person type"
 tour,tour_place,"t_o_place, t_d_place, pdpurp, tmodetp, pptyp",toexpfac,sum,"tours by place, purpose, mode, and person type"
 tour,tour_stops_outbound,"pdpurp,tripsh1,tripsh2",toexpfac,sum,tours by purpose and tour halves
@@ -28,4 +29,4 @@ tour,tour_time,"tmodetp, pdpurp,pptyp,tautotime_bin",toexpfac,sum,"tour time bin
 trip,tour_distance,"dpurp, mode, pptyp, travdist_bin",trexpfac,sum,"trip distance bins by purpose, person type, and mode"
 trip,tour_time,"dpurp, mode, pptyp, travtime_bin",trexpfac,sum,"trip time bins by purpose, person type, and mode"
 tour,tour_duration,"tmodetp, pdpurp,pptyp,tour_duration",toexpfac,sum,"tour duration by purpose, person type, and mode"
-household,auto_sufficiency,"hhvehs,hhtaz,hhwkrs",hhexpfac,sum,vehicles owned by hhtaz
+household,auto_sufficiency,"hhvehs,hhtaz,hhftw,hhptw",hhexpfac,sum,vehicles owned by hhtaz
