@@ -30,3 +30,4 @@ trip,trip_distance,"dpurp, mode, pptyp, travdist_bin",trexpfac,sum,"trip distanc
 trip,trip_time,"dpurp, mode, pptyp, travtime_bin",trexpfac,sum,"trip time bins by purpose, person type, and mode"
 tour,tour_duration,"tmodetp, pdpurp,pptyp,tour_duration",toexpfac,sum,"tour duration by purpose, person type, and mode"
 household,auto_sufficiency,"hhvehs,hhtaz,hhftw,hhptw",hhexpfac,sum,vehicles owned by hhtaz
+trip,trips_by_tour,"dpurp,pdpurp,tmodetp,mode",trexpfac,sum,trip mode and purpose by tour mode and purpose

@@ -7,7 +7,7 @@ from input_configuration import base_year
 
 # Define relationships between daysim files
 daysim_merge_fields = {'Trip': 
-                            {'Tour': ['tour'],
+                            {'Tour': ['hhno','pno','tour'],
                             'Person': ['hhno','pno'],
                             'Household': ['hhno']},
                         'Person':
@@ -63,14 +63,14 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     trip['deptm_hr'] = trip['deptm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     trip['arrtm_hr'] = trip['arrtm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     # Create integer bins for travel time, distance, and cost
-    trip[['travtime_bin','travcost_bin','travdist_bin']] = trip[['travtime','travcost','travdist']].apply(np.floor).astype('int')
+    trip[['travtime_bin','travcost_bin','travdist_bin']] = trip[['travtime','travcost','travdist']].apply(np.floor).fillna(-1).astype('int')
 
     # tour start/end hours; tour time, cost, and distance bins
     tour['tlvorg_hr'] = tour['tlvorig'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     tour['tardest_hr'] = tour['tardest'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     tour['tlvdest_hr'] = tour['tlvdest'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     tour['tarorig_hr'] = tour['tarorig'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
-    tour[['tautotime_bin','tautocost_bin','tautodist_bin']] = tour[['tautotime','tautocost','tautodist']].apply(np.floor).astype('int')
+    tour[['tautotime_bin','tautocost_bin','tautodist_bin']] = tour[['tautotime','tautocost','tautodist']].apply(np.floor).fillna(-1).astype('int')
 
     # Total tour time
     tour['tour_duration'] = tour['tarorig'] - tour['tlvorig']
@@ -162,6 +162,8 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     household = daysim_dict['Household']
     person_day = daysim_dict['PersonDay']
     household_day = daysim_dict['HouseholdDay']
+
+    tour.fillna(-1, inplace=True)
 
     del daysim_dict
 
