@@ -3,12 +3,11 @@ tour,work_from_home_tours,"pwpcl, hhparcel,pwtaz,hhtaz,pptyp,pdpurp",toexpfac,su
 household,household_size_vehs_workers,"hhsize, hhvehs, hhftw",hhexpfac,sum,"households by size, vehicles, and workers"
 person,person_type,"pptyp,hhtaz",psexpfac,sum,persons by type by taz
 tour,tour_averages,"tmodetp, pdpurp","tautodist, tautotime",mean,tour averages by purpose and mode
-tour,tour_purpose_mode,"tmodetp, pdpurp,pptyp,tpathtp,tlvorg_hr",toexpfac,sum,"tours by purpose, mode, path type and person type"
-trip,trip_purpose_mode,"dpurp, mode, pathtype,deptm_hr,pptyp",trexpfac,sum,"trips by purpose, mode, person type and departure time"
+tour,tour_purpose_mode,"tour_o_district, tour_d_district,tmodetp, pdpurp,pptyp,tpathtp,tlvorg_hr",toexpfac,sum,"tours by purpose, mode, path type and person type"
+trip,trip_purpose_mode,"trip_o_district, trip_d_district, dpurp, mode, pathtype,deptm_hr,pptyp",trexpfac,sum,"trips by taz, purpose, mode, person type and departure time"
 trip,trip_purpose_mode_arrival,"dpurp, mode, pathtype,arrtm_hr,pptyp",trexpfac,sum,"trips by purpose, mode, person type and arrival time"
 trip,trip_averages,"dpurp, mode","travdist, travtime, travcost",mean,trip averages by purpose and mode
 trip,trip_dtaz,"dtaz,dpurp,mode,pathtype",trexpfac,sum,"trips by dtaz, purpose, and mode"
-trip,trip_otaz,"otaz,dpurp,mode,pathtype",trexpfac,sum,"trips by otaz, purpose, and mode"
 tour,tour_dtaz,"tdtaz,pdpurp,tmodetp,tpathtp",toexpfac,sum,"tours by tdtaz, purpose, mode, and pathtype"
 trip,dorp_otaz,"mode,dorp,otaz",trexpfac,sum,driver field by mode and origin taz
 trip,dorp_dtaz,"mode,dorp,dtaz",trexpfac,sum,driver field by mode and destination taz
@@ -23,7 +22,6 @@ person,work_home_location,"pwpcl, hhparcel,pwtaz,hhtaz",psexpfac,sum,household a
 person,person_place,"hh_place_name,pw_place_name",psexpfac,sum,"work place, home place, person type"
 tour,tour_place,"t_o_place, t_d_place, pdpurp, tmodetp, pptyp",toexpfac,sum,"tours by place, purpose, mode, and person type"
 tour,tour_stops_outbound,"pdpurp,tripsh1,tripsh2",toexpfac,sum,tours by purpose and tour halves
-tour,tour_district,"t_o_district, t_d_district, pdpurp, tmodetp, pptyp",toexpfac,sum,"tours by district, purpose, mode, and person type"
 tour,tour_distance,"tmodetp, pdpurp,pptyp,tautodist_bin",toexpfac,sum,"tour distance bins by purpose, person type, and mode"
 tour,tour_time,"tmodetp, pdpurp,pptyp,tautotime_bin",toexpfac,sum,"tour time bins by purpose, person type, and mode"
 trip,trip_distance,"dpurp, mode, pptyp, travdist_bin",trexpfac,sum,"trip distance bins by purpose, person type, and mode"
