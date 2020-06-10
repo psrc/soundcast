@@ -32,7 +32,7 @@ run_summaries = True
 # Modes and Path Types
 ##############################
 include_av = False
-include_tnc = False
+include_tnc = True
 tnc_av = False    # TNCs (if available) are AVs
 include_tnc_to_transit = False # AV to transit path type allowed
 include_knr_to_transit = False # Kiss and Ride to Transit
