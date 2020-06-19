@@ -5,7 +5,7 @@ import os
 ##############################
 model_year = '2018'
 base_year = '2018'
-landuse_inputs = 'lodes'
+landuse_inputs = 'base_year'
 network_inputs = 'OSM'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 
