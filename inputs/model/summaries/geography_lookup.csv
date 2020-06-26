@@ -1,4 +1,8 @@
 left_table,left_index,right_table,right_index,right_column,right_column_rename
+Tour,topcl,parcel_geog,ParcelID,district_name,tour_o_district
+Tour,tdpcl,parcel_geog,ParcelID,district_name,tour_d_district
+Trip,otaz,parcel_geog,ParcelID,district_name,trip_o_district
+Trip,dtaz,parcel_geog,ParcelID,district_name,trip_d_district
 Trip,dpcl,parcel_geog,ParcelID,Census2010Tract,d_tract
 Trip,opcl,parcel_geog,ParcelID,Census2010Tract,o_tract
 Tour,topcl,parcel_geog,ParcelID,Census2010Tract,td_tract
@@ -7,7 +11,3 @@ Person,hhparcel,parcel_geog,ParcelID,place_name,hh_place_name
 Person,pwpcl,parcel_geog,ParcelID,place_name,pw_place_name
 Tour,topcl,parcel_geog,ParcelID,place_name,t_o_place
 Tour,tdpcl,parcel_geog,ParcelID,place_name,t_d_place
-Tour,topcl,parcel_geog,ParcelID,district_name,tour_o_district
-Tour,tdpcl,parcel_geog,ParcelID,district_name,tour_d_district
-Trip,opcl,parcel_geog,ParcelID,district_name,trip_o_district
-Trip,dpcl,parcel_geog,ParcelID,district_name,trip_d_district

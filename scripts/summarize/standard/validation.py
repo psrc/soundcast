@@ -208,7 +208,7 @@ def main():
     df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(base_year), con=conn)
     df_obs['observed'] = df_obs['observed'].astype('float')
 
-    #df_model = pd.read_csv(r'outputs\network\network_results.csv')
+    df_model = pd.read_csv(r'outputs\network\network_results.csv')
     df_model = model_vol_df.copy()
     df_model['screenline_id'] = df_model['type'].astype('str')
     # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label

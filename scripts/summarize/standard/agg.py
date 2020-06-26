@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os, shutil
+import re
 import math
 from collections import OrderedDict
 from input_configuration import base_year
@@ -36,6 +37,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
 
     # Load the expression file
     expr_df = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/agg_expressions.csv'))
+    expr_df = expr_df.fillna('__remove__')    # Fill NA with string signifying data to be ignored
 
     print(output_dir_base)
     # Create output folder for flattened output
@@ -55,6 +57,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
 
     trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True)
     tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True)
+    tour = tour[tour['tmodetp'] != -1]
     person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True)
     household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True)
     person_day = pd.read_csv(os.path.join(path_dir_base,'_person_day.tsv'), delim_whitespace=True)
@@ -87,21 +90,32 @@ def create_agg_outputs(path_dir_base, output_dir_base):
                   'HouseholdDay': household_day,
                   'PersonDay': person_day,
                   'Person': person}
-    
+
+    # build master list of daysim columns
+    master_col_list = []
+    for key, value in daysim_dict.items():
+        master_col_list += [i for i in value.columns.values]
+    master_col_list += [i for i in geography_lookup['right_column_rename'].values]
+    # print(master_col_list)
+
     # Get a list of all used columns; drop all others to save memory
     # Required columns come from agg_expressions file and geography_lookup
     minimum_col_list = []
-    for expr_col in ['agg_fields','values']:
-        col_values_as_list = [i.split(',') for i in expr_df[expr_col]]
+    for expr_col in ['agg_fields','values','filter_fields','query']:
+        col_values_as_list = [re.split(',|>|==|>=|<|<=|!=',i) for i in expr_df[expr_col]]
         minimum_col_list += list(np.unique([item for sublist in col_values_as_list for item in sublist]))
         minimum_col_list += list(geography_lookup['left_index'].values)    # Add the lookup cols for geographic joins
         # Also keep the columns from the Daysim merge fields dictionary - these are keys used for common joins
         minimum_col_list += get_dict_values(daysim_merge_fields)
     minimum_col_list = [i.strip(' ') for i in minimum_col_list]
 
+    minimum_col_list  = list(set(master_col_list) & set(minimum_col_list))
+    # print('$$$$$$$$$$$$$$$$$$')
+    # print(minimum_col_list)
     # Join household and person attributes to trip and tour records, but only join required fields
 
-    
+
+
     # Apply field labels and geographic lookups 
     for tablename, table in daysim_dict.iteritems():
 
@@ -109,13 +123,19 @@ def create_agg_outputs(path_dir_base, output_dir_base):
         # Identify minimal set of relevant columns for this table
         ############################################################
 
-        # Get the difference between the standard fields and those used in agg_expressions
+        # Get the difference between the standard fields and those used in agg_expressions and fitler fields
         table_col_list = table.columns[table.columns.isin(minimum_col_list)]
-        _table_cols = [i.split(',') for i in expr_df[expr_df['table'] == tablename.lower()]['agg_fields']]
-        _table_cols = list(np.unique([item for sublist in _table_cols for item in sublist]))
+        _table_cols = []
+        for colname in ['agg_fields','filter_fields','query']:
+            _table_cols.append([re.split(',|>|==|>=|<|<=|!=',i) for i in expr_df[expr_df['table'] == tablename.lower()][colname]])
+        
+        _table_cols = list([item for sublist in _table_cols for item in sublist])
+        _table_cols = np.unique([item for sublist in _table_cols for item in sublist])
         _table_cols = [i.strip(' ') for i in _table_cols]
 
         diff_cols = np.setdiff1d(_table_cols, table_col_list)
+
+
         # for the different columns, if they're in a Daysim file, merge the required columns
         join_cols = {'Trip': [], 'Tour': [], 'Household': [], 'Person': []}
         daysim_original_cols = {'Trip': trip.columns, 'Tour': tour.columns, 'Household': household.columns, 'Person': person.columns}
@@ -168,22 +188,68 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     del daysim_dict
 
     for index, row in expr_df.iterrows():
-
+        # print(row.target)
         # Reduce dataframe to minumum relevant columns, for aggregation and value fields; notation follows pandas pivot table definitions
         agg_fields_cols = [i.strip() for i in row['agg_fields'].split(',')]
+        
+        # filter_fields_cols = [i.strip() for i in row['filter_fields'].split(',')]
         values_cols = [i.strip() for i in row['values'].split(',')]
-        col_list = "[" + str(agg_fields_cols + values_cols) + "]"
-        # Pass expression string to eval method
-        expr = row['table'] + col_list + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
+        total_cols = agg_fields_cols + values_cols
+        filter_fields_cols = []
+        if row['filter_fields'] != '__remove__':
+            filter_fields_cols = [i.strip() for i in row['filter_fields'].split(',')]
+            total_cols += filter_fields_cols
+        
 
+        # Apply a query
+        _query = ''
+        if row['query'] != '__remove__':
+        #     print(row['filter'])
+            _query = """.query('"""+ str(row['query']) + """')"""
+            query_fields_cols = [i.strip() for i in re.split(',|>|==|>=|<|<=|!=',row['query'])]
+            total_cols += query_fields_cols
+
+        total_cols = list(set(total_cols) & set(minimum_col_list))
+        col_list = "[" + str(total_cols) + "]"
+        expr = row['table'] + col_list+ _query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
+        # print("=============================")        
+        # print(expr)
+        # print("=============================")
         # Create log of expressions executed for error checking
         expr_log_dict[row['target']] = expr
-        # print expr_log_df
+
         pd.DataFrame.from_dict(expr_log_dict, orient='index').to_csv(expr_log_path, header=False)
 
         # Write results to target output    
         df = pd.eval(expr)
         df.to_csv(os.path.join(output_dir_base,str(row['target'])+'.csv'))
+        # df.to_pickle(os.path.join(output_dir_base,str(row['target'])+'.pkl'))
+
+ 
+        # If filter values are passed, write out a table for each unique value in the filter field
+        if len(filter_fields_cols) > 0:
+            for _filter in filter_fields_cols:
+                
+                # print(row['table'])
+                if row['table'] == 'tour':
+                    unique_vals = np.unique(tour[_filter].values)
+                else:
+                    unique_vals = np.unique(trip[_filter].values)
+                for filter_val in unique_vals:
+                    # if filter_val != -1:
+                    # print(filter_val)
+                    expr = row['table'] + col_list + "[" + row['table'] + "['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
+                                   ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
+                    # print(expr)
+                    # Create log of expressions executed for error checking
+                    expr_log_dict[row['target']] = expr
+                    # print expr_log_df
+                    pd.DataFrame.from_dict(expr_log_dict, orient='index').to_csv(expr_log_path, header=False)
+
+                    # Write results to target output    
+                    df = pd.eval(expr)
+                    df.to_csv(os.path.join(output_dir_base,str(row['target'])+"_"+str(_filter)+"_"+str(filter_val)+'.csv'))
+                    # df.to_pickle(os.path.join(output_dir_base,str(row['target'])+"_"+str(_filter)+"_"+str(filter_val)+'.pkl'))
 
         del df
 
