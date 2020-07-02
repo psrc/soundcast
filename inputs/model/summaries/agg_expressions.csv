@@ -3,10 +3,8 @@ tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_distri
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp","trip_o_district,trip_d_district",trexpfac,sum,"trips by purpose, mode, path type and person type"
 trip,trip_distance,,"dpurp,mode,pptyp,travdist_bin",,trexpfac,sum,trips by distance bin
 trip,trip_time,,"dpurp,mode,pptyp,travtime_bin",,trexpfac,sum,trips by time bin
-tour,work_from_home_tours_NEW,hhparcel==pwpcl,"pptyp,pdpurp",,toexpfac,sum,
-person,work_home_location_NEW,hhparcel==pwpcl,pptyp,,psexpfac,sum,
+tour,work_from_home_tours,hhparcel==pwpcl,"pptyp,pdpurp",,toexpfac,sum,
 trip,bike_trips,"mode==""Bike""","dpurp,pptyp",,trexpfac,sum,
-tour,work_from_home_tours,,"pwpcl, hhparcel,pwtaz,hhtaz,pptyp,pdpurp",,toexpfac,sum,tours by purpose for people that work at home
 household,household_size_vehs_workers,,"hhsize, hhvehs, hhftw",,hhexpfac,sum,"households by size, vehicles, and workers"
 person,person_type,,"pptyp,hhtaz",,psexpfac,sum,persons by type by taz
 tour,tour_averages,,"tmodetp, pdpurp",,"tautodist, tautotime",mean,tour averages by purpose and mode
@@ -17,14 +15,12 @@ trip,trip_dtaz,,"dtaz,dpurp,mode,pathtype",,trexpfac,sum,"trips by dtaz, purpose
 tour,tour_dtaz,,"tdtaz,pdpurp,tmodetp,tpathtp",,toexpfac,sum,"tours by tdtaz, purpose, mode, and pathtype"
 trip,dorp_otaz,,"mode,dorp,otaz",,trexpfac,sum,driver field by mode and origin taz
 trip,dorp_dtaz,,"mode,dorp,dtaz",,trexpfac,sum,driver field by mode and destination taz
-person,work_flows,,"hhtaz,pwtaz",,psexpfac,sum,"distribution of home and workplace, by taz for aggregation"
 household,auto_ownership,,"hhvehs,hhtaz,hhincome_thousands",,hhexpfac,sum,vehicles owned by hhtaz
 person,parking_transit_pass,,"ppaidprk,pptyp,ptpass,pwtyp",,psexpfac,sum,paid parking and transit pass by person and worker type
 tour,tour_scheduling,,"tlvorg_hr,tlvdest_hr,pdpurp",,toexpfac,sum,tour departure hours
 tour,tour_scheduling_arrival,,"tardest_hr,tarorig_hr,pdpurp",,toexpfac,sum,tour arrival and return hours
 trip,trip_dtract,,"o_tract,d_tract,opurp,dpurp,mode,pathtype,pptyp",,trexpfac,sum,"trips by dtract, purpose, and mode"
 tour,tour_dtract,,"td_tract,to_tract,pdpurp,tmodetp,pptyp",,toexpfac,sum,"tours by dtract, purpose, and mode"
-person,work_home_location,,"pwpcl, hhparcel,pwtaz,hhtaz",,psexpfac,sum,household and work location parcels
 person,person_place,,"hh_place_name,pw_place_name",,psexpfac,sum,"work place, home place, person type"
 tour,tour_place,,"t_o_place, t_d_place, pdpurp, tmodetp, pptyp",,toexpfac,sum,"tours by place, purpose, mode, and person type"
 tour,tour_stops_outbound,,"pdpurp,tripsh1,tripsh2",,toexpfac,sum,tours by purpose and tour halves
@@ -35,3 +31,8 @@ trip,trip_time,,"dpurp, mode, pptyp, travtime_bin",,trexpfac,sum,"trip time bins
 tour,tour_duration,,"tmodetp, pdpurp,pptyp,tour_duration",,toexpfac,sum,"tour duration by purpose, person type, and mode"
 household,auto_sufficiency,,"hhvehs,hhtaz,hhftw,hhptw",,hhexpfac,sum,vehicles owned by hhtaz
 trip,trips_by_tour,,"dpurp,pdpurp,tmodetp,mode",,trexpfac,sum,trip mode and purpose by tour mode and purpose
+person,wfh_county,hhparcel==pwpcl,person_county,,psexpfac,sum,Total WFH people by county
+person,pptyp_county,,"person_county,pptyp",,psexpfac,sum,person type by county residence
+tour,non_wfh_tours,hhparcel!=pwpcl,"pptyp,pdpurp",,toexpfac,sum,tours for workers who do not work from home
+trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin",,trexpfac,sum,trips by distance bin for people that do not work from home
+trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,trips by distance bin for people that work from home
