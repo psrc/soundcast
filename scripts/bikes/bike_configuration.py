@@ -40,3 +40,6 @@ avg_bike_speed = 10 # miles per hour
 
 # Multiplier for storing skim results
 bike_skim_mult = 100    # divide by 100 to store as int
+
+# Calibration factor for bike weights on ferry links
+ferry_bike_factor = 1

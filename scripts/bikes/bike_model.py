@@ -140,7 +140,11 @@ def calc_bike_weight(my_project, link_df):
 	# Calculate total weights
 	# add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
 	# add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
-	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']
+	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']    
+
+	# Calibrate ferry links
+	_index = df['modes'].str.contains("f")
+	df.loc[_index,'total_wt'] = df['total_wt']*ferry_bike_factor
 
 	# Write link data for analysis
 	df.to_csv(r'outputs/bike/bike_attr.csv')
@@ -269,14 +273,14 @@ def get_aadt(my_project):
         # Loop through each link, store length and volume
         network = my_project.current_scenario.get_network()
         for link in network.links():
-            link_list.append({'link_id' : link.id, '@tveh' : link['@tveh'], 'length' : link.length})
+            link_list.append({'link_id' : link.id, '@tveh' : link['@tveh'], 'length' : link.length, 'modes': link.modes})
             
-    df = pd.DataFrame(link_list, columns = link_list[0].keys())       
-    
+    df = pd.DataFrame(link_list, columns = link_list[0].keys())   
+    df['modes'] = df['modes'].apply(lambda x: ''.join(list([j.id for j in x])))    
+    df['modes'] = df['modes'].astype('str').fillna('')
     grouped = df.groupby(['link_id'])
     
-    df = grouped.agg({'@tveh':sum, 'length':min})
-    
+    df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
     df.reset_index(level=0, inplace=True)
     
     return df
