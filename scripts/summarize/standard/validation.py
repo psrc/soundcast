@@ -388,25 +388,5 @@ def main():
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2010Tract', how='left')
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
 
-    # Commute Flows
-    df_model = pd.read_csv(r'outputs\agg\work_home_location.csv')
-    df_model = df_model[df_model['pwpcl'] >= 0]
-
-    # Add geography
-    df_o = df_model.merge(parcel_geog, left_on='hhparcel', right_on='ParcelID', how='left')
-    df = df_o.merge(parcel_geog, left_on='pwpcl', right_on='ParcelID', how='left', suffixes=['_o','_d'])
-    df_model = df.groupby(['District_d','District_o']).sum()[['psexpfac']].reset_index()
-    df_model.rename(columns={'psexpfac': 'modeled'}, inplace=True)
-
-    # Observed Data
-    df_obs = pd.read_sql("SELECT * FROM district_worker_flows", con=conn) 
-    df_obs.rename(columns={'residence_district':'District_o', 'workplace_district': 'District_d',
-                      'workers': 'observed'}, inplace=True)
-    df = df_obs.merge(df_model, on=['District_o','District_d'])
-
-
-    df.to_csv(r'outputs\validation\district_worker_flows.csv', index=False)
-
-
 if __name__ == '__main__':
     main()

@@ -36,3 +36,4 @@ person,pptyp_county,,"person_county,pptyp",,psexpfac,sum,person type by county r
 tour,non_wfh_tours,hhparcel!=pwpcl,"pptyp,pdpurp",,toexpfac,sum,tours for workers who do not work from home
 trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin",,trexpfac,sum,trips by distance bin for people that do not work from home
 trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,trips by distance bin for people that work from home
+person,work_flows,,"person_county,person_work_county",,psexpfac,sum,
