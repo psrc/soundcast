@@ -154,20 +154,27 @@ def export_network_attributes(network):
     """ Calculate link-level results by time-of-day, append to csv """
 
     _attribute_list = network.attributes('LINK')  
+
     network_data = {k: [] for k in _attribute_list}
     i_node_list = []
     j_node_list = []
+    network_data['modes'] = []
     for link in network.links():
         for colname, array in network_data.iteritems():
-            try:
-                network_data[colname].append(link[colname])  
-            except:
-                network_data[colname].append(0)
+            if colname != 'modes':
+                try:
+                    network_data[colname].append(link[colname])  
+                except:
+                    network_data[colname].append(0)
         i_node_list.append(link.i_node.id)
         j_node_list.append(link.j_node.id)
+        network_data['modes'].append(link.modes)
+
     network_data['i_node'] = i_node_list
     network_data['j_node'] = j_node_list
     df = pd.DataFrame.from_dict(network_data)
+    df['modes'] = df['modes'].apply(lambda x: ''.join(list([j.id for j in x])))    
+    df['modes'] = df['modes'].astype('str').fillna('')
     df['ij'] = df['i_node'].astype('str') + '-' + df['j_node'].astype('str')
    
     return df
