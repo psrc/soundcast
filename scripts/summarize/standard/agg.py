@@ -33,17 +33,28 @@ def get_dict_values(d):
 
     return(_list)
 
-def create_agg_outputs(path_dir_base, output_dir_base):
+def create_dir(_dir):
+    if os.path.exists(_dir):
+        shutil.rmtree(_dir)
+    os.makedirs(_dir)
+
+def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
 
     # Load the expression file
     expr_df = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/agg_expressions.csv'))
     expr_df = expr_df.fillna('__remove__')    # Fill NA with string signifying data to be ignored
 
-    print(output_dir_base)
     # Create output folder for flattened output
-    if os.path.exists(output_dir_base):
-        shutil.rmtree(output_dir_base)
-    os.makedirs(output_dir_base)
+    if survey:
+        survey_str = 'survey'
+    else:
+        survey_str = ''
+    
+    for dirname in pd.unique(expr_df['output_dir']):
+        if survey:
+            create_dir(os.path.join(base_output_dir,dirname,'survey'))
+        else:
+            create_dir(os.path.join(base_output_dir,dirname))
 
     # Expression log
     expr_log_path = r'outputs/agg/expr_log.csv'
@@ -62,7 +73,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True)
     person_day = pd.read_csv(os.path.join(path_dir_base,'_person_day.tsv'), delim_whitespace=True)
     household_day = pd.read_csv(os.path.join(path_dir_base,'_household_day.tsv'), delim_whitespace=True)
-    # Add departure time hour to trips and tours
+    # Add departure time hour to trips and tours        
     trip['deptm_hr'] = trip['deptm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     trip['arrtm_hr'] = trip['arrtm'].fillna(-1).apply(lambda row: int(math.floor(row/60)))
     # Create integer bins for travel time, distance, and cost
@@ -96,7 +107,6 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     for key, value in daysim_dict.items():
         master_col_list += [i for i in value.columns.values]
     master_col_list += [i for i in geography_lookup['right_column_rename'].values]
-    # print(master_col_list)
 
     # Get a list of all used columns; drop all others to save memory
     # Required columns come from agg_expressions file and geography_lookup
@@ -110,8 +120,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     minimum_col_list = [i.strip(' ') for i in minimum_col_list]
 
     minimum_col_list  = list(set(master_col_list) & set(minimum_col_list))
-    # print('$$$$$$$$$$$$$$$$$$')
-    # print(minimum_col_list)
+
     # Join household and person attributes to trip and tour records, but only join required fields
 
 
@@ -188,7 +197,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
     del daysim_dict
 
     for index, row in expr_df.iterrows():
-        # print(row.target)
+
         # Reduce dataframe to minumum relevant columns, for aggregation and value fields; notation follows pandas pivot table definitions
         agg_fields_cols = [i.strip() for i in row['agg_fields'].split(',')]
         
@@ -204,7 +213,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
         # Apply a query
         _query = ''
         if row['query'] != '__remove__':
-        #     print(row['filter'])
+
             _query = """.query('"""+ str(row['query']) + """')"""
             query_fields_cols = [i.strip() for i in re.split(',|>|==|>=|<|<=|!=',row['query'])]
             total_cols += query_fields_cols
@@ -212,9 +221,7 @@ def create_agg_outputs(path_dir_base, output_dir_base):
         total_cols = list(set(total_cols) & set(minimum_col_list))
         col_list = "[" + str(total_cols) + "]"
         expr = row['table'] + col_list+ _query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-        # print("=============================")        
-        # print(expr)
-        # print("=============================")
+
         # Create log of expressions executed for error checking
         expr_log_dict[row['target']] = expr
 
@@ -222,22 +229,17 @@ def create_agg_outputs(path_dir_base, output_dir_base):
 
         # Write results to target output    
         df = pd.eval(expr)
-        df.to_csv(os.path.join(output_dir_base,str(row['target'])+'.csv'))
-        # df.to_pickle(os.path.join(output_dir_base,str(row['target'])+'.pkl'))
-
+        df.to_csv(os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv'))
  
         # If filter values are passed, write out a table for each unique value in the filter field
         if len(filter_fields_cols) > 0:
             for _filter in filter_fields_cols:
                 
-                # print(row['table'])
                 if row['table'] == 'tour':
                     unique_vals = np.unique(tour[_filter].values)
                 else:
                     unique_vals = np.unique(trip[_filter].values)
                 for filter_val in unique_vals:
-                    # if filter_val != -1:
-                    # print(filter_val)
                     expr = row['table'] + col_list + "[" + row['table'] + "['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
                                    ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
                     # print(expr)
@@ -248,19 +250,23 @@ def create_agg_outputs(path_dir_base, output_dir_base):
 
                     # Write results to target output    
                     df = pd.eval(expr)
-                    df.to_csv(os.path.join(output_dir_base,str(row['target'])+"_"+str(_filter)+"_"+str(filter_val)+'.csv'))
-                    # df.to_pickle(os.path.join(output_dir_base,str(row['target'])+"_"+str(_filter)+"_"+str(filter_val)+'.pkl'))
+
+                    # Apply labels
+                    df.to_csv(os.path.join(base_output_dir, str(row['output_dir']), survey_str,
+                                str(row['target'])+"_"+str(_filter)+"_"+str(filter_val)+'.csv'))
 
         del df
 
 def main():
 
-    dir_dict = OrderedDict()
-    dir_dict[os.path.join(os.getcwd(),r'outputs/daysim')] = os.path.join(os.getcwd(),r'outputs/agg')
-    dir_dict[os.path.join(os.getcwd(),r'inputs/base_year/survey')] = os.path.join(os.getcwd(),r'outputs/agg/survey')
+    output_dir_base = os.path.join(os.getcwd(),'outputs/agg')
+    create_dir(output_dir_base)
 
-    for path_dir_base, output_dir_base in dir_dict.items():
-        create_agg_outputs(path_dir_base, output_dir_base)
+    input_dir = os.path.join(os.getcwd(),r'outputs/daysim')
+    create_agg_outputs(input_dir, output_dir_base, survey=False)
+
+    survey_input_dir = os.path.join(os.getcwd(),r'inputs/base_year/survey')
+    create_agg_outputs(survey_input_dir, output_dir_base, survey=True)
         
 if __name__ == '__main__':
     main()

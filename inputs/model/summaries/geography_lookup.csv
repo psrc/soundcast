@@ -13,3 +13,4 @@ Tour,topcl,parcel_geog,ParcelID,place_name,t_o_place
 Tour,tdpcl,parcel_geog,ParcelID,place_name,t_d_place
 Person,hhparcel,parcel_geog,ParcelID,CountyName,person_county
 Person,pwpcl,parcel_geog,ParcelID,CountyName,person_work_county
+Household,hhparcel,parcel_geog,ParcelID,CountyName,hh_county

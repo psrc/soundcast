@@ -87,7 +87,8 @@ def main():
     df_line_obs = df_obs.copy()
 
     # Load model results and calculate modeled daily boarding by line
-    df_model = pd.read_csv(r'outputs\transit\transit_line_results.csv')
+    df_transit_line = pd.read_csv(r'outputs\transit\transit_line_results.csv')
+    df_model = df_transit_line.copy()
     df_model_daily = df_model.groupby('route_code').agg({   'description': 'first',
                                                             'boardings': 'sum'}).reset_index()
 
@@ -144,6 +145,7 @@ def main():
     df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]
     df_transfer.to_csv(r'outputs\validation\light_rail_transfers.csv', index=True)
 
+
     ########################################
     # Traffic Volumes
     ########################################
@@ -152,7 +154,8 @@ def main():
     counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(base_year), con=conn)
 
     # Model results
-    model_vol_df = pd.read_csv(r'outputs\network\network_results.csv')
+    df_network = pd.read_csv(r'outputs\network\network_results.csv')
+    model_vol_df = df_network.copy()
     model_vol_df['@facilitytype'] = model_vol_df['@facilitytype'].map(facility_type_lookup)
 
     # Get daily and model volumes
@@ -192,6 +195,29 @@ def main():
 
     # Roll up results to assignment periods
     df['time_period'] = df['tod'].map(sound_cast_net_dict)
+
+    ########################################
+    # Ferry Boardings by Bike
+    ########################################    
+    df_transit_seg = pd.read_csv(r'outputs\transit\transit_segment_results.csv')
+    df_transit_seg = df_transit_seg[df_transit_seg['tod'] == '7to8']
+    df_transit_seg = df_transit_seg.drop_duplicates(['i_node','line_id'])
+    df_transit_line = df_transit_line[df_transit_line['tod'] == '7to8']
+
+    _df = df_transit_line.merge(df_transit_seg, on='line_id', how='left')
+    _df = _df.drop_duplicates('line_id')
+
+    df_ij = _df.merge(df_network, left_on='i_node', right_on='i_node', how='left')
+    # select only ferries
+    df_ij = df_ij[df_ij['@facilitytype'].isin([15,16])]
+    # both link and transit line modes should only include passenger (p) or general ferries (f)
+    for colname in ['modes','mode']:
+        df_ij['_filter'] = df_ij[colname].apply(lambda x: 1 if 'f' in x or 'p' in x else 0)
+        df_ij = df_ij[df_ij['_filter'] == 1]
+        
+    df_total = df_ij.groupby('route_code').sum()[['@bvol']].reset_index()
+    df_total = df_total.merge(df_ij[['description','route_code']], on='route_code').drop_duplicates('route_code')
+    df_total.to_csv(r'outputs\validation\bike_ferry_boardings.csv', index=False)
 
     ########################################
     # Vehicle Screenlines 
@@ -305,7 +331,7 @@ def main():
 
     # Commute Mode Share by Workplace Geography
     # Model Data
-    df_model = pd.read_csv(r'outputs\agg\tour_place.csv')
+    df_model = pd.read_csv(r'outputs\agg\census\tour_place.csv')
     df_model = df_model[df_model['pdpurp'] == 'Work']
     df_model = df_model.groupby(['t_o_place','t_d_place','tmodetp']).sum()[['toexpfac']].reset_index()
     # rename columns
@@ -337,7 +363,7 @@ def main():
     df.to_csv(r'outputs\validation\acs_commute_share_by_workplace_geog.csv',index=False)
 
     # Commute Mode Share by Home Tract
-    df_model = pd.read_csv(r'outputs\agg\tour_dtract.csv')
+    df_model = pd.read_csv(r'outputs\agg\census\tour_dtract.csv')
 
     df_model[['to_tract','td_tract']] = df_model[['to_tract','td_tract']].astype('str')
     df_model['to_tract'] = df_model['to_tract'].apply(lambda row: row.split('.')[0])
