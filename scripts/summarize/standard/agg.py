@@ -19,6 +19,8 @@ daysim_merge_fields = {'Trip':
                             }
                         }
 
+dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume']
+
 def get_dict_values(d):
     """Return unique dictionary values for a 2-level dictionary"""
 
@@ -257,16 +259,24 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
 
         del df
 
+def copy_dash_tables(dash_table_list):
+    """Copy outputs from validation and network_summary scripts required for Dash."""
+
+    for fname in dash_table_list:
+        shutil.copy(os.path.join(r'outputs/validation',fname+'.csv'), r'outputs/agg/dash')
+
 def main():
 
     output_dir_base = os.path.join(os.getcwd(),'outputs/agg')
     create_dir(output_dir_base)
 
-    input_dir = os.path.join(os.getcwd(),r'outputs/daysim')
-    create_agg_outputs(input_dir, output_dir_base, survey=False)
+    # input_dir = os.path.join(os.getcwd(),r'outputs/daysim')
+    # create_agg_outputs(input_dir, output_dir_base, survey=False)
 
     survey_input_dir = os.path.join(os.getcwd(),r'inputs/base_year/survey')
     create_agg_outputs(survey_input_dir, output_dir_base, survey=True)
+
+    copy_dash_tables(dash_table_list)
         
 if __name__ == '__main__':
     main()
