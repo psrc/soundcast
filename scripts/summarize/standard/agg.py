@@ -270,8 +270,8 @@ def main():
     output_dir_base = os.path.join(os.getcwd(),'outputs/agg')
     create_dir(output_dir_base)
 
-    # input_dir = os.path.join(os.getcwd(),r'outputs/daysim')
-    # create_agg_outputs(input_dir, output_dir_base, survey=False)
+    input_dir = os.path.join(os.getcwd(),r'outputs/daysim')
+    create_agg_outputs(input_dir, output_dir_base, survey=False)
 
     survey_input_dir = os.path.join(os.getcwd(),r'inputs/base_year/survey')
     create_agg_outputs(survey_input_dir, output_dir_base, survey=True)
