@@ -25,3 +25,5 @@ trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin
 trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that work from home
 person,work_flows,,"person_county,person_work_county",,psexpfac,sum,dash,
 tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
+trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
+trip,vmt_nonwfh,hhparcel!=pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
