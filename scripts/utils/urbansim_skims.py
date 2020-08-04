@@ -28,7 +28,7 @@ def init_dir(directory):
 
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name).replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/lookup',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
          
@@ -58,24 +58,24 @@ def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
 
 def get_cost_time_distance_skim_data(trip_purpose):
     skim_dict = {}
-    input_skim = {'hbw1' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                            'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                            'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbw2' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
-                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
-                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw3' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
-                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
-                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw4' : {'cost' : {'svt' : 'svtl3c', 'h2v' : 'h2tl3c', 'h3v' : 'h3tl3c'}, 
-                           'time' : {'svt' : 'svtl3t', 'h2v' : 'h2tl3t', 'h3v' : 'h3tl3t'}, 
-                           'distance' : {'svt' : 'svtl3d', 'h2v' : 'h2tl3d', 'h3v' : 'h3tl3d'}},
-                  'nhb' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbo' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}}} 
+    input_skim = {'hbw1' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                            'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                            'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbw2' : {'cost' : {'svt' : 'sov_inc2c', 'h2v' : 'hov2_inc2c', 'h3v' : 'hov3_inc2c'}, 
+                            'time' : {'svt' : 'sov_inc2t', 'h2v' : 'hov2_inc2t', 'h3v' : 'hov3_inc2t'}, 
+                            'distance' : {'svt' : 'sov_inc2d', 'h2v' : 'hov2_inc2d', 'h3v' : 'hov3_inc2d'}},
+                  'hbw3' : {'cost' : {'svt' : 'sov_inc2c', 'h2v' : 'hov2_inc2c', 'h3v' : 'hov3_inc2c'}, 
+                            'time' : {'svt' : 'sov_inc2t', 'h2v' : 'hov2_inc2t', 'h3v' : 'hov3_inc2t'}, 
+                            'distance' : {'svt' : 'sov_inc2d', 'h2v' : 'hov2_inc2d', 'h3v' : 'hov3_inc2d'}},
+                  'hbw4' : {'cost' : {'svt' : 'sov_inc3c', 'h2v' : 'hov2_inc3c', 'h3v' : 'hov3_inc3c'}, 
+                           'time' : {'svt' : 'sov_inc3t', 'h2v' : 'hov2_inc3t', 'h3v' : 'hov3_inc3t'}, 
+                           'distance' : {'svt' : 'sov_inc3d', 'h2v' : 'hov2_inc3d', 'h3v' : 'hov3_inc3d'}},
+                  'nhb' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbo' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}}} 
     output_skim = {'cost' : {'svt' : 'dabcs', 'h2v' : 's2bcs', 'h3v' : 's3bcs'}, 
                    'time' : {'svt' : 'dabtm', 'h2v' : 's2btm', 'h3v' : 's3btm'}, 
                    'distance' : {'svt' : 'dabds', 'h2v' : 's2bds', 'h3v' : 's3bds'}}
@@ -142,7 +142,7 @@ def get_total_transit_time(tod):
 def get_total_sov_trips(tod_list):
     trip_table = np.zeros((len(zones), len(zones)))
     for tod in tod_list:
-        for trip_table_name in ['svtl1', 'svtl2', 'svtl3']:
+        for trip_table_name in ['sov_inc1', 'sov_inc2', 'sov_inc3']:
             my_bank =  _eb.Emmebank('Banks/' + tod + '/emmebank')
             skim = my_bank.matrix(trip_table_name).get_numpy_data()
             trip_table = trip_table + skim 
@@ -330,15 +330,15 @@ def main():
     urbansim_skim_dict = {}
 
     #am_single_vehicle_to_work_travel_time
-    urbansim_skim_dict['aau1tm'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1t', 
+    urbansim_skim_dict['aau1tm'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1t', 
                              divide_by_100=True) 
 
     #am_single_vehicle_to_work_toll
-    urbansim_skim_dict['aau1tl'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1c', 
+    urbansim_skim_dict['aau1tl'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1c', 
                              divide_by_100=False) 
 
     #single_vehicle_to_work_travel_distance
-    urbansim_skim_dict['aau1ds'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1d', 
+    urbansim_skim_dict['aau1ds'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1d', 
                              divide_by_100=True)
     
     #am_walk_time_in_minutes
@@ -352,7 +352,7 @@ def main():
     urbansim_skim_dict['atrtwa'] = get_total_transit_time('7to8')
 
     #single_vehicle_to_work_travel_cost
-    urbansim_skim_dict['aau1cs'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl2g', 
+    urbansim_skim_dict['aau1cs'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc2g', 
                              divide_by_100=False)
 
     for trip_purpose in trip_purpose_list:
@@ -368,7 +368,7 @@ def main():
         transit_skim_dict = get_transit_skim_data()
         print('transit skim done')
 
-        parking_costs = get_destination_parking_(osts(parcels_file_name)
+        parking_costs = get_destination_parking_costs(parcels_file_name)
         
         auto_cost_dict = calculate_auto_cost(trip_purpose, auto_skim_dict, parking_costs)
        
