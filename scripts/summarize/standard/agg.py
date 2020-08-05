@@ -91,6 +91,9 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     # Total tour time
     tour['tour_duration'] = tour['tarorig'] - tour['tlvorig']
 
+    for col in ['travdist','travcost','travtime']:
+        trip[col+'_wt'] = trip[col]*trip['trexpfac']
+
     # Convert continuous income value to thousands
     # Value represents the low end range (e.g., 67,834 becomes 67,000, which represents the range 67,000 - 68,000)
     household['hhincome_thousands'] = household['hhincome'].apply(lambda x: int(str(x/1000).split('.')[0]+'000'))
