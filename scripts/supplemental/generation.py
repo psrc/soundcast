@@ -59,7 +59,7 @@ def main():
     trip_attractions = ['hbw1att','hbw2att','hbw3att','hbw4att','colatt','hspatt','hboatt','schatt','otoatt','wtoatt']
 
     # List of columns that should be balanced to productions or attractions
-    balance_to_productions = ['hbw1','hbw2','hbw3','hbw4','hsp','hbo','oto','wto','mtk','htk','cvh']
+    balance_to_productions = ['hbw1','hbw2','hbw3','hbw4','hsp','hbo','oto','wto','mtk','htk','cvh','dtk']
     balance_to_attractions = ['col','sch']
 
     # Growth Rates to use for adjsuting input files for specific forecast years
@@ -482,11 +482,13 @@ def main():
     df_parcels['mtkatt'] = 0
     df_parcels['cvhpro'] = 0
     df_parcels['cvhatt'] = 0
+    df_parcels['dtkatt'] = 0
+    df_parcels['dtkpro'] = 0
 
     # Trip Attractions based on employment categories
     df_job_attraction_rates = pd.read_sql_query("SELECT * FROM job_attractions", con=conn)
     df_job_attraction_rates.set_index('employment-type', inplace=True)
-    attraction_purposes = trip_attractions + ['cvhatt','mtkatt']
+    attraction_purposes = trip_attractions + ['cvhatt','mtkatt','dtkatt']
 
     for purpose in attraction_purposes:
     
@@ -496,12 +498,15 @@ def main():
     # Trip Productions based on employment categories
     df_job_production_rates = pd.read_sql_query("SELECT * FROM job_productions", con=conn)
     df_job_production_rates.set_index('employment-type', inplace=True)
-    productions_purposes = trip_productions + ['cvhpro','mtkpro']
+    productions_purposes = trip_productions + ['cvhpro','mtkpro','dtkpro']
 
     for purpose in productions_purposes:
     
         for jobs in employment_categories:
             df_parcels[purpose] = df_parcels[purpose] + (df_parcels[jobs] * df_job_production_rates.loc[jobs,purpose])
+
+    # Scale delivery productions based on a target number of delivery trips
+    df_parcels['dtkpro'] = total_delivery_trips*(df_parcels['dtkpro']/df_parcels['dtkpro'].sum())
 
     ###########################################################
     # SeaTac Airport trip generation
@@ -534,7 +539,7 @@ def main():
 
     # Clean up dataframe for further calculations as well as output
     df_taz.set_index('taz', inplace=True)
-    df_taz = df_taz.loc[:,trip_productions + ['cvhpro','mtkpro','htkpro'] + trip_attractions + ['cvhatt','mtkatt','htkatt','airport','kitsap','jblm']]
+    df_taz = df_taz.loc[:,trip_productions + ['cvhpro','mtkpro','htkpro','dtkpro'] + trip_attractions + ['cvhatt','mtkatt','htkatt','dtkatt','airport','kitsap','jblm']]
     df_taz.to_csv(output_directory+'/1_unadjusted_unbalanced.csv',index=True)
 
     # Add in the Group Quarters to Trip Productions   

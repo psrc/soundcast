@@ -240,7 +240,7 @@ def traffic_assignment(my_project):
 
     #Load in the necessary Dictionaries
     assignment_specification = json_to_dictionary("path_based_assignment", "auto")
-    my_user_classes= json_to_dictionary("user_classes")
+    my_user_classes = json_to_dictionary("user_classes")
 
     # Modify the Assignment Specifications for the Closure Criteria and Perception Factors
     mod_assign = assignment_specification
@@ -263,6 +263,7 @@ def traffic_assignment(my_project):
         assign_traffic(mod_assign, warm_start = True)
     else:
         assign_traffic(mod_assign, warm_start = False)    
+    # assign_traffic(mod_assign, warm_start = False)    
     end_traffic_assignment = time.time()
 
     print('It took', round((end_traffic_assignment-start_traffic_assignment)/60,2), 'minutes to run the assignment.')
@@ -634,7 +635,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     #also load up the external and truck trips
     demand_matrices={}
    
-    for matrix_name in ['medium_truck','heavy_truck']:
+    for matrix_name in ['medium_truck','heavy_truck', 'delivery_truck']:
         demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
         
@@ -712,8 +713,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
   
   #all in-memory numpy matrices populated, now write out to emme
     for mat_name in uniqueMatrices:
+        print(mat_name)
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
+        print(np_array)
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
@@ -732,7 +735,8 @@ def load_trucks(my_project, matrix_name, zonesDim):
     tod = my_project.tod
 
     truck_matrix_name_dict = {'medium_truck': 'medtrk_trips',
-                              'heavy_truck': 'hvytrk_trips'}
+                              'heavy_truck': 'hvytrk_trips',
+                              'delivery_truck': 'deltrk_trips'}
 
     time_dictionary = json_to_dictionary('time_of_day_crosswalk_ab_4k_dictionary', 'lookup')
 
@@ -1068,11 +1072,11 @@ def main():
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            start_pool(l)
+        # for i in range (0, 12, parallel_instances):
+        #     l = project_list[i:i+parallel_instances]
+        #     start_pool(l)
 
-        #run_assignments_parallel('projects/8to9/8to9.emp')
+        run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
         

@@ -43,6 +43,7 @@ transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15',
 extra_attributes_dict = {'@tveh' : 'total vehicles', 
                          '@mveh' : 'medium trucks', 
                          '@hveh' : 'heavy trucks', 
+                         '@dveh' : 'delivery trucks',
                          '@vmt' : 'vmt',
                          '@vht' : 'vht', 
                          '@trnv' : 'buses in auto equivalents',
@@ -87,7 +88,7 @@ skim_matrix_designation_limited = ['d']    # Distance skim
 # Skim for distance for only these time periods
 distance_skim_tod = ['7to8', '17to18']
 generalized_cost_tod = ['7to8', '17to18']
-gc_skims = {'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2'}
+gc_skims = {'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_inc2', 'delivery_trucks': 'deltrk'}
 truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 
 # Bike/Walk Skims
@@ -134,6 +135,8 @@ supplemental_output_dir = 'outputs/supplemental'
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
+
+total_delivery_trips = 100000
 
 #This is what you get if the model runs cleanly, but it's random:
 good_thing = ["a cookie", "a run", "a puppy", "a seal sighting",  "a beer", "some sunshine", "a nap"]

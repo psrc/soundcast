@@ -51,3 +51,4 @@
 (9,3,0):tnc_inc3
 (11,1,1):medium_truck
 (12,1,1):heavy_truck
+(13,1,1):delivery_truck
