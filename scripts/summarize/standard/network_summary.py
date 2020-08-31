@@ -435,9 +435,9 @@ def main():
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
 
-            _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project,
+            _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
                                                                                      df_transit_line=df_transit_line,
-                                                                                     df_transit_node=df_transit_node,
+                                                                                     df_transit_node=df_transit_node, 
                                                                                      df_transit_segment=df_transit_segment)
             
             df_transit_line = df_transit_line.append(_df_transit_line)
@@ -450,9 +450,6 @@ def main():
                     transit_line_path: df_transit_line,
                     transit_node_path: df_transit_node,
                     transit_segment_path: df_transit_segment}
-
-    output_dict = {network_results_path: network_df,
-                   iz_vol_path: df_iz_vol}
 
     # Append hourly results to file output
     for filepath, df in output_dict.iteritems():
