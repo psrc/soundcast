@@ -136,7 +136,8 @@ supplemental_output_dir = 'outputs/supplemental'
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT
 
-total_delivery_trips = 100000
+# Home delivery trips, must be > 0
+total_delivery_trips = 1 
 
 #This is what you get if the model runs cleanly, but it's random:
 good_thing = ["a cookie", "a run", "a puppy", "a seal sighting",  "a beer", "some sunshine", "a nap"]

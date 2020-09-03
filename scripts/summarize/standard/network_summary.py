@@ -349,8 +349,6 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df_tod_agency.to_csv(boardings_by_tod_agency_path, index=False)
 
     # Daily Boardings by Stop
-    df_transit_segment = pd.read_csv(r'outputs\transit\transit_segment_results.csv')
-    df_transit_node = pd.read_csv(r'outputs\transit\transit_node_results.csv')
     df_transit_segment = df_transit_segment.groupby('i_node').sum().reset_index()
     df_transit_node = df_transit_node.groupby('node_id').sum().reset_index()
     df = pd.merge(df_transit_node, df_transit_segment, left_on='node_id', right_on='i_node')
@@ -412,10 +410,10 @@ def main():
         my_project.change_active_database(tod_hour)
         for name, description in extra_attributes_dict.iteritems():
             my_project.create_extra_attribute('LINK', name, description, 'True')
-        # if my_project.tod in transit_tod.keys():
-        #     for name, desc in transit_extra_attributes_dict.iteritems():
-        #         my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-        #         my_project.transit_line_calculator(result=name, expression=name[1:])
+        if my_project.tod in transit_tod.keys():
+            for name, desc in transit_extra_attributes_dict.iteritems():
+                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
+                my_project.transit_line_calculator(result=name, expression=name[1:])
 
         # Add total vehicle sum for each link (@tveh)
         calc_total_vehicles(my_project)
@@ -435,43 +433,40 @@ def main():
         network_df = network_df.append(_network_df)
 
         # Calculate transit results for time periods with transit assignment:
-        # if my_project.tod in transit_tod.keys():
+        if my_project.tod in transit_tod.keys():
 
-        #     _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
-        #                                                                              df_transit_line=df_transit_line,
-        #                                                                              df_transit_node=df_transit_node, 
-        #                                                                              df_transit_segment=df_transit_segment)
+            _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
+                                                                                     df_transit_line=df_transit_line,
+                                                                                     df_transit_node=df_transit_node, 
+                                                                                     df_transit_segment=df_transit_segment)
             
-        #     df_transit_line = df_transit_line.append(_df_transit_line)
-        #     df_transit_node = df_transit_node.append(_df_transit_node)
-        #     df_transit_segment = df_transit_segment.append(_df_transit_segment)
+            df_transit_line = df_transit_line.append(_df_transit_line)
+            df_transit_node = df_transit_node.append(_df_transit_node)
+            df_transit_segment = df_transit_segment.append(_df_transit_segment)
 
-
-    # output_dict = {network_results_path: network_df,
-    #                iz_vol_path: df_iz_vol,
-    #                 transit_line_path: df_transit_line,
-    #                 transit_node_path: df_transit_node,
-    #                 transit_segment_path: df_transit_segment}
 
     output_dict = {network_results_path: network_df,
-                   iz_vol_path: df_iz_vol}
+                   iz_vol_path: df_iz_vol,
+                    transit_line_path: df_transit_line,
+                    transit_node_path: df_transit_node,
+                    transit_segment_path: df_transit_segment}
 
     # Append hourly results to file output
     for filepath, df in output_dict.iteritems():
         df.to_csv(filepath, index=False)
 
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
-    # freeflow_skims(my_project, dictZoneLookup)
+    freeflow_skims(my_project, dictZoneLookup)
 
     # Export number of jobs near transit stops
-    # jobs_transit('outputs/transit/transit_access.csv')
+    jobs_transit('outputs/transit/transit_access.csv')
 
     # Create basic spreadsheet summary of network
     writer = pd.ExcelWriter(r'outputs/network/network_summary.xlsx', engine='xlsxwriter')
     summarize_network(network_df, writer)
 
     # Create detailed transit summaries
-    # summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
+    summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
 
 if __name__ == "__main__":
     main()
