@@ -114,9 +114,7 @@ def export_link_values(my_project):
 def main():
 
     # Create a project to hold daily bank
-    if not os.path.exists('projects/daily'):
-        os.makedirs('projects/daily')
-    else:
+    if os.path.exists('projects/daily'):
         shutil.rmtree('projects/daily')
 
     project = app.create_project('projects','Daily')
