@@ -1,0 +1,18 @@
+﻿table,new_variable,modified_variable,expression,description
+household,hhincome_thousands,hhincome,(household['hhincome']).round(-4),"Value represents the low end range (e.g., 67,834 becomes 67,000, which represents the range 67,000 - 68,000)"
+trip,deptm_hr,deptm,(trip['deptm']).floordiv(60),
+trip,arrtm_hr,arrtm,(trip['arrtm']).floordiv(60),
+trip,travdist_bin,travdist,trip['travdist'].floordiv(1).astype('int'),
+trip,travcost_bin,travcost,trip['travcost'].floordiv(1).astype('int'),
+trip,travtime_bin,travtime,trip['travtime'].floordiv(1).astype('int'),
+trip,travdist_wt,travdist,trip['travdist']*trip['trexpfac'],
+trip,travcost_wt,travcost,trip['travcost']*trip['trexpfac'],
+trip,travtime_wt,travtime,trip['travtime']*trip['trexpfac'],
+tour,tlvorg_hr,tlvorig,(tour['tlvorig']).floordiv(60),
+tour,tardest_hr,tardest,(tour['tardest']).floordiv(60),
+tour,tlvdest_hr,tlvdest,(tour['tlvdest']).floordiv(60),
+tour,tarorig_hr,tarorig,(tour['tlvdest']).floordiv(60),
+tour,tautotime_bin,tautotime,tour['tautotime'].floordiv(1).astype('int'),
+tour,tautocost_bin,tautocost,tour['tautocost'].floordiv(1).astype('int'),
+tour,tautodist_bin,tautodist,tour['tautodist'].floordiv(1).astype('int'),
+tour,tour_duration,tlvorig,tour['tarorig'] - tour['tlvorig'],

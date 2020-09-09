@@ -1,5 +1,6 @@
 table,target,query,agg_fields,filter_fields,values,aggfunc,output_dir,description
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_district",toexpfac,sum,dash,"tours by purpose, mode, path type and person type"
+trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp","trip_o_district,trip_d_district",trexpfac,sum,dash,"trips by purpose, mode, path type and person type"
 trip,trip_distance,,"dpurp,mode,pptyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin
 trip,trip_time,,"dpurp,mode,pptyp,travtime_bin",,trexpfac,sum,dash,trips by time bin
@@ -20,10 +21,11 @@ trip,trips_by_tour,,"dpurp,pdpurp,tmodetp,mode",,trexpfac,sum,dash,trip mode and
 person,wfh_county,hhparcel==pwpcl,person_county,,psexpfac,sum,dash,Total WFH people by county
 person,pptyp_county,,"person_county,pptyp",,psexpfac,sum,dash,person type by county residence
 tour,non_wfh_tours,hhparcel!=pwpcl,"pptyp,pdpurp",,toexpfac,sum,dash,tours for people who do not work from home
-tour,non_worker_tours,"(pptyp!=""Full-Time Worker"")&(pptyp!=""Part-Time Worker"")","pptyp,pdpurp",,toexpfac,sum,dash,tours for non workers
+tour,non_worker_tours,(pptyp!=1)&(pptyp!=2),"pptyp,pdpurp",,toexpfac,sum,dash,tours for non workers
 trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that do not work from home
 trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that work from home
 person,work_flows,,"person_county,person_work_county",,psexpfac,sum,dash,
 tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
-trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
 trip,vmt_nonwfh,hhparcel!=pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
+trip,mode_share_poc,,"dpurp, mode,hh_poc",,trexpfac,sum,dash,
+trip,mode_share_lowinc,,"dpurp, mode,hh_lowinc",,trexpfac,sum,dash,
