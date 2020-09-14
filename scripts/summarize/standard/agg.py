@@ -85,10 +85,16 @@ def execute_eval(df, row, col_list, fname):
 
     if type(row['filter_fields']) == np.float:
         expr = 'df' + str(col_list) + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-        # print(expr)
+        
         # Write results to target output    
-        df_out = pd.eval(expr)
-        df_out.to_csv(fname)
+        df_out = pd.eval(expr).reset_index()
+        _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
+        for field in _labels_df['field'].unique():
+            _df = _labels_df[_labels_df['field'] == field]
+            local_series = pd.Series(_df['text'].values, index=_df['value'])
+            df_out[field] = df_out[field].map(local_series)
+
+        df_out.to_csv(fname, index=False)
     else:
         filter_cols = np.unique([i.strip() for i in row['filter_fields'].split(',')])
         for _filter in filter_cols:
@@ -96,11 +102,18 @@ def execute_eval(df, row, col_list, fname):
             for filter_val in unique_vals:
                 expr = 'df' + str(col_list) + "[df['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
                                ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-
-                # print(expr)
+ 
                 # Write results to target output    
-                df_out = pd.eval(expr)
-                df_out.to_csv(fname)                
+                df_out = pd.eval(expr).reset_index()
+                
+                # # Apply labels
+                _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
+                for field in _labels_df['field'].unique():
+                    _df = _labels_df[_labels_df['field'] == field]
+                    local_series = pd.Series(_df['text'].values, index=_df['value'])
+                    df_out[field] = df_out[field].map(local_series)
+
+                df_out.to_csv(fname, index=False)                
 
 
 def h5_df(h5file, table, col_list):
@@ -117,6 +130,9 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     # expr_df = expr_df.fillna('__remove__')    # Fill NA with string signifying data to be ignored
     geography_lookup = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/geography_lookup.csv'))
     variables_df = pd.read_csv(os.path.join(os.getcwd(),r'inputs/model/summaries/variables.csv'))
+    global labels_df
+    labels_df = pd.read_csv(os.path.join(os.getcwd(),'inputs/model/lookup/variable_labels.csv'))
+    
 
     geog_cols = list(np.unique(geography_lookup[['right_column','right_index']].values))
     # Add geographic lookups at parcel level; only load relevant columns
