@@ -29,3 +29,5 @@ tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tou
 trip,vmt_nonwfh,hhparcel!=pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
 trip,mode_share_poc,,"dpurp, mode,hh_poc",,trexpfac,sum,dash,
 trip,mode_share_lowinc,,"dpurp, mode,hh_lowinc",,trexpfac,sum,dash,
+trip,mode_share_rg,,"dpurp, mode,hh_rg_proposed",,trexpfac,sum,dash,
+trip,mode_share_county,,"dpurp, mode,hh_county",,trexpfac,sum,dash,
