@@ -5,8 +5,8 @@ import os
 ##############################
 model_year = '2018'
 base_year = '2018'
-landuse_inputs = 'base_year'
-network_inputs = 'OSM'
+landuse_inputs = 'vers2_july2020'
+network_inputs = 'OSM_bike_test'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 
 ##############################
@@ -36,6 +36,7 @@ include_tnc = True
 tnc_av = False    # TNCs (if available) are AVs
 include_tnc_to_transit = False # AV to transit path type allowed
 include_knr_to_transit = False # Kiss and Ride to Transit
+include_delivery = False
 
 ##############################
 # Pricing

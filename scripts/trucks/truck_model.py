@@ -107,9 +107,13 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, conn):
         op_cost_df['cents_per_mile'] = op_cost_df['value'] * growth_rate
 
     # Note: Using medium truck coefficients for delivery trucks
-    for truck_type, mat_name in {'medium': 'msmedop', 'heavy': 'mshvyop', 'medium': 'msdelop'}.iteritems():
+    for mat_name, truck_type  in {'msmedop':'medium', 'mshvyop':'heavy', 'msdelop':'medium'}.iteritems():
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        print(truck_type)
+        print(mat_name)
         op_cost = op_cost_df[op_cost_df['truck_type'] == truck_type]['cents_per_mile'].astype('float').values[0]
-
+        print(op_cost)
+        print(matrix_id)
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         my_project.bank.matrix(matrix_id).set_numpy_data(op_cost, my_project.current_scenario)
 

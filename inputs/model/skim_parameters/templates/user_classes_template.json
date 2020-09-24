@@ -21,8 +21,8 @@
 {"Name": "tnc_inc2", "Description": "TNC Level 2", "Value of Time": 3267,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
 {"Name": "tnc_inc3", "Description": "TNC Level 3", "Value of Time": 5445,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
 {"Name": "medium_truck", "Description": "Medium Trucks","atrr_Name": "svtl1","Value of Time": 4900,"Mode": "u","Toll": "@trkc2","Time": "@timau","Distance": "@dist"}, 
-{"Name": "heavy_truck", "Description": "Heavy Trucks","atrr_Name": "svtl1","Value of Time": 5445,"Mode": "t","Toll": "@trkc3","Time": "@timau","Distance": "@dist"},
-{"Name": "delivery_truck", "Description": "Delivery Trucks","atrr_Name": "svtl1","Value of Time": 4900,"Mode": "u","Toll": "@trkc2","Time": "@timau","Distance": "@dist"}
+{"Name": "delivery_truck", "Description": "Delivery Trucks","atrr_Name": "svtl1","Value of Time": 4900,"Mode": "u","Toll": "@trkc2","Time": "@timau","Distance": "@dist"},
+{"Name": "heavy_truck", "Description": "Heavy Trucks","atrr_Name": "svtl1","Value of Time": 5445,"Mode": "t","Toll": "@trkc3","Time": "@timau","Distance": "@dist"}
 ],
 "Walk": [
 {"Name": "walk", "Description": "Walk Trips","Mode": "w","Time": "@timau","Distance": "@dist"} 

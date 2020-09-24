@@ -253,6 +253,8 @@ def update_skim_parameters():
         keywords.append('av_')
     if not include_tnc:
         keywords.append('tnc_')
+    if not include_delivery:
+        keywords.append('delivery_')
 
     root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
 
