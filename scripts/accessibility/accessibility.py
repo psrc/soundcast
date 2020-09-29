@@ -215,11 +215,6 @@ def main():
     parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
     parcels_done = clean_up(parcels)
 
-    if int(model_year) > 2014:
-        #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
-        parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
-        parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
-
     parcels_done.to_csv(output_parcels, index = False, sep = ' ')
 
 if __name__ == '__main__':
