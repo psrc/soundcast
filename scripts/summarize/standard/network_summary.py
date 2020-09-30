@@ -51,7 +51,9 @@ def get_intrazonal_vol(emmeproject, df_vol):
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
     if include_tnc:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
-    iz_uc_list += ['medium_truck','heavy_truck','delivery_truck']
+    if include_delivery:
+        iz_uc_list += ['delivery_truck']
+    iz_uc_list += ['medium_truck','heavy_truck']
 
     for uc in iz_uc_list:
         df_vol[uc+'_'+emmeproject.tod] = emmeproject.bank.matrix(uc).get_numpy_data().diagonal()
@@ -62,13 +64,14 @@ def calc_total_vehicles(my_project):
     """For a given time period, calculate link level volume, store as extra attribute on the link."""
 
     my_project.network_calculator("link_calculation", result='@mveh', expression='@medium_truck/1.5') # medium trucks
-    my_project.network_calculator("link_calculation", result='@dveh', expression='@delivery_truck/1.5') # delivery trucks       
     my_project.network_calculator("link_calculation", result='@hveh', expression='@heavy_truck/2.0') #heavy trucks     
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
-     
+    if include_delivery:
+        my_project.network_calculator("link_calculation", result='@dveh', expression='@delivery_truck/1.5') # delivery trucks        
+	 
     # Calculate total vehicles as @tveh, depending on which modes are included
     str_base = '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
-                      '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + @mveh + @hveh + @dveh + @bveh '
+                      '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + @mveh + @hveh + @bveh '
     av_str = '+ @av_sov_inc1 + @av_sov_inc2 + @av_sov_inc3 + @av_hov2_inc1 + @av_hov2_inc2 + @av_hov2_inc3 + ' + \
                       '@av_hov3_inc1 + @av_hov3_inc2 + @av_hov3_inc3 '
     tnc_str = '+ @tnc_inc1 + @tnc_inc2 + @tnc_inc3 '
@@ -78,6 +81,8 @@ def calc_total_vehicles(my_project):
         str_expression += av_str
     if include_tnc:
         str_expression += tnc_str
+    if include_delivery:
+        str += '+ @ dveh '
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
     
