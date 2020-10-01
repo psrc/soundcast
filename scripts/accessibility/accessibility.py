@@ -211,7 +211,7 @@ def main():
     parcels = process_parcels(parcels, transit_df, net, intersections_df)
 
     # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
+    parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=1.00, 'dist_lrt'] * .5
     parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
     parcels_done = clean_up(parcels)
 
