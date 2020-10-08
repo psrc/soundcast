@@ -51,8 +51,6 @@ def get_intrazonal_vol(emmeproject, df_vol):
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
     if include_tnc:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
-    if include_delivery:
-        iz_uc_list += ['delivery_truck']
     iz_uc_list += ['medium_truck','heavy_truck']
 
     for uc in iz_uc_list:
@@ -63,12 +61,10 @@ def get_intrazonal_vol(emmeproject, df_vol):
 def calc_total_vehicles(my_project):
     """For a given time period, calculate link level volume, store as extra attribute on the link."""
 
-    my_project.network_calculator("link_calculation", result='@mveh', expression='@medium_truck/1.5') # medium trucks
+    my_project.network_calculator("link_calculation", result='@mveh', expression='@medium_truck/1.5') # medium trucks       
     my_project.network_calculator("link_calculation", result='@hveh', expression='@heavy_truck/2.0') #heavy trucks     
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
-    if include_delivery:
-        my_project.network_calculator("link_calculation", result='@dveh', expression='@delivery_truck/1.5') # delivery trucks        
-	 
+     
     # Calculate total vehicles as @tveh, depending on which modes are included
     str_base = '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
                       '@hov3_inc1 + @hov3_inc2 + @hov3_inc3 + @mveh + @hveh + @bveh '
@@ -81,8 +77,6 @@ def calc_total_vehicles(my_project):
         str_expression += av_str
     if include_tnc:
         str_expression += tnc_str
-    if include_delivery:
-        str += '+ @ dveh '
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
     
@@ -233,6 +227,7 @@ def summarize_network(df, writer):
         _df = sort_df(df=_df, sort_list=tods , sort_column='tod')
         _df = _df.reset_index(drop=True)
         _df.to_excel(excel_writer=writer, sheet_name=metric+' by FC')
+        _df.to_csv(r'outputs/network/' + metric.lower() +'_facility.csv', index=False)
 
     # Totals by user classification
 
@@ -262,6 +257,7 @@ def summarize_network(df, writer):
     _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df.to_excel(excel_writer=writer, sheet_name="VMT by UC")
+    _df.to_csv(r'outputs/network/vmt_user_class.csv', index=False)
 
     # VHT
     _df = df.copy()
@@ -271,6 +267,7 @@ def summarize_network(df, writer):
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="VHT by UC")
+    _df.to_csv(r'outputs/network/vht_user_class.csv', index=False)
 
     # Delay
     _df = df.copy()
@@ -280,12 +277,14 @@ def summarize_network(df, writer):
     _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="Delay by UC")
+    _df.to_csv(r'outputs/network/delay_user_class.csv', index=False)
 
     # Results by County
     
     df['county_name'] = df['@countyid'].map(county_map)
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
+    _df.to_csv(r'outputs/network/county_network.csv', index=False)
 
     writer.save()
 
@@ -354,6 +353,8 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df_tod_agency.to_csv(boardings_by_tod_agency_path, index=False)
 
     # Daily Boardings by Stop
+    df_transit_segment = pd.read_csv(r'outputs\transit\transit_segment_results.csv')
+    df_transit_node = pd.read_csv(r'outputs\transit\transit_node_results.csv')
     df_transit_segment = df_transit_segment.groupby('i_node').sum().reset_index()
     df_transit_node = df_transit_node.groupby('node_id').sum().reset_index()
     df = pd.merge(df_transit_node, df_transit_segment, left_on='node_id', right_on='i_node')
