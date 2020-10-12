@@ -17,6 +17,7 @@ from multiprocessing import Pool
 import logging
 import datetime
 import argparse
+import traceback
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
@@ -835,16 +836,23 @@ def start_pool(project_list):
 
     #Doing some testing on best approaches to con-currency
     pool = Pool(processes=parallel_instances)
-    pool.map(run_assignments_parallel,project_list[0:parallel_instances])
+    pool.map(run_assignments_parallel_wrapped,project_list[0:parallel_instances])
     pool.close()
+
 
 def start_transit_pool(project_list):
     
     #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one
     #instance of modeler issue. Will change code to be more generalized later.
     pool = Pool(processes=11)
-    pool.map(run_transit,project_list[0:11])
+    pool.map(run_transit_wrapped,project_list[0:11])
     pool.close()
+
+def run_transit_wrapped(project_name):
+    try:
+        run_transit(project_name)
+    except:
+        print('%s: %s' % (project_name, traceback.format_exc()))
 
 def run_transit(project_name):
     start_of_run = time.time()
@@ -999,6 +1007,12 @@ def feedback_check(emmebank_path_list):
         my_bank.dispose()
      return passed
 
+
+def run_assignments_parallel_wrapped(project_name):
+    try:
+        run_assignments_parallel(project_name)
+    except:
+        print('%s: %s' % (projectname, traceback.format_exc()))
 
 def run_assignments_parallel(project_name):
 
