@@ -10,7 +10,7 @@ import numpy as np
 import time
 import os,sys
 import h5py
-import Tkinter, tkFileDialog
+#import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
@@ -114,7 +114,7 @@ def define_matrices(my_project):
                    
     #Create Generalized Cost Skims matrices for only for tod in generalized_cost_tod
     if my_project.tod in generalized_cost_tod:
-        for key, value in gc_skims.iteritems():
+        for key, value in gc_skims.items():
             my_project.create_matrix(value + 'g', "Generalized Cost Skim: " + key, "FULL")
 
     #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
@@ -130,7 +130,7 @@ def define_matrices(my_project):
         #Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', "transit")
 
-        for key, value in dct_aggregate_transit_skim_names.iteritems():
+        for key, value in dct_aggregate_transit_skim_names.items():
             my_project.create_matrix(key, value, "FULL")  
                
     #bike & walk, do not need for all time periods. most likely just 1:
@@ -145,7 +145,7 @@ def define_matrices(my_project):
              my_project.create_matrix(value, 'transit fare', "FULL")
             
     #intrazonals:
-    for key, value in intrazonal_dict.iteritems():
+    for key, value in intrazonal_dict.items():
          my_project.create_matrix(value, key, "FULL")
      
     
@@ -188,7 +188,7 @@ def populate_intrazonals(my_project):
     distance_matrix = my_project.bank.matrix(intrazonal_dict['distance']).id
 
     #Hard coded for now, generalize later
-    for key, value in intrazonal_dict.iteritems():
+    for key, value in intrazonal_dict.items():
         
         if key == 'distance':
             my_project.matrix_calculator(result=value, expression="sqrt(" +taz_area_matrix+"/640) * 45/60*(p.eq.q)")
@@ -443,7 +443,7 @@ def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, m
         max_value = np.iinfo(np_data_type).max
         np_matrix = np.where(np_matrix > max_value, max_value, np_matrix)
     
-     if np_data_type <> 'float32':
+     if np_data_type != 'float32':
         np_matrix = np.where(np_matrix > np.iinfo(np_data_type).max, np.iinfo(np_data_type).max, np_matrix)
      return np_matrix    
 
@@ -530,7 +530,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
         dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
 
-        for matrix_name, description in dct_aggregate_transit_skim_names.iteritems():
+        for matrix_name, description in dct_aggregate_transit_skim_names.items():
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
@@ -642,7 +642,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['sov_inc2', 'hov2_inc2', 'hov3_inc2', 'litrat', 'trnst', 'bike', 'walk']:
+    for matrix_name in ['sov', 'hov2', 'hov3','bike','walk', 'trnst','litrat','passenger_ferry','ferry','commuter_rail']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -763,15 +763,9 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     # Create empty array to fill with trips
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(os.path.join(supplemental_output_dir,tod + '.h5'), "r")
-    # Call correct mode name by removing income class value when needed
-    if matrix_name not in ['bike', 'litrat', 'trnst', 'walk']:
-        mode_name = matrix_name.split('_')[0]
-
-    else:
-        mode_name = matrix_name
 
     # Open mode-specific array for this TOD and mode
-    hdf_array = hdf_file[mode_name]
+    hdf_array = hdf_file[matrix_name]
     
     # Extract specified array size and store as NumPy array 
     sub_demand_matrix = hdf_array[0:zonesDim, 0:zonesDim]
@@ -787,7 +781,7 @@ def create_trip_tod_indices(tod):
      todIDListdict = {}
      
      #this creates a dictionary where the TOD string, e.g. 18to20, is the key, and the value is a list of the hours for that period, e.g [18, 19, 20]
-     for k, v in tod_dict.iteritems():
+     for k, v in tod_dict.items():
         todIDListdict.setdefault(v, []).append(k)
 
      #Now for the given tod, get the index of all the trips for that Time Period
@@ -1086,11 +1080,11 @@ def main():
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            start_pool(l)
+        #for i in range (0, 12, parallel_instances):
+        #    l = project_list[i:i+parallel_instances]
+        #    start_pool(l)
 
-        # run_assignments_parallel('projects/8to9/8to9.emp')
+        run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
         

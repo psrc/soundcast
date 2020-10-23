@@ -203,7 +203,7 @@ def copy_accessibility_files():
             os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_urbansim.txt'): 'inputs/scenario/landuse',
         }
 
-        for src_file, dest_dir in file_dict.iteritems():
+        for src_file, dest_dir in file_dict.items():
             try:
                 shcopy(src_file,dest_dir)
             except:
@@ -259,7 +259,7 @@ def update_skim_parameters():
     root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
 
     # Remove unused modes from user_classes and demand_matrix_dictionary
-    for filename, ext in {'user_classes':'json', 'demand_matrix_dictionary':'txt'}.iteritems():
+    for filename, ext in {'user_classes':'json', 'demand_matrix_dictionary':'txt'}.items():
         template_path = os.path.join(root_path, 'templates', filename+'_template.'+ext)
         new_file_path = os.path.join(root_path, filename+'.'+ext)
         with open(template_path) as template_file, open(new_file_path, 'w') as newfile:
@@ -279,7 +279,7 @@ def update_skim_parameters():
     assignment_spec['classes'] = assignment_spec_class*uc_count
 
     # Fill in each user class with mode, name, toll, and perception factor
-    for i in xrange(len(user_class['Highway'])):
+    for i in range(len(user_class['Highway'])):
         # Add this mode to the spec file
         my_group = user_class['Highway'][i]        
         assignment_spec['classes'][0]['mode'] = my_group['Mode']
@@ -374,7 +374,7 @@ def update_daysim_modes():
     if not include_tnc_to_transit:    # remove TNC-to-transit from potential path types
         df = df[-df['path-type'].isin(filter(lambda x: 'tnc' in x, df['path-type'].unique()))]
     if not include_knr_to_transit:
-	df = df[-df['path-type'].isin(filter(lambda x: 'knr' in x, df['path-type'].unique()))]
+        df = df[-df['path-type'].isin(filter(lambda x: 'knr' in x, df['path-type'].unique()))]
     df.fillna('null').to_csv(r'inputs/model/roster/psrc_roster.csv',index=False)
 
     df = pd.read_csv(r'inputs/model/roster/templates/psrc-roster.combinations_template.csv', index_col='#')
@@ -384,9 +384,9 @@ def update_daysim_modes():
         df.loc[df.index[['tnc' in i for i in df.index]],'transit'] = 'FALSE'
     # Adjust KNR path types
     if not include_knr_to_transit:
-	    df.ix[['ferry-knr'],'transit'] = 'FALSE'
+	    df.loc[['ferry-knr'],'transit'] = 'FALSE'
     if not include_tnc_to_transit:
-        df.ix[['local-bus-tnc','light-rail-tnc'],'transit'] = 'FALSE'
+        df.loc[['local-bus-tnc','light-rail-tnc'],'transit'] = 'FALSE'
     df.to_csv(r'inputs/model/roster/psrc-roster.combinations.csv')
 
 def copyanything(src, dst):
