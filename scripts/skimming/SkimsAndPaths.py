@@ -10,7 +10,7 @@ import numpy as np
 import time
 import os,sys
 import h5py
-#import Tkinter, tkFileDialog
+import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
@@ -642,7 +642,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['sov', 'hov2', 'hov3','bike','walk', 'trnst','litrat','passenger_ferry','ferry','commuter_rail']:
+    for matrix_name in ['sov_inc2', 'hov2_inc2', 'hov3_inc2','bike','walk', 'trnst','litrat','passenger_ferry','ferry','commuter_rail']:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -1006,7 +1006,7 @@ def run_assignments_parallel_wrapped(project_name):
     try:
         run_assignments_parallel(project_name)
     except:
-        print('%s: %s' % (projectname, traceback.format_exc()))
+        print('%s: %s' % (project_name, traceback.format_exc()))
 
 def run_assignments_parallel(project_name):
 
@@ -1080,11 +1080,11 @@ def main():
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
         start_of_run = time.time()
 
-        #for i in range (0, 12, parallel_instances):
-        #    l = project_list[i:i+parallel_instances]
-        #    start_pool(l)
+        for i in range (0, 12, parallel_instances):
+            l = project_list[i:i+parallel_instances]
+            start_pool(l)
 
-        run_assignments_parallel('projects/8to9/8to9.emp')
+        # run_assignments_parallel('projects/8to9/8to9.emp')
         
         start_transit_pool(project_list)
         

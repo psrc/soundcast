@@ -272,7 +272,7 @@ def split_trips_into_modes(total_trips, mode_shares_dict):
 
     return table_dict
 
-def split_tod_internal(airport_trips, tod_factors_df):
+def split_tod_internal(total_trips_by_mode, tod_factors_df):
     """Split trips into time of a day: apply time of the day factors to internal trips"""
 
     matrix_dict = {}
@@ -298,9 +298,9 @@ def split_tod_internal(airport_trips, tod_factors_df):
 
         for mode, tod_type in tod_dict.items():
             if mode in ['sov','hov2','hov3']:
-                tod_dict[mode] = np.array(airport_trips[mode])*tod_df[tod_df['mode'] == tod_type]['value'].values[0] + np.array(ixxi_work_store[mode])
+                tod_dict[mode] = np.array(total_trips_by_mode[mode])*tod_df[tod_df['mode'] == tod_type]['value'].values[0] + np.array(ixxi_work_store[mode])
             else:
-                tod_dict[mode] = np.array(airport_trips[mode]) * tod_df[tod_df['mode'] == 'transit']['value'].values[0] 
+                tod_dict[mode] = np.array(total_trips_by_mode[mode]) * tod_df[tod_df['mode'] == 'transit']['value'].values[0] 
 
         ixxi_work_store.close()
         matrix_dict[tod] = tod_dict
@@ -313,6 +313,8 @@ def output_trips(path, matrix_dict):
         print("Exporting supplemental trips for time period: " + str(tod))
         my_store = h5py.File(path + str(tod) + '.h5', "w")
         for mode, value in matrix_dict[tod].items():
+            if mode in ['sov','hov2','hov3']:
+                mode = mode + '_inc2'
             my_store.create_dataset(str(mode), data=value, compression='gzip')
         my_store.close()
 
@@ -326,10 +328,12 @@ def summarize(mode_shares_dict, airport_trips_by_mode, total_trips_by_mode, airp
             df_airport.loc[mode,'total'] = airport_trips_by_mode[mode].sum().sum()
             df_total.loc[mode,'total'] = total_trips_by_mode[mode].sum().sum()
     df_shares.to_csv(os.path.join(output_dir,'avg_mode_shares_origins.csv'))
-    df_airport.to_csv(os.path.join(output_dir,'airport_trips_by_mode.csv'))  
-    df_total.to_csv(os.path.join(output_dir,'airport_and_ext_trips_by_mode.csv'))  
+    # Total trips by mode adjusted for average vehicle occupancy (HOV2/2, HOV3/3.5)
+    df_airport.to_csv(os.path.join(output_dir,'airport_veh_trips.csv'))  
+    # Total trips by mode, including externals
+    df_total.to_csv(os.path.join(output_dir,'airport_veh_trips_with_externals.csv'))  
     
-
+    # Total Airport Trips by mode and time of day (internal and external zones)
     df = pd.DataFrame()
     for tod in airport_matrix_dict.keys():
         _df = pd.DataFrame(index=list(airport_matrix_dict[tod].keys()))
@@ -338,7 +342,7 @@ def summarize(mode_shares_dict, airport_trips_by_mode, total_trips_by_mode, airp
             total = airport_matrix_dict[tod][mode].sum().sum()
             _df.loc[mode,'total'] = total
         df = df.append(_df)
-    df.to_csv(os.path.join(output_dir,'nonwork_trips_tot.csv'))
+    df.to_csv(os.path.join(output_dir,'airport_veh_trips_by_tod.csv'))
 
 def main():
 
@@ -372,27 +376,22 @@ def main():
     mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
     mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir)
 
-
     # Create airport trip tables
     daysim = h5py.File('inputs/scenario/landuse/hh_and_persons.h5','r+')
 
-    # Calculate total trips by TAZ to Seattle-Tacoma International Airport
+    # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql('SELECT * FROM seatac WHERE year=='+str(model_year), con=conn)['enplanements'].values[0]
     airport_trips = calculate_trips(daysim, parcel, airport_control_total)
-    # Convert to a numpy matrix with indeces matching zone system
-    #demand_matrix = create_demand_matrix(airport_trips, zone_lookup_dict)
-    # Create the demand matrix
-    demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float16)
+    demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips['TAZ'].values]
     destination_index = zone_lookup_dict[SEATAC]
     demand_matrix[origin_index,destination_index] = airport_trips['adj_trips'].values
-
     # Account for both directions of travel (from/to airport) by transposing the productions matrix
     trips_to_airport = demand_matrix/2
     trips_from_airport = trips_to_airport.transpose()
     airport_trips = trips_to_airport + trips_from_airport
 
-    # Split trips by TAZ into separate modes based on shares computed above 
+    # Split trips by TAZ into separate modes based on shares computed above for internal zones
     airport_trips_by_mode = split_trips_into_modes(airport_trips, mode_shares_dict)
 
     # Add airport trips to external trip table for auto modes:
@@ -402,9 +401,10 @@ def main():
     ext_tod_dict = {}
     # get non-work external trips
     for mode in external_modes:
-        ext_trip_table_dict[mode] = np.array(ixxi_non_work_store[mode])
+        ext_trip_table_dict[mode] = np.nan_to_num(np.array(ixxi_non_work_store[mode]))
 
     # Add external non-work trips to airport trips
+    # Export as income class 
     total_trips_by_mode = airport_trips_by_mode.copy()
     total_trips_by_mode['sov'] = airport_trips_by_mode['sov'] + ext_trip_table_dict['sov']
     total_trips_by_mode['hov2'] = airport_trips_by_mode['hov2'] + ext_trip_table_dict['hov2']
@@ -417,8 +417,6 @@ def main():
 
     # Output final trip tables, by time of the day and trip mode. 
     output_trips(output_dir, airport_matrix_dict)
-
-    # Compare supplementals
 
 
 if __name__ == "__main__":
