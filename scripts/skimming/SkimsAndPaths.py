@@ -765,34 +765,34 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
     return demand_matrix
 
 def create_trip_tod_indices(tod):
-     # Create an index for trips that belong to TOD (time of day)
-     tod_dict = text_to_dictionary('time_of_day', 'lookup')
-     uniqueTOD = set(tod_dict.values())
-     todIDListdict = {}
+    # Create an index for trips that belong to TOD (time of day)
+    tod_dict = text_to_dictionary('time_of_day', 'lookup')
+    uniqueTOD = set(tod_dict.values())
+    todIDListdict = {}
      
      # Create a dictionary where the TOD string, e.g. 18to20, is the key, and the value is a list of the hours for that period, e.g [18, 19, 20]
     for k, v in tod_dict.items():
         todIDListdict.setdefault(v, []).append(k)
 
-     # For the given TOD, get the index of all the trips for that Time Period
-     my_store = h5py.File(hdf5_file_path, "r+")
-     daysim_set = my_store["Trip"]
-     #open departure time array
-     deptm = np.asarray(daysim_set["deptm"])
-     #convert to hours
-     deptm = deptm.astype('float')
-     deptm = deptm/60
-     deptm = deptm.astype('int')
-     
-     #Get the list of hours for this tod
-     todValues = todIDListdict[tod]
-     # ix is an array of true/false
-     ix = np.in1d(deptm.ravel(), todValues)
-     #An index for trips from this tod, e.g. [3, 5, 7) means that there are trips from this time period from the index 3, 5, 7 (0 based) in deptm
-     indexArray = np.where(ix)
-     my_store.close
+    # For the given TOD, get the index of all the trips for that Time Period
+    my_store = h5py.File(hdf5_file_path, "r+")
+    daysim_set = my_store["Trip"]
+    #open departure time array
+    deptm = np.asarray(daysim_set["deptm"])
+    #convert to hours
+    deptm = deptm.astype('float')
+    deptm = deptm/60
+    deptm = deptm.astype('int')
 
-     return indexArray
+    #Get the list of hours for this tod
+    todValues = todIDListdict[tod]
+    # ix is an array of true/false
+    ix = np.in1d(deptm.ravel(), todValues)
+    #An index for trips from this tod, e.g. [3, 5, 7) means that there are trips from this time period from the index 3, 5, 7 (0 based) in deptm
+    indexArray = np.where(ix)
+    my_store.close
+
+    return indexArray
 
 def matrix_controlled_rounding(my_project):
     
