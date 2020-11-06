@@ -526,7 +526,16 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
 
-    # Bike/Walk 
+         # Perceived and actual bike skims
+        for matrix_name in ["mfbkpt", "mfbkat"]:
+            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
+            #open old skim and average
+            if average_skims:
+                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+            print(matrix_name+' was transferred to the HDF5 container.')
+
+    # Bike and walk time for single TOD
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -1360,13 +1369,13 @@ def main():
 
          #run_assignments_parallel('projects/8to9/8to9.emp')
         
-        # Calculate link daily volumes for use in bike model
-        daily_link_df = pd.DataFrame()
+        # calculate link daily volumes for use in bike model
+        daily_link_df = pd.dataframe()
         for _df in pool_list[0]:
             daily_link_df = daily_link_df.append(_df)
             grouped = daily_link_df.groupby(['link_id'])
         daily_link_df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
-        daily_link_df.reset_index(level=0, inplace=True)
+        daily_link_df.reset_index(level=0, inplace=true)
         
         start_transit_pool(project_list, daily_link_df)
         
@@ -1374,10 +1383,10 @@ def main():
        
         f = open('outputs/logs/converge.txt', 'w')
        
-        #If using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
-        if build_free_flow_skims == False:
+        #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
+        if build_free_flow_skims == false:
               #run feedback check 
-             if feedback_check(feedback_list) == False:
+             if feedback_check(feedback_list) == false:
                  go = 'continue'
                  json.dump(go, f)
              else:
@@ -1391,7 +1400,7 @@ def main():
         for i in range (0, 12, parallel_instances):
            l = project_list[i:i+parallel_instances]
            export_to_hdf5_pool(l)
-        # average_skims_to_hdf5_concurrent(EmmeProject('projects/8to9/8to9.emp'), False)
+        #average_skims_to_hdf5_concurrent(EmmeProject('projects/20to5/20to5.emp'), False)
            
         f.close()
 
