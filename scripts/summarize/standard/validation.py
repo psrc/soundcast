@@ -36,14 +36,30 @@ special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,
 facility_type_lookup = {
     1:'Freeway',   # Interstate
     2:'Freeway',   # Ohter Freeway
+    3:'Freeway', # Expressway
     4:'Ramp',
-    5:'Principal Arterial',
+    5:'Arterial',    # Principal arterial
+    6:'Arterial',    # Minor Arterial
+    7:'Collector',    # Major Collector
+    8:'Collector',    # Minor Collector
+    9:'Collector',   # Local
+    10:'Busway',
+    11:'Non-Motor',
+    12:'Light Rail',
+    13:'Commuter Rail',
+    15:'Ferry',
+    16:'Passenger Only Ferry',
+    17:'Connector',    # centroid connector
+    18:'Connector',    # facility connector
     19:'HOV',    # HOV Only Freeway
-    999:'HOV'    # HOV Flag
+    20:'HOV'    # HOV Flag
     }
+
+
 	
 county_lookup = {
     33: 'King',
+    35: 'Kitsap',
     53: 'Pierce',
     61: 'Snohomish'	
     }
@@ -152,16 +168,16 @@ def main():
     ########################################
 
     # Count data
-    counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(base_year), con=conn)
-
+    
     # Model results
     df_network = pd.read_csv(r'outputs\network\network_results.csv')
     model_vol_df = df_network.copy()
     model_vol_df['@facilitytype'] = model_vol_df['@facilitytype'].map(facility_type_lookup)
 
     # Get daily and model volumes
-    daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
-    df_daily = model_vol_df.groupby(['@countid']).sum()[['@tveh']].reset_index()
+    #daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
+    daily_counts = pd.read_sql("SELECT * FROM daily_counts WHERE year=" + str(base_year), con=conn)
+    df_daily = model_vol_df.groupby(['@countid']).agg({'@tveh':'sum', '@facilitytype': 'first'}).reset_index()
 
     # Merge observed with model
     df_daily = df_daily.merge(daily_counts, left_on='@countid', right_on='flag')
@@ -171,8 +187,7 @@ def main():
     df_daily['diff'] = df_daily['modeled']-df_daily['observed']
     df_daily['perc_diff'] = df_daily['diff']/df_daily['observed']
     df_daily[['modeled','observed']] = df_daily[['modeled','observed']].astype('int')
-    df_daily = df_daily.merge(model_vol_df, on='@countid', how='left')
-    df_daily['county'] = df_daily['@countyid'].map(county_lookup)
+    df_daily['county'] = df_daily['countyid'].map(county_lookup)
     df_daily.to_csv(os.path.join(validation_output_dir,'daily_volume.csv'), 
                         index=False, columns=['@countid','@countid','county','@facilitytype','modeled','observed','diff','perc_diff'])
 
@@ -182,13 +197,18 @@ def main():
 
     # hourly counts
     # Create Time of Day (TOD) column based on start hour, group by TOD
-    counts['tod'] = counts['start_hour'].map(tod_lookup)
-    counts_tod = counts.groupby(['tod','flag']).sum()[['vehicles']].reset_index()
+    hr_counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(base_year), con=conn)
+    hr_counts['tod'] = hr_counts['start_hour'].map(tod_lookup)
+    counts_tod = hr_counts.groupby(['tod','flag']).sum()[['vehicles']].reset_index()
+
+    # Account for bi-directional links or links that include HOV volumes
+    hr_model = model_vol_df.groupby(['@countid','tod']).agg({'@tveh':'sum','@facilitytype':'first',
+                                                  '@countyid':'first','i_node':'first',
+                                                  'j_node':'first','auto_time':'first',
+                                                  'type':'first'}).reset_index()
 
     # Join by time of day and flag ID
-    #model_df = pd.merge(model_vol_df, extra_attr_df[['inode','jnode','@countid','@facilitytype','@countyid']], left_on=['i_node','j_node'], right_on=['inode','jnode'])
-
-    df = pd.merge(model_vol_df, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
+    df = pd.merge(hr_model, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
     df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
     df['county'] = df['@countyid'].map(county_lookup)
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
