@@ -191,7 +191,7 @@ def daysim_assignment(iteration):
 		logger.info("End of iteration %s of Skims and Paths", str(iteration))
 		if returncode != 0:
 			sys.exit(1)
-=======
+
     if run_daysim:
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
