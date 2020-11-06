@@ -511,7 +511,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     # Transit Skims
     if my_project.tod in transit_skim_tod:
-    	# assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
+        # assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
         for path_mode in ['a','r','f','c','p']:    
             for item in transit_submodes:
                 matrix_name= 'ivtw' + path_mode + item
@@ -649,11 +649,11 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         # Start building the tuple key, 3 VOT of categories...
         
         if vot[x] < vot_1_max: 
-        	vot[x] = 1 
+            vot[x] = 1 
         elif vot[x] < vot_2_max : 
-        	vot[x] = 2
+            vot[x] = 2
         else: 
-        	vot[x]=3
+            vot[x]=3
 
         # Get matrix name from matrix_dict. Do not assign school bus trips (8) to the network.
         if mode[x] != 8 and mode[x] > 0:
@@ -1036,24 +1036,24 @@ def volume_weight(my_project, df):
     return df
 
 def process_attributes(my_project):
-	'''Import bike facilities and slope attributes for an Emme network'''
-	network = my_project.current_scenario.get_network()
+    '''Import bike facilities and slope attributes for an Emme network'''
+    network = my_project.current_scenario.get_network()
 
-	for attr in ['@bkfac', '@upslp']:
-		if attr not in my_project.current_scenario.attributes('LINK'):
-			my_project.current_scenario.create_extra_attribute('LINK',attr)
-		else:
-			try:
-				my_project.current_scenario.delete_extra_attribute(attr)
-				my_project.current_scenario.create_extra_attribute('LINK',attr)
-			except:
-				print('unable to recreate bike link attributes')
+    for attr in ['@bkfac', '@upslp']:
+        if attr not in my_project.current_scenario.attributes('LINK'):
+            my_project.current_scenario.create_extra_attribute('LINK',attr)
+        else:
+            try:
+                my_project.current_scenario.delete_extra_attribute(attr)
+                my_project.current_scenario.create_extra_attribute('LINK',attr)
+            except:
+                print('unable to recreate bike link attributes')
 
-	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-	filename = 'inputs/scenario/bike/bike_attributes.csv'
-	import_attributes(filename, 
-	                  scenario = my_project.current_scenario,
-	                  revert_on_error=False)
+    import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
+    filename = 'inputs/scenario/bike/bike_attributes.csv'
+    import_attributes(filename, 
+                      scenario = my_project.current_scenario,
+                      revert_on_error=False)
 
 def process_slope_weight(df, my_project):
     ''' Calcualte slope weights on an Emme network dataframe
@@ -1076,145 +1076,145 @@ def process_slope_weight(df, my_project):
     return upslope_df
 
 def write_generalized_time(df):
-	''' Export normalized link biking weights as Emme attribute file. '''
+    ''' Export normalized link biking weights as Emme attribute file. '''
 
-	# Rename total weight column for import as Emme attribute
-	df['@bkwt'] = df['total_wt']
+    # Rename total weight column for import as Emme attribute
+    df['@bkwt'] = df['total_wt']
 
-	# Reformat and save as a text file in Emme format
-	df['inode'] = df['link_id'].str.split('-').str[0]
-	df['jnode'] = df['link_id'].str.split('-').str[1]
+    # Reformat and save as a text file in Emme format
+    df['inode'] = df['link_id'].str.split('-').str[0]
+    df['jnode'] = df['link_id'].str.split('-').str[1]
 
-	filename = 'working/bike_link_weights.csv'
-	df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
+    filename = 'working/bike_link_weights.csv'
+    df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
 
-	print('results written to working/bike_link_weights.csv')
+    print('results written to working/bike_link_weights.csv')
 
 def calc_bike_weight(my_project, link_df):
-	''' Calculate perceived travel time weight for bikes
-	    based on facility attributes, slope, and vehicle traffic.'''
+    ''' Calculate perceived travel time weight for bikes
+        based on facility attributes, slope, and vehicle traffic.'''
 
-	# Calculate weight of bike facilities
-	bike_fac_df = bike_facility_weight(my_project, link_df)
+    # Calculate weight of bike facilities
+    bike_fac_df = bike_facility_weight(my_project, link_df)
 
-	# Calculate weight from daily traffic volumes
-	vol_df = volume_weight(my_project, bike_fac_df)
+    # Calculate weight from daily traffic volumes
+    vol_df = volume_weight(my_project, bike_fac_df)
 
-	# Calculate weight from elevation gain (for all links)
-	df = process_slope_weight(df=vol_df, my_project=my_project)
+    # Calculate weight from elevation gain (for all links)
+    df = process_slope_weight(df=vol_df, my_project=my_project)
 
-	# Calculate total weights
-	# add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
-	# add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
-	df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']    
+    # Calculate total weights
+    # add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
+    # add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
+    df['total_wt'] = 1 - np.float(facility_dict['facility_wt']['premium']) + df['facility_wt'] + df['slope_wt'] + df['volume_wt']    
 
-	# Calibrate ferry links
-	_index = df['modes'].str.contains("f")
-	df.loc[_index,'total_wt'] = df['total_wt']*ferry_bike_factor
+    # Calibrate ferry links
+    _index = df['modes'].str.contains("f")
+    df.loc[_index,'total_wt'] = df['total_wt']*ferry_bike_factor
 
-	# Write link data for analysis
-	df.to_csv(r'outputs/bike/bike_attr.csv')
+    # Write link data for analysis
+    df.to_csv(r'outputs/bike/bike_attr.csv')
 
-	# export total link weight as an Emme attribute file ('@bkwt.in')
-	write_generalized_time(df=df)
+    # export total link weight as an Emme attribute file ('@bkwt.in')
+    write_generalized_time(df=df)
 
 def bike_assignment(my_project, tod):
-	''' Assign bike trips using links weights based on slope, traffic, and facility type, for a given TOD.'''
+    ''' Assign bike trips using links weights based on slope, traffic, and facility type, for a given TOD.'''
 
-	my_project.change_active_database(tod)
+    my_project.change_active_database(tod)
 
-	# Create attributes for bike weights (inputs) and final bike link volumes (outputs)
-	for attr in ['@bkwt', '@bvol']:
-		if attr not in my_project.current_scenario.attributes('LINK'):
-			my_project.current_scenario.create_extra_attribute('LINK',attr)   
+    # Create attributes for bike weights (inputs) and final bike link volumes (outputs)
+    for attr in ['@bkwt', '@bvol']:
+        if attr not in my_project.current_scenario.attributes('LINK'):
+            my_project.current_scenario.create_extra_attribute('LINK',attr)   
 
-	# Create matrices for bike assignment and skim results
-	for matrix in ['bkpt', 'bkat', ]:
-		if matrix not in [i.name for i in my_project.bank.matrices()]:
-			my_project.create_matrix(matrix, '', 'FULL')
+    # Create matrices for bike assignment and skim results
+    for matrix in ['bkpt', 'bkat', ]:
+        if matrix not in [i.name for i in my_project.bank.matrices()]:
+            my_project.create_matrix(matrix, '', 'FULL')
 
-	# Load in bike weight link attributes
-	import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-	filename = 'working/bike_link_weights.csv'
-	import_attributes(filename, 
-	                scenario = my_project.current_scenario,
-	                revert_on_error=False)
+    # Load in bike weight link attributes
+    import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
+    filename = 'working/bike_link_weights.csv'
+    import_attributes(filename, 
+                    scenario = my_project.current_scenario,
+                    revert_on_error=False)
 
-	# Invoke the Emme assignment tool
-	extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
-	bike_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_assignment.json'))
-	extended_assign_transit(bike_spec, add_volumes=True, class_name='bike')
+    # Invoke the Emme assignment tool
+    extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
+    bike_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_assignment.json'))
+    extended_assign_transit(bike_spec, add_volumes=True, class_name='bike')
 
-	skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
-	bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
-	skim_bike(bike_skim_spec, class_name='bike')
+    skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
+    bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
+    skim_bike(bike_skim_spec, class_name='bike')
 
-	# Add bike volumes to bvol network attribute
-	bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
+    # Add bike volumes to bvol network attribute
+    bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
 
-	# Skim for final bike assignment results
-	bike_network_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_network_setup.json'))
-	bike_network_vol(bike_network_spec, class_name='bike')
+    # Skim for final bike assignment results
+    bike_network_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_network_setup.json'))
+    bike_network_vol(bike_network_spec, class_name='bike')
 
-	# Export skims to h5
-	for matrix in ["mfbkpt", "mfbkat"]:
-		print('exporting skim: ' + str(matrix))
-		export_skims(my_project, matrix_name=matrix, tod=tod)
+    # Export skims to h5
+    for matrix in ["mfbkpt", "mfbkat"]:
+        print('exporting skim: ' + str(matrix))
+        export_skims(my_project, matrix_name=matrix, tod=tod)
 
 def export_skims(my_project, matrix_name, tod):
-	'''Write skim matrix to h5 container'''
+    '''Write skim matrix to h5 container'''
 
-	my_store = h5py.File(r'inputs/model/roster/' + tod + '.h5', "r+")
+    my_store = h5py.File(r'inputs/model/roster/' + tod + '.h5', "r+")
 
-	matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
+    matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
 
-	# scale to store as integer
-	matrix_value = matrix_value * bike_skim_mult
-	matrix_value = matrix_value.astype('uint16')
+    # scale to store as integer
+    matrix_value = matrix_value * bike_skim_mult
+    matrix_value = matrix_value.astype('uint16')
 
-	# Remove unreasonably high values, replace with max allowed by numpy
-	max_value = np.iinfo('uint16').max
-	matrix_value = np.where(matrix_value > max_value, max_value, matrix_value)
+    # Remove unreasonably high values, replace with max allowed by numpy
+    max_value = np.iinfo('uint16').max
+    matrix_value = np.where(matrix_value > max_value, max_value, matrix_value)
 
-	if matrix_name in my_store['Skims'].keys():
-		my_store["Skims"][matrix_name][:] = matrix_value
-	else:
-		try:
-			my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value, compression='gzip', dtype='uint16')
-		except:
-			'unable to export skim: ' + str(matrix_name)
+    if matrix_name in my_store['Skims'].keys():
+        my_store["Skims"][matrix_name][:] = matrix_value
+    else:
+        try:
+            my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value, compression='gzip', dtype='uint16')
+        except:
+            'unable to export skim: ' + str(matrix_name)
 
-	my_store.close()
+    my_store.close()
 
 
 def calc_total_vehicles(my_project):
-	'''For a given time period, calculate link level volume, store as extra attribute on the link'''
+    '''For a given time period, calculate link level volume, store as extra attribute on the link'''
 
-	#medium trucks
-	my_project.network_calculator("link_calculation", result = '@mveh', expression = '@medium_truck/1.5')
+    #medium trucks
+    my_project.network_calculator("link_calculation", result = '@mveh', expression = '@medium_truck/1.5')
 
-	#heavy trucks:
-	my_project.network_calculator("link_calculation", result = '@hveh', expression = '@heavy_truck/2.0')
+    #heavy trucks:
+    my_project.network_calculator("link_calculation", result = '@hveh', expression = '@heavy_truck/2.0')
 
-	#busses:
-	my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
+    #busses:
+    my_project.network_calculator("link_calculation", result = '@bveh', expression = '@trnv3/2.0')
 
-	#calc total vehicles, store in @tveh 
-	user_classes = json_to_dictionary("user_classes")
-	modelist = ['@mveh','@hveh','@bveh']
-	for i in xrange(len(user_classes['Highway'])):
-	    mode = user_classes['Highway'][i]['Name']
-	    if mode not in ['medium_truck','heavy_truck']:
-	        modelist.append('@'+mode)
+    #calc total vehicles, store in @tveh 
+    user_classes = json_to_dictionary("user_classes")
+    modelist = ['@mveh','@hveh','@bveh']
+    for i in xrange(len(user_classes['Highway'])):
+        mode = user_classes['Highway'][i]['Name']
+        if mode not in ['medium_truck','heavy_truck']:
+            modelist.append('@'+mode)
 
-	str_expression = ''
-	for idx, mode in enumerate(modelist):
-	    if idx == len(modelist)-1:
-	        str_expression += mode
-	    else:
-	        str_expression += mode + ' + '
+    str_expression = ''
+    for idx, mode in enumerate(modelist):
+        if idx == len(modelist)-1:
+            str_expression += mode
+        else:
+            str_expression += mode + ' + '
 
-	my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
+    my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
 
 
 def get_aadt(my_project):
@@ -1308,7 +1308,7 @@ def run_assignments_parallel(project_name):
 
     # Generate toll skims for different user classes, and trucks
     for toll_class in ['@toll1', '@toll2', '@toll3', '@trkc2', '@trkc3']:
-    	attribute_based_toll_cost_skims(my_project, toll_class)
+        attribute_based_toll_cost_skims(my_project, toll_class)
     class_specific_volumes(my_project)
 
     # Export link volumes to calculate daily network flows (AADT for bike assignment)
