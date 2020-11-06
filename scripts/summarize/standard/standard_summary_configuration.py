@@ -60,6 +60,16 @@ special_route_lookup = {
     3701: 'Swift Blue Line'
 }
 
+# Transit Line OD Table list 
+transit_line_dict = {118331: 'E Line SB',
+					 119150: 'Link NB',
+					 119166: 'Sounder NB',
+					 118355: 'Metro 40 SB',
+					 118332: 'WSF Bainbridge to Seattle',
+					 118342: 'WSF Bremerton to Seattle',
+					 118337: 'C Line to Downtown Seattle'
+					 }
+
 ################################################
 # Emissions calculations
 ################################################

@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-import os, sys
+import os, sys, shutil
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
@@ -36,7 +36,7 @@ pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 def json_to_dictionary(dict_name):
     """ Read skim parameter JSON inputs as dictionary """
 
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters")) 
+    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters/transit")) 
     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
     my_dictionary = json.load(open(input_filename))
 
@@ -408,18 +408,52 @@ def main():
     network_df = pd.DataFrame()
     df_iz_vol = pd.DataFrame()
     df_iz_vol['taz'] = dictZoneLookup.values()
+    
+
+
+    dir = r'outputs/transit/line_od'
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
+    
+    transit_line_od_period_list = ['7to8']
 
     # Loop through all Time-of-Day banks to get network summaries
     # Initialize extra network and transit attributes
     for tod_hour, tod_segment in sound_cast_net_dict.iteritems():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
-        for name, description in extra_attributes_dict.iteritems():
-            my_project.create_extra_attribute('LINK', name, description, 'True')
-        if my_project.tod in transit_tod.keys():
-            for name, desc in transit_extra_attributes_dict.iteritems():
-                my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
-                my_project.transit_line_calculator(result=name, expression=name[1:])
+        
+        # Calculate transit line OD table for select lines
+        if tod_hour in transit_line_od_period_list:
+            for name, description in extra_attributes_dict.iteritems():
+                my_project.create_extra_attribute('LINK', name, description, 'True')
+            if my_project.tod in transit_tod.keys():
+                for name, desc in transit_extra_attributes_dict.iteritems():
+                    my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
+                    my_project.transit_line_calculator(result=name, expression=name[1:])
+         
+            for line_id, name in transit_line_dict.items():
+                # Calculate results for all path types
+                for class_name in ['trnst','commuter_rail','ferry','litrat','passenger_ferry']:
+                    for matrix in my_project.bank.matrices():
+                        if matrix.name == 'eline':
+                            my_project.delete_matrix(matrix)
+                            my_project.delete_extra_attribute('@eline')
+                    my_project.create_extra_attribute('TRANSIT_LINE', '@eline', name, 'True')
+                    my_project.create_matrix('eline', 'Demand from select transit line', "FULL")
+
+                    # Add an identifier to the chosen line
+                    my_project.network_calculator("link_calculation", result='@eline', expression='1',
+                                                  selections={'transit_line': str(line_id)})
+
+                    # Transit path analysis
+                    transit_path_analysis = my_project.m.tool('inro.emme.transit_assignment.extended.path_based_analysis')
+                    _spec = json_to_dictionary("transit_path_analysis")
+                    transit_path_analysis(_spec, class_name=class_name)
+                    
+                    # Write this path OD table to sparse CSV
+                    my_project.export_matrix('mfeline', 'outputs/transit/line_od/'+str(line_id)+'_'+class_name+'.csv')
 
         # Add total vehicle sum for each link (@tveh)
         calc_total_vehicles(my_project)
@@ -432,7 +466,7 @@ def main():
             _df_iz_vol = _df_iz_vol.drop('izdist', axis=1)
         df_iz_vol = df_iz_vol.merge(_df_iz_vol, on='taz', how='left')
 
-         # Export link-level results for multiple attributes
+        # Export link-level results for multiple attributes
         network = my_project.current_scenario.get_network()
         _network_df = export_network_attributes(network)
         _network_df['tod'] = my_project.tod
@@ -442,24 +476,23 @@ def main():
         if my_project.tod in transit_tod.keys():
 
             _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
-                                                                                     df_transit_line=df_transit_line,
-                                                                                     df_transit_node=df_transit_node, 
-                                                                                     df_transit_segment=df_transit_segment)
+                                                                                    df_transit_line=df_transit_line,
+                                                                                    df_transit_node=df_transit_node, 
+                                                                                    df_transit_segment=df_transit_segment)
             
             df_transit_line = df_transit_line.append(_df_transit_line)
             df_transit_node = df_transit_node.append(_df_transit_node)
             df_transit_segment = df_transit_segment.append(_df_transit_segment)
 
 
-    output_dict = {network_results_path: network_df,
-                   iz_vol_path: df_iz_vol,
+    output_dict = {network_results_path: network_df, iz_vol_path: df_iz_vol,
                     transit_line_path: df_transit_line,
                     transit_node_path: df_transit_node,
                     transit_segment_path: df_transit_segment}
 
     # Append hourly results to file output
     for filepath, df in output_dict.iteritems():
-        df.to_csv(filepath, index=False)
+       df.to_csv(filepath, index=False)
 
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
     freeflow_skims(my_project, dictZoneLookup)

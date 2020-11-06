@@ -5,6 +5,7 @@
 
 import os, shutil
 import pandas as pd
+from shutil import copy2 as shcopy
 from sqlalchemy import create_engine
 from input_configuration import base_year
 from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL 
@@ -413,6 +414,11 @@ def main():
                                               'FAZLargeAreaName','ZoneAreaType','District']].reset_index()
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2010Tract', how='left')
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
+	
+	# Copy select results to dash directory    # Copy existing CSV files for topsheet
+    dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume','daily_boardings_by_agency']
+    for fname in dash_table_list:
+        shutil.copy(os.path.join(r'outputs/validation',fname+'.csv'), r'outputs/agg/dash')
 
 if __name__ == '__main__':
     main()
