@@ -1370,7 +1370,7 @@ def main():
          #run_assignments_parallel('projects/8to9/8to9.emp')
         
         # calculate link daily volumes for use in bike model
-        daily_link_df = pd.dataframe()
+        daily_link_df = pd.DataFrame()
         for _df in pool_list[0]:
             daily_link_df = daily_link_df.append(_df)
             grouped = daily_link_df.groupby(['link_id'])
