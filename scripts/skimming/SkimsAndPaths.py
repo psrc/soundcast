@@ -1375,7 +1375,7 @@ def main():
             daily_link_df = daily_link_df.append(_df)
             grouped = daily_link_df.groupby(['link_id'])
         daily_link_df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
-        daily_link_df.reset_index(level=0, inplace=true)
+        daily_link_df.reset_index(level=0, inplace=True)
         
         start_transit_pool(project_list, daily_link_df)
         
@@ -1384,9 +1384,9 @@ def main():
         f = open('outputs/logs/converge.txt', 'w')
        
         #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
-        if build_free_flow_skims == false:
+        if build_free_flow_skims == False:
               #run feedback check 
-             if feedback_check(feedback_list) == false:
+             if feedback_check(feedback_list) == False:
                  go = 'continue'
                  json.dump(go, f)
              else:
