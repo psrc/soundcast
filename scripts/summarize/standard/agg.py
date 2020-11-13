@@ -22,6 +22,7 @@ daysim_merge_fields = {'Trip':
                         }
 
 
+
 dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume','daily_boardings_by_agency']
 
 def get_dict_values(d):
@@ -381,14 +382,6 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         else:
             person = h5_df(daysim_h5, 'Person', load_cols)
 
-        # trip
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in trip_full_col_list] + ['pno','hhno','tour','trexpfac']
-        if survey:
-            trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            trip = h5_df(daysim_h5, 'Trip', load_cols)
-
         # tours
         # Also account for any added user variables
         load_cols = list(np.unique([i for i in col_list if i in tour_full_col_list] + ['pno','hhno','tour','toexpfac']))
@@ -427,8 +420,6 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         tour = tour.merge(household, on=['hhno'])
         if len(person) > 0:
             tour = tour.merge(person, on=['hhno','pno'])
-        if len(tour) > 0:
-            tour = tour.merge(trip, on=['pno','hhno','tour'])
 
         # Calculate user variables
         if len(user_var_cols) > 0:
@@ -438,7 +429,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
         execute_eval(tour, row, col_list, fname)
 
-        del [tour, trip, person, household, df_geog]
+        del [tour, person, household, df_geog]
    
 
 def copy_dash_tables(dash_table_list):
@@ -447,167 +438,6 @@ def copy_dash_tables(dash_table_list):
     for fname in dash_table_list:
         shutil.copy(os.path.join(r'outputs/validation',fname+'.csv'), r'outputs/agg/dash')
 
-    # Loop through each expression and evaluate result
-    # only load the necessary columns and data  for this row
-    for index, row in df_agg.iterrows():
-        data_tables = {}
-        col_list = get_row_col_list(row, full_col_list)
-
-        # households
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in hh_full_col_list] + ['hhno','hhparcel']
-        if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            household = h5_df(daysim_h5, 'Household', load_cols)
-
-        # persons
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno']
-        if survey:
-            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            person = h5_df(daysim_h5, 'Person', load_cols)
-
-        # trips
-        # Also account for any added user variables
-        load_cols = list(np.unique([i for i in col_list if i in trip_full_col_list] + ['pno','hhno','tour','trexpfac']))
-        # only load user variables that are related to this table
-        user_var_cols = [i for i in col_list if i in variables_df['new_variable'].values]
-        if len(user_var_cols) > 0:
-            df_var = variables_df[variables_df['new_variable'].isin(col_list)]
-            load_cols += df_var['modified_variable'].values.tolist()
-        # also load any columns needed for geographic join
-        geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
-        if len(geog_cols) > 0:
-            df_geog = geography_lookup[geography_lookup['left_table'] == 'Trip']
-            df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
-            load_cols += df_geog['left_index'].values.tolist()
-
-        if survey:
-            trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            trip = h5_df(daysim_h5, 'Trip', load_cols)
-    
-        # tours
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in tour_full_col_list] + ['pno','hhno','tour']
-        tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True, usecols=load_cols)
-
-        # merge geography and other variables
-        geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
-        if len(geog_cols) > 0:
-            trip = merge_geography(trip, df_geog, parcel_geog)
-
-        # merge geography based on household info
-        df_geog = geography_lookup[geography_lookup['left_table'] == 'Household']
-        df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
-        if len(geog_cols) > 0:
-            household = merge_geography(household, df_geog, parcel_geog)
-
-        trip = trip.merge(household, on=['hhno'])
-        if len(person) > 0:
-            trip = trip.merge(person, on=['hhno','pno'])
-        if len(tour) > 0:
-            trip = trip.merge(tour, on=['pno','hhno','tour'])
-
-        # Calculate user variables
-        if len(user_var_cols) > 0:
-            for _index, _row in df_var.iterrows():
-                trip[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
-
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
-        execute_eval(trip, row, col_list, fname)
-
-        del [tour, trip, person, household, df_geog]
-
-    ############################
-    # Tour
-    ############################
-
-    df_agg = expr_df[expr_df['table'] == 'tour']
-
-    # Loop through each expression and evaluate result
-    # only load the necessary columns and data  for this row
-    for index, row in df_agg.iterrows():
-        data_tables = {}
-        col_list = get_row_col_list(row, full_col_list)
-
-        # households
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in hh_full_col_list] + ['hhno','hhparcel']
-        if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            household = h5_df(daysim_h5, 'Household', load_cols)
-
-        # persons
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno']
-        if survey:
-            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            person = h5_df(daysim_h5, 'Person', load_cols)
-
-        # trip
-        # Also account for any added user variables
-        load_cols = [i for i in col_list if i in trip_full_col_list] + ['pno','hhno','tour','trexpfac']
-        if survey:
-            trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            trip = h5_df(daysim_h5, 'Trip', load_cols)
-
-        # tours
-        # Also account for any added user variables
-        load_cols = list(np.unique([i for i in col_list if i in tour_full_col_list] + ['pno','hhno','tour','toexpfac']))
-        # only load user variables that are related to this table
-        user_var_cols = [i for i in col_list if i in variables_df['new_variable'].values]
-
-        if len(user_var_cols) > 0:
-            df_var = variables_df[variables_df['new_variable'].isin(col_list)]
-            load_cols += df_var['modified_variable'].values.tolist()
-        # also load any columns needed for geographic join
-        geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
-        if len(geog_cols) > 0:
-            df_geog = geography_lookup[geography_lookup['left_table'] == 'Tour']
-            df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
-            load_cols += df_geog['left_index'].values.tolist()
-
-        if survey:
-            tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True, usecols=load_cols)
-        else:
-            tour = h5_df(daysim_h5, 'Tour', load_cols)
-
-    
-        # merge geography and other variables
-        geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
-        df_geog = geography_lookup[geography_lookup['left_table'] == 'Tour']
-        df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
-        if len(geog_cols) > 0:
-            tour = merge_geography(tour, df_geog, parcel_geog)
-
-        # merge geography based on household info
-        df_geog = geography_lookup[geography_lookup['left_table'] == 'Household']
-        df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
-        if len(geog_cols) > 0:
-            household = merge_geography(household, df_geog, parcel_geog)
-
-        tour = tour.merge(household, on=['hhno'])
-        if len(person) > 0:
-            tour = tour.merge(person, on=['hhno','pno'])
-        if len(tour) > 0:
-            tour = tour.merge(trip, on=['pno','hhno','tour'])
-
-        # Calculate user variables
-        if len(user_var_cols) > 0:
-            for _index, _row in df_var.iterrows():
-                tour[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
-
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
-        execute_eval(tour, row, col_list, fname)
-
-        del [tour, trip, person, household, df_geog]
-   
 def main():
 
     output_dir_base = os.path.join(os.getcwd(),'outputs/agg')
@@ -618,6 +448,8 @@ def main():
 
     survey_input_dir = os.path.join(os.getcwd(),r'inputs/base_year/survey')
     create_agg_outputs(survey_input_dir, output_dir_base, survey=True)
+
+    copy_dash_tables(dash_table_list)
         
 if __name__ == '__main__':
     start_time = time.time()
