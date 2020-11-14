@@ -22,7 +22,6 @@ daysim_merge_fields = {'Trip':
                         }
 
 
-
 dash_table_list = ['vmt_facility','vht_facility','delay_facility','vmt_user_class','vht_user_class','delay_user_class']
 
 def get_dict_values(d):
