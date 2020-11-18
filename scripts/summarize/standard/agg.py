@@ -93,18 +93,18 @@ def execute_eval(df, row, col_list, fname):
             local_series = pd.Series(_df['text'].values, index=_df['value'])
             df_out[field] = df_out[field].map(local_series)
 
-        df_out.to_csv(fname, index=False)
+        df_out.to_csv(fname+'.csv', index=False)
     else:
         filter_cols = np.unique([i.strip() for i in row['filter_fields'].split(',')])
         for _filter in filter_cols:
             unique_vals = np.unique(df[_filter].values)
             for filter_val in unique_vals:
-                expr = 'df' + str(col_list) + "[df['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
+                expr = 'df[' + str(col_list) + "][df['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
                                ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
- 
+                print(expr)
                 # Write results to target output    
                 df_out = pd.eval(expr).reset_index()
-                
+                print(df_out)
                 # # Apply labels
                 _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
                 for field in _labels_df['field'].unique():
@@ -112,7 +112,7 @@ def execute_eval(df, row, col_list, fname):
                     local_series = pd.Series(_df['text'].values, index=_df['value'])
                     df_out[field] = df_out[field].map(local_series)
 
-                df_out.to_csv(fname, index=False)                
+                df_out.to_csv(fname+'_'+str(filter_val)+'.csv', index=False)                
 
 
 def h5_df(h5file, table, col_list):
@@ -210,7 +210,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
                 household[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
             del df_var
 
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
+        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target']))
         execute_eval(household, row, col_list, fname)
 
         del [household]
