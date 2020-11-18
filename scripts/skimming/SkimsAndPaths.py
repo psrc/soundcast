@@ -262,10 +262,9 @@ def traffic_assignment(my_project):
     text = 'It took ' + str(round((end_traffic_assignment-start_traffic_assignment)/60,2)) + 'minutes to run traffic assignment for '+str(my_project.tod)
     logging.debug(text)
 
-def transit_assignment(my_project, spec, keep_exisiting_volumes, class_name):
+def transit_assignment(my_project, spec, keep_exisiting_volumes, class_name=None):
 
     start_transit_assignment = time.time()
-
     #Define the Emme Tools used in this function
     assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
 
@@ -276,13 +275,15 @@ def transit_assignment(my_project, spec, keep_exisiting_volumes, class_name):
     assignment_specification["waiting_time"]["headway_fraction"] = transit_node_attributes['headway_fraction']['name'] 
     assignment_specification["waiting_time"]["perception_factor"] = transit_node_attributes['wait_time_perception']['name'] 
     assignment_specification["in_vehicle_time"]["perception_factor"] = transit_node_attributes['in_vehicle_time']['name']
-
+    
     assign_transit(assignment_specification, add_volumes=keep_exisiting_volumes, class_name=class_name)
-
+    if not class_name:
+        class_name=''
+		
     end_transit_assignment = time.time()
     print('It took', round((end_transit_assignment-start_transit_assignment)/60,2), 'mins to run '+class_name+' assignment for '+str(my_project.tod))
 
-def transit_skims(my_project, spec, class_name):
+def transit_skims(my_project, spec, class_name=None):
 
     skim_transit = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
     #specs are stored in a dictionary where "spec1" is the key and a list of specs for each skim is the value
@@ -855,15 +856,19 @@ def run_transit(project_name):
 
     my_project = EmmeProject(project_name)
 
-    # Remove strategy output directory if it exists
+    # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
     strat_dir = os.path.join('Banks', my_project.tod, 'STRATS_s1002')
     if os.path.exists(strat_dir):
         shutil.rmtree(strat_dir)
 
-    # Transit demand:
+	transit_assignment(my_project, "transit/extended_transit_assignment_bus", False)
+        # transit_skims(my_project, "transit/transit_skim_setup_bus")  
+
+    # Assign other submodes, adding volumes to existing:
     for submode, class_name in {'bus':'trnst','light_rail':'litrat','ferry':'ferry',
             'passenger_ferry':'passenger_ferry','commuter_rail':'commuter_rail'}.items():
-        transit_assignment(my_project, "transit/extended_transit_assignment_"+submode, False, class_name=class_name)
+        print(str(my_project.tod) + ': ' + submode)
+        transit_assignment(my_project, "transit/extended_transit_assignment_"+submode, True, class_name=class_name)
         transit_skims(my_project, "transit/transit_skim_setup_"+submode, class_name)    
 
     # Calculate wait times
@@ -1097,8 +1102,6 @@ def write_generalized_time(df):
     filename = 'working/bike_link_weights.csv'
     df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
 
-    print('results written to working/bike_link_weights.csv')
-
 def calc_bike_weight(my_project, link_df):
     ''' Calculate perceived travel time weight for bikes
         based on facility attributes, slope, and vehicle traffic.'''
@@ -1148,6 +1151,7 @@ def bike_assignment(my_project, tod):
     import_attributes(filename, 
                     scenario = my_project.current_scenario,
                     revert_on_error=False)
+					
 
     # Invoke the Emme assignment tool
     extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
@@ -1167,7 +1171,6 @@ def bike_assignment(my_project, tod):
 
     # Export skims to h5
     for matrix in ["mfbkpt", "mfbkat"]:
-        print('exporting skim: ' + str(matrix))
         export_skims(my_project, matrix_name=matrix, tod=tod)
 
 def export_skims(my_project, matrix_name, tod):
@@ -1378,8 +1381,8 @@ def main():
         daily_link_df.reset_index(level=0, inplace=True)
         
         start_transit_pool(project_list, daily_link_df)
-        
-        #run_transit(r'projects/9to10/9to10.emp', daily_link_df)
+
+        # run_transit(r'projects/9to10/9to10.emp')
        
         f = open('outputs/logs/converge.txt', 'w')
        
