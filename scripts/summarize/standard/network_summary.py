@@ -51,6 +51,8 @@ def get_intrazonal_vol(emmeproject, df_vol):
     iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
     if include_tnc:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
+    if include_delivery:
+        iz_uc_list += ['delivery_truck']
     iz_uc_list += ['medium_truck','heavy_truck']
 
     for uc in iz_uc_list:
@@ -64,6 +66,8 @@ def calc_total_vehicles(my_project):
     my_project.network_calculator("link_calculation", result='@mveh', expression='@medium_truck/1.5') # medium trucks       
     my_project.network_calculator("link_calculation", result='@hveh', expression='@heavy_truck/2.0') #heavy trucks     
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
+    if include_delivery:
+        my_project.network_calculator("link_calculation", result='@dveh', expression='@delivery_truck/1.5') # medium trucks       
      
     # Calculate total vehicles as @tveh, depending on which modes are included
     str_base = '@sov_inc1 + @sov_inc2 + @sov_inc3 + @hov2_inc1 + @hov2_inc2 + @hov2_inc3 + ' + \
@@ -77,6 +81,8 @@ def calc_total_vehicles(my_project):
         str_expression += av_str
     if include_tnc:
         str_expression += tnc_str
+    if include_delivery:
+        str_expression += ' + @dveh'
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
     
@@ -234,6 +240,9 @@ def summarize_network(df, writer):
     # Update uc_list based on inclusion of TNC and AVs
     new_uc_list = []
 
+    if include_delivery:
+        new_uc_list.append('@dveh')	
+
     if (not include_tnc) & (not include_av):
         for uc in uc_list:
             if ('@tnc' not in uc) & ('@av' not in uc):
@@ -249,7 +258,6 @@ def summarize_network(df, writer):
             if '@tnc' not in uc:
                 new_uc_list.append(uc)
                 
-
     # VMT
     _df = df.copy()
     for uc in new_uc_list:
