@@ -112,7 +112,7 @@ def execute_eval(df, row, col_list, fname):
                     local_series = pd.Series(_df['text'].values, index=_df['value'])
                     df_out[field] = df_out[field].map(local_series)
 
-                df_out.to_csv(fname+'_'+str(filter_val)+'.csv', index=False)                
+                df_out.to_csv(fname+'_'+str(_filter)+'_'+str(filter_val)+'.csv', index=False)                
 
 
 def h5_df(h5file, table, col_list):
