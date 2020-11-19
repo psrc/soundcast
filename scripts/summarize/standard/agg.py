@@ -101,10 +101,10 @@ def execute_eval(df, row, col_list, fname):
             for filter_val in unique_vals:
                 expr = 'df[' + str(col_list) + "][df['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
                                ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-                print(expr)
+
                 # Write results to target output    
                 df_out = pd.eval(expr).reset_index()
-                print(df_out)
+
                 # # Apply labels
                 _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
                 for field in _labels_df['field'].unique():
@@ -267,7 +267,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
                 person[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
             del df_var
 
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
+        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target']))
         execute_eval(person, row, col_list, fname)
         
         del [household, person]
@@ -348,7 +348,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
             for _index, _row in df_var.iterrows():
                 trip[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
 
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
+        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target']))
         execute_eval(trip, row, col_list, fname)
 
         del [tour, trip, person, household, df_geog]
@@ -425,7 +425,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
             for _index, _row in df_var.iterrows():
                 tour[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
 
-        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target'])+'.csv')
+        fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target']))
         execute_eval(tour, row, col_list, fname)
 
         del [tour, person, household, df_geog]
