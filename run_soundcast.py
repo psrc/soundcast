@@ -192,30 +192,6 @@ def daysim_assignment(iteration):
         if returncode != 0:
             sys.exit(1)
 
-    if run_daysim:
-        logger.info("Start of %s iteration of Daysim", str(iteration))
-        returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
-        logger.info("End of %s iteration of Daysim", str(iteration))
-        if returncode != 0:
-            sys.exit(1)
-
-    ########################################
-    # Calcualte Trucks and Supplemental Demand
-    ########################################
-    run_truck_supplemental(iteration)
-
-    ########################################
-    # Assign Demand to Networks
-    ########################################
-
-    if run_skims_and_paths:
-        logger.info("Start of iteration %s of Skims and Paths", str(iteration))
-        num_iterations = str(max_iterations_list[iteration])
-        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, model_year])
-        logger.info("End of iteration %s of Skims and Paths", str(iteration))
-        if returncode != 0:
-            sys.exit(1)
-
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
