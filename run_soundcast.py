@@ -257,8 +257,6 @@ def main():
 
     if run_skims_and_paths_free_flow:
         build_free_flow_skims(10)
-        if returncode != 0:
-            sys.exit(1)
 
     ########################################
     # Generate Demand and Assign Volumes

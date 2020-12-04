@@ -529,6 +529,8 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
          # Perceived and actual bike skims
         for matrix_name in ["mfbkpt", "mfbkat"]:
+            print(matrix_name)
+            print(my_project.tod)		    
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             if average_skims:
@@ -536,7 +538,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
 
-    # Bike and walk time for single TOD
+    # Basic Bike and walk time for single TOD
     if my_project.tod in bike_walk_skim_tod:
         for key in bike_walk_matrix_dict.keys():
             matrix_name= bike_walk_matrix_dict[key]['time']
@@ -546,6 +548,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
             my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
             print(matrix_name+' was transferred to the HDF5 container.')
+
+    
+
 
     # Transit Fare
     fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
@@ -1168,10 +1173,6 @@ def bike_assignment(my_project, tod):
     # Skim for final bike assignment results
     bike_network_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_network_setup.json'))
     bike_network_vol(bike_network_spec, class_name='bike')
-
-    # Export skims to h5
-    for matrix in ["mfbkpt", "mfbkat"]:
-        export_skims(my_project, matrix_name=matrix, tod=tod)
 
 def export_skims(my_project, matrix_name, tod):
     '''Write skim matrix to h5 container'''
