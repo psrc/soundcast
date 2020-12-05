@@ -866,7 +866,7 @@ def run_transit(project_name):
     if os.path.exists(strat_dir):
         shutil.rmtree(strat_dir)
 
-	transit_assignment(my_project, "transit/extended_transit_assignment_bus", False)
+	#transit_assignment(my_project, "transit/extended_transit_assignment_bus", False)
         # transit_skims(my_project, "transit/transit_skim_setup_bus")  
 
     # Assign other submodes, adding volumes to existing:
