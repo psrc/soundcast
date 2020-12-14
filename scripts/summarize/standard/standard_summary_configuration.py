@@ -67,6 +67,9 @@ transit_line_dict = {118331: 'E Line SB',
 					 118355: 'Metro 40 SB',
 					 118332: 'WSF Bainbridge to Seattle',
 					 118342: 'WSF Bremerton to Seattle',
+					 118363: 'Passenger Ferry Bremerton to Seattle',
+					 118585: 'Passenger Ferry Vashon Island to Seattle',
+					 118225: 'Passenger Ferry West Seattle to Seattle',
 					 118337: 'C Line to Downtown Seattle'
 					 }
 

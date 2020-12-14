@@ -842,12 +842,16 @@ def init_pool(daily_link_df):
     global global_daily_link_df
     global_daily_link_df = daily_link_df
 
-def start_transit_pool(project_list, daily_link_df):
+def start_transit_pool(project_list):
     
-    #Transit assignments/skimming seem to do much better running sequentially (not con-currently). Still have to use pool to get by the one
-    #instance of modeler issue. Will change code to be more generalized later.
-    pool = Pool(11, init_pool, [daily_link_df])
+    pool = Pool(11)
     pool.map(run_transit_wrapped, project_list[0:11])
+    pool.close()
+
+def start_bike_pool(project_list, daily_link_df):
+    
+    pool = Pool(11, init_pool, [daily_link_df])
+    pool.map(run_bike_wrapped, project_list[0:11])
     pool.close()
 
 def run_transit_wrapped(project_name):
@@ -856,25 +860,43 @@ def run_transit_wrapped(project_name):
     except:
         print('%s: %s' % (project_name, traceback.format_exc()))
 
+def run_bike_wrapped(project_name):
+    try:
+        run_bike(project_name)
+    except:
+        print('%s: %s' % (project_name, traceback.format_exc()))
+
+def run_bike(project_name):
+
+    start_of_run = time.time()
+    my_project = EmmeProject(project_name)
+
+    # Bicycle Assignment
+    calc_bike_weight(my_project, global_daily_link_df)
+    tod = project_name.split('/')[1]
+    bike_assignment(my_project, tod)
+
+    my_project.bank.dispose()
+
 def run_transit(project_name):
     start_of_run = time.time()
 
     my_project = EmmeProject(project_name)
 
-    # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
-    strat_dir = os.path.join('Banks', my_project.tod, 'STRATS_s1002')
-    if os.path.exists(strat_dir):
-        shutil.rmtree(strat_dir)
-
-	#transit_assignment(my_project, "transit/extended_transit_assignment_bus", False)
-        # transit_skims(my_project, "transit/transit_skim_setup_bus")  
-
-    # Assign other submodes, adding volumes to existing:
-    for submode, class_name in {'bus':'trnst','light_rail':'litrat','ferry':'ferry',
+    # Assign transit submodes, adding volumes to existing after first submode:
+    counter = 0
+    for submode, class_name in {'bus': 'trnst', 'light_rail':'litrat','ferry':'ferry',
             'passenger_ferry':'passenger_ferry','commuter_rail':'commuter_rail'}.items():
         print(str(my_project.tod) + ': ' + submode)
-        transit_assignment(my_project, "transit/extended_transit_assignment_"+submode, True, class_name=class_name)
-        transit_skims(my_project, "transit/transit_skim_setup_"+submode, class_name)    
+        if counter > 0:
+            add_volumes=True
+        else:
+            add_volumes=False
+        print(add_volumes)
+        transit_assignment(my_project, "transit/extended_transit_assignment_"+submode, 
+								keep_exisiting_volumes=add_volumes, class_name=class_name)
+        transit_skims(my_project, "transit/transit_skim_setup_"+submode, class_name)
+        counter+=1
 
     # Calculate wait times
     app.App.refresh_data
@@ -901,11 +923,6 @@ def run_transit(project_name):
         mod_calc["result"] = transfer_wait_matrix
         mod_calc["expression"] = total_wait_matrix + "-" + initial_wait_matrix
         matrix_calc(mod_calc)
-
-    # Bicycle Assignment
-    calc_bike_weight(my_project, global_daily_link_df)
-    tod = project_name.split('/')[1]
-    bike_assignment(my_project, tod)
 
     my_project.bank.dispose()
  
@@ -1094,7 +1111,7 @@ def process_slope_weight(df, my_project):
 
     return upslope_df
 
-def write_generalized_time(df):
+def write_generalized_time(df, tod):
     ''' Export normalized link biking weights as Emme attribute file. '''
 
     # Rename total weight column for import as Emme attribute
@@ -1104,7 +1121,7 @@ def write_generalized_time(df):
     df['inode'] = df['link_id'].str.split('-').str[0]
     df['jnode'] = df['link_id'].str.split('-').str[1]
 
-    filename = 'working/bike_link_weights.csv'
+    filename = 'working/bike_link_weights_%s.csv' % (tod,)
     df[['inode','jnode', '@bkwt']].to_csv(filename, sep=' ', index=False)
 
 def calc_bike_weight(my_project, link_df):
@@ -1130,10 +1147,11 @@ def calc_bike_weight(my_project, link_df):
     df.loc[_index,'total_wt'] = df['total_wt']*ferry_bike_factor
 
     # Write link data for analysis
-    df.to_csv(r'outputs/bike/bike_attr.csv')
+    
+    df.to_csv(r'outputs/bike/bike_attr_%s.csv' % (my_project.tod,) )
 
     # export total link weight as an Emme attribute file ('@bkwt.in')
-    write_generalized_time(df=df)
+    write_generalized_time(df, my_project.tod)
 
 def bike_assignment(my_project, tod):
     ''' Assign bike trips using links weights based on slope, traffic, and facility type, for a given TOD.'''
@@ -1152,17 +1170,17 @@ def bike_assignment(my_project, tod):
 
     # Load in bike weight link attributes
     import_attributes = my_project.m.tool("inro.emme.data.network.import_attribute_values")
-    filename = 'working/bike_link_weights.csv'
+    filename = 'working/bike_link_weights_%s.csv' % (my_project.tod,)
     import_attributes(filename, 
                     scenario = my_project.current_scenario,
-                    revert_on_error=False)
-					
+                    revert_on_error=True)
+
 
     # Invoke the Emme assignment tool
     extended_assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
     bike_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_assignment.json'))
-    extended_assign_transit(bike_spec, add_volumes=True, class_name='bike')
-
+    extended_assign_transit(bike_spec, add_volumes=True, class_name = 'bike')
+    
     skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
     bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
     skim_bike(bike_skim_spec, class_name='bike')
@@ -1173,32 +1191,6 @@ def bike_assignment(my_project, tod):
     # Skim for final bike assignment results
     bike_network_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_network_setup.json'))
     bike_network_vol(bike_network_spec, class_name='bike')
-
-def export_skims(my_project, matrix_name, tod):
-    '''Write skim matrix to h5 container'''
-
-    my_store = h5py.File(r'inputs/model/roster/' + tod + '.h5', "r+")
-
-    matrix_value = my_project.bank.matrix(matrix_name).get_numpy_data()
-
-    # scale to store as integer
-    matrix_value = matrix_value * bike_skim_mult
-    matrix_value = matrix_value.astype('uint16')
-
-    # Remove unreasonably high values, replace with max allowed by numpy
-    max_value = np.iinfo('uint16').max
-    matrix_value = np.where(matrix_value > max_value, max_value, matrix_value)
-
-    if matrix_name in my_store['Skims'].keys():
-        my_store["Skims"][matrix_name][:] = matrix_value
-    else:
-        try:
-            my_store["Skims"].create_dataset(name=matrix_name, data=matrix_value, compression='gzip', dtype='uint16')
-        except:
-            'unable to export skim: ' + str(matrix_name)
-
-    my_store.close()
-
 
 def calc_total_vehicles(my_project):
     '''For a given time period, calculate link level volume, store as extra attribute on the link'''
@@ -1360,62 +1352,64 @@ def run_assignments_parallel(project_name):
     return link_df
 
 def main():
+    # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
+    for tod in tods:
+        print (tod)
+        strat_dir = os.path.join('Banks', tod, 'STRATS_s1002')
+        if os.path.exists(strat_dir):
+            shutil.rmtree(strat_dir)
 
     # Start Daysim-Emme Equilibration
     # This code is organized around the time periods for which we run assignments, 
     # often represented by the variable "tod". This variable will always
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
-        start_of_run = time.time()
-        pool_list = []
-        for i in range (0, 12, parallel_instances):
-            l = project_list[i:i+parallel_instances]
-            pool_list.append(start_pool(l))
+    start_of_run = time.time()
+    pool_list = []
+    for i in range (0, 12, parallel_instances):
+        l = project_list[i:i+parallel_instances]
+        pool_list.append(start_pool(l))
+    #run_assignments_parallel('projects/8to9/8to9.emp')
 
-         #run_assignments_parallel('projects/8to9/8to9.emp')
-        
-        # calculate link daily volumes for use in bike model
-        daily_link_df = pd.DataFrame()
-        for _df in pool_list[0]:
-            daily_link_df = daily_link_df.append(_df)
-            grouped = daily_link_df.groupby(['link_id'])
-        daily_link_df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
-        daily_link_df.reset_index(level=0, inplace=True)
-        
-        start_transit_pool(project_list, daily_link_df)
+    ### calculate link daily volumes for use in bike model
+    
+    daily_link_df = pd.DataFrame()
+    for _df in pool_list[0]:
+        daily_link_df = daily_link_df.append(_df)
+        grouped = daily_link_df.groupby(['link_id'])
+    daily_link_df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
+    daily_link_df.reset_index(level=0, inplace=True)
+    daily_link_df.to_csv(r'outputs\bike\daily_link_volume.csv')
+    start_transit_pool(project_list)
+    #run_transit(r'projects/7to8/7to8.emp')
+	
+    #daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
+    start_bike_pool(project_list, daily_link_df)
 
-        # run_transit(r'projects/9to10/9to10.emp')
-       
-        f = open('outputs/logs/converge.txt', 'w')
-       
-        #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
-        if build_free_flow_skims == False:
-              #run feedback check 
-             if feedback_check(feedback_list) == False:
-                 go = 'continue'
-                 json.dump(go, f)
-             else:
-                 go = 'stop'
-                 json.dump(go, f)
+    f = open('outputs/logs/converge.txt', 'w')
+	##if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
+    if build_free_flow_skims == False:
+        if feedback_check(feedback_list) == False:
+            go = 'continue'
+            json.dump(go, f)
         else:
-           go = 'continue'
-           json.dump(go, f)
-
-        # export skims even if skims converged
-        for i in range (0, 12, parallel_instances):
-           l = project_list[i:i+parallel_instances]
-           export_to_hdf5_pool(l)
-        #average_skims_to_hdf5_concurrent(EmmeProject('projects/20to5/20to5.emp'), False)
-           
-        f.close()
-
-        end_of_run = time.time()
-
-        text = "Emme Skim Creation and Export to HDF5 completed normally"
-        print(text)
-        logging.debug(text)
-        text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
-        print(text)
-        logging.debug(text)
+            go = 'stop'
+            json.dump(go, f)
+    else:
+        go = 'continue'
+        json.dump(go, f)
+    # export skims even if skims converged
+    for i in range (0, 12, parallel_instances):
+        l = project_list[i:i+parallel_instances]
+        export_to_hdf5_pool(l)
+    #average_skims_to_hdf5_concurrent(EmmeProject('projects/7to8/7to8.emp'), False)
+    f.close()
+    end_of_run = time.time()
+    text = "Emme Skim Creation and Export to HDF5 completed normally"
+    print(text)
+    logging.debug(text)
+    text = 'The Total Time for all processes took', round((end_of_run-start_of_run)/60,2), 'minutes to execute.'
+    print(text)
+    logging.debug(text)
 
 if __name__ == "__main__":
     main()
