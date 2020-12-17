@@ -329,17 +329,20 @@ def attribute_based_skims(my_project,my_skim_attribute):
     mod_skim = skim_specification
 
     for x in range (0, len(mod_skim["classes"])):
-        my_extra = my_user_classes["Highway"][x][my_skim_attribute]
-        matrix_name = my_user_classes["Highway"][x]["Name"] + skim_desig
-        matrix_id = my_project.bank.matrix(matrix_name).id
-        mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
-        mod_skim["path_analysis"]["link_component"] = my_extra
-        #only need generalized cost skims for trucks and only doing it when skimming for time.
-        if tod in generalized_cost_tod and skim_desig == 't':
-            if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
-                mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = my_user_classes["Highway"][x]["Name"] + 'g'
-        #otherwise, make sure we do not skim for GC!
-       
+        matrix_name = my_user_classes["Highway"][x]["Name"]
+        
+        if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC used HOV skims, no need to export
+			my_extra = my_user_classes["Highway"][x][my_skim_attribute]
+			matrix_name = matrix_name + skim_desig
+			matrix_id = my_project.bank.matrix(matrix_name).id
+			mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_id
+			mod_skim["path_analysis"]["link_component"] = my_extra
+			#only need generalized cost skims for trucks and only doing it when skimming for time.
+			if tod in generalized_cost_tod and skim_desig == 't':
+				if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
+					mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = my_user_classes["Highway"][x]["Name"] + 'g'
+			#otherwise, make sure we do not skim for GC!
+		   
     skim_traffic(mod_skim)
 
     #add in intrazonal values & terminal times:
@@ -496,19 +499,21 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     for x in range (0, len(my_skim_matrix_designation)):
 
         for y in range (0, len(matrix_dict["Highway"])):
-            matrix_name= matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x]
-            if my_skim_matrix_designation[x] == 'c':
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
-            elif my_skim_matrix_designation[x] == 'd':
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
-            else:
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
-            #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            #delete old skim so new one can be written out to h5 container
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
+            matrix_name = matrix_dict["Highway"][y]["Name"]
+            if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC used HOV skims, no need to export
+				matrix_name = matrix_name+my_skim_matrix_designation[x]
+				if my_skim_matrix_designation[x] == 'c':
+					matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
+				elif my_skim_matrix_designation[x] == 'd':
+					matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
+				else:
+					matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
+				#open old skim and average
+				if average_skims:
+					matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+				#delete old skim so new one can be written out to h5 container
+				my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+				print(matrix_name+' was transferred to the HDF5 container.')
 
     # Transit Skims
     if my_project.tod in transit_skim_tod:
@@ -528,9 +533,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             print(matrix_name+' was transferred to the HDF5 container.')
 
          # Perceived and actual bike skims
-        for matrix_name in ["mfbkpt", "mfbkat"]:
-            print(matrix_name)
-            print(my_project.tod)		    
+        for matrix_name in ["mfbkpt", "mfbkat"]:	    
             matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
             #open old skim and average
             if average_skims:
@@ -719,10 +722,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
   
   #all in-memory numpy matrices populated, now write out to emme
     for mat_name in uniqueMatrices:
-        print(mat_name)
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         np_array = demand_matrices[mat_name]
-        print(np_array)
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         emme_matrix.from_numpy(np_array)
         my_project.bank.matrix(matrix_id).set_data(emme_matrix, my_project.current_scenario)
@@ -887,12 +888,10 @@ def run_transit(project_name):
     counter = 0
     for submode, class_name in {'bus': 'trnst', 'light_rail':'litrat','ferry':'ferry',
             'passenger_ferry':'passenger_ferry','commuter_rail':'commuter_rail'}.items():
-        print(str(my_project.tod) + ': ' + submode)
         if counter > 0:
             add_volumes=True
         else:
             add_volumes=False
-        print(add_volumes)
         transit_assignment(my_project, "transit/extended_transit_assignment_"+submode, 
 								keep_exisiting_volumes=add_volumes, class_name=class_name)
         transit_skims(my_project, "transit/transit_skim_setup_"+submode, class_name)
@@ -1002,25 +1001,26 @@ def feedback_check(emmebank_path_list):
         for y in range (0, len(matrix_dict["Highway"])):
            #trips
             matrix_name= matrix_dict["Highway"][y]["Name"]
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
-            
-            trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
-            #new skims
-            matrix_name = matrix_name + 't'
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
-            new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-            
-            #now old skims
-            old_skim = np.asmatrix(my_store['Skims'][matrix_name])
+            if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:
+				matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
+				
+				trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+				
+				#new skims
+				matrix_name = matrix_name + 't'
+				matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
+				new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+				
+				#now old skims
+				old_skim = np.asmatrix(my_store['Skims'][matrix_name])
 
-            change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
+				change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
 
-            text = tod + " " + str(change_test) + " " + matrix_name
-            logging.debug(text)
-            if change_test > STOP_THRESHOLD:
-                passed = False
-                break
+				text = tod + " " + str(change_test) + " " + matrix_name
+				logging.debug(text)
+				if change_test > STOP_THRESHOLD:
+					passed = False
+					break
 
         my_bank.dispose()
      return passed
@@ -1354,7 +1354,6 @@ def run_assignments_parallel(project_name):
 def main():
     # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
     for tod in tods:
-        print (tod)
         strat_dir = os.path.join('Banks', tod, 'STRATS_s1002')
         if os.path.exists(strat_dir):
             shutil.rmtree(strat_dir)
