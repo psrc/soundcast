@@ -264,7 +264,7 @@ def main():
 
     _df = _df.merge(df_obs, on='screenline_id')
     _df.rename(columns={'@tveh':'modeled'},inplace=True)
-    _df = _df[['name','observed','modeled']]
+    _df = _df[['name','observed','modeled','county']]
     _df['diff'] = _df['modeled']-_df['observed']
     _df = _df.sort_values('observed',ascending=False)
     _df.to_csv(r'outputs\validation\screenlines.csv', index=False)
@@ -285,7 +285,7 @@ def main():
     newdf.rename(columns={'@tveh':'modeled','AWDT':'observed'},inplace=True)
     newdf['observed'] = newdf['observed'].astype('float')
     newdf['diff'] = newdf['modeled'] - newdf['observed']
-    newdf = newdf[['external_station','location','observed','modeled','diff']].sort_values('observed',ascending=False)
+    newdf = newdf[['external_station','location','county','observed','modeled','diff']].sort_values('observed',ascending=False)
     newdf.to_csv(r'outputs\validation\external_volumes.csv',index=False)
 	
 	
