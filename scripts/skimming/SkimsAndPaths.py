@@ -1164,7 +1164,7 @@ def bike_assignment(my_project, tod):
             my_project.current_scenario.create_extra_attribute('LINK',attr)   
 
     # Create matrices for bike assignment and skim results
-    for matrix in ['bkpt', 'bkat', ]:
+    for matrix in ['bkpt', 'bkat']:
         if matrix not in [i.name for i in my_project.bank.matrices()]:
             my_project.create_matrix(matrix, '', 'FULL')
 
@@ -1184,6 +1184,13 @@ def bike_assignment(my_project, tod):
     skim_bike = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
     bike_skim_spec = json.load(open('inputs/model/skim_parameters/nonmotor/bike_skim_setup.json'))
     skim_bike(bike_skim_spec, class_name='bike')
+	
+	# add intrazonal times to skim
+    bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict", "nonmotor")
+    matrix_name = bike_walk_matrix_dict['bike']['intrazonal_time']
+    iz_matrix_id = my_project.bank.matrix(matrix_name).id
+    for matrix_name in ['bkpt','bkat']:
+        my_project.matrix_calculator(result = 'mf' + matrix_name, expression = 'mf' + matrix_name + "+" + iz_matrix_id)
 
     # Add bike volumes to bvol network attribute
     bike_network_vol = my_project.m.tool("inro.emme.transit_assignment.extended.network_results")
