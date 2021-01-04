@@ -436,7 +436,8 @@ def main():
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
 	
 	# Copy select results to dash directory    # Copy existing CSV files for topsheet
-    dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume','daily_boardings_by_agency']
+    dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume','daily_boardings_by_agency', 
+        'daily_boardings_by_key_routes','light_rail_boardings']
     for fname in dash_table_list:
         shutil.copy(os.path.join(r'outputs/validation',fname+'.csv'), r'outputs/agg/dash')
 
