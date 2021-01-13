@@ -83,6 +83,7 @@ county_id = {	1: 'King',
 
 veh_totals = {'2014': 3176086, '2018': 3300162, '2040': 3982578.1, '2050': 4437371}
 
+
 # Base year distribution of vehicle ownership by county
 vehs_by_county = {
     'King': 1625471,
@@ -98,6 +99,9 @@ vehs_by_county = {
 
 # For GHG Analysis see:
 # X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
+
+# Total vehicles predicted from Auto Ownership model for base year 2018 
+tot_veh_model_base_year = 3007232
 
 ###
 ### FIXME: put in db

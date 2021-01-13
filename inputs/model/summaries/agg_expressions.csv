@@ -1,4 +1,8 @@
 table,target,query,agg_fields,filter_fields,values,aggfunc,output_dir,description
+trip,person_vmt,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,travdist_wt,sum,dash,total weighted travdist for regional geog
+trip,person_vht,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,travtime_wt,sum,dash,total weighted travtime for regional geog
+trip,person_trips,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,trexpfac,sum,dash,total number of trips by geography
+person,person_geog,,"hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,psexpfac,sum,dash,
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp",,toexpfac,sum,dash,"tours by purpose, mode, path type and person type"
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_district",toexpfac,sum,dash,"tours by purpose, mode, path type, person type, and o and d districts"
 trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
