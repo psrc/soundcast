@@ -111,11 +111,20 @@ def export_link_values(my_project):
     df = df.pivot(index='nodes',columns='measure',values='value').reset_index()
     df.to_csv(daily_network_fname)
 
+    # Export shapefile
+    shapefile_dir = r'outputs/network/shapefile'
+    if not os.path.exists(shapefile_dir):
+        os.makedirs(shapefile_dir)
+    network_to_shapefile = my_project.m.tool('inro.emme.data.network.export_network_as_shapefile')
+    network_to_shapefile(export_path=shapefile_dir, scenario = my_project.current_scenario)
+
+
 def main():
 
     # Create a project to hold daily bank
     if os.path.exists('projects/daily'):
         shutil.rmtree('projects/daily')
+
 
     project = app.create_project('projects','Daily')
     desktop = app.start_dedicated(False, "cth", project)
@@ -128,20 +137,12 @@ def main():
     daily_scenario = daily_emmebank.scenario(1002)
     daily_network = daily_scenario.get_network()
 
-
     database = data_explorer.add_database('Banks/Daily/emmebank')
     database.open()
     desktop.project.save()
     desktop.close()
     emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
     shcopy(emme_toolbox_path + '/standard.mtbx', 'projects/daily')
-
-    # Use a copy of an existing bank for the daily bank and rename
-    # copy_emmebank('Banks/7to8', 'Banks/Daily')
-    # daily_emmebank =_emmebank.Emmebank(r'Banks/Daily/emmebank')
-    # daily_emmebank.title = 'daily'
-    # daily_scenario = daily_emmebank.scenario(1002)
-    # daily_network = daily_scenario.get_network()
 
     matrix_dict = text_to_dictionary('demand_matrix_dictionary')
     uniqueMatrices = set(matrix_dict.values())
