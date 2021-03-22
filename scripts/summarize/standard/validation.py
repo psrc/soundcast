@@ -437,7 +437,7 @@ def main():
 	
 	# Copy select results to dash directory    # Copy existing CSV files for topsheet
     dash_table_list = ['daily_volume_county_facility','external_volumes','screenlines','daily_volume','daily_boardings_by_agency', 
-        'daily_boardings_by_key_routes','light_rail_boardings']
+        'daily_boardings_key_routes','light_rail_boardings']
     for fname in dash_table_list:
         shutil.copy(os.path.join(r'outputs/validation',fname+'.csv'), r'outputs/agg/dash')
 
