@@ -384,15 +384,17 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df_obs['observed_5to20'] = df_obs['boardings']/daily_factor
 
     df = df[df['i_node'].isin(df_obs['emme_node'])]
-    df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
     df.rename(columns={'total_boardings':'modeled_5to20'},inplace=True)
 
-    df['modeled_5to20'] = df['modeled_5to20'].astype('float')
-    df.index = df['station_name']
-    df_total = df.copy()[['observed_5to20','modeled_5to20']]
-    df_total.ix['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
-    df_total.to_csv(light_rail_boardings_path)
+    if len(df_obs) > 0:
+        df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
+        cols = ['observed_5to20','modeled_5to20']
+    else:
+        cols = ['modeled_5to20']
 
+    df_total = df.copy()[cols]
+    df_total.ix['Total',cols] = df[cols].sum().values
+    df_total.to_csv(light_rail_boardings_path)
 
 def main():
 
@@ -417,8 +419,6 @@ def main():
     df_iz_vol = pd.DataFrame()
     df_iz_vol['taz'] = dictZoneLookup.values()
     
-
-
     dir = r'outputs/transit/line_od'
     if os.path.exists(dir):
         shutil.rmtree(dir)
@@ -511,6 +511,9 @@ def main():
     summarize_network(network_df, writer)
 
     # Create detailed transit summaries
+    df_transit_line = pd.read_csv(transit_line_path)
+    df_transit_node = pd.read_csv(transit_node_path)
+    df_transit_segment = pd.read_csv(transit_segment_path)
     summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
 
 if __name__ == "__main__":
