@@ -1,4 +1,9 @@
-import os, shutil
+import os, sys, shutil
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
@@ -260,7 +265,7 @@ def main():
     of improvements by vehicle types (e.g., 5% emissions reductions for medium and heavy trucks, 25% more light EVs).
     """
 
-    print 'Calculating emissions...'
+    print('Calculating emissions...')
 
     # Create output directory
     output_dir = r'outputs/emissions'

@@ -108,7 +108,6 @@ def main():
     ###########################################################
     # PSRC Zone System for TAZ joining
     ###########################################################
-    print 'Creating empty PSRC zone system dataframe'
     df_psrc = pd.read_sql("SELECT * FROM psrc_zones", con=conn)
     df_psrc['taz'] = df_psrc['taz'].astype(int)
     df_psrc = df_psrc.loc[:,['taz','county','jblm','external']]
@@ -116,9 +115,6 @@ def main():
     ###########################################################
     # Auto External Stations
     ###########################################################
-
-
-    print 'Creating auto external data by taz'
     df_external = pd.read_sql("SELECT * FROM auto_externals", con=conn)
     df_external['taz'] = df_external['taz'].astype(int)
     df_external = df_external.loc[:,['taz','year'] + trip_productions + trip_attractions]
@@ -143,7 +139,6 @@ def main():
     ###########################################################
     # Enlisted Personnel
     ###########################################################
-    print 'Creating enlisted personnel data by taz'
     df_enlisted = pd.read_sql_query("SELECT * FROM enlisted_personnel", con=conn)
 
     ### FIXME: change Zone to taz in DB
@@ -175,7 +170,6 @@ def main():
     ###########################################################
     # Group Quarters
     ###########################################################
-    print 'Creating group quarter data by taz'
     total_gq_df = pd.read_sql_query("SELECT * FROM group_quarters", con=conn)
     total_gq_df[['dorm_share','military_share','other_share']] = total_gq_df[['dorm_share','military_share','other_share']].astype('float')
 
@@ -220,8 +214,6 @@ def main():
     ###########################################################
     ### Joint Base Lewis McChord
     ###########################################################
-
-    print 'Creating jblm data by taz'
     jblm_df = pd.read_sql_query("SELECT * FROM jblm_trips", con=conn)
     jblm_matrix = int(jblm_df['matrix_id'][0])
     data_year = int(jblm_df['year'][0])
@@ -230,7 +222,7 @@ def main():
     jblm_df = jblm_df.loc[:,keep_columns]
     jblm_df['trips'] = jblm_df['trips'].apply(float)
        
-    if model_year > data_year:   
+    if int(model_year) > data_year:   
         growth_rate = (1+(jblm_rate*(int(model_year)-data_year)))
         jblm_df['trips'] = jblm_df['trips'] * growth_rate
     
@@ -290,7 +282,6 @@ def main():
     ###########################################################
     # Heavy Truck Productions, grown from ATRI data
     ###########################################################
-    print 'Creating heavy truck data by taz'
     heavy_trucks = pd.read_sql_query("SELECT * FROM heavy_trucks", con=conn)
     heavy_trucks = heavy_trucks[['taz','year','htkpro','htkatt']]
 
@@ -312,7 +303,7 @@ def main():
 
     # Apply land-use restrictions for productions/attraction in TAZs without appropriate industrial uses
     allowed_tazs = calc_heavy_truck_restrictions()
-    external_taz_list = range(MIN_EXTERNAL, MAX_EXTERNAL + 1)
+    external_taz_list = list(range(MIN_EXTERNAL, MAX_EXTERNAL + 1))
     allowed_tazs = allowed_tazs.tolist() + external_taz_list
 
     heavy_trucks_taz = heavy_trucks_taz[heavy_trucks_taz['taz'].isin(allowed_tazs)]
@@ -325,7 +316,6 @@ def main():
     ###########################################################
     # SeaTac Airport 
     ###########################################################
-    print 'Reading in SeaTac aiport data'
     df_seatac = pd.read_sql_query("SELECT * FROM seatac", con=conn)
     seatac_zone = df_seatac[df_seatac['year'] == int(model_year)]['taz'].values[0]
     seatac_enplanements = df_seatac[df_seatac['year'] == int(model_year)]['enplanements'].values[0]
@@ -335,14 +325,12 @@ def main():
     ###########################################################
 
     # Special generator trips are assumed of type HBO
-
-    print 'Creating special generator data by taz'
     df_special = pd.read_sql_query("SELECT * FROM special_generators", con=conn)
 
     # Calculate the Inputs for the Year of the model
     max_input_year = df_special['year'].max()
 
-    if model_year <= max_input_year:
+    if int(model_year) <= max_input_year:
         df_special = df_special[df_special['year'] == model_year]
         df_special['hboatt'] = df_special['trips'].astype('float')
         
@@ -373,7 +361,6 @@ def main():
     original_parcel_columns =  ['parcelid','xcoord_p','ycoord_p','taz_p','empedu_p','empfoo_p','empgov_p','empind_p','empmed_p','empofc_p','empret_p','emprsc_p','empsvc_p','empoth_p','emptot_p','stugrd_p','stuhgh_p','stuuni_p']
     updated_parcel_columns = ['parcel-id','xcoord','ycoord','taz','education','food-services','government','industrial','medical','office','retail','resources','services','other','total-jobs','k-8','high-school','university']
 
-    print 'Loading HH and Parcel file'
     hh_person = r'inputs/scenario/landuse/hh_and_persons.h5'
     hh_people = h5py.File(hh_person,'r+') 
     hh_df = create_df_from_h5(hh_people, 'Household', hh_variables)
@@ -389,7 +376,6 @@ def main():
     # using the person and household file
     ###########################################################
 
-    print 'Creating HH cross-classification file'
     person_df['people'] = 1
 
     # Flag if the person has a full or part-time job
@@ -448,7 +434,6 @@ def main():
     ###########################################################
     # Household trip production
     ###########################################################
-    print 'Calculating HH Trip Productions'
     df_hh_rates = df_rates[df_rates['group'] == 'household'].drop(['schpro','schatt','colpro','colatt'], axis=1)
     df_sch_rates = df_rates[df_rates['group'] == 'school'][['segmentation','schpro','schatt']]
     df_coll_rates = df_rates[df_rates['group'] == 'college'][['segmentation','colpro','colatt']]
@@ -464,7 +449,6 @@ def main():
     ###########################################################
     # Combine HH Trip Generation with Parcels
     ###########################################################
-    print 'Place HH Trip Productions on parcels'
     df_parcel_hh_pa = df_hh.groupby('hhparcel').sum()
     df_parcel_hh_pa = df_parcel_hh_pa.reset_index()
     df_parcel_hh_pa.rename(columns={'hhparcel': 'parcel-id','people': 'total-people'}, inplace=True)
@@ -472,7 +456,6 @@ def main():
     ###########################################################
     # Parcel trip attractions
     ###########################################################
-    print 'Calculating Parcel Trip Attractions'
     df_parcels = pd.merge(parcels, df_parcel_hh_pa, on='parcel-id', suffixes=('_x','_y'), how='left')
     df_parcels.fillna(0,inplace=True)
 
@@ -511,7 +494,6 @@ def main():
     ###########################################################
     # SeaTac Airport trip generation
     ###########################################################
-    print 'Calculate SeaTac Airport trips by parcels'
     df_parcels['airport'] = (df_parcels['total-jobs']*air_jobs) + (df_parcels['total-people']*air_people)
     aiport_balancing = seatac_enplanements / sum(df_parcels['airport'])
     df_parcels['airport'] = df_parcels['airport']*aiport_balancing
@@ -519,7 +501,6 @@ def main():
     ###########################################################
     # Create TAZ Input files
     ###########################################################
-    print 'Creating Trip Productions and Attractions by TAZ'
     df_taz = df_parcels.groupby('taz').sum()
     df_taz = df_taz.reset_index()
     df_taz.fillna(0,inplace=True)

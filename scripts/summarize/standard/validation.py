@@ -1,9 +1,11 @@
 # Validation for observed data
 
-#### TODO ####
-# Validation data should be stored in the database!
-
-import os, shutil
+import os, sys, shutil
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import pandas as pd
 from shutil import copy2 as shcopy
 from sqlalchemy import create_engine
@@ -54,8 +56,6 @@ facility_type_lookup = {
     19:'HOV',    # HOV Only Freeway
     20:'HOV'    # HOV Flag
     }
-
-
 	
 county_lookup = {
     33: 'King',

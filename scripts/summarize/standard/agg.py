@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
 import h5py
-import os, shutil
+import os, sys, shutil
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import re
 import math
 from collections import OrderedDict
@@ -84,9 +89,10 @@ def execute_eval(df, row, col_list, fname):
 
     if type(row['filter_fields']) == np.float:
         expr = 'df' + str(col_list) + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-        
+        print(expr)
+        print('--------------------')
         # Write results to target output    
-        df_out = pd.eval(expr).reset_index()
+        df_out = pd.eval(expr, engine='python').reset_index()
         _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
         for field in _labels_df['field'].unique():
             _df = _labels_df[_labels_df['field'] == field]
@@ -103,7 +109,7 @@ def execute_eval(df, row, col_list, fname):
                                ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
 
                 # Write results to target output    
-                df_out = pd.eval(expr).reset_index()
+                df_out = pd.eval(expr, engine='python').reset_index()
 
                 # # Apply labels
                 _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]

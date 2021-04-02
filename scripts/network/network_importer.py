@@ -1,9 +1,4 @@
 import pandas as pd
-import inro.emme.desktop.app as app
-import inro.modeller as _m
-import inro.emme.matrix as ematrix
-import inro.emme.database.matrix
-import inro.emme.database.emmebank as _eb
 import os, sys
 import re 
 import multiprocessing as mp
@@ -70,7 +65,7 @@ def arterial_delay(emmeProject, factor):
                       'number_oneway_arts_entering_int' : 'NODE', 
                       'cycle' : 'NODE'}
 
-    for name, type in attribute_dict.iteritems():
+    for name, type in attribute_dict.items():
         network.create_attribute(type, name)
     
     for link in network.links():
@@ -153,7 +148,7 @@ def arterial_delay(emmeProject, factor):
 
             link.red = 0.0
 
-            if node.sum_arts_lanecap_3to5_entering_int > 0.0 and link.data3 <> 0 and link.data3 <> 5:
+            if node.sum_arts_lanecap_3to5_entering_int > 0.0 and link.data3 != 0 and link.data3 != 5:
                 link.red = 1.2 * node.cycle * (1 - (node.number_arts_entering_int * link.lanecap_3to5) / (2 * node.sum_arts_lanecap_3to5_entering_int))
             else:
                 link.red = 0.0
@@ -182,15 +177,15 @@ def arterial_delay(emmeProject, factor):
             
             #print link.i_node, link.j_node, link.rdly, link.data3
             
-    for name, type in attribute_dict.iteritems():
+    for name, type in attribute_dict.items():
             network.delete_attribute(type, name)
     emmeProject.current_scenario.publish_network(network)
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
-    headway_df = pd.DataFrame.from_csv('inputs/scenario/networks/headways.csv')
-    tod_index = pd.Series(xrange(1,len(tod_networks)+1),index=tod_networks)
-    for key, value in sound_cast_net_dict.iteritems():
+    headway_df = pd.read_csv('inputs/scenario/networks/headways.csv')
+    tod_index = pd.Series(range(1,len(tod_networks)+1),index=tod_networks)
+    for key, value in sound_cast_net_dict.items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
             my_project.bank.delete_scenario(scenario)

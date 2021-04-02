@@ -14,6 +14,11 @@
 
 import inro.emme.database.emmebank as _emmebank
 import os, sys
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import numpy as np
 from shutil import copy2 as shcopy
 import json
@@ -98,7 +103,7 @@ def export_link_values(my_project):
     # Initialize a dataframe to store results
     df = pd.DataFrame()
     for attr in link_attr:
-        print "processing: " + str(attr)
+        print("processing: " + str(attr))
         # store values and node id for a single attr in a temp df 
         df_attr = pd.DataFrame([network.get_attribute_values(link_type, [attr])[1].keys(),
                           network.get_attribute_values(link_type, [attr])[1].values()]).T
@@ -116,8 +121,7 @@ def export_link_values(my_project):
     if not os.path.exists(shapefile_dir):
         os.makedirs(shapefile_dir)
     network_to_shapefile = my_project.m.tool('inro.emme.data.network.export_network_as_shapefile')
-    network_to_shapefile(export_path=shapefile_dir, scenario = my_project.current_scenario)
-
+    network_to_shapefile(export_path=shapefile_dir, scenario=my_project.current_scenario)
 
 def main():
 
@@ -162,7 +166,7 @@ def main():
 
     time_period_list = []
 
-    for tod, time_period in sound_cast_net_dict.iteritems():
+    for tod, time_period in sound_cast_net_dict.items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -194,7 +198,7 @@ def main():
     daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
     daily_network = daily_scenario.get_network()
 
-    for tod, time_period in sound_cast_net_dict.iteritems():
+    for tod, time_period in sound_cast_net_dict.items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -214,11 +218,12 @@ def main():
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     # Write daily link-level results
-
-
-    my_project = EmmeProject('projects/daily/daily.emp')
-    my_project.change_active_database('daily')
-    export_link_values(my_project)
+    ###
+    ### FIXME: not currently working with Python3, issue with GDAL lib
+    ###
+    #my_project = EmmeProject('projects/daily/daily.emp')
+    #my_project.change_active_database('daily')
+    #export_link_values(my_project)
 
 if __name__ == '__main__':
     main()

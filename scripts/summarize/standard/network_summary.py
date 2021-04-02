@@ -48,7 +48,7 @@ def get_intrazonal_vol(emmeproject, df_vol):
     iz_uc_list = ['sov_inc','hov2_inc','hov3_inc']
     if include_av:
         iz_uc_list += 'av_sov_inc','av_hov2_inc','av_hov3_inc'
-    iz_uc_list = [uc+str(1+i) for i in xrange(3) for uc in iz_uc_list]
+    iz_uc_list = [uc+str(1+i) for i in range(3) for uc in iz_uc_list]
     if include_tnc:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
     if include_delivery:
@@ -96,7 +96,7 @@ def freeflow_skims(my_project, dictZoneLookup):
         df[field] = daysim['Trip'][field][:]
     df['od']=df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
 
-    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5')['Skims']['sov_inc3t'][:]
+    skim_vals = h5py.File(r'inputs/model/roster/20to5.h5', 'r')['Skims']['sov_inc3t'][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -105,7 +105,7 @@ def freeflow_skims(my_project, dictZoneLookup):
 
     skim_df = skim_df.stack().reset_index()
     skim_df.columns = ['otaz','dtaz','ff_travtime']
-    skim_df['od']=skim_df['otaz'].astype('str')+'-'+skim_df['dtaz'].astype('str')
+    skim_df['od'] = skim_df['otaz'].astype('str')+'-'+skim_df['dtaz'].astype('str')
     skim_df.index = skim_df['od']
 
     df = df.join(skim_df,on='od', lsuffix='_cong',rsuffix='_ff')
@@ -116,7 +116,7 @@ def freeflow_skims(my_project, dictZoneLookup):
     try:
         daysim['Trip'].create_dataset("sov_ff_time", data=df['ff_travtime'].values, compression='gzip')
     except:
-        print 'could not write freeflow skim to h5'
+        print('could not write freeflow skim to h5')
     daysim.close()
 
     # Write to TSV files
@@ -126,24 +126,26 @@ def freeflow_skims(my_project, dictZoneLookup):
     # Delete sov_ff_time if it already exists
     if 'sov_ff_time' in trip_df.columns:
         trip_df.drop('sov_ff_time', axis=1, inplace=True)
+    skim_df = skim_df.reset_index(drop=True)
     trip_df = pd.merge(trip_df, skim_df[['od','sov_ff_time']], on='od', how='left')
     trip_df.to_csv(r'outputs/daysim/_trip.tsv', sep='\t', index=False)
 
 def jobs_transit(output_path):
     buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
-    buf.index = buf.parcelid
 
     # distance to any transit stop
     df = buf[['parcelid','dist_lbus','dist_crt','dist_fry','dist_lrt',
               u'hh_p', u'stugrd_p', u'stuhgh_p', u'stuuni_p', u'empedu_p',
            u'empfoo_p', u'empgov_p', u'empind_p', u'empmed_p', u'empofc_p',
            u'empret_p', u'empsvc_p', u'empoth_p', u'emptot_p']]
+    df.index = df['parcelid']
 
     # Use minimum distance to any transit stop
     newdf = pd.DataFrame(df[['dist_lbus','dist_crt','dist_fry','dist_lrt']].min(axis=1))
-    newdf['parcelid'] = newdf.index
+    newdf = newdf.reset_index()
+    df = df.reset_index(drop=True)
     newdf.rename(columns={0:'nearest_transit'}, inplace=True)
-    df = pd.merge(df,newdf[['parcelid','nearest_transit']])
+    df = pd.merge(df, newdf[['parcelid','nearest_transit']], on='parcelid')
 
     # only sum for parcels closer than quarter mile to stop
     quarter_mile_jobs = pd.DataFrame(df[df['nearest_transit'] <= 0.25].sum())
@@ -166,7 +168,7 @@ def export_network_attributes(network):
     j_node_list = []
     network_data['modes'] = []
     for link in network.links():
-        for colname, array in network_data.iteritems():
+        for colname, array in network_data.items():
             if colname != 'modes':
                 try:
                     network_data[colname].append(link[colname])  
@@ -232,7 +234,7 @@ def summarize_network(df, writer):
         _df = pd.pivot_table(df, values=metric, index=['tod','period'],columns='facility_type', aggfunc='sum').reset_index()
         _df = sort_df(df=_df, sort_list=tods , sort_column='tod')
         _df = _df.reset_index(drop=True)
-        _df.to_excel(excel_writer=writer, sheet_name=metric+' by FC')
+        _df.to_excel(writer, sheet_name=metric+' by FC')
         _df.to_csv(r'outputs/network/' + metric.lower() +'_facility.csv', index=False)
 
     # Totals by user classification
@@ -293,8 +295,6 @@ def summarize_network(df, writer):
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
     _df.to_csv(r'outputs/network/county_network.csv', index=False)
-
-    writer.save()
 
 def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_segment):
     """Export transit line, segment, and mode attributes"""
@@ -428,15 +428,15 @@ def main():
 
     # Loop through all Time-of-Day banks to get network summaries
     # Initialize extra network and transit attributes
-    for tod_hour, tod_segment in sound_cast_net_dict.iteritems():
+    for tod_hour, tod_segment in sound_cast_net_dict.items():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
         
-        for name, description in extra_attributes_dict.iteritems():
+        for name, description in extra_attributes_dict.items():
             my_project.create_extra_attribute('LINK', name, description, 'True')
         # Calculate transit results for time periods with transit assignment:
         if my_project.tod in transit_tod.keys():
-            for name, desc in transit_extra_attributes_dict.iteritems():
+            for name, desc in transit_extra_attributes_dict.items():
                 my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
                 my_project.transit_line_calculator(result=name, expression=name[1:])
             _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
@@ -488,16 +488,13 @@ def main():
         _network_df['tod'] = my_project.tod
         network_df = network_df.append(_network_df)
 
-
-
-
     output_dict = {network_results_path: network_df, iz_vol_path: df_iz_vol,
                     transit_line_path: df_transit_line,
                     transit_node_path: df_transit_node,
                     transit_segment_path: df_transit_segment}
 
     # Append hourly results to file output
-    for filepath, df in output_dict.iteritems():
+    for filepath, df in output_dict.items():
        df.to_csv(filepath, index=False)
 
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
@@ -508,9 +505,9 @@ def main():
 
     # Create basic spreadsheet summary of network
     writer = pd.ExcelWriter(r'outputs/network/network_summary.xlsx', engine='xlsxwriter')
-    summarize_network(network_df, writer)
+    summarize_network(network_df)
 
-    # Create detailed transit summaries
+    # create detailed transit summaries
     df_transit_line = pd.read_csv(transit_line_path)
     df_transit_node = pd.read_csv(transit_node_path)
     df_transit_segment = pd.read_csv(transit_segment_path)
