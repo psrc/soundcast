@@ -393,7 +393,7 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
         cols = ['modeled_5to20']
 
     df_total = df.copy()[cols]
-    df_total.ix['Total',cols] = df[cols].sum().values
+    df_total.loc['Total',cols] = df[cols].sum().values
     df_total.to_csv(light_rail_boardings_path)
 
 def main():
@@ -505,7 +505,7 @@ def main():
 
     # Create basic spreadsheet summary of network
     writer = pd.ExcelWriter(r'outputs/network/network_summary.xlsx', engine='xlsxwriter')
-    summarize_network(network_df)
+    summarize_network(network_df, writer)
 
     # create detailed transit summaries
     df_transit_line = pd.read_csv(transit_line_path)
