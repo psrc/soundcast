@@ -27,11 +27,12 @@ from pyproj import Proj, transform
 import nbformat
 from sqlalchemy import create_engine
 from nbconvert.preprocessors import ExecutePreprocessor
-from EmmeProject import *
+from EmmeProject import EmmeProject
 from standard_summary_configuration import *
 from input_configuration import *
 from emme_configuration import *
 pd.options.mode.chained_assignment = None  # mute chained assignment warnings
+
 
 def json_to_dictionary(dict_name):
     """ Read skim parameter JSON inputs as dictionary """
@@ -295,6 +296,8 @@ def summarize_network(df, writer):
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
     _df.to_csv(r'outputs/network/county_network.csv', index=False)
+
+    writer.save()
 
 def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_segment):
     """Export transit line, segment, and mode attributes"""

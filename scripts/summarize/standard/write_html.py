@@ -1,4 +1,9 @@
-import os
+import os, sys, shutil
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from input_configuration import model_year, base_year
@@ -13,7 +18,11 @@ def main():
     for sheet in nb_list:
         with open("scripts/summarize/notebooks/"+sheet+".ipynb") as f:
                 nb = nbformat.read(f, as_version=4)
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
+        if (sys.version_info > (3, 0)):
+            py_version = 'python3'
+        else:
+            py_version = 'python2'
+        ep = ExecutePreprocessor(timeout=600, kernel_name=py_version)
         ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
         with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
             nbformat.write(nb, f)

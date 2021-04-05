@@ -89,8 +89,7 @@ def execute_eval(df, row, col_list, fname):
 
     if type(row['filter_fields']) == np.float:
         expr = 'df' + str(col_list) + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
-        print(expr)
-        print('--------------------')
+
         # Write results to target output    
         df_out = pd.eval(expr, engine='python').reset_index()
         _labels_df = labels_df[labels_df['field'].isin(df_out.columns)]
@@ -103,7 +102,7 @@ def execute_eval(df, row, col_list, fname):
     else:
         filter_cols = np.unique([i.strip() for i in row['filter_fields'].split(',')])
         for _filter in filter_cols:
-            unique_vals = np.unique(df[_filter].values)
+            unique_vals = np.unique(df[_filter].values.astype('str'))
             for filter_val in unique_vals:
                 expr = 'df[' + str(col_list) + "][df['" + str(_filter) + "'] == '" + str(filter_val) + "']" + \
                                ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
@@ -124,7 +123,7 @@ def execute_eval(df, row, col_list, fname):
 def h5_df(h5file, table, col_list):
     df = pd.DataFrame()
     for col in col_list:
-        df[col] = h5file[table][col][:]
+        df[col] = h5file[table][col][:].astype('float32')
 
     return df
 
@@ -177,9 +176,9 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     # Full list of potential columns
     full_col_list = list(hh_full_col_list) + list(person_full_col_list) + list(trip_full_col_list) + list(tour_full_col_list) + geog_cols + var_list
 
-    ####################
-    # Household 
-    ####################
+    #####################
+    ## Household 
+    #####################
 
     df_agg = expr_df[expr_df['table'] == 'household']
 
@@ -213,7 +212,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         if len(user_var_cols) > 0:
             # df_var = variables_df[variables_df['new_variable'].isin(col_list)]
             for _index, _row in df_var.iterrows():
-                household[_row['new_variable']] = pd.eval(_row['expression'],engine='python')
+                household[_row['new_variable']] = eval(_row['expression'])
             del df_var
 
         fname = os.path.join(base_output_dir, str(row['output_dir']),survey_str,str(row['target']))
@@ -408,7 +407,6 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         else:
             tour = h5_df(daysim_h5, 'Tour', load_cols)
 
-    
         # merge geography and other variables
         geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
         df_geog = geography_lookup[geography_lookup['left_table'] == 'Tour']

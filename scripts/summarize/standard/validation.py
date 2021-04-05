@@ -150,7 +150,7 @@ def main():
     df['observed_5to20'] = df['observed_5to20'].astype('float')
     df.index = df['station_name']
     df_total = df.copy()[['observed_5to20','modeled_5to20']]
-    df_total.ix['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
+    df_total.loc['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
     df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
 
     # Light Rail Transfers
@@ -211,8 +211,7 @@ def main():
     df = pd.merge(hr_model, counts_tod, left_on=['@countid','tod'], right_on=['flag','tod'])
     df.rename(columns={'@tveh': 'modeled', 'vehicles': 'observed'}, inplace=True)
     df['county'] = df['@countyid'].map(county_lookup)
-    df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), 
-                columns=['flag','inode','jnode','auto_time','type','@facilitytype','county','tod','observed','modeled',], index=False)
+    df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), index=False)
 
     # Roll up results to assignment periods
     df['time_period'] = df['tod'].map(sound_cast_net_dict)
@@ -259,7 +258,7 @@ def main():
     df_model = model_vol_df.copy()
     df_model['screenline_id'] = df_model['type'].astype('str')
     # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label
-    df_model.ix[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
+    df_model.loc[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
     _df = df_model.groupby('screenline_id').sum()[['@tveh']].reset_index()
 
     _df = _df.merge(df_obs, on='screenline_id')
@@ -274,7 +273,7 @@ def main():
     ########################################
 
     # External stations
-    external_stations = xrange(MIN_EXTERNAL,MAX_EXTERNAL+1)
+    external_stations = range(MIN_EXTERNAL,MAX_EXTERNAL+1)
     df_model = df_model[df_model['@countid'].isin(external_stations)]
     _df = df_model.groupby('@countid').sum()[['@tveh']].reset_index()
 
