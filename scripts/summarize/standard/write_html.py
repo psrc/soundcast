@@ -26,7 +26,10 @@ def main():
         ep.preprocess(nb, {'metadata': {'path': 'scripts/summarize/notebooks/'}})
         with open('scripts/summarize/notebooks/'+sheet+'.ipynb', 'wt') as f:
             nbformat.write(nb, f)
-        os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
+        if (sys.version_info > (3, 0)):
+            os.system("jupyter nbconvert --to HTML --TemplateExporter.exclude_input=True scripts/summarize/notebooks/"+sheet+".ipynb")
+        else:
+            os.system("jupyter nbconvert --to HTML scripts/summarize/notebooks/"+sheet+".ipynb")
         # Move these files to output
         if os.path.exists(r"outputs/"+sheet+".html"):
             os.remove(r"outputs/"+sheet+".html")
