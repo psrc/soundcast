@@ -103,7 +103,7 @@ def setup_emme_bank_folders():
     time_periods.append('TruckModel')
     time_periods.append('Supplementals')
     for period in time_periods:
-        print( "Creating bank for time period: %s") % period
+        print('Creating bank for time period: ' + period)
         os.makedirs(os.path.join('Banks', period))
         path = os.path.join('Banks', period, 'emmebank')
         emmebank = _eb.create(path, emmebank_dimensions_dict)
@@ -207,7 +207,7 @@ def copy_accessibility_files():
             try:
                 shcopy(src_file,dest_dir)
             except:
-                print('error copying accessibility file: %s' % src_file)
+                print('error copying accessibility file: '+src_file)
                 sys.exit(1)
 
 def build_output_dirs():
@@ -363,7 +363,7 @@ def update_daysim_modes():
         os.remove(daysim_config_path)
         os.rename(new_file_path, daysim_config_path)
     except OSError as e:  ## if failed, report it back to the user ##
-        print("Error: %s - %s." % (e.filename, e.strerror))
+        print('Error: ' + e.filename + ' - ' + e.strerror)
 
     # Write Daysim roster and roster-combination files from template
     # Exclude AV alternatives if not included in scenario

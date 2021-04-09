@@ -107,7 +107,7 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, conn):
         op_cost_df['cents_per_mile'] = op_cost_df['value'] * growth_rate
 
     # Note: Using medium truck coefficients for delivery trucks
-    for mat_name, truck_type  in {'msmedop':'medium', 'mshvyop':'heavy', 'msdelop':'medium'}.iteritems():
+    for mat_name, truck_type  in {'msmedop':'medium', 'mshvyop':'heavy', 'msdelop':'medium'}.items():
         print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
         print(truck_type)
         print(mat_name)
@@ -165,7 +165,7 @@ def import_skims(my_project, input_skims, zones, zonesDim):
         np_bidir_gc_skims[bidir_skim_name] = bi_dir_skim
 
     #import bi-directional skims to emmebank
-    for mat_name, matrix in np_bidir_gc_skims.iteritems():
+    for mat_name, matrix in np_bidir_gc_skims.items():
         matrix_id = my_project.bank.matrix(str(mat_name)).id
         emme_matrix = ematrix.MatrixData(indices=[zones,zones],type='f')
         emme_matrix.raw_data=[_array.array('f',row) for row in matrix]
@@ -305,7 +305,7 @@ def calculate_daily_trips(my_project, conn):
     df_tod_factors = pd.read_sql("SELECT * FROM truck_time_of_day_factors", con=conn)
 
     for tod in df_tod_factors['time_period'].unique():
-        for truck_type, matrix_name in {'medtrk': 'medod', 'hvytrk': 'hvyod', 'deltrk': 'delod'}.iteritems():
+        for truck_type, matrix_name in {'medtrk': 'medod', 'hvytrk': 'hvyod', 'deltrk': 'delod'}.items():
             df = df_tod_factors[(df_tod_factors['time_period'] == tod) & (df_tod_factors['truck_type'] == truck_type)]
             my_project.matrix_calculator(result = 'mf' + tod + '_' + truck_type + '_trips', 
                                          expression = 'mf' + matrix_name + '*' + str(df['value'].values[0]))

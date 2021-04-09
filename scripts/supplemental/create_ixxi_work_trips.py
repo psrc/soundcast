@@ -154,9 +154,9 @@ def main():
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    for tod, factor in tod_factors.iteritems():
+    for tod, factor in tod_factors.items():
         my_store = h5py.File(output_dir + '/' + 'external_work_' + tod + '.h5', "w")
-        for mode, matrix in matrix_dict.iteritems():
+        for mode, matrix in matrix_dict.items():
             matrix = matrix * factor
             my_store.create_dataset(str(mode), data=matrix)
         my_store.close()	
