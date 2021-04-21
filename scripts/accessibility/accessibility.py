@@ -35,7 +35,7 @@ def process_net_attribute(network, attr, fun):
 
     newdf = None
     for dist_index, dist in distances.items():        
-        res_name = "%s_%s" % (re.sub("_?p$", "", attr), nodist_index) # remove '_p' if present
+        res_name = "%s_%s" % (re.sub("_?p$", "", attr), dist_index) # remove '_p' if present
         aggr = network.aggregate(dist, type=fun, decay="exp", name=attr)
         if newdf is None:
             newdf = pd.DataFrame({res_name: aggr, "node_ids": aggr.index.values})
