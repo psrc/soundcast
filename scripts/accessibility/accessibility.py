@@ -35,7 +35,7 @@ def process_net_attribute(network, attr, fun):
 
     newdf = None
     for dist_index, dist in distances.items():        
-        res_name = "%s_%s" % (re.sub("_?p$", "", attr), dist_index) # remove '_p' if present
+        res_name = "%s_%s" % (re.sub("_?p$", "", attr), nodist_index) # remove '_p' if present
         aggr = network.aggregate(dist, type=fun, decay="exp", name=attr)
         if newdf is None:
             newdf = pd.DataFrame({res_name: aggr, "node_ids": aggr.index.values})
@@ -94,7 +94,10 @@ def process_parcels(parcels, transit_df, net, intersections_df):
     for new_name, attr in transit_modes.items():
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
-        parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
+        if transit_type_df[attr].sum() > 0:
+            parcels = process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
+        else:
+            parcels["dist_%s" % new_name] = 999    # use max dist if no stops exist for this submode
         #Some parcels share the same network node and therefore have 0 distance. Recode this to .01.
         field_name = "dist_%s" % new_name
         parcels.loc[parcels[field_name]==0, field_name] = .01
