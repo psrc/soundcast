@@ -20,6 +20,7 @@ person,parking_transit_pass,,"ppaidprk,pptyp,ptpass,pwtyp",,psexpfac,sum,dash,pa
 tour,tour_dtract,,"td_tract,to_tract,pdpurp,tmodetp,pptyp",,toexpfac,sum,census,"tours by dtract, purpose, and mode"
 person,person_place,,"hh_place_name,pw_place_name",,psexpfac,sum,census,"work place, home place, person type"
 tour,tour_place,,"t_o_place, t_d_place, pdpurp, tmodetp, pptyp",,toexpfac,sum,census,"tours by place, purpose, mode, and person type"
+household,auto_ownership_block_group,,"hhvehs,hh_block_group",,hhexpfac,sum,census,"households by vehicles owned, block group"
 tour,tour_stops_outbound,,"pdpurp,tripsh1,tripsh2",,toexpfac,sum,dash,tours by purpose and tour halves
 trip,trip_averages,,"dpurp,mode",,"travdist,travtime,travcost",mean,dash,trip averages by purpose and mode
 trip,trip_distance,,"dpurp, mode, pptyp, travdist_bin",,trexpfac,sum,dash,"trip distance bins by purpose, person type, and mode"

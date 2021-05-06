@@ -17,3 +17,4 @@ Household,hhparcel,parcel_geog,ParcelID,CountyName,hh_county
 Household,hhparcel,parcel_geog,ParcelID,PeopleOfColor,hh_poc
 Household,hhparcel,parcel_geog,ParcelID,LowIncome,hh_lowinc
 Household,hhparcel,parcel_geog,ParcelID,rg_proposed,hh_rg_proposed
+Household,hhparcel,parcel_geog,ParcelID,Census2010BlockGroup,hh_block_group
