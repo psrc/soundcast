@@ -469,8 +469,7 @@ def main():
     # Add geography columns based on tract
     parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(base_year)+"_geography", con=conn) 
 
-    tract_geog = parcel_geog.groupby('Census2010Tract').first()[['CountyName','CityRGProposed','CityRGExisting','GrowthCenterName','TAZ',
-                                              'FAZLargeAreaName','ZoneAreaType','District']].reset_index()
+    tract_geog = parcel_geog.groupby('Census2010Tract').first()[['CountyName','rg_proposed','CityName','GrowthCenterName','TAZ','District']].reset_index()
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2010Tract', how='left')
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
 	
