@@ -233,7 +233,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         col_list = get_row_col_list(row, full_col_list)
 
         # load the required data for the main df (houeshold)
-        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pwpcl']
+        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pwpcl','psexpfac']
         # Also account for any added user variables
         user_var_cols = [i for i in col_list if i in variables_df['new_variable'].values]
         if len(user_var_cols) > 0:
@@ -300,7 +300,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
 
         # persons
         # Also account for any added user variables
-        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno']
+        load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno','psexpfac']
         if survey:
             person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
         else:
@@ -343,9 +343,9 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
             household = merge_geography(household, df_geog, parcel_geog)
 
         trip = trip.merge(household, on=['hhno'])
-        if len(person) > 0:
+        if len([i for i in col_list if i in person_full_col_list]) > 0:
             trip = trip.merge(person, on=['hhno','pno'])
-        if len(tour) > 0:
+        if len([i for i in col_list if i in tour_full_col_list]) > 0:
             trip = trip.merge(tour, on=['pno','hhno','tour'])
 
         # Calculate user variables

@@ -1,4 +1,10 @@
 table,target,query,agg_fields,filter_fields,values,aggfunc,output_dir,description
+person,person_usual_work_dist,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwaudist_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"
+person,person_usual_school_dist,pstyp>0,"person_school_county,pstyp,person_county",,psaudist_wt,sum,dash,"Usual school distance by commute mode, school county location, student type and household county"
+person,person_usual_work_time,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwautime_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"
+person,person_usual_school_time,pstyp>0,"person_school_county,pstyp,person_county",,psautime_wt,sum,dash,"Usual school distance by commute mode, school county location, student type and household county"
+person,person_worker_type,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,psexpfac,sum,dash,total people in categories used in person_usual_work_distance/time
+person,person_student_type,pstyp>0,"person_school_county,pstyp,person_county",,psexpfac,sum,dash,total people in categories used in person_usual_school_distance/time
 trip,person_vmt,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,travdist_wt,sum,dash,total weighted travdist for regional geog
 trip,person_vht,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,travtime_wt,sum,dash,total weighted travtime for regional geog
 trip,person_trips,,"dorp,mode,hh_rg_proposed, hh_poc, hh_lowinc, hh_county",,trexpfac,sum,dash,total number of trips by geography
@@ -8,7 +14,6 @@ tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_distri
 trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp",,trexpfac,sum,dash,"trips by purpose, mode, path type and person type"
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp","trip_o_district,trip_d_district",trexpfac,sum,dash,"trips by purpose, mode, path type, person type, and o and d districts"
-trip,trip_distance,,"dpurp,mode,pptyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin
 trip,trip_time,,"dpurp,mode,pptyp,travtime_bin",,trexpfac,sum,dash,trips by time bin
 tour,work_from_home_tours,hhparcel==pwpcl,"pptyp,pdpurp",,toexpfac,sum,dash,
 household,household_size_vehs_workers,,"hhsize, hhvehs, hhftw",,hhexpfac,sum,dash,"households by size, vehicles, and workers"
@@ -33,6 +38,7 @@ trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin
 trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that work from home
 person,work_flows,,"person_county,person_work_county",,psexpfac,sum,dash,
 tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
+tour,tour_time,,"tmodetp, pdpurp,pptyp,tautotime_bin",,toexpfac,sum,dash,tour time bins by purpose and person type
 trip,vmt_nonwfh,hhparcel!=pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
 trip,mode_share_poc,,"dpurp, mode,hh_poc",,trexpfac,sum,dash,
 trip,mode_share_lowinc,,"dpurp, mode,hh_lowinc",,trexpfac,sum,dash,
