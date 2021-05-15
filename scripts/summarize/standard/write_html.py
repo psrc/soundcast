@@ -37,7 +37,7 @@ def main():
     
     # write validation notebook if running base year
     if str(model_year)==str(base_year):
-        for sheet_name in ['validation','daysim','census','school_location','work_location','tour_distance','tour']:
+        for sheet_name in ['validation','daysim','census','school_location','work_location','tour_distance','tour', 'auto_ownership']:
             write_nb(sheet_name, "scripts/summarize/notebooks/validation", r'outputs/validation/')
 
 
