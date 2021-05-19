@@ -18,12 +18,14 @@ def write_nb(sheet_name, nb_path, output_path):
             py_version = 'python2'
         ep = ExecutePreprocessor(timeout=600, kernel_name=py_version)
         ep.preprocess(nb, {'metadata': {'path': nb_path+r'/'}})
-        with open(sheet_name+'.ipynb', 'wt') as f:
+        with open(nb_path+r'/'+sheet_name+".ipynb", 'wt') as f:
             nbformat.write(nb, f)
         if (sys.version_info > (3, 0)):
-            os.system("jupyter nbconvert --to HTML --TemplateExporter.exclude_input=True "+nb_path+r'//'+sheet_name+".ipynb")
+            text = "jupyter nbconvert --to HTML --TemplateExporter.exclude_input=True "+nb_path+r'//'+sheet_name+".ipynb"
+            os.system(text)
         else:
-            os.system("jupyter nbconvert --to HTML "+nb_path+r'//'+sheet_name+".ipynb")
+            text = "jupyter nbconvert --to HTML "+nb_path+r'//'+sheet_name+".ipynb"
+            os.system(text)
         # Move these files to output
         if os.path.exists(os.path.join(os.getcwd(),output_path,sheet_name+".html")):
             os.remove(os.path.join(os.getcwd(),output_path,sheet_name+".html"))
@@ -32,8 +34,8 @@ def write_nb(sheet_name, nb_path, output_path):
 def main():
 
     # Create HTML sheets from jupyter notebooks
-    #for sheet_name in ['topsheet','metrics','work']:
-    #    write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
+    for sheet_name in ['topsheet','metrics','work']:
+        write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
     
     # write validation notebook if running base year
     if str(model_year)==str(base_year):
