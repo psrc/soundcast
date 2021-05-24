@@ -145,19 +145,6 @@ def main():
     # read in data
     parcels = pd.read_csv(parcels_file_name, sep = " ", index_col = None )
 
-    # Move SeaTac Parcel so that it is on the terminal. 
-    parcels.loc[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
-    parcels.loc[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
-
-    # Update UW Emp parcel with parking costs
-    parcels.loc[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
-    parcels.loc[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
-    parcels.loc[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
-    parcels.loc[parcels.PARCELID==751794, 'PPRICHRP'] = 300
-
-    # This UW parcel is in the wrong zone. 
-    parcels.loc[parcels.PARCELID==751794, 'TAZ_P'] = 303
-
     #check for missing data!
     for col_name in parcels.columns:
         # daysim does not use EMPRSC_P
