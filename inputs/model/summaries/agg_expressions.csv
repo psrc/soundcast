@@ -1,4 +1,5 @@
 table,target,query,agg_fields,filter_fields,values,aggfunc,output_dir,description
+tour,trips_by_tour,,"tripsh1,tripsh2,pdpurp,tmodetp",,toexpfac,sum,dash,Trips per tour by purpose
 person,person_usual_work_dist,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwaudist_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"
 person,person_usual_school_dist,pstyp>0,"person_school_county,pstyp,person_county",,psaudist_wt,sum,dash,"Usual school distance by commute mode, school county location, student type and household county"
 person,person_usual_work_time,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwautime_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"

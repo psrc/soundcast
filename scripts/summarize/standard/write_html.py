@@ -8,6 +8,7 @@ import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from input_configuration import model_year, base_year
 
+
 def write_nb(sheet_name, nb_path, output_path):
 
     with open(nb_path+r'/'+sheet_name+".ipynb") as f:
@@ -26,22 +27,27 @@ def write_nb(sheet_name, nb_path, output_path):
         else:
             text = "jupyter nbconvert --to HTML "+nb_path+r'//'+sheet_name+".ipynb"
             os.system(text)
+
         # Move these files to output
-        if os.path.exists(os.path.join(os.getcwd(),output_path,sheet_name+".html")):
-            os.remove(os.path.join(os.getcwd(),output_path,sheet_name+".html"))
-        os.rename((os.path.join(nb_path,sheet_name+".html")), os.path.join(os.getcwd(),output_path,sheet_name+".html"))
+        ext = '.html'
+        if os.path.exists(os.path.join(os.getcwd(),output_path,sheet_name+ext)):
+            os.remove(os.path.join(os.getcwd(),output_path,sheet_name+ext))
+        os.rename((os.path.join(nb_path,sheet_name+ext)), os.path.join(os.getcwd(),output_path,sheet_name+ext))
 
 def main():
 
     # Create HTML sheets from jupyter notebooks
-    for sheet_name in ['topsheet','metrics','work']:
+    for sheet_name in ['topsheet','metrics']:
         write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
     
     # write validation notebook if running base year
     if str(model_year)==str(base_year):
-        for sheet_name in ['validation','daysim','census','school_location','work_location','tour_distance','tour', 'auto_ownership']:
+        for sheet_name in ['auto_ownership','census','day_pattern','daysim_overview',
+                           'intermediate_stop_generation','school_location',
+                           'time_choice','tour_destination','tour_distance',
+                           'tour_mode','trip_destination','trip_mode',
+                           'validation','work_at_home','work_location']:
             write_nb(sheet_name, "scripts/summarize/notebooks/validation", r'outputs/validation/')
-
 
 if __name__ == '__main__':
     main()
