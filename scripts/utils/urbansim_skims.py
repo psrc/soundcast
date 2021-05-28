@@ -10,7 +10,6 @@ import json
 import numpy as np
 import time
 import os,sys
-import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
