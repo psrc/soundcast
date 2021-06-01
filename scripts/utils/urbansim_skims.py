@@ -10,7 +10,6 @@ import json
 import numpy as np
 import time
 import os,sys
-import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
@@ -109,7 +108,7 @@ def get_transit_skim_data():
                          'farbx' : 'mfafarbx'}
     skim_dict = {}
 
-    for input, output in transit_skim_dict.iteritems():
+    for input, output in transit_skim_dict.items():
         if input in ['farbx', 'farwa']:
             skim_dict[input] = load_skims(r'inputs/model/roster/6to7.h5', mode_name = output, divide_by_100=True)
         else:
@@ -316,7 +315,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
 def urbansim_skims_to_h5(h5_name, skim_dict):
     my_store = h5py.File(urbansim_skims_dir + '/' + h5_name + '.h5', "w")
     grp = my_store.create_group('results')
-    for name, skim in skim_dict.iteritems():
+    for name, skim in skim_dict.items():
             skim = skim[0:max_internal_zone, 0:max_internal_zone]
             grp.create_dataset(name, data = skim.astype('float32'), compression='gzip')
             print(skim)
