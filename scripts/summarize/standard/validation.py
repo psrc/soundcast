@@ -297,28 +297,30 @@ def main():
 
     df_obs = pd.read_sql_table('observed_corridor_speed', conn) 
 
+    # Average  6 and 7 pm observed data 
+    df_obs['6pm_spd_7pm_spd_avg'] = (df_obs['6pm_spd'] + df_obs['7pm_spd'])/2.0
+
     df_obs[['Flag1','Flag2','Flag3','Flag4','Flag5','Flag6']] = df_obs[['Flag1','Flag2','Flag3','Flag4','Flag5','Flag6']].fillna(-1).astype('int')
 
     tod_cols = [u'ff_spd', u'5am_spd', u'6am_spd',
     	   u'7am_spd', u'8am_spd', u'9am_spd', u'3pm_spd', u'4pm_spd', u'5pm_spd',
-    	   u'6pm_spd', u'7pm_spd']
+    	   u'6pm_spd_7pm_spd_avg']
 
     _df_obs = pd.melt(df_obs, id_vars='Corridor_Number', value_vars=tod_cols, var_name='tod', value_name='observed_speed')
     _df_obs = _df_obs[_df_obs['tod'] != 'ff_spd']
 
-
     # Set TOD
     tod_dict = {
-    	'5am_spd': '12to5',
-    	'6am_spd': '5to6',
-    	'7am_spd': '6to7',
-    	'8am_spd': '7to8',
-    	'9am_spd': '8to9',
-    	'3pm_spd': '14to15',
-    	'4pm_spd': '15to16',
-    	'5pm_spd': '16to17',
-    	'6pm_spd': '17to18',
-    	'7pm_spd': '18to20',
+        # hour of observed data represents start hour
+    	'5am_spd': '5to6',
+    	'6am_spd': '6to7',
+    	'7am_spd': '7to8',
+    	'8am_spd': '8to9',
+    	'9am_spd': '9to10',
+    	'3pm_spd': '15to16',
+    	'4pm_spd': '16to17',
+    	'5pm_spd': '17to18',
+    	'6pm_spd_7pm_spd_avg': '18to20',
     }
     _df_obs['tod'] = _df_obs['tod'].map(tod_dict)
 

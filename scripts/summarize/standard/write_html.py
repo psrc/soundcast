@@ -37,17 +37,29 @@ def write_nb(sheet_name, nb_path, output_path):
 def main():
 
     # Create HTML sheets from jupyter notebooks
+    # Run all RTP summaries and generate comparison notebook inputs
+    #for geog in ['rgc','rg','county','poc']:
+    for geog in ['county', 'rg']:
+        dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        write_nb(geog+'_summary_rtp', "scripts/summarize/notebooks", r'outputs')
+        write_nb(geog+'_network_summary_rtp', "scripts/summarize/notebooks", r'outputs')
+
+    for sheet_name in ['compare_results_rgc', 'compare_results_rg']:
+        write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/compare')
+
     for sheet_name in ['topsheet','metrics']:
         write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
     
-    # write validation notebook if running base year
-    if str(model_year)==str(base_year):
-        for sheet_name in ['auto_ownership','census','day_pattern','daysim_overview',
-                           'intermediate_stop_generation','school_location',
-                           'time_choice','tour_destination','tour_distance',
-                           'tour_mode','trip_destination','trip_mode',
-                           'validation','work_at_home','work_location']:
-            write_nb(sheet_name, "scripts/summarize/notebooks/validation", r'outputs/validation/')
+    ## write validation notebook if running base year
+    #if str(model_year)==str(base_year):
+    for sheet_name in ['auto_ownership','day_pattern','daysim_overview',
+                        'intermediate_stop_generation','school_location',
+                        'time_choice','tour_destination','tour_distance',
+                        'tour_mode','trip_destination','trip_mode',
+                        'validation','work_at_home','work_location']:
+        write_nb(sheet_name, "scripts/summarize/notebooks/validation", r'outputs/validation/')
 
 if __name__ == '__main__':
     main()
