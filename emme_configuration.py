@@ -11,7 +11,7 @@ relative_gap = 0.0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
-pop_sample = [1, 1, 1, 1, 1, 1]
+pop_sample = [1, 1, 1, 1, 1, 1, 1]
 # Assignment Iterations (must be same length as pop_sample:
 max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100, 100]
 min_pop_sample_convergence_test = 10
@@ -60,8 +60,8 @@ link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@corridorid'
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
 
 # VOT ranges for assignment classes
-vot_1_max = 13.07    # VOT for User Class 1 < vot_1_max
-vot_2_max = 26.14    # vot_1_max < VOT for User Class 2 < vot_2_max
+vot_1_max = 14.32    # VOT for User Class 1 < vot_1_max
+vot_2_max = 26.64    # vot_1_max < VOT for User Class 2 < vot_2_max
 
 # TNC fraction to assign
 # Based on survey data from SANDAG for now
