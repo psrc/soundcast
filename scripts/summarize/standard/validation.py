@@ -350,7 +350,7 @@ def main():
     ########################################
 
     # Auto Ownership
-    df_obs = pd.read_csv(r'T:\2021May\Stefan\auto_ownership_block_group.csv')
+    df_obs = pd.read_sql("SELECT * FROM observed_auto_ownership_acs_block_group", con=conn)
     df_obs.index = df_obs['GEOID10']
     df_obs.drop(['id','GEOID10'], inplace=True, axis=1)
     df_obs.rename(columns={'cars_none_control': 0, 'cars_one_control': 1, 'cars_two_or_more_control': 2}, inplace=True)
@@ -369,16 +369,12 @@ def main():
     df_model_sum = df_model_sum.sum()
     df_model_sum = pd.DataFrame(df_model_sum.reset_index(drop=True), columns=['model'])
     df_sum = df_obs_sum.merge(df_model_sum,left_index=True,right_index=True)
-
     df = df_model.merge(df_obs, left_on=['hh_block_group','hhvehs'], right_on=['GEOID10','hhvehs'], how='left')
     df.rename(columns={'hhexpfac': 'modeled'}, inplace=True)
-
     df.to_csv(r'outputs\validation\auto_ownership_block_group.csv', index=False)
 
     # compare vs survey
-    #df_model = pd.read_csv(r'outputs\agg\census\auto_ownership_block_group.csv')
     df_survey = pd.read_csv(r'outputs\agg\census\survey\auto_ownership_block_group.csv')
-    #df_survey.merge(df_model, on=['hhvehs','hh_block_group'])
     
     df_survey.loc[df_survey['hhvehs'] >= 2, 'hhvehs'] = 2
     df_survey = df_survey.groupby(['hhvehs','hh_block_group']).sum()[['hhexpfac']].reset_index()
