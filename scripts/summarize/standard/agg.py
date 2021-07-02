@@ -88,7 +88,7 @@ def execute_eval(df, row, col_list, fname):
     values_cols = [i.strip() for i in row['values'].split(',')]
 
     if type(row['filter_fields']) == np.float:
-        expr = 'df' + str(col_list) + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
+        expr = 'df[' + str(col_list) + ']' + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
 
         # Write results to target output    
         df_out = pd.eval(expr, engine='python').reset_index()
