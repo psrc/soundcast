@@ -147,11 +147,20 @@ aadt_bins = [0,10000,20000,30000,9999999]
 aadt_labels = [0,1,2,3] # Corresponding "bucket" labels for AADT segmentation for aadt_dict
 
 # Crosswalk of bicycle facilities from geodatabase to a 2-tier typology - premium, standard (and none)
+# Associated with IJBikeFacility from modeAttributes table
 # "Premium" represents trails and fully separated bike facilities
 # "Standard" represents painted bike lanes only
-bike_facility_crosswalk = {'@bkfac': {  0:'none', 1:'standard', 2:'premium', 
-                                        3:'none', 4:'none', 5:'none', 6:'none', 
-                                        7:'none', 8:'standard', 9:'none'}}  ## need to confirm these
+bike_facility_crosswalk = {'@bkfac': {0:'none',    # No bike lane
+                                      1:'standard',    # Striped bike lane  
+                                      2:'premium',     # Protected bike lane
+                                      3:'none',    # Paved/striped shoulder
+                                      4:'none',    # Marked shared lane
+                                      5:'none',    # Bike provision undefined
+                                      6:'none',    # Defined bike route no provisions
+                                      8:'premium',    # Shared use path
+                                      9:'standard',    # Buffered bike lane (minimally coded as of 2018 BY)
+                                      10:'standard'    # neighborhood greenway (minimally coded as of 2018 BY)
+                                      }} 
 
 # Perception factor values corresponding to these tiers, from Broch et al., 2012
 facility_dict = {'facility_wt': {	'premium': -0.160,

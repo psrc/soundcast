@@ -45,7 +45,7 @@ def main():
             os.makedirs(dirname)
         write_nb(geog+'_summary_rtp', "scripts/summarize/notebooks", r'outputs')
         write_nb(geog+'_network_summary_rtp', "scripts/summarize/notebooks", r'outputs')
-        write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
+        #write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
 
     for sheet_name in ['topsheet','metrics']:
         write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
