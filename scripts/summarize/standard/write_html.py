@@ -3,14 +3,17 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.path.join(os.getcwd(),r"scripts/summarize/notebooks"))
 sys.path.append(os.getcwd())
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from input_configuration import model_year, base_year
+from settings import run_comparison
 
 
 def write_nb(sheet_name, nb_path, output_path):
 
+    #try:
     with open(nb_path+r'/'+sheet_name+".ipynb") as f:
         nb = nbformat.read(f, as_version=4)
         if (sys.version_info > (3, 0)):
@@ -33,6 +36,8 @@ def write_nb(sheet_name, nb_path, output_path):
         if os.path.exists(os.path.join(os.getcwd(),output_path,sheet_name+ext)):
             os.remove(os.path.join(os.getcwd(),output_path,sheet_name+ext))
         os.rename((os.path.join(nb_path,sheet_name+ext)), os.path.join(os.getcwd(),output_path,sheet_name+ext))
+    #except:
+    #    print('unable to produce '+sheet_name)
 
 def main():
 
@@ -45,7 +50,8 @@ def main():
             os.makedirs(dirname)
         write_nb(geog+'_summary_rtp', "scripts/summarize/notebooks", r'outputs')
         write_nb(geog+'_network_summary_rtp', "scripts/summarize/notebooks", r'outputs')
-        #write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
+        if run_comparison:
+            write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
 
     for sheet_name in ['topsheet','metrics']:
         write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
