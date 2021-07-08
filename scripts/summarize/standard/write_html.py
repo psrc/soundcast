@@ -44,12 +44,12 @@ def main():
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
     #for geog in ['rgc','rg','county','poc']:
-    for geog in ['county', 'rg']:
+    for geog in ['county', 'rg','topsheet']:
         dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        write_nb(geog+'_summary_rtp', "scripts/summarize/notebooks", r'outputs')
-        write_nb(geog+'_network_summary_rtp', "scripts/summarize/notebooks", r'outputs')
+        write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
+        write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         if run_comparison:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
 
