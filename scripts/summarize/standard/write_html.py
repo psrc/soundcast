@@ -53,11 +53,9 @@ def main():
         if run_comparison:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
 
-    for sheet_name in ['topsheet','metrics']:
-        write_nb(sheet_name, "scripts/summarize/notebooks", r'outputs/')
+    write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
-    ## write validation notebook if running base year
-    #if str(model_year)==str(base_year):
+    ## write validation notebooks
     for sheet_name in ['auto_ownership','day_pattern','daysim_overview',
                         'intermediate_stop_generation','school_location',
                         'time_choice','tour_destination','tour_distance',
