@@ -205,9 +205,10 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
     base_path = 'scripts/summarize/standard'
-    for script in ['daily_bank','network_summary','emissions','agg','validation','write_html']:
+    for script in ['daily_bank','network_summary','emissions','agg','validation']:
         print(script)
         subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
+    subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py && conda deactivate', shell=True)
 
 def main():
 
