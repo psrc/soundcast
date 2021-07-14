@@ -43,7 +43,6 @@ def main():
 
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
-    #for geog in ['rgc','rg','county','poc']:
     for geog in ['county', 'rg','topsheet']:
         dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
         if not os.path.exists(dirname):
@@ -56,7 +55,7 @@ def main():
     write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
     ## write validation notebooks
-    for sheet_name in ['auto_ownership','day_pattern','daysim_overview',
+    for sheet_name in ['auto_ownership','bike_validation','day_pattern','daysim_overview',
                         'intermediate_stop_generation','school_location',
                         'time_choice','tour_destination','tour_distance',
                         'tour_mode','trip_destination','trip_mode',
