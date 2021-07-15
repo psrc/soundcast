@@ -37,20 +37,22 @@ def write_nb(sheet_name, nb_path, output_path):
             os.remove(os.path.join(os.getcwd(),output_path,sheet_name+ext))
         os.rename((os.path.join(nb_path,sheet_name+ext)), os.path.join(os.getcwd(),output_path,sheet_name+ext))
     #except:
-    #    print('unable to produce '+sheet_name)
+    #   print('unable to produce '+sheet_name)
 
 def main():
 
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
-    for geog in ['county', 'rg','topsheet']:
+    for geog in ['county', 'rg','topsheet','poc','lowinc','rgc']:
         dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
-        write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         if run_comparison:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
+    for geog in ['county','rg']:
+        write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
+        
 
     write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
