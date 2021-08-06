@@ -331,9 +331,18 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
     # Extract Transit Segment Data
     transit_segment_data = []
     for tseg in network.transit_segments():
-        transit_segment_data.append({'line_id': tseg.line.id, 
+        if tseg.j_node is None:
+            transit_segment_data.append({'line_id': tseg.line.id, 
                                   'segment_boarding': tseg.transit_boardings, 
-                                  'i_node': tseg.i_node.number})
+                                  'segment_volume': tseg.transit_volume, 
+                                  'i_node': tseg.i_node.number,
+                                  'j_node': np.nan})
+        else:
+            transit_segment_data.append({'line_id': tseg.line.id, 
+                                  'segment_boarding': tseg.transit_boardings, 
+                                  'segment_volume': tseg.transit_volume, 
+                                  'i_node': tseg.i_node.number,
+                                  'j_node': tseg.j_node.number})
     
     _df_transit_segment = pd.DataFrame(transit_segment_data)
     _df_transit_segment['tod'] = tod
