@@ -278,7 +278,7 @@ def main():
 
     # Load running emission rates by vehicle type, for the model year
     df_running_rates = pd.read_sql('SELECT * FROM running_emission_rates_by_veh_type WHERE year=='+model_year, con=conn)
-    df_running_rates.rename(columns={'sum(ratePerDistance)': 'grams_per_mile'}, inplace=True)
+    df_running_rates.rename(columns={'ratePerDistance': 'grams_per_mile'}, inplace=True)
     df_running_rates['year'] = df_running_rates['year'].astype('str')
 
     # Select the month to use for each pollutant; some rates are used for winter or summer depending
