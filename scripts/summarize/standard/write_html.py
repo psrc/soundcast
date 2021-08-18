@@ -43,20 +43,20 @@ def main():
 
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
-    for geog in ['county', 'rg','topsheet','poc','lowinc','rgc']:
+    for geog in ['city','county', 'rg','topsheet','poc','lowinc','rgc']:
         dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
         if run_comparison:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
-    for geog in ['county','rg']:
+    for geog in ['county','rg','rgc','city']:
         write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         
 
     write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
-    ## write validation notebooks
+    # write validation notebooks
     for sheet_name in ['auto_ownership','bike_validation','day_pattern','daysim_overview',
                         'intermediate_stop_generation','school_location',
                         'time_choice','tour_destination','tour_distance',
