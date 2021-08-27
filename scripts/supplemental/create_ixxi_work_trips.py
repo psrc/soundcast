@@ -115,11 +115,14 @@ def main():
     base_year_scaling = pd.read_sql('SELECT * FROM base_year_scaling', con=conn)
 
     # Base year employment
-    base_year_totemp = base_year_scaling[(base_year_scaling['year'] == int('2014')) & 
+    base_year_totemp = base_year_scaling[(base_year_scaling['year'] == int(base_year)) & 
                                          (base_year_scaling['field'] == 'emptot_p')]['value'].values[0]
     model_year_totemp = parcels_urbansim['EMPTOT_P'].sum()
     emp_scaling = model_year_totemp/base_year_totemp
-    work[ixxi_cols] = work[ixxi_cols]*emp_scaling
+    #work[ixxi_cols] = work[ixxi_cols]*emp_scaling
+    #externals_dont_grow=[3733]
+    for col in work[ixxi_cols]:
+        work[col] = np.where((work['PSRC_TAZ'].isin(EXTERNALS_DONT_GROW))|(work['External_Station'].isin(EXTERNALS_DONT_GROW)), work[col], work[col]*emp_scaling)
 
     # group trips by O-D TAZ's (trips from external stations to internal TAZs)
     w_grp = work.groupby(['PSRC_TAZ','External_Station']).sum()
