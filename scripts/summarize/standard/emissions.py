@@ -83,25 +83,25 @@ def finalize_emissions(df, col_suffix=""):
 	For total columns add col_suffix (e.g., col_suffix='intrazonal_tons')
 	"""
 
-	pm10 = df[df['pollutant'].isin([100,106,107])].sum()
-	pm10['pollutant'] = 'PM10'
-	pm25 = df[df['pollutant'].isin([110,116,117])].sum()
-	pm25['pollutant'] = 'PM25'
-	df = df.append(pm10, ignore_index=True)
-	df = df.append(pm25, ignore_index=True)
+	pm10 = df[df['pollutantID'].isin([100,106,107])].groupby('veh_type').sum().reset_index()
+	pm10['pollutantID'] = 'PM10'
+	pm25 = df[df['pollutantID'].isin([110,116,117])].groupby('veh_type').sum().reset_index()
+	pm25['pollutantID'] = 'PM25'
+	df = df.append(pm10)
+	df = df.append(pm25)
 
-	# Sort final output table by pollutant ID
-	df_a = df[(df['pollutant'] != 'PM10') & (df['pollutant'] != 'PM25')]
-	df_a['pollutant'] = df_a['pollutant'].astype('int')
-	df_a = df_a.sort_values('pollutant')
-	df_a['pollutant'] = df_a['pollutant'].astype('str')
-	df_b = df[-((df['pollutant'] != 'PM10') & (df['pollutant'] != 'PM25'))]
+	## Sort final output table by pollutant ID
+	#df_a = df[(df['pollutantID'] != 'PM10') & (df['pollutantID'] != 'PM25')]
+	#df_a['pollutantID'] = df_a['pollutantID'].astype('int')
+	#df_a = df_a.sort_values('pollutantID')
+	#df_a['pollutantID'] = df_a['pollutantID'].astype('str')
+	#df_b = df[-((df['pollutantID'] != 'PM10') & (df['pollutantID'] != 'PM25'))]
 
-	df = pd.concat([df_a,df_b])
-	df['pollutant_name'] = df['pollutant'].map(pollutant_map)
+	#df = pd.concat([df_a,df_b])
+	#df['pollutant_name'] = df['pollutantID'].map(pollutant_map)
 
-	common_cols = ['pollutant','pollutant_name']   # do not add suffix to these columns
-	df.columns = [i+col_suffix for i in df.columns if i not in common_cols]+common_cols
+	#common_cols = ['pollutantID','pollutant_name']   # do not add suffix to these columns
+	#df.columns = [i+col_suffix for i in df.columns if i not in common_cols]+common_cols
 
 	return df
 
@@ -308,8 +308,9 @@ def main():
     df_start_group = start_emissions_df.groupby(['pollutantID','veh_type']).sum()[['start_tons']].reset_index()
 
     summary_df = pd.merge(df_inter_group, df_intra_group)
-    summary_df = pd.merge(summary_df, df_start_group)
-    summary_df['pollutant_name'] = summary_df['pollutantID'].astype('int').astype('str').map(pollutant_map)
+    summary_df = pd.merge(summary_df, df_start_group, how='left')
+    summary_df = finalize_emissions(summary_df, col_suffix="")
+    summary_df['pollutant_name'] = summary_df['pollutantID'].astype('int', errors='ignore').astype('str').map(pollutant_map)
     summary_df['total_daily_tons'] = summary_df['start_tons']+summary_df['interzonal_tons']+summary_df['intrazonal_tons']
     summary_df = summary_df[['pollutantID','pollutant_name','veh_type','start_tons','intrazonal_tons','interzonal_tons','total_daily_tons']]
     summary_df.to_csv(os.path.join(output_dir,'emissions_summary.csv'),index=False)
