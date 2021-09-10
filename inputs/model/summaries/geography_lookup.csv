@@ -31,3 +31,7 @@ Household,hhparcel,parcel_geog,ParcelID,racial_geog_vs_50_percent,hh_racial_50
 Household,hhparcel,parcel_geog,ParcelID,racial_geog_vs_reg_total,hh_racial_reg
 Household,hhparcel,parcel_geog,ParcelID,youth_geog_vs_50_percent,hh_youth_50
 Household,hhparcel,parcel_geog,ParcelID,youth_geog_vs_reg_total,hh_youth_reg
+Household,hhparcel,buffered_parcels,parcelid,raw_dist_transit,hh_dist_transit
+Household,hhparcel,buffered_parcels,parcelid,raw_dist_hct,hh_dist_hct
+Person,pwpcl,buffered_parcels,parcelid,raw_dist_transit,work_dist_transit
+Person,pwpcl,buffered_parcels,parcelid,raw_dist_hct,work_dist_hct

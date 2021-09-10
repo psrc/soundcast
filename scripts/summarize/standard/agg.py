@@ -68,7 +68,7 @@ def get_row_col_list(row, full_col_list):
 
     return col_list
 
-def merge_geography(df, df_geog, parcel_geog):
+def merge_geography(df, df_geog, parcel_geog, buffered_parcels):
     for _index, _row in df_geog.iterrows():
         right_df = pd.eval(_row['right_table'] + "[" + str(list(_row[['right_index','right_column']].values)) + "]", engine='python')
         df = df.merge(right_df, left_on=_row['left_index'], right_on=_row['right_index'], how='left')
@@ -138,10 +138,13 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     labels_df = pd.read_csv(os.path.join(os.getcwd(),'inputs/model/lookup/variable_labels.csv'))
     
 
-    geog_cols = list(np.unique(geography_lookup[['right_column','right_index']].values))
+    geog_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'parcel_geog'][['right_column','right_index']].values))
     # Add geographic lookups at parcel level; only load relevant columns
     parcel_geog = pd.read_sql_table('parcel_'+base_year+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db',
         columns=geog_cols)
+    buffered_parcels_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'buffered_parcels'][['right_column','right_index']]))
+    buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), delim_whitespace=True,
+                                   usecols=buffered_parcels_cols)
 
     # Create output folder for flattened output
     if survey:
@@ -195,7 +198,13 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         if len(user_var_cols) > 0:
             df_var = variables_df[variables_df['new_variable'].isin(col_list)]
             load_cols += df_var['modified_variable'].values.tolist()
-        # Account for any geography cols used to join
+
+        # Don't load any variables from buffered_parcels_cols
+        _buffered_cols = []
+        for i in load_cols:
+            if i in buffered_parcels_cols:
+                load_cols.remove(i)
+                _buffered_cols.append(i)
 
         if survey:
             household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
@@ -206,7 +215,12 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
         if len(geog_cols) > 0:
             df_geog = geography_lookup[geography_lookup['right_column_rename'].isin(col_list)]
-            household = merge_geography(household, df_geog, parcel_geog)
+            household = merge_geography(household, df_geog, parcel_geog, buffered_parcels)
+
+        # Account for any buffered parcel cols used in the data 
+        if not set(col_list).isdisjoint(buffered_parcels_cols) or len(_buffered_cols) > 0:
+            household = merge_geography(household, geography_lookup[(geography_lookup.right_table == 'buffered_parcels') &
+                                                                    (geography_lookup.left_table == 'Household')], parcel_geog, buffered_parcels)
 
         # Calculate user variables
         if len(user_var_cols) > 0:
@@ -239,10 +253,19 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         if len(user_var_cols) > 0:
             df_var = variables_df[variables_df['new_variable'].isin(col_list)]
             load_cols += df_var['modified_variable'].values.tolist()
+
+        # Don't load any variables from buffered_parcels_cols
+        _buffered_cols = []
+        for i in load_cols:
+            if i in buffered_parcels_cols:
+                load_cols.remove(i)
+                _buffered_cols.append(i)
+
         # also load any columns needed for geographic join
         df_geog = geography_lookup[geography_lookup['left_table'] == 'Person']
         df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
         load_cols += df_geog['left_index'].values.tolist()
+
         if survey:
             person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
         else:
@@ -263,8 +286,12 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
         if len(geog_cols) > 0:
             df_geog = geography_lookup[geography_lookup['right_column_rename'].isin(col_list)]
-            person = merge_geography(person, df_geog, parcel_geog)
+            person = merge_geography(person, df_geog, parcel_geog, buffered_parcels)
 
+        # Account for any buffered parcel cols used in the data 
+        if not set(col_list).isdisjoint(buffered_parcels_cols) or len(_buffered_cols) > 0:
+            person = merge_geography(person, geography_lookup[(geography_lookup.right_table == 'buffered_parcels') &
+                                                                    (geography_lookup.left_table == 'Person')], parcel_geog, buffered_parcels)
 
         # Calculate user variables
         if len(user_var_cols) > 0:
@@ -334,13 +361,13 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # merge geography and other variables
         geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
         if len(geog_cols) > 0:
-            trip = merge_geography(trip, df_geog, parcel_geog)
+            trip = merge_geography(trip, df_geog, parcel_geog, buffered_parcels)
 
         # merge geography based on household info
         df_geog = geography_lookup[geography_lookup['left_table'] == 'Household']
         df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
         if len(geog_cols) > 0:
-            household = merge_geography(household, df_geog, parcel_geog)
+            household = merge_geography(household, df_geog, parcel_geog, buffered_parcels)
 
         trip = trip.merge(household, on=['hhno'])
         if len([i for i in col_list if i in person_full_col_list]) > 0:
@@ -412,13 +439,13 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         df_geog = geography_lookup[geography_lookup['left_table'] == 'Tour']
         df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
         if len(geog_cols) > 0:
-            tour = merge_geography(tour, df_geog, parcel_geog)
+            tour = merge_geography(tour, df_geog, parcel_geog, buffered_parcels)
 
         # merge geography based on household info
         df_geog = geography_lookup[geography_lookup['left_table'] == 'Household']
         df_geog = df_geog[df_geog['right_column_rename'].isin(col_list)]
         if len(geog_cols) > 0:
-            household = merge_geography(household, df_geog, parcel_geog)
+            household = merge_geography(household, df_geog, parcel_geog, buffered_parcels)
 
         tour = tour.merge(household, on=['hhno'])
         if len(person) > 0:

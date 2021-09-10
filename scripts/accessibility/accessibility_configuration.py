@@ -45,7 +45,7 @@ col_order =[u'parcelid', u'xcoord_p', u'ycoord_p', u'sqft_p', u'taz_p', u'lutype
        u'parkdy_2', u'parkhr_2', u'ppricdy2', u'pprichr2', u'nodes1_2',
        u'nodes3_2', u'nodes4_2', u'tstops_2', u'nparks_2', u'aparks_2',
        u'dist_lbus', u'dist_ebus', u'dist_crt', u'dist_fry', u'dist_lrt',
-       u'dist_park']
+       u'dist_brt', u'raw_dist_hct', u'raw_dist_transit']
 
 # These are already on network (from add-ons).
 # Keys correspond to the resulting parcel columns (minus suffix).
@@ -55,4 +55,4 @@ intersections = ["nodes1", "nodes3", "nodes4"]
 
 
 transit_modes = {"lbus": "bus", "ebus": "express", 
-       "fry": "ferry", "crt": "commuter_rail", "lrt": "light_rail"} # will compute nearest distance to these
+       "fry": "ferry", "crt": "commuter_rail", "lrt": "light_rail", "brt": "brt"} # will compute nearest distance to these
