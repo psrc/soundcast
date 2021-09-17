@@ -94,7 +94,7 @@ parcel_df['parcel_id'] = parcel_df['PARCELID']
 parcel_attributes_list = ['EMPTOT_P']
 
 # Work with only necessary cols
-origin_df = parcel_df[['PARCELID','TAZ_P']]
+origin_df = parcel_df[['PARCELID','TAZ_P','HH_P']]
 
 # Aggregate destinations by TAZ since we are used taz-level skims
 dest_df = pd.DataFrame(parcel_df.groupby(['TAZ_P'])[parcel_attributes_list].sum())
@@ -121,7 +121,7 @@ dest_transit.reset_index(inplace=True)
 
 origin_dest = origin_df.merge(dest_transit, left_on='TAZ_P', right_on='from', how='left') 
 # groupby destination information by origin geo id 
-transit_jobs_df = pd.DataFrame(origin_dest.groupby('PARCELID')[parcel_attributes_list].sum())
+transit_jobs_df = pd.DataFrame(origin_dest.groupby('PARCELID')[parcel_attributes_list+['HH_P']].sum())
 transit_jobs_df.reset_index(inplace=True)
 
 # Write to file; join in the bike and walk calculations
@@ -184,7 +184,7 @@ df_bike_walk.rename(columns=rename_dict, inplace=True)
 df_bike_walk['PARCELID'] = df_bike_walk['node_ids']
 
 # Merge datasets and write to file
-df = df_bike_walk.merge(transit_jobs_df, on='PARCELID')
+df = df_bike_walk.merge(transit_jobs_df, on='PARCELID', how='outer')
 df.drop('node_ids', axis=1, inplace=True)
 
 # Create outputs dir 
