@@ -8,7 +8,7 @@ sys.path.append(os.getcwd())
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from input_configuration import model_year, base_year
-from settings import run_comparison
+from settings import run_comparison, run_rtp
 
 
 def write_nb(sheet_name, nb_path, output_path):
@@ -41,6 +41,13 @@ def write_nb(sheet_name, nb_path, output_path):
 
 def main():
 
+    if run_rtp:
+        dirname = r'outputs/RTP'
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        for sheet in ['standard']:
+            write_nb('RTP_'+sheet, "scripts/summarize/notebooks", r'outputs/RTP')
+
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
     for geog in ['city','county', 'rg','topsheet','racial_50','poverty_50',
@@ -51,8 +58,8 @@ def main():
         write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
         if run_comparison:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
-    for geog in ['county','rg','rgc','city']:
-        write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
+    #for geog in ['county','rg','rgc','city']:
+    #    write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         
 
     write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')

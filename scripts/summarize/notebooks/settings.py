@@ -2,6 +2,7 @@
 #################################
 # Summary Comparisons
 #################################
+run_rtp = True
 run_comparison = False
 comparison_dict = {
     'Base' : r'\\modelstation3\c$\Workspace\sc_new_vot\soundcast',
