@@ -5,7 +5,9 @@
 run_rtp = True
 run_comparison = False
 comparison_dict = {
-    'Base' : r'\\modelstation3\c$\Workspace\sc_new_vot\soundcast',
-    'Scenario 1': r'\\modelstation3\c$\Workspace\sc_new_vot_SCEN1_2018\soundcast',
-    'Scenario 2': r'\\modelstation3\c$\Workspace\sc_new_vot_SCEN2_2018\soundcast'
+    '2018' : r'C:\Workspace\sc_2018_rtp\soundcast',
+    '2050': r'C:\Workspace\sc_2050_rtp\soundcast',
     }
+
+# annualization factor; continuing with value used from Vision 2050
+weekday_to_annual = 300
