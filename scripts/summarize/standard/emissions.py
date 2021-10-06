@@ -310,7 +310,10 @@ def main():
     summary_df = pd.merge(df_inter_group, df_intra_group)
     summary_df = pd.merge(summary_df, df_start_group, how='left')
     summary_df = finalize_emissions(summary_df, col_suffix="")
+<<<<<<< Updated upstream
     summary_df.loc[~summary_df['pollutantID'].isin(['PM','PM10','PM25']),'pollutantID'] = summary_df[~summary_df['pollutantID'].isin(['PM','PM10','PM25'])]['pollutantID'].astype('int')
+=======
+>>>>>>> Stashed changes
     summary_df['pollutant_name'] = summary_df['pollutantID'].astype('int', errors='ignore').astype('str').map(pollutant_map)
     summary_df['total_daily_tons'] = summary_df['start_tons']+summary_df['interzonal_tons']+summary_df['intrazonal_tons']
     summary_df = summary_df[['pollutantID','pollutant_name','veh_type','start_tons','intrazonal_tons','interzonal_tons','total_daily_tons']]

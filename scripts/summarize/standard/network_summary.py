@@ -299,6 +299,46 @@ def summarize_network(df, writer):
 
     writer.save()
 
+def line_to_line_transfers(emme_project, tod):
+    emme_project.create_extra_attribute('TRANSIT_LINE', '@ln2ln')
+    emme_project.network_calculator("transit_line_calculation", result='@ln2ln', expression='index1')
+    with open('inputs/model/skim_parameters/transit/transit_traversal.json') as f:
+        spec = json.load(f)
+    NAMESPACE = "inro.emme.transit_assignment.extended.traversal_analysis"
+    process = emme_project.m.tool(NAMESPACE)
+
+    transit_line_list = []
+    network = emme_project.current_scenario.get_network()
+
+    for line in network.transit_lines():
+        transit_line_list.append({'line':line.id, 'mode':line.mode.id})
+    transit_lines = pd.DataFrame(transit_line_list)
+    transit_lines['lindex'] = transit_lines.index + 1
+    transit_lines=transit_lines[['lindex', 'line', 'mode']]
+
+    df_list = []
+    
+    for class_name in ['trnst','commuter_rail','ferry','litrat','passenger_ferry']:
+        report = process(spec, class_name = class_name, output_file = 'outputs/transit/traversal_results.txt') 
+        traversal_df = pd.read_csv('outputs/transit/traversal_results.txt', skiprows=16, skipinitialspace=True, sep = ' ', names = ['from_line', 'to_line', 'boardings'])
+    
+        
+
+        traversal_df = traversal_df.merge(transit_lines, left_on= 'from_line', right_on='lindex')
+        traversal_df = traversal_df.rename(columns={'line':'from_line_id', 'mode':'from_mode'})
+        traversal_df.drop(columns=['lindex'], inplace = True)
+
+        traversal_df = traversal_df.merge(transit_lines, left_on= 'to_line', right_on='lindex')
+        traversal_df = traversal_df.rename(columns={'line':'to_line_id', 'mode':'to_mode'})
+        traversal_df.drop(columns=['lindex'], inplace = True)
+        df_list.append(traversal_df)
+        os.remove('outputs/transit/traversal_results.txt')
+    df = pd.concat(df_list)
+    df = df.groupby(['from_line', 'to_line']).agg({'from_line_id' : min, 'to_line_id' : min, 'from_mode' : min, 'to_mode' : min, 'boardings' : sum, })
+    df.reset_index(inplace = True)
+    df['tod'] = tod
+    return df
+
 def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_segment):
     """Export transit line, segment, and mode attributes"""
 
@@ -427,6 +467,7 @@ def main():
     df_transit_line = pd.DataFrame()
     df_transit_node = pd.DataFrame()
     df_transit_segment = pd.DataFrame()
+    df_transit_transfers = pd.DataFrame()
     network_df = pd.DataFrame()
     df_iz_vol = pd.DataFrame()
     df_iz_vol['taz'] = dictZoneLookup.values()
@@ -443,6 +484,9 @@ def main():
     for tod_hour, tod_segment in sound_cast_net_dict.items():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
+        if tod_hour in transit_tod.keys():
+            _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
+        df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
         
         for name, description in extra_attributes_dict.items():
             my_project.create_extra_attribute('LINK', name, description, 'True')
@@ -514,6 +558,9 @@ def main():
 
     # Export number of jobs near transit stops
     jobs_transit('outputs/transit/transit_access.csv')
+
+    # Export transit transfers
+    df_transit_transfers.to_csv('outputs/transit/transit_transfers.csv')
 
     # Create basic spreadsheet summary of network
     writer = pd.ExcelWriter(r'outputs/network/network_summary.xlsx', engine='xlsxwriter')
