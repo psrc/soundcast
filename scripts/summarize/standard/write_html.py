@@ -45,13 +45,15 @@ def main():
         dirname = r'outputs/RTP'
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        for sheet in ['standard']:
+        for sheet in ['transit','mode_share','person','standard','congestion','emissions','freight','travel_time']:
+            dirname = os.path.join(r'outputs/compare/RTP',sheet)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
             write_nb('RTP_'+sheet, "scripts/summarize/notebooks", r'outputs/RTP')
 
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
-    for geog in ['city','county', 'rg','topsheet','racial_50','poverty_50',
-                 'youth_50','english_50','elderly_50','disability_50','rgc']:
+    for geog in ['city','county', 'rg','topsheet','rgc']:
         dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
         if not os.path.exists(dirname):
             os.makedirs(dirname)

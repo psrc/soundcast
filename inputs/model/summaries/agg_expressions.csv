@@ -20,6 +20,7 @@ person,person_place,,"hh_place_name,pw_place_name",,psexpfac,sum,census,"work pl
 person,wfh_county,hhparcel==pwpcl,person_county,,psexpfac,sum,dash,Total WFH people by county
 person,pptyp_county,,"person_county,pptyp",,psexpfac,sum,dash,person type by county residence
 person,work_flows,,"person_county,person_work_county",,psexpfac,sum,dash,
+trip,trip_mode_by_tour_mode,,"tmodetp,mode,hh_rg_proposed,hh_county,hh_rgc, hh_city,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg",,trexpfac,sum,dash,
 tour,trips_by_tour,,"tripsh1,tripsh2,pdpurp,tmodetp",,toexpfac,sum,dash,Trips per tour by purpose
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp",,toexpfac,sum,dash,"tours by purpose, mode, path type and person type"
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_district",toexpfac,sum,dash,"tours by purpose, mode, path type, person type, and o and d districts"
@@ -45,7 +46,7 @@ trip,trip_time,,"dpurp,mode,pptyp,travtime_bin",,trexpfac,sum,dash,trips by time
 trip,trip_purpose_mode,,"dpurp, mode, pathtype,deptm_hr,pptyp",,trexpfac,sum,dash,"trips by taz, purpose, mode, person type and departure time"
 trip,trip_averages,,"dpurp,mode",,"travdist,travtime,travcost",mean,dash,trip averages by purpose and mode
 trip,trip_distance,,"dpurp, mode, pptyp, travdist_bin",,trexpfac,sum,dash,"trip distance bins by purpose, person type, and mode"
-trip,trips_by_tour,,"dpurp,pdpurp,tmodetp,mode",,trexpfac,sum,dash,trip mode and purpose by tour mode and purpose
+trip,trips_by_tour_,,"dpurp,pdpurp,tmodetp,mode",,trexpfac,sum,dash,trip mode and purpose by tour mode and purpose
 trip,trip_distance_non_wfh,hhparcel!=pwpcl,"dpurp,mode,dadtyp,pptyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that do not work from home
 trip,trip_distance_wfh,hhparcel==pwpcl,"dpurp,mode,dadtyp,travdist_bin",,trexpfac,sum,dash,trips by distance bin for people that work from home
 trip,vmt_nonwfh,hhparcel!=pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,

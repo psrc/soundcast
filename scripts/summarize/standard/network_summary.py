@@ -185,6 +185,11 @@ def export_network_attributes(network):
     df['modes'] = df['modes'].apply(lambda x: ''.join(list([j.id for j in x])))    
     df['modes'] = df['modes'].astype('str').fillna('')
     df['ij'] = df['i_node'].astype('str') + '-' + df['j_node'].astype('str')
+
+    df['speed'] = df['length']/df['auto_time']*60
+    df['congestion_index'] = df['speed']/df['data2']
+    df['congestion_index'] = df['congestion_index'].clip(0,1)
+    df['congestion_category'] = pd.cut(df['congestion_index'], bins=[0,.25,.5,.7,1], labels=['Severe','Heavy','Moderate','Light'])
    
     return df
     

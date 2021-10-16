@@ -1,4 +1,9 @@
 import os, sys
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.getcwd(),"inputs"))
+sys.path.append(os.path.join(os.getcwd(),"scripts"))
+sys.path.append(os.getcwd())
 import collections
 import h5py
 import re
@@ -57,6 +62,8 @@ def get_average_jobs_transit(transit_data, geo_attr, parcel_attributes_list):
     
     # Group results by geographic defintion
     transit_data_groupby = transit_data.groupby([geo_attr]).sum()
+    # Make sure geography has at least 1 household so we can compute a weighted average
+    transit_data_groupby['HH_P'] = transit_data_groupby['HH_P'].replace(0,1)
     transit_data_groupby.reset_index(inplace = True)
     for attr in parcel_attributes_list: 
         weighted_attr = 'HHweighted_' + attr
@@ -209,7 +216,7 @@ def main():
     # Define time buffer for transit - caclulate available jobs at this travel time or less
     time_max = 45
 
-    geo_list = ['region','CountyName','GrowthCenterName', 'rg_proposed']
+    geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed']
     equity_geogs = ['youth','elderly','english','racial','poverty']
     for equity_geog in equity_geogs:
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
@@ -295,7 +302,7 @@ def main():
         average_jobs_df = get_average_jobs_transit(transit_hh_emp, geo, parcel_attributes_list) 
 
         _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
-        _df.loc['geography_group',:] = geo
+        _df.loc[:,'geography_group'] = geo
         _df.columns = ['geography', 'value','geography_group']
         df = df.append(_df)
 
