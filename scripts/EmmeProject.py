@@ -198,12 +198,12 @@ class EmmeProject:
         process = self.m.tool(NAMESPACE)
         process(name)
 
-    def import_extra_attributes(self, folder_name):
+    def import_extra_attributes(self, folder_name, revert_on_error=True):
         NAMESPACE = "inro.emme.data.network.import_attribute_values"
         process = self.m.tool(NAMESPACE)
         process(folder_name,
               scenario = self.m.scenario,
-              revert_on_error=True)
+              revert_on_error=revert_on_error)
 
     def network_calculator(self, type, **kwargs):
         spec = json_to_dictionary(os.path.join('lookup',type))

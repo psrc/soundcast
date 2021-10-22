@@ -59,7 +59,7 @@ main_log_file = 'soundcast_log.txt'
 
 link_extra_attributes = ['@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed','@bkfac','@upslp', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3', '@fgts', '@ttf'] 
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
-transit_line_extra_attributes = ['@route_code', '@TransitType']
+transit_line_extra_attributes = ['@transittype']
 
 # VOT ranges for assignment classes
 vot_1_max = 14.32    # VOT for User Class 1 < vot_1_max
