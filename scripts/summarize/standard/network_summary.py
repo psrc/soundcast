@@ -359,7 +359,8 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
                                   'mode': str(line.mode),
                                   'description': line.description,
                                   'boardings': line['@board'], 
-                                  'time': line['@timtr']})
+                                  'time': line['@timtr'],
+                                  'transit_type': line['@transittype']})
     _df_transit_line = pd.DataFrame(transit_line_data)
     _df_transit_line['tod'] = tod
    
