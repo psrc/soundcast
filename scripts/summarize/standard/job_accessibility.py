@@ -217,7 +217,7 @@ def main():
     time_max = 45
 
     geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed']
-    equity_geogs = ['youth','elderly','english','racial','poverty']
+    equity_geogs = ['youth','elderly','english','racial','poverty','disability']
     for equity_geog in equity_geogs:
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
             geo_list.append(equity_geog+geog_type)
