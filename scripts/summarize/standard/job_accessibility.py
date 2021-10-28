@@ -77,9 +77,13 @@ def get_transit_information(bank):
     # Bus and rail travel times are the sum of access, wait time, and in-vehicle times; Bus and rail have separate paths
     bus_time = bank.matrix('auxwa').get_numpy_data() + bank.matrix('twtwa').get_numpy_data() + bank.matrix('ivtwa').get_numpy_data() 
     rail_time = bank.matrix('auxwr').get_numpy_data() + bank.matrix('twtwr').get_numpy_data() + bank.matrix('ivtwr').get_numpy_data() 
-    
+    ferry_time = bank.matrix('auxwf').get_numpy_data() + bank.matrix('twtwf').get_numpy_data() + bank.matrix('ivtwf').get_numpy_data()
+    p_ferry_time = bank.matrix('auxwp').get_numpy_data() + bank.matrix('twtwp').get_numpy_data() + bank.matrix('ivtwp').get_numpy_data() 
+    commuter_rail_time = bank.matrix('auxwc').get_numpy_data() + bank.matrix('twtwc').get_numpy_data() + bank.matrix('ivtwc').get_numpy_data() 
     # Take the shortest transit time between bus or rail
-    transit_time = np.minimum(bus_time, rail_time)
+    #transit_time = np.minimum(bus_time, rail_time)
+    transit_time = np.minimum.accumulate([bus_time, rail_time, ferry_time, p_ferry_time, commuter_rail_time])[0]
+
     transit_time = transit_time[0:3700, 0:3700]
     transit_time_df = pd.DataFrame(transit_time)
     transit_time_df['from'] = transit_time_df.index
@@ -165,47 +169,6 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
 
     return df
 
-def transit_jobs_access(geo_df, parcel_attributes_list, minority_df, time_max, geo_list, model_path, geo_boundry):
-    """ Calculate weighted average numbers of jobs available to a parcel by mode, within a max distance."""
-    tract_dict = geo_df.set_index(['parcel_id']).to_dict()['census_tract']
-    taz_dict = geo_df.set_index(['parcel_id']).to_dict()['TAZ_P']
-    county_dict = geo_df.set_index(['parcel_id']).to_dict()['county_id']
-
-    # organize origin information
-    origin_df = pd.DataFrame(geo_df.groupby(['parcel_id'])['HH_P'].sum())
-    origin_df.reset_index(inplace=True)
-    origin_df['taz_id'] = origin_df['parcel_id'].map(taz_dict) #need TAZ to join with transit time table 
-
-    # organize destination information
-    dest_df = pd.DataFrame(geo_df.groupby(['TAZ_P'])[parcel_attributes_list].sum())
-    dest_df.reset_index(inplace=True)
-    dest_df['TAZ_P'] = dest_df['TAZ_P'].astype('object')
-
-    # extract transit travel time from emme matrices from AM time period
-    bank = _eb.Emmebank(os.path.join(model_path, 'Banks/7to8/emmebank'))
-    transit_time_df = get_transit_information(bank)
-    transit_hh_emp = process_transit_attribute(transit_time_df, time_max, parcel_attributes_list, origin_df, dest_df, tract_dict, county_dict, taz_dict)
-
-    # flag the minority tracts
-    transit_hh_emp = transit_hh_emp.merge(minority_df, left_on = 'census_tract', right_on = 'GEOID10', how = 'left')
-
-    # Append results to initally empty df
-    df = pd.DataFrame()
-
-    for geo in geo_list:
-
-        average_jobs_df = get_average_jobs_transit(transit_hh_emp, geo_boundry[geo], parcel_attributes_list) 
-
-        _df = average_jobs_df[[geo_boundry[geo]] + ['HHaveraged_EMPTOT_P']]
-        _df['geography_group'] = geo
-        _df.columns = ['Geography', 'Value','geography_group']
-        df = df.append(_df)
-
-    df['Grouping'] = 'Total'
-    df = label_df(df)
-    df['Data Item'] = 'Jobs within 45-min Transit Trip'
-
-    return df
 
 def main():
 
@@ -216,7 +179,7 @@ def main():
     # Define time buffer for transit - caclulate available jobs at this travel time or less
     time_max = 45
 
-    geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed']
+    geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed', 'Census2010Tract']
     equity_geogs = ['youth','elderly','english','racial','poverty','disability']
     for equity_geog in equity_geogs:
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
