@@ -82,8 +82,7 @@ def get_transit_information(bank):
     commuter_rail_time = bank.matrix('auxwc').get_numpy_data() + bank.matrix('twtwc').get_numpy_data() + bank.matrix('ivtwc').get_numpy_data() 
     # Take the shortest transit time between bus or rail
     #transit_time = np.minimum(bus_time, rail_time)
-    transit_time = np.minimum.accumulate([bus_time, rail_time, ferry_time, p_ferry_time, commuter_rail_time])[0]
-
+    transit_time = np.minimum.reduce([bus_time, rail_time, ferry_time, p_ferry_time, commuter_rail_time])
     transit_time = transit_time[0:3700, 0:3700]
     transit_time_df = pd.DataFrame(transit_time)
     transit_time_df['from'] = transit_time_df.index
@@ -95,24 +94,24 @@ def get_transit_information(bank):
 
     return transit_time_df
 
-def process_transit_attribute(transit_time_data, time_max,  attr_list, origin_df, dest_df):
+#def process_transit_attribute(transit_time_data, time_max,  attr_list, origin_df, dest_df):
 
-    # Select OD pairs with travel time under time_max threshold
-    transit = transit_time_data[transit_time_data.travel_time <= time_max]
-    # Remove intrazonal transit trips; assuming access will not be via transit within zones
-    transit = transit[transit['from'] != transit['to']]
+#    # Select OD pairs with travel time under time_max threshold
+#    transit = transit_time_data[transit_time_data.travel_time <= time_max]
+#    # Remove intrazonal transit trips; assuming access will not be via transit within zones
+#    transit = transit[transit['from'] != transit['to']]
 
-    # Calculate total jobs at destination TAZs
-    dest_transit = transit.merge(dest_df, left_on='to', right_on='TAZ_P', how = 'left')
-    dest_transit = pd.DataFrame(dest_transit.groupby(dest_transit['from'])[attr_list].sum())
-    dest_transit.reset_index(inplace=True)
+#    # Calculate total jobs at destination TAZs
+#    dest_transit = transit.merge(dest_df, left_on='to', right_on='TAZ_P', how = 'left')
+#    dest_transit = pd.DataFrame(dest_transit.groupby(dest_transit['from'])[attr_list].sum())
+#    dest_transit.reset_index(inplace=True)
 
-    origin_dest = origin_df.merge(dest_transit, left_on='TAZ_P', right_on='from', how='left') 
-    # groupby destination information by origin geo id 
-    origin_dest_emp = pd.DataFrame(origin_dest.groupby('PARCELID')[attr_list+['HH_P']].sum())
-    origin_dest_emp.reset_index(inplace=True)
+#    origin_dest = origin_df.merge(dest_transit, left_on='TAZ_P', right_on='from', how='left') 
+#    # groupby destination information by origin geo id 
+#    origin_dest_emp = pd.DataFrame(origin_dest.groupby('PARCELID')[attr_list+['HH_P']].sum())
+#    origin_dest_emp.reset_index(inplace=True)
 
-    return origin_dest_emp
+#    return origin_dest_emp
 
 def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_list):
     """ Calculate weighted average numbers of jobs available to a parcel by mode, within a max distance."""
@@ -169,6 +168,28 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
 
     return df
 
+def get_parcel_data_max_travel_time(travel_time_df, max_time, origin_df, dest_df, parcel_attributes_list, include_intrazonal = True):
+    
+    travel_time_df = travel_time_df[travel_time_df.travel_time <= max_time]
+    # Remove intrazonal transit trips; assuming access will not be via transit within zones
+    if not include_intrazonal:
+        travel_time_df = travel_time_df[travel_time_df['from'] != travel_time_df['to']]
+    # Calculate total jobs at destination TAZs
+    reachable_destinations = travel_time_df.merge(dest_df, left_on='to', right_on='TAZ_P', how='left')
+    reachable_destinations = reachable_destinations.groupby(reachable_destinations['from'])[parcel_attributes_list].sum()
+    
+    reachable_destinations.reset_index(inplace=True)
+
+    origin_dest = origin_df.merge(reachable_destinations, left_on='TAZ_P', right_on='from', how = 'left') 
+
+    # groupby destination information by origin geo id 
+    origin_dest_emp = pd.DataFrame(origin_dest.groupby('PARCELID')[parcel_attributes_list+['HH_P']].sum())
+    
+    origin_dest_emp.reset_index(inplace=True)
+    return origin_dest_emp
+
+    # get the origin geography level household info
+    #transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
 
 def main():
 
@@ -177,9 +198,10 @@ def main():
         os.makedirs(output_dir)
 
     # Define time buffer for transit - caclulate available jobs at this travel time or less
-    time_max = 45
+    #time_max = 45
+   
 
-    geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed', 'Census2010Tract']
+    geo_list = ['CountyName','region','GrowthCenterName', 'rg_proposed', 'Census2010Tract','rgc_binary']
     equity_geogs = ['youth','elderly','english','racial','poverty','disability']
     for equity_geog in equity_geogs:
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
@@ -205,8 +227,23 @@ def main():
     # Load geography lookups and join to parcel data
     parcel_geog = pd.read_sql_table('parcel_'+base_year+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db')
     parcel_geog['region'] = 1
+        
+    # Create a field that identifies whether parcel is inside or outside of an RGC
+    parcel_geog['rgc_binary'] = 0
+    parcel_geog.loc[parcel_geog['GrowthCenterName'] != 'Not in RGC', 'rgc_binary'] = 1
+
     parcel_df = pd.merge(parcel_df, parcel_geog, left_on='PARCELID', right_on='ParcelID', how='left')
-    #geo_df = parcel_df.copy()    # Store clean version of parcels for use with transit calcs
+
+    # Join race from the synthetic population
+    myh5 = h5py.File(r'inputs\scenario\landuse\hh_and_persons.h5','r')
+
+    hh_df = pd.DataFrame()
+    for col in myh5['Household'].keys():
+        hh_df[col] = myh5['Household'][col][:]
+    person_df = pd.DataFrame()
+    for col in myh5['Person'].keys():
+        person_df[col] = myh5['Person'][col][:]
+
 
     #######################################################
     # Access to Jobs by Walking and Biking (via all-streets network)
@@ -235,30 +272,13 @@ def main():
     transit_time_df = get_transit_information(bank)
 
     # Set threshold travel time
-    time_max = 45
-    #transit_hh_emp = process_transit_attribute(transit_time_df, time_max, parcel_attributes_list, origin_df, dest_df)
+    transit_time_max = 45
+    auto_time_max = 30
 
-    # Select OD pairs with travel time under time_max threshold
-    transit_time_df = transit_time_df[transit_time_df.travel_time <= time_max]
-    # Remove intrazonal transit trips; assuming access will not be via transit within zones
-    transit_time_df = transit_time_df[transit_time_df['from'] != transit_time_df['to']]
-
-    # Calculate total jobs at destination TAZs
-    dest_transit = transit_time_df.merge(dest_df, left_on='to', right_on='TAZ_P', how='left')
-    dest_transit = dest_transit.groupby(dest_transit['from'])[parcel_attributes_list].sum()
-    
-    dest_transit.reset_index(inplace=True)
-
-    origin_dest = origin_df.merge(dest_transit, left_on='TAZ_P', right_on='from', how = 'left') 
-
-    # groupby destination information by origin geo id 
-    origin_dest_emp = pd.DataFrame(origin_dest.groupby('PARCELID')[parcel_attributes_list+['HH_P']].sum())
-    origin_dest_emp.reset_index(inplace=True)
-
-    # get the origin geography level household info
+    origin_dest_emp = get_parcel_data_max_travel_time(transit_time_df, transit_time_max, origin_df, dest_df, parcel_attributes_list, include_intrazonal = False)
     transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
 
-        # Append results to initally empty df
+    # Append results to initally empty df
     df = pd.DataFrame()
     for geo in geo_list:
 
@@ -269,7 +289,59 @@ def main():
         _df.columns = ['geography', 'value','geography_group']
         df = df.append(_df)
 
+    # Add summaries by race from synthetic population
+    avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
+    avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+    # Write person records with individual jobs access
+    avg_race_df.to_csv(os.path.join(output_dir,'transit_jobs_access_person.csv'))
+    avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
+    avg_race_df = avg_race_df.reset_index()
+    avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
+    avg_race_df['geography_group'] = 'race'
+    df = df.append(avg_race_df)
+
     df.to_csv(os.path.join(output_dir,'transit_jobs_access.csv'))
+
+    #######################################################
+    # Access to Jobs by Auto (via TAZ-based skims)
+    #######################################################
+
+    # Calculate auto time access
+    auto_time = bank.matrix('sov_inc2t').get_numpy_data()
+
+    auto_time = auto_time[0:3700, 0:3700]
+    auto_time_df = pd.DataFrame(auto_time)
+    auto_time_df['from'] = auto_time_df.index
+    auto_time_df = pd.melt(auto_time_df, id_vars= 'from', value_vars=list(auto_time_df.columns[0:3700]), var_name = 'to', value_name='travel_time')
+
+    # Join with parcel data; add 1 to get zone ID because emme matrices are indexed starting with 0
+    auto_time_df['to'] = auto_time_df['to'] + 1 
+    auto_time_df['from'] = auto_time_df['from'] + 1
+
+
+    origin_dest_emp = get_parcel_data_max_travel_time(auto_time_df, auto_time_max, origin_df, dest_df, parcel_attributes_list, include_intrazonal = False)
+    auto_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
+    
+    # Append results to initally empty df
+    df = pd.DataFrame()
+    for geo in geo_list:
+
+        average_jobs_df = get_average_jobs_transit(auto_hh_emp, geo, parcel_attributes_list) 
+
+        _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
+        _df.loc[:,'geography_group'] = geo
+        _df.columns = ['geography', 'value','geography_group']
+        df = df.append(_df)
+
+    avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
+    avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+    avg_race_df.to_csv(os.path.join(output_dir,'auto_jobs_access_person.csv'))
+    avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
+    avg_race_df = avg_race_df.reset_index()
+    avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
+    avg_race_df['geography_group'] = 'race'
+    df = df.append(avg_race_df)
+    df.to_csv(os.path.join(output_dir,'auto_jobs_access.csv'))
 
 if __name__ == "__main__":
     main()
