@@ -401,6 +401,14 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df_transit_line['agency_code'] = df_transit_line['agency_code'].astype('int')
     df_transit_line['route_code'] = df_transit_line['route_code'].astype('int')
 
+    # Daily trip totals by submode
+    bank = _eb.Emmebank(os.path.join(os.getcwd(), r'Banks/daily/emmebank'))
+
+    df = pd.DataFrame()
+    for mode in ['commuter_rail','litrat','ferry', 'passenger_ferry', 'trnst']:
+        df.loc[mode,'total_trips'] = bank.matrix(mode).get_numpy_data().sum()
+    df.to_csv(r'outputs\transit\total_transit_trips.csv')
+
     # Boardings by agency
     df_transit_line['agency_name'] = df_transit_line['agency_code'].map(agency_lookup)
     df_daily = df_transit_line.groupby('agency_name').sum()[['boardings']].reset_index().sort_values('boardings', ascending=False)
