@@ -198,14 +198,15 @@ def run_importer(project_name):
         my_project.process_modes('inputs/scenario/networks/modes.txt')
         
         my_project.process_base_network('inputs/scenario/networks/roadway/' + value + '_roadway.in')
+        
         my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
         my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
         if my_project.tod in transit_tod_list:
+            my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
+            my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
             for att in transit_line_extra_attributes:
                 my_project.create_extra_attribute('TRANSIT_LINE', att)
             my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_transit_lines_'+ str(tod_index[value]) +'.txt', False)
-            my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
-            my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
             update_headways(my_project, headway_df)
 
         print(value)
