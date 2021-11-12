@@ -20,7 +20,7 @@ def write_nb(sheet_name, nb_path, output_path):
             py_version = 'python3'
         else:
             py_version = 'python2'
-        ep = ExecutePreprocessor(timeout=600, kernel_name=py_version)
+        ep = ExecutePreprocessor(timeout=1500, kernel_name=py_version)
         ep.preprocess(nb, {'metadata': {'path': nb_path+r'/'}})
         with open(nb_path+r'/'+sheet_name+".ipynb", 'wt') as f:
             nbformat.write(nb, f)
