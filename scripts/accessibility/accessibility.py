@@ -32,11 +32,11 @@ def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion
     return x, y
 
 def process_net_attribute(network, attr, fun):
-    print "Processing %s" % attr
+
     newdf = None
-    for dist_index, dist in distances.iteritems():        
+    for dist_index, dist in distances.items():        
         res_name = "%s_%s" % (re.sub("_?p$", "", attr), dist_index) # remove '_p' if present
-        aggr = network.aggregate(dist, type=fun, decay="exponential", name=attr)
+        aggr = network.aggregate(dist, type=fun, decay="exp", name=attr)
         if newdf is None:
             newdf = pd.DataFrame({res_name: aggr, "node_ids": aggr.index.values})
         else:
@@ -46,7 +46,7 @@ def process_net_attribute(network, attr, fun):
 def process_dist_attribute(parcels, network, name, x, y):
     network.set_pois(name, x, y)
     res = network.nearest_pois(max_dist, name, num_pois=1, max_distance=999)
-    res[res <> 999] = (res[res <> 999]/5280.).astype(res.dtypes) # convert to miles
+    res[res != 999] = (res[res != 999]/5280.).astype(res.dtypes) # convert to miles
     res_name = "dist_%s" % name
     parcels[res_name] = res.loc[parcels.node_ids].values
     return parcels
@@ -59,7 +59,7 @@ def process_parcels(parcels, transit_df, net, intersections_df):
 
     # Start processing attributes
     newdf = None
-    for fun, attrs in parcel_attributes.iteritems():    
+    for fun, attrs in parcel_attributes.items():    
         for attr in attrs:
             net.set(parcels.node_ids, variable=parcels[attr], name=attr)    
             res = process_net_attribute(net, attr, fun)
@@ -91,16 +91,20 @@ def process_parcels(parcels, transit_df, net, intersections_df):
     net.init_pois(len(transit_modes)+1, max_dist, 1)
   
     # calc the distance from each parcel to nearest transit stop by type
-    for new_name, attr in transit_modes.iteritems():
+    for new_name, attr in transit_modes.items():
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
-        parcels=process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
+        if transit_type_df[attr].sum() > 0:
+            parcels = process_dist_attribute(parcels, net, new_name, transit_type_df["x"], transit_type_df["y"])
+        else:
+            parcels["dist_%s" % new_name] = 999    # use max dist if no stops exist for this submode
         #Some parcels share the same network node and therefore have 0 distance. Recode this to .01.
         field_name = "dist_%s" % new_name
-        parcels.ix[parcels[field_name]==0, field_name] = .01
+        parcels.loc[parcels[field_name]==0, field_name] = .01
     # distance to park
-    parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
-    parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
+    #parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
+    #parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
+    parcels['dist_park'] = 999.0
 
     return parcels
   
@@ -129,9 +133,7 @@ def clean_up(parcels):
     parcels_final = pd.DataFrame()
     
     # currently Daysim just uses dist_lbus as actually meaning the minimum distance to transit, so we will match that setup for now.
-    print 'updating the distance to local bus field to actually hold the minimum to any transit because that is how Daysim is currently reading the field' 
     parcels['dist_lbus'] = parcels[['dist_lbus', 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt']].min(axis=1)
-
 
     for col in col_order:
         parcels_final[col] = parcels[col]
@@ -141,27 +143,27 @@ def clean_up(parcels):
 
 def main():
     # read in data
-    parcels = pd.DataFrame.from_csv(parcels_file_name, sep = " ", index_col = None )
+    parcels = pd.read_csv(parcels_file_name, sep = " ", index_col = None )
 
-    # Move SeaTac Parcel so that it is on the terminal. 
-    parcels.ix[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
-    parcels.ix[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
+    ## Move SeaTac Parcel so that it is on the terminal. 
+    #parcels.loc[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
+    #parcels.loc[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
 
-    # Update UW Emp parcel with parking costs
-    parcels.ix[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
-    parcels.ix[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
-    parcels.ix[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
-    parcels.ix[parcels.PARCELID==751794, 'PPRICHRP'] = 300
+    ## Update UW Emp parcel with parking costs
+    #parcels.loc[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
+    #parcels.loc[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
+    #parcels.loc[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
+    #parcels.loc[parcels.PARCELID==751794, 'PPRICHRP'] = 300
 
-    # This UW parcel is in the wrong zone. 
-    parcels.ix[parcels.PARCELID==751794, 'TAZ_P'] = 303
+    ## This UW parcel is in the wrong zone. 
+    #parcels.loc[parcels.PARCELID==751794, 'TAZ_P'] = 303
 
     #check for missing data!
     for col_name in parcels.columns:
         # daysim does not use EMPRSC_P
-        if col_name <> 'EMPRSC_P':
+        if col_name != 'EMPRSC_P':
             if parcels[col_name].sum() == 0:
-                print col_name + ' column sum is zero! Exiting program.'
+                print(col_name + ' column sum is zero! Exiting program.')
                 sys.exit(1)
 
     # Not using, causes bug in Daysim
@@ -169,20 +171,21 @@ def main():
     parcels.NPARKS = 0            
 
     # nodes must be indexed by node_id column, which is the first column
-    nodes = pd.DataFrame.from_csv(nodes_file_name)
-    links = pd.DataFrame.from_csv(links_file_name, index_col = None )
+    nodes = pd.read_csv(nodes_file_name, index_col='node_id')
+    links = pd.read_csv(links_file_name, index_col=None)
 
     # get rid of circular links
-    links = links.loc[(links.from_node_id <> links.to_node_id)]
+    links = links.loc[(links.from_node_id != links.to_node_id)]
 
     # assign impedance
     imp = pd.DataFrame(links.Shape_Length)
     imp = imp.rename(columns = {'Shape_Length':'distance'})
+    links[['from_node_id','to_node_id']] = links[['from_node_id','to_node_id']].astype('int') 
 
     # create pandana network
     net = pdna.network.Network(nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp)
     for dist in distances:
-                net.precompute(dist)
+        net.precompute(dist)
 
     # get transit stops
     transit_df = pd.read_csv(transit_stops_name)
@@ -209,18 +212,17 @@ def main():
     # assign network nodes to transit stops, for buffer variable
     assign_nodes_to_dataset(transit_df, net, 'node_ids', 'x', 'y')
 
-    # run all accibility measures
+    # run all accessibility measures
     parcels = process_parcels(parcels, transit_df, net, intersections_df)
 
-    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.ix[parcels.dist_lrt<=1, 'dist_lrt'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_lrt'] * .5
-    parcels.ix[parcels.dist_lrt<=2, 'dist_fry'] = parcels.ix[parcels.dist_lrt<=2.00, 'dist_fry'] * .5
-    parcels_done = clean_up(parcels)
+    # Report a raw distance to HCT and all transit before calibration
+    parcels['raw_dist_hct'] = parcels[[ 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
+    parcels['raw_dist_transit'] = parcels[['dist_lbus','dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
 
-    if int(model_year) > 2014:
-        #assert percieved distance for UW employment and student parcels- this is based on results/calibration from 2016 network
-        parcels_done.ix[parcels_done.parcelid==797163, 'dist_lrt'] = 0.25
-        parcels_done.ix[parcels_done.parcelid==751794, 'dist_lrt'] = 0.25
+    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
+    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * .5
+    parcels.loc[parcels.dist_lrt<=2, 'dist_fry'] = parcels['dist_fry'] * .5
+    parcels_done = clean_up(parcels)
 
     parcels_done.to_csv(output_parcels, index = False, sep = ' ')
 

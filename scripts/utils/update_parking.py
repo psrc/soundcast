@@ -12,23 +12,22 @@ import os, sys
 import pandas as pd
 import h5py
 import numpy as np
+from sqlalchemy import create_engine
 sys.path.append(os.getcwd())
 from input_configuration import *
 
-parking_cost_file = r'inputs/scenario/landuse/parking_costs.csv'
-input_ensemble = r'inputs/scenario/landuse/parking_gz.csv'
+db_path = r'inputs/db/soundcast_inputs.db'
 input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
-# Combine data columns
+# Load data
+conn = create_engine('sqlite:///'+db_path)
 df_parcels = pd.read_csv(input_parcels, delim_whitespace=True)
-df_ensemble = pd.read_csv(input_ensemble)
-parking_cost = pd.read_csv(parking_cost_file)
-
-parking_cost = pd.read_csv(parking_cost_file)
-df_parcels = pd.merge(left = df_parcels, right=df_ensemble,left_on="TAZ_P",right_on="TAZ", how = 'left')
+df_parking_zones = pd.read_sql('SELECT * FROM parking_zones', con=conn)
+df_parking_cost = pd.read_sql('SELECT * FROM parking_costs WHERE year=='+model_year, con=conn)
+df_parcels = pd.merge(left=df_parcels, right=df_parking_zones, left_on="TAZ_P", right_on="TAZ", how = 'left')
 
 # Join daily costs with parcel data 
-df_parking_cost = pd.merge(df_parcels,parking_cost,on='ENS',how='left')
+df_parking_cost = pd.merge(df_parcels, df_parking_cost, on='ENS', how='left')
 
 # Clean up the results and store in same format as original parcel.txt file
 df = pd.DataFrame(df_parking_cost)
@@ -41,6 +40,7 @@ for column_title in drop_columns:
 
 
 # For parcels in regions with non-zero parking costs, ensure each parcel has some minumum parking spaces available
+# FIXME:
 # For now, replacing all zero-parking locations with region-wide average number of parking spots. 
 # We can update this with an ensemble-wide average from GIS analysis later.
 
@@ -49,7 +49,6 @@ avg_hourly_spaces = df[df['PARKHR_P'] > 0]['PARKHR_P'].mean()
 
 daily_parking_spaces = df[df['PPRICDYP'] > 0]['PARKDY_P']
 hourly_parking_spaces = df[df['PPRICHRP'] > 0]['PARKHR_P']
-
 
 replace_daily_parking_spaces= daily_parking_spaces[daily_parking_spaces == 0]
 replace_hourly_parking_spaces= hourly_parking_spaces[hourly_parking_spaces == 0]
@@ -70,22 +69,15 @@ if len(replace_daily_parking_spaces) > 0:
     df = df.rename(columns = {'PARKHR_P_right':'PARKHR_P'})
     if 'PARKHR_P_left' in df:
         df = df.drop('PARKHR_P_left', 1)
-# check if any lines have zero costs and more than zero paid parking spaces
-#check_day = df[df['PPRICDYP'] > 0]['PARKDY_P']
-#check_hour = df[df['PPRICHRP'] > 0]['PARKHR_P']
-#if check_day.sum()/check_day.count() != check_day.mean():
-#    print "Warning. Some parcels may have zero daily parking spaces but non-zero price."
-#if check_hour.sum()/check_hour.count() != check_hour.mean():
-#    print "Warning. Some parcels may have zero hourly parking spaces but non-zero price."
 
-# Delete TAZ and ENS columns to restore file to original form. 
+# Delete TAZ and ENS (parking zone) columns to restore file to original form. 
 df = df.drop(['ENS', 'TAZ'], 1)
 
 #Make sure there are no Na's
-df.fillna(0, inplace =True)
+df.fillna(0, inplace=True)
 
 # Save results to text file
-df.to_csv(input_parcels, sep = ' ', index = False)
+df.to_csv(input_parcels, sep = ' ', index=False)
 
 # End the script
-print "Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_spaces)) + " parcels were updated." 
+print("Parcel file updated with aggregate parking costs and lot numbers. " + str(len(replace_daily_parking_spaces)) + " parcels were updated.")

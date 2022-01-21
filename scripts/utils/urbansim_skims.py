@@ -10,7 +10,6 @@ import json
 import numpy as np
 import time
 import os,sys
-import Tkinter, tkFileDialog
 import multiprocessing as mp
 import subprocess
 from multiprocessing import Pool
@@ -21,21 +20,17 @@ sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 
-
-
 def init_dir(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.mkdir(directory)
 
-
 def json_to_dictionary(dict_name):
     #Determine the Path to the input files and load them
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name).replace("\\","/")
+    input_filename = os.path.join('inputs/model/skim_parameters/lookup',dict_name).replace("\\","/")
     my_dictionary = json.load(open(input_filename))
     return(my_dictionary)
          
-
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
     with h5py.File(skim_file_loc, "r") as f:
@@ -62,24 +57,24 @@ def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
 
 def get_cost_time_distance_skim_data(trip_purpose):
     skim_dict = {}
-    input_skim = {'hbw1' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                            'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                            'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbw2' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
-                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
-                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw3' : {'cost' : {'svt' : 'svtl2c', 'h2v' : 'h2tl2c', 'h3v' : 'h3tl2c'}, 
-                            'time' : {'svt' : 'svtl2t', 'h2v' : 'h2tl2t', 'h3v' : 'h3tl2t'}, 
-                            'distance' : {'svt' : 'svtl2d', 'h2v' : 'h2tl2d', 'h3v' : 'h3tl2d'}},
-                  'hbw4' : {'cost' : {'svt' : 'svtl3c', 'h2v' : 'h2tl3c', 'h3v' : 'h3tl3c'}, 
-                           'time' : {'svt' : 'svtl3t', 'h2v' : 'h2tl3t', 'h3v' : 'h3tl3t'}, 
-                           'distance' : {'svt' : 'svtl3d', 'h2v' : 'h2tl3d', 'h3v' : 'h3tl3d'}},
-                  'nhb' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}},
-                  'hbo' : {'cost' : {'svt' : 'svtl1c', 'h2v' : 'h2tl1c', 'h3v' : 'h3tl1c'}, 
-                           'time' : {'svt' : 'svtl1t', 'h2v' : 'h2tl1t', 'h3v' : 'h3tl1t'}, 
-                           'distance' : {'svt' : 'svtl1d', 'h2v' : 'h2tl1d', 'h3v' : 'h3tl1d'}}} 
+    input_skim = {'hbw1' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                            'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                            'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbw2' : {'cost' : {'svt' : 'sov_inc2c', 'h2v' : 'hov2_inc2c', 'h3v' : 'hov3_inc2c'}, 
+                            'time' : {'svt' : 'sov_inc2t', 'h2v' : 'hov2_inc2t', 'h3v' : 'hov3_inc2t'}, 
+                            'distance' : {'svt' : 'sov_inc2d', 'h2v' : 'hov2_inc2d', 'h3v' : 'hov3_inc2d'}},
+                  'hbw3' : {'cost' : {'svt' : 'sov_inc2c', 'h2v' : 'hov2_inc2c', 'h3v' : 'hov3_inc2c'}, 
+                            'time' : {'svt' : 'sov_inc2t', 'h2v' : 'hov2_inc2t', 'h3v' : 'hov3_inc2t'}, 
+                            'distance' : {'svt' : 'sov_inc2d', 'h2v' : 'hov2_inc2d', 'h3v' : 'hov3_inc2d'}},
+                  'hbw4' : {'cost' : {'svt' : 'sov_inc3c', 'h2v' : 'hov2_inc3c', 'h3v' : 'hov3_inc3c'}, 
+                           'time' : {'svt' : 'sov_inc3t', 'h2v' : 'hov2_inc3t', 'h3v' : 'hov3_inc3t'}, 
+                           'distance' : {'svt' : 'sov_inc3d', 'h2v' : 'hov2_inc3d', 'h3v' : 'hov3_inc3d'}},
+                  'nhb' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}},
+                  'hbo' : {'cost' : {'svt' : 'sov_inc1c', 'h2v' : 'hov2_inc1c', 'h3v' : 'hov3_inc1c'}, 
+                           'time' : {'svt' : 'sov_inc1t', 'h2v' : 'hov2_inc1t', 'h3v' : 'hov3_inc1t'}, 
+                           'distance' : {'svt' : 'sov_inc1d', 'h2v' : 'hov2_inc1d', 'h3v' : 'hov3_inc1d'}}} 
     output_skim = {'cost' : {'svt' : 'dabcs', 'h2v' : 's2bcs', 'h3v' : 's3bcs'}, 
                    'time' : {'svt' : 'dabtm', 'h2v' : 's2btm', 'h3v' : 's3btm'}, 
                    'distance' : {'svt' : 'dabds', 'h2v' : 's2bds', 'h3v' : 's3bds'}}
@@ -113,7 +108,7 @@ def get_transit_skim_data():
                          'farbx' : 'mfafarbx'}
     skim_dict = {}
 
-    for input, output in transit_skim_dict.iteritems():
+    for input, output in transit_skim_dict.items():
         if input in ['farbx', 'farwa']:
             skim_dict[input] = load_skims(r'inputs/model/roster/6to7.h5', mode_name = output, divide_by_100=True)
         else:
@@ -146,7 +141,7 @@ def get_total_transit_time(tod):
 def get_total_sov_trips(tod_list):
     trip_table = np.zeros((len(zones), len(zones)))
     for tod in tod_list:
-        for trip_table_name in ['svtl1', 'svtl2', 'svtl3']:
+        for trip_table_name in ['sov_inc1', 'sov_inc2', 'sov_inc3']:
             my_bank =  _eb.Emmebank('Banks/' + tod + '/emmebank')
             skim = my_bank.matrix(trip_table_name).get_numpy_data()
             trip_table = trip_table + skim 
@@ -234,7 +229,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['euda'][zone_start_constraint:] = 0
     utility_matrices['euda'][:, zone_start_constraint:] = 0
-    print 'euda done'
     
     # Calculate Shared Ride 2 utility
     utility_matrices['eus2'] = np.exp(parameters_dict[trip_purpose]['asccs2'] + parameters_dict[trip_purpose]['autivt'] * auto_skim_dict['s2btm'] + parameters_dict[trip_purpose]['autcos'] * auto_cost_dict['s2bct'])
@@ -242,7 +236,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus2'][zone_start_constraint:] = 0
     utility_matrices['eus2'][:, zone_start_constraint:] = 0
-    print 'eus2 done'
 
     # Calculate Shared Ride 3+ Utility
     utility_matrices['eus3'] = np.exp(parameters_dict[trip_purpose]['asccs3'] + parameters_dict[trip_purpose]['autivt'] * auto_skim_dict['s3btm'] + parameters_dict[trip_purpose]['autcos'] * auto_cost_dict['s3bct'])
@@ -250,7 +243,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3751]
     utility_matrices['eus3'][zone_start_constraint:] = 0
     utility_matrices['eus3'][:, zone_start_constraint:] = 0
-    print 'eus3 done'
 
     # Calculate Walk to Transit Utility
     utility_matrices['eutw'] = np.exp(parameters_dict[trip_purpose]['ascctw'] + parameters_dict[trip_purpose]['trwivt'] * transit_skim_dict['ivtwa'] + parameters_dict[trip_purpose]['trwovt'] * (transit_skim_dict['auxwa'] + transit_skim_dict["iwtwa"] + transit_skim_dict['xfrwa']) + parameters_dict[trip_purpose]['trwcos'] * transit_skim_dict['farwa'])
@@ -258,7 +250,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eutw'][zone_start_constraint:] = 0
     utility_matrices['eutw'][:, zone_start_constraint:] = 0
-    print 'eutw done'
 
     # Calculate Walk to Light Rail Utility
     utility_matrices['eurw'] = np.exp(parameters_dict[trip_purpose]['ascctw'] + parameters_dict[trip_purpose]['trwivt'] * transit_skim_dict['ivtwr'] + parameters_dict[trip_purpose]['trwovt'] * (transit_skim_dict['auxwr'] + transit_skim_dict["iwtwr"] + transit_skim_dict['xfrwr']) + parameters_dict[trip_purpose]['trwcos'] * transit_skim_dict['farwa'])
@@ -266,7 +257,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eurw'][zone_start_constraint:] = 0
     utility_matrices['eurw'][:, zone_start_constraint:] = 0
-    print 'eurw done'
 
     # keep best utility between regular transit and light rail. Give to light rail if there is a tie. 
     utility_matrices['eutw'][utility_matrices['eurw'] >= utility_matrices['eutw']] = 0
@@ -278,7 +268,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['euwk'][zone_start_constraint:] = 0
     utility_matrices['euwk'][:, zone_start_constraint:] = 0
-    print 'euwk done'
     
     # Calculate Bike Utility
     utility_matrices['eubk'] = np.exp(parameters_dict[trip_purpose]['asccbk'] + parameters_dict[trip_purpose]['biketm'] * walk_bike_skim_dict['biket'])
@@ -286,7 +275,6 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     zone_start_constraint = zone_lookup_dict[3733]
     utility_matrices['eubk'][zone_start_constraint:] = 0
     utility_matrices['eubk'][:, zone_start_constraint:] = 0
-    print 'eubk done'
 
     return utility_matrices     
 
@@ -308,9 +296,6 @@ def test_results():
                # every value should be very close to 1, so that means nothing would print out at this step.
                error += 1
 
-    print 'there are', error, 'cells might have error.'
-
-
 def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     output_mode_share_name = {'hbw1': ['eusm', 'w1shda', 'w1shs2', 'w1shs3', 'w1shtw', 'w1shrw', 'w1shtd', 'w1shbk', 'w1shwk'],
                           'hbw2': ['eusm', 'w2shda', 'w2shs2', 'w2shs3', 'w2shtw', 'w2shrw', 'w2shtd', 'w2shbk', 'w2shwk'],
@@ -324,16 +309,16 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     grp = my_store.create_group(trip_purpose)
     for mode in output_mode_share_name[trip_purpose]:
             grp.create_dataset(mode, data = mode_shares_dict[mode])
-            print mode
+            print(mode)
     my_store.close()
 
 def urbansim_skims_to_h5(h5_name, skim_dict):
     my_store = h5py.File(urbansim_skims_dir + '/' + h5_name + '.h5', "w")
     grp = my_store.create_group('results')
-    for name, skim in skim_dict.iteritems():
+    for name, skim in skim_dict.items():
             skim = skim[0:max_internal_zone, 0:max_internal_zone]
             grp.create_dataset(name, data = skim.astype('float32'), compression='gzip')
-            print skim
+            print(skim)
 
     my_store.close()
 
@@ -344,15 +329,15 @@ def main():
     urbansim_skim_dict = {}
 
     #am_single_vehicle_to_work_travel_time
-    urbansim_skim_dict['aau1tm'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1t', 
+    urbansim_skim_dict['aau1tm'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1t', 
                              divide_by_100=True) 
 
     #am_single_vehicle_to_work_toll
-    urbansim_skim_dict['aau1tl'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1c', 
+    urbansim_skim_dict['aau1tl'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1c', 
                              divide_by_100=False) 
 
     #single_vehicle_to_work_travel_distance
-    urbansim_skim_dict['aau1ds'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl1d', 
+    urbansim_skim_dict['aau1ds'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1d', 
                              divide_by_100=True)
     
     #am_walk_time_in_minutes
@@ -366,32 +351,32 @@ def main():
     urbansim_skim_dict['atrtwa'] = get_total_transit_time('7to8')
 
     #single_vehicle_to_work_travel_cost
-    urbansim_skim_dict['aau1cs'] = load_skims('inputs/model/roster/7to8.h5', mode_name='svtl2g', 
+    urbansim_skim_dict['aau1cs'] = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc2g', 
                              divide_by_100=False)
 
     for trip_purpose in trip_purpose_list:
         
-        print trip_purpose
+        print(trip_purpose)
         
         auto_skim_dict = get_cost_time_distance_skim_data(trip_purpose)
-        print 'get auto skim done'
+        print('get auto skim done')
         
         walk_bike_skim_dict = get_walk_bike_skim_data()
-        print 'get walk bike skim done'
+        print('get walk bike skim done')
         
         transit_skim_dict = get_transit_skim_data()
-        print 'transit skim done'
+        print('transit skim done')
 
         parking_costs = get_destination_parking_costs(parcels_file_name)
         
         auto_cost_dict = calculate_auto_cost(trip_purpose, auto_skim_dict, parking_costs)
        
         mode_utilities_dict = calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict)
-        print 'calculate mode utilities done'
+        print('calculate mode utilities done')
         
         name, skim = calculate_log_sums(trip_purpose, mode_utilities_dict)
         urbansim_skim_dict[name] = skim
-        print 'calculate log sums done'
+        print('calculate log sums done')
        
         #mode_choice_to_h5(trip_purpose, mode_shares_dict)
         #print trip_purpose, 'is done'
@@ -413,9 +398,3 @@ if not os.path.exists(urbansim_skims_dir):
 
 if __name__ == "__main__":
     main()
-
-
-print 'end'
-
-
-

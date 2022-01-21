@@ -1,0 +1,26 @@
+{
+    "results_from_retained_paths": {
+        "paths_to_retain": "SELECTED",
+        "demand": "mfeline"
+    },
+    "path_details": null,
+    "trip_components": {
+        "aux_transit": null,
+        "transfer_alighting": null,
+        "initial_boarding": "@eline",
+        "transfer_boarding": "@eline",
+        "final_alighting": null,
+        "in_vehicle": null
+    },
+    "portion_of_path": "COMPLETE",
+    "path_selection_threshold": {
+        "upper": 1,
+        "lower": 1
+    },
+    "constraint": null,
+    "analyzed_demand": null,
+    "path_to_od_aggregation": null,
+    "path_operator": ".max.",
+    "type": "EXTENDED_TRANSIT_PATH_ANALYSIS",
+    "path_to_od_statistics": null
+}

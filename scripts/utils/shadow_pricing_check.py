@@ -38,7 +38,7 @@ def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     workers_jobs_by_taz['Squared Difference'] = workers_jobs_by_taz['Difference']**2
     rms_error = math.sqrt(workers_jobs_by_taz['Squared Difference'].mean())
     percent_rmse = rms_error / workers_jobs_by_taz['DaySim'].mean() * 100
-    print '%RMSE: ' + str(round(percent_rmse, 2)) + '%'
+    print('%RMSE: ' + str(round(percent_rmse, 2)) + '%')
     return percent_rmse
 
 def convergence_check(rmse_list, convergence_criterion, iteration): #Function not presently in use

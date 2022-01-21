@@ -1,9 +1,4 @@
 import pandas as pd
-import inro.emme.desktop.app as app
-import inro.modeller as _m
-import inro.emme.matrix as ematrix
-import inro.emme.database.matrix
-import inro.emme.database.emmebank as _eb
 import os, sys
 import re 
 import multiprocessing as mp
@@ -25,51 +20,6 @@ def json_to_dictionary(dict_name):
 
     return(my_dictionary)
           
-def import_tolls(emmeProject):
-    #create extra attributes:
-    create_extras = emmeProject.m.tool("inro.emme.data.extra_attribute.create_extra_attribute")
-    t23 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll1",extra_attribute_description="SOV Tolls",overwrite=True)
-    t24 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll2",extra_attribute_description="HOV 2 Tolls",overwrite=True)
-    t25 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@toll3",extra_attribute_description="HOV 3+ Tolls",overwrite=True)
-    t26 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc1",extra_attribute_description="Light Truck Tolls",overwrite=True)
-    t27 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc2",extra_attribute_description="Medium Truck Tolls",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@trkc3",extra_attribute_description="Heavy Truck Tolls",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@brfer",extra_attribute_description="Bridge & Ferrry Flag",overwrite=True)
-    t28 = create_extras(extra_attribute_type="LINK",extra_attribute_name="@rdly",extra_attribute_description="Intersection Delay",overwrite=True)
- 
-    
-    import_attributes = emmeProject.m.tool("inro.emme.data.network.import_attribute_values")
-
-    tod_4k = sound_cast_net_dict[emmeProject.tod]
-
-    attr_file= ['inputs/scenario/networks/tolls/' + tod_4k + '_roadway_tolls.in', 'inputs/scenario/networks/tolls/ferry_vehicle_fares.in']
-
-    # set tolls
-    #for file in attr_file:
-    import_attributes(attr_file[0], scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@toll1",
-                             3: "@toll2",
-                             4: "@toll3",
-                             5: "@trkc1",
-                             6: "@trkc2",
-                             7: "@trkc3"},
-              revert_on_error=True)
-
-    import_attributes(attr_file[1], scenario = emmeProject.current_scenario,
-              column_labels={0: "inode",
-                             1: "jnode",
-                             2: "@toll1",
-                             3: "@toll2",
-                             4: "@toll3",
-                             5: "@trkc1",
-                             6: "@trkc2",
-                             7: "@trkc3"},
-              revert_on_error=True)
-
-
-
 def multiwordReplace(text, replace_dict):
     rc = re.compile(r"[A-Za-z_]\w*")
     def translate(match):
@@ -87,7 +37,7 @@ def update_headways(emmeProject, headways_df):
             network.delete_transit_line(transit_line.id)
     emmeProject.current_scenario.publish_network(network)
 
-def distance_pricing(distance_rate, hot_rate, emmeProject):
+def distance_pricing(distance_rate, emmeProject):
    toll_atts = ["@toll1", "@toll2", "@toll3", "@trkc1", "@trkc2", "@trkc3"]
    network = emmeProject.current_scenario.get_network()
    for link in network.links():
@@ -95,17 +45,6 @@ def distance_pricing(distance_rate, hot_rate, emmeProject):
             if add_distance_pricing:
                 for att in toll_atts:
                     link[att] = link[att] + (link.length * distance_rate)
-            if add_hot_lane_tolls:
-                # is the link a managed lane:
-                if int(link.i_node.id) > min_hov_node[model_year] and int(link.j_node.id) > min_hov_node[model_year]:
-                    # get the modes allowed
-                    test = [i[1].id for i in enumerate(link.modes)]
-                    # if sov modes are allowed, they should be tolled
-                    if 's' in test or 'e' in test:
-                        print hot_rate
-                        link['@toll1'] = link['@toll1'] + (link.length * hot_rate)
-                        link['@toll2'] = link['@toll2'] + (link.length * hot_rate)          
-    
    emmeProject.current_scenario.publish_network(network)
 
 def arterial_delay(emmeProject, factor):
@@ -126,7 +65,7 @@ def arterial_delay(emmeProject, factor):
                       'number_oneway_arts_entering_int' : 'NODE', 
                       'cycle' : 'NODE'}
 
-    for name, type in attribute_dict.iteritems():
+    for name, type in attribute_dict.items():
         network.create_attribute(type, name)
     
     for link in network.links():
@@ -209,7 +148,7 @@ def arterial_delay(emmeProject, factor):
 
             link.red = 0.0
 
-            if node.sum_arts_lanecap_3to5_entering_int > 0.0 and link.data3 <> 0 and link.data3 <> 5:
+            if node.sum_arts_lanecap_3to5_entering_int > 0.0 and link.data3 != 0 and link.data3 != 5:
                 link.red = 1.2 * node.cycle * (1 - (node.number_arts_entering_int * link.lanecap_3to5) / (2 * node.sum_arts_lanecap_3to5_entering_int))
             else:
                 link.red = 0.0
@@ -238,14 +177,15 @@ def arterial_delay(emmeProject, factor):
             
             #print link.i_node, link.j_node, link.rdly, link.data3
             
-    for name, type in attribute_dict.iteritems():
+    for name, type in attribute_dict.items():
             network.delete_attribute(type, name)
     emmeProject.current_scenario.publish_network(network)
 
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
-    headway_df = pd.DataFrame.from_csv('inputs/scenario/networks/' + headway_file)
-    for key, value in sound_cast_net_dict.iteritems():
+    headway_df = pd.read_csv('inputs/scenario/networks/headways.csv')
+    tod_index = pd.Series(range(1,len(tod_networks)+1),index=tod_networks)
+    for key, value in sound_cast_net_dict.items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
             my_project.bank.delete_scenario(scenario)
@@ -255,32 +195,37 @@ def run_importer(project_name):
         my_project.delete_links()
         my_project.delete_nodes()
       
-        my_project.process_modes('inputs/scenario/networks/' + mode_file)
+        my_project.process_modes('inputs/scenario/networks/modes.txt')
         
-        my_project.process_base_network('inputs/scenario/networks/roadway/' + value + base_net_name)
-        if import_shape:
-            my_project.process_shape('inputs/scenario/networks/shapefiles/' + value + shape_name)
-        my_project.process_turn('inputs/scenario/networks/turns/' + value + turns_name)
-        if my_project.tod in load_transit_tod:
-           my_project.process_vehicles('inputs/scenario/networks/' + transit_vehicle_file)
-           my_project.process_transit('inputs/scenario/networks/transit/' + value + transit_name)
-           update_headways(my_project, headway_df)
-        #import tolls
-        import_tolls(my_project)
+        my_project.process_base_network('inputs/scenario/networks/roadway/' + value + '_roadway.in')
+        
+        my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
+        my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
+        if my_project.tod in transit_tod_list:
+            my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
+            my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
+            for att in transit_line_extra_attributes:
+                my_project.create_extra_attribute('TRANSIT_LINE', att)
+            my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_transit_lines_'+ str(tod_index[value]) +'.txt', False)
+            update_headways(my_project, headway_df)
+
+        print(value)
+        for att in link_extra_attributes:
+            my_project.create_extra_attribute('LINK', att)
+        for att in node_extra_attributes:
+            my_project.create_extra_attribute('NODE', att)
+        my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_links_'+ str(tod_index[value]) +'.txt')
+        my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_nodes_'+ str(tod_index[value]) +'.txt')
+
         arterial_delay(my_project, rdly_factor)
-        if add_distance_pricing or add_hot_lane_tolls:
-            distance_pricing(distance_rate_dict[value], hot_rate_dict[value], my_project)     
+        if add_distance_pricing:
+            distance_pricing(distance_rate_dict[value], my_project)     
        
 def main():
 
     run_importer(network_summary_project)
     
-    if run_daysim_zone_inputs:
-        returncode = subprocess.call([sys.executable,'scripts/network/daysim_zone_inputs.py'])
-        if returncode != 0:
-            sys.exit(1)
-    
-    print 'networks imported'
+    print('networks imported')
 
 if __name__ == "__main__":
     main()

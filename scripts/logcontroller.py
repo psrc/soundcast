@@ -13,7 +13,7 @@
 #limitations under the License.
 
 import logging
-from input_configuration import *
+from emme_configuration import main_log_file
 from functools import wraps
 from time import time
 import datetime

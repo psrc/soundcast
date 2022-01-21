@@ -13,3 +13,4 @@ inputs/networks/
 *.exe
 *.in
 *.ens
+*.pyproj

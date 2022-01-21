@@ -1,0 +1,15 @@
+{
+    "portion_of_path": "COMPLETE",
+    "gates_by_trip_component": {
+        "in_vehicle": null,
+        "aux_transit": null,
+        "initial_boarding": null,
+        "transfer_boarding": "@ln2ln",
+        "transfer_alighting": "@ln2ln",
+        "final_alighting": null
+    },
+    "constraint": null,
+    "analyzed_demand": null,
+    "path_analysis": null,
+    "type": "EXTENDED_TRANSIT_TRAVERSAL_ANALYSIS"
+}
