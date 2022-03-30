@@ -207,7 +207,10 @@ def main():
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
             geo_list.append(equity_geog+geog_type)
 
-    parcel_attributes_list = ['EMPTOT_P']
+    parcel_attributes_list = ['EMPTOT_P','EMPEDU_P','EMPFOO_P','EMPGOV_P','EMPIND_P','EMPMED_P',
+                              'EMPOFC_P','EMPRET_P','EMPSVC_P','EMPOTH_P']
+    job_sector_list = ['EMPEDU_P','EMPFOO_P','EMPGOV_P','EMPIND_P','EMPMED_P',
+                              'EMPOFC_P','EMPRET_P','EMPSVC_P','EMPOTH_P']
     
     global res_name_list
     res_name_list = []
@@ -257,7 +260,7 @@ def main():
     #######################################################
 
     # Parcel variables that should be summarized; only total jobs are considered currently but jobs by sector could be included
-    parcel_attributes_list = ['EMPTOT_P']
+    #parcel_attributes_list = ['EMPTOT_P']
 
     # Work with only necessary cols
     origin_df = parcel_df[['PARCELID','TAZ_P','HH_P']]
@@ -277,28 +280,31 @@ def main():
 
     origin_dest_emp = get_parcel_data_max_travel_time(transit_time_df, transit_time_max, origin_df, dest_df, parcel_attributes_list, include_intrazonal = False)
     transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
-
+    #print()
+    print(origin_dest_emp.columns)
     # Append results to initally empty df
     df = pd.DataFrame()
     for geo in geo_list:
 
         average_jobs_df = get_average_jobs_transit(transit_hh_emp, geo, parcel_attributes_list) 
-
-        _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
+        col_list = ['HHaveraged_'+i for i in parcel_attributes_list]
+        _df = average_jobs_df[[geo] + col_list]
+        
+        _df.columns = ['geography'] + parcel_attributes_list
         _df.loc[:,'geography_group'] = geo
-        _df.columns = ['geography', 'value','geography_group']
         df = df.append(_df)
 
-    # Add summaries by race from synthetic population
+    ## Add summaries by race from synthetic population
     avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
     avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
     # Write person records with individual jobs access
     avg_race_df.to_csv(os.path.join(output_dir,'transit_jobs_access_person.csv'))
-    avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
-    avg_race_df = avg_race_df.reset_index()
-    avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
-    avg_race_df['geography_group'] = 'race'
-    df = df.append(avg_race_df)
+    _avg_race_df = avg_race_df.groupby('prace').mean()[parcel_attributes_list]
+    _avg_race_df = _avg_race_df.reset_index()
+    
+    _avg_race_df.rename(columns={'prace': 'geography'}, inplace=True)
+    _avg_race_df['geography_group'] = 'race'
+    df = df.append(_avg_race_df)
 
     df.to_csv(os.path.join(output_dir,'transit_jobs_access.csv'))
 
@@ -327,21 +333,34 @@ def main():
     for geo in geo_list:
 
         average_jobs_df = get_average_jobs_transit(auto_hh_emp, geo, parcel_attributes_list) 
-
-        _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
+        col_list = ['HHaveraged_'+i for i in parcel_attributes_list]
+        _df = average_jobs_df[[geo] + col_list]
+        
+        _df.columns = ['geography'] + parcel_attributes_list
         _df.loc[:,'geography_group'] = geo
-        _df.columns = ['geography', 'value','geography_group']
         df = df.append(_df)
 
     avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
     avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+    # Write person records with individual jobs access
     avg_race_df.to_csv(os.path.join(output_dir,'auto_jobs_access_person.csv'))
-    avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
-    avg_race_df = avg_race_df.reset_index()
-    avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
-    avg_race_df['geography_group'] = 'race'
-    df = df.append(avg_race_df)
+    _avg_race_df = avg_race_df.groupby('prace').mean()[parcel_attributes_list]
+    _avg_race_df = _avg_race_df.reset_index()
+    
+    _avg_race_df.rename(columns={'prace': 'geography'}, inplace=True)
+    _avg_race_df['geography_group'] = 'race'
+    df = df.append(_avg_race_df)
     df.to_csv(os.path.join(output_dir,'auto_jobs_access.csv'))
+
+    #avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
+    #avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+    #avg_race_df.to_csv(os.path.join(output_dir,'auto_jobs_access_person.csv'))
+    #avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
+    #avg_race_df = avg_race_df.reset_index()
+    #avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
+    #avg_race_df['geography_group'] = 'race'
+    #df = df.append(avg_race_df)
+    #
 
 if __name__ == "__main__":
     main()
