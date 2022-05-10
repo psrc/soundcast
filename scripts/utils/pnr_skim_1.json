@@ -1,0 +1,10 @@
+{
+  "by_mode_subset": {
+    "modes": [
+      "y"
+    ],
+    "actual_aux_transit_times": "auto_pnr_time_access",
+    "distance": "auto_pnr_distance_access"
+  },
+  "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+}
