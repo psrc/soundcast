@@ -1,0 +1,250 @@
+{
+  "type": "EXTENDED_TRANSIT_ASSIGNMENT",
+  "modes": [
+    "b",
+    "c",
+    "f",
+    "n",
+    "o",
+    "p",
+    "r",
+    "w",
+    "x",
+    "y",
+    "z"
+  ],
+  "demand": "pnr_demand_access",
+  "waiting_time": {
+    "headway_fraction": 0.5,
+    "effective_headways": "hdw",
+    "spread_factor": 1,
+    "perception_factor": 1
+  },
+  "boarding_time": {
+    "global": {
+      "penalty": 0,
+      "perception_factor": 1
+    },
+    "at_nodes": null,
+    "on_lines": null,
+    "on_segments": null
+  },
+  "boarding_cost": {
+    "global": {
+      "penalty": 0,
+      "perception_factor": 1
+    },
+    "at_nodes": null,
+    "on_lines": null,
+    "on_segments": null
+  },
+  "in_vehicle_time": {
+    "perception_factor": 1
+  },
+  "in_vehicle_cost": null,
+  "aux_transit_time": {
+    "perception_factor": 1
+  },
+  "aux_transit_cost": null,
+  "flow_distribution_at_origins": {
+    "choices_at_origins": "OPTIMAL_STRATEGY",
+    "fixed_proportions_on_connectors": null
+  },
+  "flow_distribution_at_regular_nodes_with_aux_transit_choices": {
+    "choices_at_regular_nodes": "OPTIMAL_STRATEGY"
+  },
+  "flow_distribution_between_lines": {
+    "consider_total_impedance": false
+  },
+  "connector_to_connector_path_prohibition": null,
+  "circular_lines": {
+    "stay": false
+  },
+  "od_results": {
+    "total_impedance": null
+  },
+  "results": {
+    "aux_transit_volumes_by_mode": [
+      {
+        "mode": "w",
+        "volume": "@volax_w_pnr"
+      },
+      {
+        "mode": "x",
+        "volume": "@volax_x_pnr"
+      },
+      {
+        "mode": "y",
+        "volume": "@volax_y_pnr"
+      },
+      {
+        "mode": "z",
+        "volume": "@volax_z_pnr"
+      }
+    ]
+  },
+  "journey_levels": [
+    {
+      "description": "drive access",
+      "destinations_reachable": false,
+      "transition_rules": [
+        {
+          "mode": "b",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "c",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "f",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "n",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "o",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "p",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "r",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "w",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "x",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "y",
+          "next_journey_level": 0
+        },
+        {
+          "mode": "z",
+          "next_journey_level": 1
+        }
+      ],
+      "boarding_time": null,
+      "boarding_cost": null,
+      "waiting_time": null
+    },
+    {
+      "description": "park",
+      "destinations_reachable": true,
+      "transition_rules": [
+        {
+          "mode": "b",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "c",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "f",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "n",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "o",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "p",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "r",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "w",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "x",
+          "next_journey_level": 1
+        },
+        {
+          "mode": "y",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "z",
+          "next_journey_level": 2
+        }
+      ],
+      "boarding_time": null,
+      "boarding_cost": null,
+      "waiting_time": null
+    },
+    {
+      "description": "forbidden",
+      "destinations_reachable": false,
+      "transition_rules": [
+        {
+          "mode": "b",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "c",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "f",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "n",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "o",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "p",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "r",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "w",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "x",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "y",
+          "next_journey_level": 2
+        },
+        {
+          "mode": "z",
+          "next_journey_level": 2
+        }
+      ],
+      "boarding_time": null,
+      "boarding_cost": null,
+      "waiting_time": null
+    }
+  ],
+  "performance_settings": {
+    "number_of_processors": "max"
+  }
+}
