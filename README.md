@@ -7,4 +7,4 @@ Read the User's Guide to learn how to install and run Soundcast.
 ## [Releases](https://github.com/psrc/soundcast/releases/)
 Download official code releases and inputs.
 
-The most current official release is [v2.1.1_vision2050](https://github.com/psrc/soundcast/releases/tag/v2.1.1_vision2050), which is being used for Vision 2050 analysis (updated February 2020).  
+The most current official release is [v3.0_RTP](https://github.com/psrc/soundcast/releases/tag/v3.0_RTP), which is being used for RTP 2050 analysis.
