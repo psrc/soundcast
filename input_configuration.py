@@ -5,8 +5,8 @@ import os
 ##############################
 model_year = '2018'
 base_year = '2018'
-landuse_inputs = 'vers2_july2020'
-network_inputs = 'current_2018'
+landuse_inputs = 'new_emp'
+network_inputs = 'rtp_2018_final'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 
 ##############################
@@ -37,6 +37,7 @@ tnc_av = False    # TNCs (if available) are AVs
 include_tnc_to_transit = False # AV to transit path type allowed
 include_knr_to_transit = False # Kiss and Ride to Transit
 include_delivery = False
+include_telecommute = False
 
 ##############################
 # Pricing

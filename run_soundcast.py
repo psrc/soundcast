@@ -273,8 +273,12 @@ def main():
             logger.info("Starting run at %s" % str((time_start)))
 
             if not should_build_shadow_price:
+                if include_telecommute:
+                    telecommute = "true"
+                else:
+                    telecommute = "false"
                 # Set up your Daysim Configration
-                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true"),("$TELECOMMUTE" , telecommute)])
 
             else:
                 # We are building shadow prices from scratch, only use shadow pricing if pop sample is 2 or less
