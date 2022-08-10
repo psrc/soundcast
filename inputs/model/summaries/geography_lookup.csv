@@ -7,6 +7,8 @@ Trip,dpcl,parcel_geog,ParcelID,Census2010Tract,d_tract
 Trip,opcl,parcel_geog,ParcelID,Census2010Tract,o_tract
 Tour,topcl,parcel_geog,ParcelID,Census2010Tract,td_tract
 Tour,tdpcl,parcel_geog,ParcelID,Census2010Tract,to_tract
+Tour,tdpcl,parcel_geog,ParcelID,GrowthCenterName,tour_d_rgc
+Trip,dpcl,parcel_geog,ParcelID,GrowthCenterName,trip_d_rgc
 Household,hhparcel,parcel_geog,ParcelID,place_name,hh_place_name
 Person,pwpcl,parcel_geog,ParcelID,place_name,pw_place_name
 Tour,topcl,parcel_geog,ParcelID,place_name,t_o_place
