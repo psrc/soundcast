@@ -34,6 +34,7 @@ sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
 from data_wrangling import text_to_dictionary, json_to_dictionary
+from pathlib import Path
 
 # Script should be run from project root
 #os.chdir(r'C:\Workspace\sc_park_and_ride\soundcast')
@@ -81,14 +82,14 @@ def emmeMatrix_to_numpyMatrix(matrix_name, emmebank, np_data_type, multiplier, m
 
     return np_matrix
 
-def assignment(spec, my_project):
+def assignment(spec, my_project, class_name):
     # Extended transit assignment
     assign_transit = my_project.m.tool("inro.emme.transit_assignment.extended_transit_assignment")
-    assign_transit(spec)
+    assign_transit(spec, class_name = class_name)
 
     return None
 
-def skim(spec1, spec2, my_project):
+def skim(spec1, spec2, my_project, class_name):
 
     skim_pnr = my_project.m.tool("inro.emme.transit_assignment.extended.matrix_results")
 
@@ -96,10 +97,10 @@ def skim(spec1, spec2, my_project):
     # submodes bcfpr
     #loop through each submode and write out a skim file for each (?)
     #my_project.create_matrimx ('auto_access_time_all_test', 'new test', 'FULL')
-    skim_pnr(spec1, class_name='trnst')
+    skim_pnr(spec1, class_name=class_name)
 
     # Skim for walk access to destination
-    skim_pnr(spec2, class_name='trnst')
+    skim_pnr(spec2, class_name=class_name)
 
     return None
 
@@ -133,21 +134,21 @@ def process(my_project, sc_tod):
     ##############################
     # Process auto access portion (trips TO Park and Rides)
 
-    spec = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_assignment_spec')
-    assignment(spec, my_project)
+    spec = json.load(open(pnr_spec_dir/'pnr_assignment_spec.json'))
+    assignment(spec, my_project, pnr_access_class_name)
 
-    spec1 = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_skim_1')
-    spec2 = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_skim_2')
-    skim(spec1, spec2, my_project)
+    spec1 = json.load(open(pnr_spec_dir/'pnr_skim_1.json'))
+    spec2 = json.load(open(pnr_spec_dir/'pnr_skim_2.json'))
+    skim(spec1, spec2, my_project, pnr_access_class_name)
 
     ##############################
     # Process auto egress portion (trips FROM Park and Rides)
-    spec = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_assignment_spec_egress')
-    assignment(spec, my_project)
+    spec = json.load(open(ferry_spec_dir/'pnr_assignment_spec_egress.json'))
+    assignment(spec, my_project, pnr_egress_class_name)
 
-    spec1 = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_skim_1_egress')
-    spec2 = json_to_dictionary(r'C:\Workspace\sc_park_and_ride\soundcast\scripts\utils\pnr_skim_2_egress')
-    skim(spec1, spec2, my_project)
+    spec1 = json.load(open(pnr_spec_dir/'pnr_skim_1_egress.json'))
+    spec2 = json.load(open(prn_spec_dir/'pnr_skim_2_egress.json'))
+    skim(spec1, spec2, my_project, pnr_egress_class_name)
 
     for asim_name, matrix_name in matrix_dict.items():
         try:
@@ -181,7 +182,13 @@ def process(my_project, sc_tod):
 h5file = h5py.File('pnr_skims.h5', "w")
 h5file.create_group('Skims')
 
-my_project = EmmeProject('projects/LoadTripTables/LoadTripTables.emp')
+my_project = EmmeProject('C:\Workspace\sc_new_daysim\soundcast\projects\LoadTripTables/LoadTripTables.emp')
+pnr_spec_dir = Path('R:/e2projects_two/activitysim/assignment_skims_inputs/park_and_ride')
+ferry_spec_dir = Path('R:/e2projects_two/activitysim/assignment_skims_inputs/ferry')
+
+pnr_access_class_name = 'pnr_access'
+pnr_access_class_name = 'pnr_egress'
+
 
 for asim_tod, sc_tod in tod_dict.items():
     
