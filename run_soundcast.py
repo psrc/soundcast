@@ -210,11 +210,21 @@ def run_all_summaries():
         subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
     subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py && conda deactivate', shell=True)
 
+def get_current_commit_hash():
+    try:
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
+    except:
+        commit = '0000000'
+    return commit
+
 def main():
 
     ########################################
     # Initialize Banks, Projects, Directories
     ########################################
+
+    hash = get_current_commit_hash()
+    logger.info("Using Git hash %s ", str(hash))
 
     build_output_dirs()
     update_daysim_modes()
