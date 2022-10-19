@@ -51,6 +51,7 @@ def calculate_interzonal_vmt():
     df['hov2_vmt'] = df['hov2_vol']*df['length']
     df['hov3_vol'] = df['@hov3_inc1']+df['@hov3_inc2']+df['@hov3_inc3']
     df['hov3_vmt'] = df['hov3_vol']*df['length']
+    df['tnc_vmt'] = df['@tnc_inc1']+df['@tnc_inc2']+df['@tnc_inc3']
     df['bus_vmt'] = df['@bveh']*df['length']
     df['medium_truck_vmt'] = df['@mveh']*df['length']
     df['heavy_truck_vmt'] = df['@hveh']*df['length']
@@ -69,7 +70,7 @@ def calculate_interzonal_vmt():
     # This calculates total VMT, by vehicle type (e.g., HOV3 VMT for hour 8, freeway, King County, 55-59 mph)
     join_cols = ['avgspeedbinId','roadtypeId','hourId','geog_name']
     df = df.groupby(join_cols).sum()
-    df = df[['sov_vmt','hov2_vmt','hov3_vmt','bus_vmt','medium_truck_vmt','heavy_truck_vmt']]
+    df = df[['sov_vmt','hov2_vmt','hov3_vmt','tnc_vmt','bus_vmt','medium_truck_vmt','heavy_truck_vmt']]
     df = df.reset_index()
 
     # Write this file for calculation with different emission rates
@@ -90,19 +91,6 @@ def finalize_emissions(df, col_suffix=""):
 	df = df.append(pm10)
 	df = df.append(pm25)
 
-	## Sort final output table by pollutant ID
-	#df_a = df[(df['pollutantID'] != 'PM10') & (df['pollutantID'] != 'PM25')]
-	#df_a['pollutantID'] = df_a['pollutantID'].astype('int')
-	#df_a = df_a.sort_values('pollutantID')
-	#df_a['pollutantID'] = df_a['pollutantID'].astype('str')
-	#df_b = df[-((df['pollutantID'] != 'PM10') & (df['pollutantID'] != 'PM25'))]
-
-	#df = pd.concat([df_a,df_b])
-	#df['pollutant_name'] = df['pollutantID'].map(pollutant_map)
-
-	#common_cols = ['pollutantID','pollutant_name']   # do not add suffix to these columns
-	#df.columns = [i+col_suffix for i in df.columns if i not in common_cols]+common_cols
-
 	return df
 
 def calculate_interzonal_emissions(df, df_rates):
@@ -111,11 +99,12 @@ def calculate_interzonal_emissions(df, df_rates):
     df.rename(columns={'geog_name':'county', 'avgspeedbinId': 'avgSpeedBinID', 'roadtypeId': 'roadTypeID', 'hourId': 'hourID'}, inplace=True)
 
     # Calculate total VMT by vehicle group
-    df['light'] = df['sov_vmt']+df['hov2_vmt']+df['hov3_vmt']
+    df['light'] = df['sov_vmt']+df['hov2_vmt']+df['hov3_vmt']+df['tnc_vmt']
     df['medium'] = df['medium_truck_vmt']
     df['heavy'] = df['heavy_truck_vmt']
+    df['transit'] = df['bus_vmt']
     # What about buses??
-    df.drop(['sov_vmt','hov2_vmt','hov3_vmt','medium_truck_vmt','heavy_truck_vmt','bus_vmt'], inplace=True, axis=1)
+    df.drop(['sov_vmt','hov2_vmt','hov3_vmt','tnc_vmt','medium_truck_vmt','heavy_truck_vmt','bus_vmt'], inplace=True, axis=1)
 
     # Melt to pivot vmt by vehicle type columns as rows
     df = pd.melt(df, id_vars=['avgSpeedBinID','roadTypeID','hourID','county'], var_name='veh_type', value_name='vmt')
@@ -251,6 +240,19 @@ def calculate_start_emissions():
     df['start_tons'] = grams_to_tons(df['start_grams'])
     df = df.groupby(['pollutantID','veh_type','county']).sum().reset_index()
 
+    # Calculate bus start emissions
+    # Load data taken from NTD that reports number of bus vehicles "operated in maximum service"
+    df_bus_veh = pd.read_sql('SELECT * FROM bus_vehicles WHERE year=='+base_year, con=conn)
+    tot_buses = df_bus_veh['bus_vehicles_in_service'].sum()
+
+    df_bus = start_rates_df[start_rates_df['veh_type'] == 'transit']
+    df_bus['start_grams'] = df_bus['ratePerVehicle']*tot_buses
+    df_bus['start_tons'] = grams_to_tons(df_bus['start_grams'])
+    df_bus = df_bus.groupby(['pollutantID','county']).sum().reset_index()
+    df_bus['veh_type'] = 'transit'
+
+    df = df.append(df_bus)
+
     df.to_csv(r'outputs/emissions/start_emissions.csv', index=False)
 
     return df
@@ -307,7 +309,7 @@ def main():
     df_intra_group.rename(columns={'tons_tot': 'intrazonal_tons'}, inplace=True)
     df_start_group = start_emissions_df.groupby(['pollutantID','veh_type']).sum()[['start_tons']].reset_index()
 
-    summary_df = pd.merge(df_inter_group, df_intra_group)
+    summary_df = pd.merge(df_inter_group, df_intra_group, how='left').fillna(0)
     summary_df = pd.merge(summary_df, df_start_group, how='left')
     summary_df = finalize_emissions(summary_df, col_suffix="")
     summary_df.loc[~summary_df['pollutantID'].isin(['PM','PM10','PM25']),'pollutantID'] = summary_df[~summary_df['pollutantID'].isin(['PM','PM10','PM25'])]['pollutantID'].astype('int')
