@@ -51,3 +51,4 @@ distance_rate_dict = {'md': 8.5, 'ev': 8.5, 'am': 13.5, 'ni': 8.5, 'pm': 13.5}
 run_integrated = False
 should_build_shadow_price = False
 delete_banks = False
+include_tnc_emissions = False

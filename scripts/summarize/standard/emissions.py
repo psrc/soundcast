@@ -51,7 +51,10 @@ def calculate_interzonal_vmt():
     df['hov2_vmt'] = df['hov2_vol']*df['length']
     df['hov3_vol'] = df['@hov3_inc1']+df['@hov3_inc2']+df['@hov3_inc3']
     df['hov3_vmt'] = df['hov3_vol']*df['length']
-    df['tnc_vmt'] = df['@tnc_inc1']+df['@tnc_inc2']+df['@tnc_inc3']
+    if include_tnc_emissions:
+        df['tnc_vmt'] = df['@tnc_inc1']+df['@tnc_inc2']+df['@tnc_inc3']
+    else:
+        df['tnc_vmt'] = 0
     df['bus_vmt'] = df['@bveh']*df['length']
     df['medium_truck_vmt'] = df['@mveh']*df['length']
     df['heavy_truck_vmt'] = df['@hveh']*df['length']
