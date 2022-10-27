@@ -298,6 +298,7 @@ def summarize_network(df, writer):
     # Results by County
     
     df['county_name'] = df['@countyid'].map(county_map)
+    df['county_name'].fillna('Outside Region', inplace=True)
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
     _df.to_csv(r'outputs/network/county_network.csv', index=False)
