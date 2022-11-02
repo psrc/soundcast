@@ -45,7 +45,8 @@ def main():
         dirname = r'outputs/RTP'
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
+        #for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
+        for sheet in ['costs','transit','mode_share','person','access','standard','emissions','freight','travel_time']:
             dirname = os.path.join(r'outputs/compare/RTP',sheet)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
