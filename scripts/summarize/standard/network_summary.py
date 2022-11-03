@@ -243,6 +243,21 @@ def summarize_network(df, writer):
         _df.to_excel(writer, sheet_name=metric+' by FC')
         _df.to_csv(r'outputs/network/' + metric.lower() +'_facility.csv', index=False)
 
+    df['lane_miles'] = df['length'] * df['num_lanes']
+    lane_miles = df[df['tod']=='7to8']
+    lane_miles = pd.pivot_table(lane_miles, values='lane_miles', index='@countyid',columns='facility_type', aggfunc='sum').reset_index()
+    lane_miles['@countyid'] = lane_miles['@countyid'].astype(int)
+    lane_miles = lane_miles.replace({'@countyid': county_map})
+    lane_miles = lane_miles[lane_miles['@countyid'].isin(county_map.values())]
+    lane_miles.rename(columns = {col:col+'_lane_miles' for col in lane_miles.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
+    
+
+    county_vmt = pd.pivot_table(df, values='VMT', index=['@countyid'],columns='facility_type', aggfunc='sum').reset_index()
+    county_vmt['@countyid'] = county_vmt['@countyid'].astype(int)
+    county_vmt = county_vmt.replace({'@countyid': county_map})
+    county_vmt.rename(columns = {col:col+'_vmt' for col in county_vmt.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
+    lane_miles = lane_miles.merge(county_vmt, how='left', on ='@countyid')
+    lane_miles.to_csv(r'outputs/network/county_vmt_lane_miles.csv', index=False)
     # Totals by user classification
 
     # Update uc_list based on inclusion of TNC and AVs
