@@ -654,8 +654,6 @@ def hdf5_trips_to_Emme(my_project, trip_set):
         vot = np.asarray(trip_set["vot"])[tod_index]
         trexpfac = np.asarray(trip_set["trexpfac"])[tod_index]
     else:
-        # FIXME: where to get driver data from activitysim?
-        dorp = np.ones(len(trip_set))[tod_index]
         trexpfac = np.ones(len(trip_set))[tod_index]
 
     # create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
@@ -704,8 +702,13 @@ def hdf5_trips_to_Emme(my_project, trip_set):
                 myOtaz = dictZoneLookup[otaz[x]]
                 myDtaz = dictZoneLookup[dtaz[x]]
                 trips = np.asscalar(np.float32(trexpfac[x]))
+                
+                # Separate HOV trips into vehicle trips
+                if mode[x] == col_dict['hov2']:
+                    trips = trips/2.0
+                if mode[x] == col_dict['hov3']:
+                    trips = trips/hov3_occupancy
                 trips = round(trips, 2)
-
             else:
                 # Determine if trip is AV or conventional vehicle
                 av_flag = 0    # conventional vehicle by default

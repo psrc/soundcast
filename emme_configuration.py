@@ -76,6 +76,10 @@ tnc_occupancy = {
   23: 0.4    # AV, 3+ passengers
 }
 
+# Average occupancy for trips with 3 or more total travelers
+# FIXME: using this as a filler for now, get true number from survey
+hov3_occupancy = 3.2
+
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
 # Time of day periods
