@@ -25,6 +25,8 @@ from emme_configuration import *
 from EmmeProject import *
 from data_wrangling import text_to_dictionary, json_to_dictionary
 
+activitysim = True
+
 #Create a logging file to report model progress
 logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 
@@ -39,11 +41,40 @@ else:
 
 hdf5_file_path = 'outputs/daysim/daysim_outputs.h5'
 
-# Link list output
-#global link_df
-#link_list = []
-#link_list = Manager.list()
-#global daily_link_df
+asim_col_dict = {
+    'purpose': 'purpose',
+    'dtaz': 'dtaz',
+    'otaz': 'otaz',
+    'deptm': 'depart',
+    'mode': 'trip_mode',
+    'sov': 'DRIVEALONEFREE',
+    'hov2': 'SHARED2FREE',
+    'hov3': 'SHARED3FREE',
+    'walk': 'WALK',
+    'bike': 'BIKE',
+    'transit': 'WALK_LOC',
+    'school_bus': 'school_bus'
+}
+
+daysim_col_dict = {
+    'purpose': 'dpurp',
+    'dtaz': 'dtaz',
+    'otaz': 'otaz',
+    'deptm': 'deptm',
+    'mode': 'mode',
+    'sov': 3,
+    'hov2': 4,
+    'hov3': 5,
+    'walk': 1,
+    'bike': 2,
+    'transit': 6,
+    'school_bus': 8
+}
+
+if activitysim:
+    col_dict = asim_col_dict
+else:
+    col_dict = daysim_col_dict
 
 def parse_args():
     """Parse command line arguments for max number of assignment iterations"""
@@ -582,63 +613,50 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
-def hdf5_trips_to_Emme(my_project, hdf_filename):
+def hdf5_trips_to_Emme(my_project, trip_set):
 
     start_time = time.time()
 
-    #Determine the Path and Scenario File and Zone indicies that go with it
+    # Determine the Path and Scenario File and Zone indicies that go with it
     zonesDim = len(my_project.current_scenario.zone_numbers)
     zones = my_project.current_scenario.zone_numbers
  
-    #load zones into a NumpyArray to index trips otaz and dtaz
+    # Load zones into a Numpy array to index trips by otaz and dtaz
  
-    #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
+    # Create a dictionary lookup where key is the taz ID and value is its numpy index. 
     dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
-    #create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
-    tod_index = create_trip_tod_indices(my_project.tod)
+    # Create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
+    tod_index = create_trip_tod_indices(my_project.tod, trip_set)
 
-    #Create the HDF5 Container if needed and open it in read/write mode using "r+"
-    my_store=h5py.File(hdf_filename, "r+")
-
-    #Read the Matrix File from the Dictionary File and Set Unique Matrix Names
-    matrix_dict = text_to_dictionary('demand_matrix_dictionary')
+    # Read the Matrix File from the Dictionary File and Set Unique Matrix Names
+    if activitysim:
+        matrix_dict = text_to_dictionary('demand_matrix_dictionary_activitysim')
+    else:
+        matrix_dict = text_to_dictionary('demand_matrix_dictionary')
     uniqueMatrices = set(matrix_dict.values())
 
-    #Stores in the HDF5 Container to read or write to
-    daysim_set = my_store['Trip']
+    # Process Trips
 
-    #Store arrays from Daysim/Trips Group into numpy arrays, indexed by TOD.
-    #This means that only trip info for the current Time Period will be included in each array.
-    otaz = np.asarray(daysim_set["otaz"])
-    otaz = otaz.astype('int')
-    otaz = otaz[tod_index]
-    
-    dtaz = np.asarray(daysim_set["dtaz"])
-    dtaz = dtaz.astype('int')
-    dtaz = dtaz[tod_index]
+    # Store arrays from Daysim/Trips Group into numpy arrays, indexed by TOD.
+    # This means that only trip info for the current Time Period will be included in each array.
+    otaz = np.asarray(trip_set[col_dict["otaz"]]).astype('int')[tod_index]
+    dtaz = np.asarray(trip_set[col_dict["dtaz"]]).astype('int')[tod_index]
+    mode = np.asarray(trip_set[col_dict["mode"]])[tod_index]
+    deptm = np.asarray(trip_set[col_dict["deptm"]])[tod_index]
 
-    mode = np.asarray(daysim_set["mode"])
-    mode = mode.astype("int")
-    mode = mode[tod_index]
-    
-    trexpfac = np.asarray(daysim_set["trexpfac"])
-    trexpfac = trexpfac[tod_index]
+    # Until we get VOT assigned to activitysim, create an a fake version
+    trip_set['vot'] = 30.0
+    vot = np.asarray(trip_set["vot"])[tod_index]
 
-    vot = np.asarray(daysim_set["vot"])
-    vot = vot[tod_index]
-
-    deptm = np.asarray(daysim_set["deptm"])
-    deptm =deptm[tod_index]
-
-    dorp = np.asarray(daysim_set["dorp"])
-    dorp = dorp.astype('int')
-    dorp = dorp[tod_index]
-
-    pathtype = np.asarray(daysim_set["pathtype"])
-    pathtype = pathtype.astype('int')
-    pathtype = pathtype[tod_index]
-
-    my_store.close
+    if not activitysim:
+        dorp = np.asarray(trip_set["dorp"]).astype('int')[tod_index]
+        pathtype = np.asarray(trip_set["pathtype"]).astype('int')[tod_index]
+        vot = np.asarray(trip_set["vot"])[tod_index]
+        trexpfac = np.asarray(trip_set["trexpfac"])[tod_index]
+    else:
+        # FIXME: where to get driver data from activitysim?
+        dorp = np.ones(len(trip_set))[tod_index]
+        trexpfac = np.ones(len(trip_set))[tod_index]
 
     # create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
     demand_matrices={}
@@ -662,6 +680,10 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     # Start going through each trip & assign it to the correct Matrix. Using Otaz, but array length should be same for all
     # The correct matrix is determined using a tuple that consists of (mode, VOT class, AV/standard). This tuple is the key in matrix_dict.
 
+    # Only want driver trips assigned to network, and non auto modes
+    auto_mode_ids = [col_dict['sov'], col_dict['hov2'], col_dict['hov3']]
+    non_auto_mode_ids = [col_dict['walk'], col_dict['bike'], col_dict['transit']]
+
     for x in range (0, len(otaz)):
         # Start building the tuple key, 3 VOT of categories...
         
@@ -673,51 +695,56 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             vot[x]=3
 
         # Get matrix name from matrix_dict. Do not assign school bus trips (8) to the network.
-        if mode[x] != 8 and mode[x] > 0:
+        if mode[x] != col_dict['school_bus']:
             
-            # Only want driver trips assigned to network, and non auto modes
-            auto_mode_ids = [3, 4, 5]    # SOV, HOV2, HOV3
-            non_auto_mode_ids = [1, 2, 6]    # walk, bike, transit
+            if activitysim:
+                # Assume no AVs in activitysim 
+                av_flag = 0
+                mat_name = matrix_dict[(mode[x],int(vot[x]))]
+                myOtaz = dictZoneLookup[otaz[x]]
+                myDtaz = dictZoneLookup[dtaz[x]]
+                trips = np.asscalar(np.float32(trexpfac[x]))
+                trips = round(trips, 2)
 
-            # Determine if trip is AV or conventional vehicle
-            av_flag = 0    # conventional vehicle by default
-            if mode[x] in auto_mode_ids:
-                if dorp[x] == 3 and include_av:
-                    av_flag = 1
+            else:
+                # Determine if trip is AV or conventional vehicle
+                av_flag = 0    # conventional vehicle by default
+                if mode[x] in auto_mode_ids:
+                    if dorp[x] == 3 and include_av:
+                        av_flag = 1
 
-            # Light Rail Trips:
-            if mode[x] == 6 and pathtype[x] == 4:
-                av_flag = 4
+                # Light Rail Trips:
+                if mode[x] == 6 and pathtype[x] == 4:
+                    av_flag = 4
 
-            # Passenger-Only Ferrry Trips:
-            if mode[x] == 6 and pathtype[x] == 5:
-                av_flag = 5
+                # Passenger-Only Ferry Trips:
+                if mode[x] == 6 and pathtype[x] == 5:
+                    av_flag = 5
 
-            # Commuter Rail:
-            if mode[x] == 6 and pathtype[x] == 6:
-                av_flag = 6
+                # Commuter Rail:
+                if mode[x] == 6 and pathtype[x] == 6:
+                    av_flag = 6
 
-            # Ferry Trips
-            if mode[x] == 6 and pathtype[x] in [7,12]:
-                av_flag = 7
+                # Ferry Trips
+                if mode[x] == 6 and pathtype[x] in [7,12]:
+                    av_flag = 7
 
+                # Retrieve trip information from Daysim records
+                mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
+                myOtaz = dictZoneLookup[otaz[x]]
+                myDtaz = dictZoneLookup[dtaz[x]]
+                trips = np.asscalar(np.float32(trexpfac[x]))
+                trips = round(trips, 2)
 
-            # Retrieve trip information from Daysim records
-            mat_name = matrix_dict[(int(mode[x]),int(vot[x]),av_flag)]
-            myOtaz = dictZoneLookup[otaz[x]]
-            myDtaz = dictZoneLookup[dtaz[x]]
-            trips = np.asscalar(np.float32(trexpfac[x]))
-            trips = round(trips, 2)
+                # Assign TNC trips using fractional occupancy (factor of 1 for 1 passenger, 0.5 for 2 passengers, etc.)
+                if (mode[x] == 9) and (dorp[x] in tnc_occupancy.keys()):
+                    trips = trips*tnc_occupancy[dorp[x]]
+                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
 
-            # Assign TNC trips using fractional occupancy (factor of 1 for 1 passenger, 0.5 for 2 passengers, etc.)
-            if (mode[x] == 9) and (dorp[x] in tnc_occupancy.keys()):
-                trips = trips*tnc_occupancy[dorp[x]]
-                demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
-
-            # Use "dorp" field to select driver trips only; for non-auto trips, add all trips for assignment                             
-            # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
-            elif (dorp[x] <= 1 or dorp[x] == 3) or (mode[x] in non_auto_mode_ids):
-                demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
+                # Use "dorp" field to select driver trips only; for non-auto trips, add all trips for assignment                             
+                # dorp==3 for primary trips in AVs, include these along with driver trips (dorp==1)
+                elif (dorp[x] <= 1 or dorp[x] == 3) or (mode[x] in non_auto_mode_ids):
+                    demand_matrices[mat_name][myOtaz, myDtaz] = demand_matrices[mat_name][myOtaz, myDtaz] + trips
   
   #all in-memory numpy matrices populated, now write out to emme
     for mat_name in uniqueMatrices:
@@ -779,7 +806,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
 
     return demand_matrix
 
-def create_trip_tod_indices(tod):
+def create_trip_tod_indices(tod, trip_set):
     # Create an index for trips that belong to TOD (time of day)
     tod_dict = text_to_dictionary('time_of_day', 'lookup')
     uniqueTOD = set(tod_dict.values())
@@ -790,22 +817,21 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
     # For the given TOD, get the index of all the trips for that Time Period
-    my_store = h5py.File(hdf5_file_path, "r+")
-    daysim_set = my_store["Trip"]
-    #open departure time array
-    deptm = np.asarray(daysim_set["deptm"])
-    #convert to hours
-    deptm = deptm.astype('float')
-    deptm = deptm/60
-    deptm = deptm.astype('int')
 
+    # open departure time array 
+    deptm = np.asarray(trip_set[col_dict["deptm"]]).astype('float').astype('int')
+
+    if not activitysim:
+
+        #convert to hours
+        deptm = deptm/60
+        
     #Get the list of hours for this tod
     todValues = todIDListdict[tod]
     # ix is an array of true/false
     ix = np.in1d(deptm.ravel(), todValues)
     #An index for trips from this tod, e.g. [3, 5, 7) means that there are trips from this time period from the index 3, 5, 7 (0 based) in deptm
     indexArray = np.where(ix)
-    my_store.close
 
     return indexArray
 
@@ -1258,9 +1284,9 @@ def get_aadt(my_project):
     
     return df
 
-def run_assignments_parallel_wrapped(project_name):
+def run_assignments_parallel_wrapped(project_name, trip_set):
     try:
-        pool_list = run_assignments_parallel(project_name)
+        pool_list = run_assignments_parallel(project_name, trip_set)
     except:
         print('%s: %s' % (project_name, traceback.format_exc()))
 
@@ -1268,7 +1294,7 @@ def run_assignments_parallel_wrapped(project_name):
     return pool_list
 
 
-def run_assignments_parallel(project_name):
+def run_assignments_parallel(project_name, trip_set):
 
     start_of_run = time.time()
 
@@ -1281,7 +1307,7 @@ def run_assignments_parallel(project_name):
     define_matrices(my_project)
 
     if not build_free_flow_skims:
-       hdf5_trips_to_Emme(my_project, hdf5_file_path)
+       hdf5_trips_to_Emme(my_project, trip_set)
        matrix_controlled_rounding(my_project)
 
     populate_intrazonals(my_project)
@@ -1364,16 +1390,34 @@ def main():
         if os.path.exists(strat_dir):
             shutil.rmtree(strat_dir)
 
+
+    # Process activitysim data
+    
+    if activitysim:
+        trip_set = pd.read_csv(r'C:\Workspace\asim_run_inputs\output_test\final_trips.csv')
+        # Get TAZs
+        maz_taz = pd.read_csv(r'R:\e2projects_two\activitysim\inputs\data\data_full\maz.csv')
+        trip_set = trip_set.merge(maz_taz, how='left', left_on='origin', right_on='MAZ')
+        trip_set.rename(columns={'TAZ': 'otaz'}, inplace=True)
+        trip_set.drop('MAZ', axis=1, inplace=True)
+        trip_set = trip_set.merge(maz_taz, how='left', left_on='destination', right_on='MAZ')
+        trip_set.rename(columns={'TAZ': 'dtaz'}, inplace=True)
+        
+    else:
+        my_store = h5py.File(hdf5_file_path, "r+")
+        trip_set = my_store["Trip"]
+        
+
     # Start Daysim-Emme Equilibration
     # This code is organized around the time periods for which we run assignments, 
     # often represented by the variable "tod". This variable will always
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     start_of_run = time.time()
     pool_list = []
-    for i in range (0, 12, parallel_instances):
-        l = project_list[i:i+parallel_instances]
-        pool_list.append(start_pool(l))
-    #run_assignments_parallel('projects/8to9/8to9.emp')
+    # for i in range (0, 12, parallel_instances):
+    #     l = project_list[i:i+parallel_instances]
+    #     pool_list.append(start_pool(l))
+    run_assignments_parallel('projects/8to9/8to9.emp', trip_set)
 
     ### calculate link daily volumes for use in bike model
     
