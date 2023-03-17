@@ -171,7 +171,7 @@ def main():
     pm_dist_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='sov_inc1d', divide_by_100=True)
     # Average skims between AM and PM periods
     cost_skim = (am_cost_skim + pm_cost_skim) * .5
-    dist_skim = (am_cost_skim + pm_dist_skim) * .5
+    dist_skim = (am_dist_skim + pm_dist_skim) * .5
    
     # Compute friction factors by trip purpose
     fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df)
