@@ -1,0 +1,10 @@
+﻿activitysim,soundcast
+SOV_TIME_L,sov_inc1
+SOV_TIME_M,sov_inc2
+SOV_TIME_H,sov_inc3
+HOV2_TIME_L,hov2_inc1
+HOV2_TIME_M,hov2_inc2
+HOV2_TIME_H,hov2_inc3
+HOV3_TIME_L,hov3_inc1
+HOV3_TIME_M,hov3_inc2
+HOV3_TIME_H,hov3_inc3

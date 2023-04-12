@@ -123,7 +123,10 @@ def import_skims(my_project, input_skims, zones, zonesDim):
     np_gc_skims = {}
     np_bidir_gc_skims = {}
     for tod in truck_generalized_cost_tod.keys():
-        hdf_file = h5py.File('inputs/model/roster/' + tod + '.h5', "r")
+        if activitysim:
+            hdf_file = h5py.File('outputs/activitysim/activitysim_skims_' + asim_tod_lookup[tod] + '.h5', "r")
+        else:
+            hdf_file = h5py.File('inputs/model/roster/' + tod + '.h5', "r")
         for item in input_skims.values():
             #gc
             skim_name = item['gc_name']

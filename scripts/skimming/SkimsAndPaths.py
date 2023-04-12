@@ -23,9 +23,8 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
 from emme_configuration import *
 from EmmeProject import *
+import activitysim_skims
 from data_wrangling import text_to_dictionary, json_to_dictionary
-
-activitysim = True
 
 #Create a logging file to report model progress
 logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
@@ -83,13 +82,11 @@ def parse_args():
 def get_model_year():
     return sys.argv[2]
 
-def create_hdf5_skim_container(hdf5_name):
+def create_hdf5_skim_container(file_path, hdf5_name):
     #create containers for TOD skims
     start_time = time.time()
 
-    hdf5_filename = os.path.join('inputs/model/roster', hdf5_name +'.h5').replace("\\","/")
-
-    my_user_classes = json_to_dictionary('user_classes')
+    hdf5_filename = os.path.join(file_path, hdf5_name +'.h5').replace("\\","/")
 
     # IOError will occur if file already exists with "w-", so in this case
     # just prints it exists. If file does not exist, opens new hdf5 file and
@@ -322,7 +319,7 @@ def transit_skims(my_project, spec, class_name=None):
     for item in my_spec_list:
         skim_transit(item, class_name=class_name)
 
-def attribute_based_skims(my_project,my_skim_attribute):
+def attribute_based_skims(my_project, my_skim_attribute):
     """ Generate time or distance skims """
     start_time_skim = time.time()
 
@@ -361,7 +358,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
     for x in range (0, len(mod_skim["classes"])):
         matrix_name = my_user_classes["Highway"][x]["Name"]
         
-        if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC used HOV skims, no need to export
+        if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC uses HOV skims, no need to export
             my_extra = my_user_classes["Highway"][x][my_skim_attribute]
             matrix_name = matrix_name + skim_desig
             matrix_id = my_project.bank.matrix(matrix_name).id
@@ -371,7 +368,6 @@ def attribute_based_skims(my_project,my_skim_attribute):
             if tod in generalized_cost_tod and skim_desig == 't':
                 if my_user_classes["Highway"][x]["Name"] in gc_skims.values():
                     mod_skim["classes"][x]["results"]["od_travel_times"]["shortest_paths"] = my_user_classes["Highway"][x]["Name"] + 'g'
-            #otherwise, make sure we do not skim for GC!
 
     skim_traffic(mod_skim)
 
@@ -385,7 +381,7 @@ def attribute_based_skims(my_project,my_skim_attribute):
             matrix_id = my_project.bank.matrix(matrix_name).id
             my_project.matrix_calculator(result = matrix_id, expression = inzone_auto_time + "+" + inzone_terminal_time +  "+" + matrix_id)
            
-    #only want to do this once!
+    # only want to do this once!
     if my_project.tod in generalized_cost_tod and skim_desig == 't': 
         for value in gc_skims.values():
            matrix_name = value + 'g'
@@ -483,25 +479,29 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict", "nonmotor")
     my_user_classes = json_to_dictionary("user_classes")
 
-    #Create the HDF5 Container if needed and open it in read/write mode using "r+"
-    hdf5_filename = create_hdf5_skim_container(my_project.tod)
-    my_store = h5py.File(hdf5_filename, "r+")
+    if activitysim:
+        hdf5_filename = create_hdf5_skim_container('outputs/activitysim', 'activitysim_skims_'+asim_tod_lookup[my_project.tod])
+    else:
+        hdf5_filename = create_hdf5_skim_container('inputs/model/roster', my_project.tod)
+    h5_skims_file = h5py.File(hdf5_filename, "r+")
+    h5_group = 'Skims'
+ 
     #if averaging, load old skims in dictionary of numpy matrices
     if average_skims:
         np_old_matrices = {}
-        for key in my_store['Skims'].keys():
-            np_matrix = my_store['Skims'][key]
+        for key in h5_skims_file[h5_group].keys():
+            np_matrix = h5_skims_file[h5_group][key]
             np_matrix = np.matrix(np_matrix)
             np_old_matrices[str(key)] = np_matrix
 
-    e = "Skims" in my_store
-    #Now delete "Skims" store if exists   
+    e = h5_group in h5_skims_file
+    #Now delete h5_group store if exists   
     if e:
-        del my_store["Skims"]
-        skims_group = my_store.create_group("Skims")
+        del h5_skims_file[h5_group]
+        skims_group = h5_skims_file.create_group(h5_group)
         #If not there, create the group
     else:
-        skims_group = my_store.create_group("Skims")
+        skims_group = h5_skims_file.create_group(h5_group)
 
     #Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes")
@@ -511,11 +511,11 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
         mat_id = my_project.bank.matrix("mf01")
         emme_matrix = my_project.bank.matrix(mat_id)
         em_val = emme_matrix.get_data()
-        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
+        h5_skims_file[h5_group].create_dataset("indices", data=em_val.indices, compression='gzip')
 
     except RuntimeError:
-        del my_store["Skims"]["indices"]
-        my_store["Skims"].create_dataset("indices", data=em_val.indices, compression='gzip')
+        del h5_skims_file[h5_group]["indices"]
+        h5_skims_file[h5_group].create_dataset("indices", data=em_val.indices, compression='gzip')
 
         # Loop through the Subgroups in the HDF5 Container
         #highway, walk, bike, transit
@@ -526,94 +526,127 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     else:
         my_skim_matrix_designation = skim_matrix_designation_all_tods
 
-    for x in range (0, len(my_skim_matrix_designation)):
+    if activitysim:
 
-        for y in range (0, len(matrix_dict["Highway"])):
-            matrix_name = matrix_dict["Highway"][y]["Name"]
-            if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC used HOV skims, no need to export
-                matrix_name = matrix_name+my_skim_matrix_designation[x]
-                if my_skim_matrix_designation[x] == 'c':
-                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
-                elif my_skim_matrix_designation[x] == 'd':
-                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
-                else:
-                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
+        # Only export 5 time of day periods
+        if my_project.tod in asim_tod_lookup.keys():
+
+            results_dict = {}
+            vot_dict = {"L" : "inc1", "M" : "inc2", "H" : "inc3"}
+            # If bike, transit, and distance skims are in this time period, process
+            # FIXME:
+            if my_project.tod == '7to8':
+                # Only need one set of bike/walk, transit fares, and distance skims
+                results_dict = activitysim_skims.transit_fare_skims(my_project, results_dict, 'AM')
+                results_dict = activitysim_skims.distance_skims(my_project, results_dict, 'AM', vot_dict)
+                results_dict = activitysim_skims.bike_and_walk_skims(my_project, "AM", results_dict)
+
+            results_dict = activitysim_skims.time_cost_skims(my_project, results_dict, sound_cast_net_dict[my_project.tod].upper(), vot_dict)
+            results_dict = activitysim_skims.transit_skims(my_project, results_dict, sound_cast_net_dict[my_project.tod].upper())
+            results_dict = activitysim_skims.all_transit_skims(my_project, results_dict, sound_cast_net_dict[my_project.tod].upper())
+
+            if my_project.tod == '17to18':
+                results_dict = activitysim_skims.distance_skims(my_project, results_dict, 'PM', vot_dict)
+
+            # Calculate generalized cost skims for supplementals
+            if my_project.tod in generalized_cost_tod:
+                for value in gc_skims.values():
+                    matrix_name = value + 'g'
+                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
+                    #open old skim and average
+                    if average_skims:
+                        matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+                    h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
+
+            for skim_matrix in results_dict.keys():
+                print(my_project.tod + "_" + skim_matrix)
+                h5_skims_file[h5_group].create_dataset(skim_matrix, data=results_dict[skim_matrix].astype('uint16'),compression='gzip')
+            # f.close()
+    else:
+        for x in range (0, len(my_skim_matrix_designation)):
+            for y in range (0, len(matrix_dict["Highway"])):
+                matrix_name = matrix_dict["Highway"][y]["Name"]
+                if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:    # TNC used HOV skims, no need to export
+                    matrix_name = matrix_name+my_skim_matrix_designation[x]
+                    if my_skim_matrix_designation[x] == 'c':
+                        matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 99999)
+                    elif my_skim_matrix_designation[x] == 'd':
+                        matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
+                    else:
+                        matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)  
+                    #open old skim and average
+                    if average_skims:
+                        matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+                    #delete old skim so new one can be written out to h5 container
+                    h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                    print(matrix_name+' was transferred to the HDF5 container.')
+
+        # Transit Skims
+        if my_project.tod in transit_skim_tod:
+            # assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
+            for path_mode in ['a','r','f','c','p']:    
+                for item in transit_submodes:
+                    matrix_name= 'ivtw' + path_mode + item
+                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
+                    h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                    print(matrix_name+' was transferred to the HDF5 container.')
+
+            dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
+
+            for matrix_name, description in dct_aggregate_transit_skim_names.items():
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
+                h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                print(matrix_name+' was transferred to the HDF5 container.')
+
+            # Perceived and actual bike skims
+            for matrix_name in ["mfbkpt", "mfbkat"]:        
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
                 #open old skim and average
                 if average_skims:
                     matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-                #delete old skim so new one can be written out to h5 container
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print(matrix_name+' was transferred to the HDF5 container.')
 
-    # Transit Skims
-    if my_project.tod in transit_skim_tod:
-        # assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
-        for path_mode in ['a','r','f','c','p']:    
-            for item in transit_submodes:
-                matrix_name= 'ivtw' + path_mode + item
+        # Basic Bike and walk time for single TOD
+        if my_project.tod in bike_walk_skim_tod:
+            for key in bike_walk_matrix_dict.keys():
+                matrix_name = bike_walk_matrix_dict[key]['time']
                 matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-                my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                #open old skim and average
+                if average_skims:
+                    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+                h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
                 print(matrix_name+' was transferred to the HDF5 container.')
 
-        dct_aggregate_transit_skim_names = json_to_dictionary('transit_skim_aggregate_matrix_names', 'transit')
+        # Transit Fare
+        fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
+        if my_project.tod in fare_matrices_tod:
+            for value in fare_dict[my_project.tod]['Names'].values():
+                matrix_name= 'mf' + value
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
+                #open old skim and average
+                if average_skims:
+                    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+                h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
+                print(matrix_name+' was transferred to the HDF5 container.')
 
-        for matrix_name, description in dct_aggregate_transit_skim_names.items():
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
+        if my_project.tod in generalized_cost_tod:
+            for value in gc_skims.values():
+                matrix_name = value + 'g'
+                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
+                #open old skim and average
+                if average_skims:
+                    matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
+                h5_skims_file[h5_group].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
+                print(matrix_name+' was transferred to the HDF5 container.')
 
-         # Perceived and actual bike skims
-        for matrix_name in ["mfbkpt", "mfbkat"]:        
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
-
-    # Basic Bike and walk time for single TOD
-    if my_project.tod in bike_walk_skim_tod:
-        for key in bike_walk_matrix_dict.keys():
-            matrix_name= bike_walk_matrix_dict[key]['time']
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100)
-            #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
-
-    
-
-
-    # Transit Fare
-    fare_dict = json_to_dictionary('transit_fare_dictionary', 'transit')
-    if my_project.tod in fare_matrices_tod:
-        for value in fare_dict[my_project.tod]['Names'].values():
-            matrix_name= 'mf' + value
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 100, 2000)
-            #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('uint16'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
-
-    if my_project.tod in generalized_cost_tod:
-        for value in gc_skims.values():
-            matrix_name = value + 'g'
-            matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_project.bank, 'uint16', 1, 2000)
-            #open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(np_old_matrices[matrix_name], matrix_value)
-            my_store["Skims"].create_dataset(matrix_name, data=matrix_value.astype('float32'),compression='gzip')
-            print(matrix_name+' was transferred to the HDF5 container.')
-
-    my_store.close()
+    h5_skims_file.close()
     end_export_hdf5 = time.time()
     print('It took', round((end_export_hdf5-start_export_hdf5)/60,2), ' minutes to export all skims to the HDF5 File.')
     text = 'It took ' + str(round((end_export_hdf5-start_export_hdf5)/60,2)) + ' minutes to import matrices to Emme.'
     logging.debug(text)
 
-def hdf5_trips_to_Emme(my_project, trip_set):
+def hdf5_trips_to_Emme(my_project):
 
     start_time = time.time()
 
@@ -626,7 +659,7 @@ def hdf5_trips_to_Emme(my_project, trip_set):
     # Create a dictionary lookup where key is the taz ID and value is its numpy index. 
     dictZoneLookup = dict((value,index) for index,value in enumerate(zones))
     # Create an index of trips for this TOD. This prevents iterating over the entire array (all trips).
-    tod_index = create_trip_tod_indices(my_project.tod, trip_set)
+    tod_index = create_trip_tod_indices(my_project.tod)
 
     # Read the Matrix File from the Dictionary File and Set Unique Matrix Names
     if activitysim:
@@ -645,7 +678,7 @@ def hdf5_trips_to_Emme(my_project, trip_set):
     deptm = np.asarray(trip_set[col_dict["deptm"]])[tod_index]
 
     # Until we get VOT assigned to activitysim, create an a fake version
-    trip_set['vot'] = 30.0
+    trip_set['vot'] = 20
     vot = np.asarray(trip_set["vot"])[tod_index]
 
     if not activitysim:
@@ -654,6 +687,8 @@ def hdf5_trips_to_Emme(my_project, trip_set):
         vot = np.asarray(trip_set["vot"])[tod_index]
         trexpfac = np.asarray(trip_set["trexpfac"])[tod_index]
     else:
+        # FIXME: get actually data from trip file with updates
+        trip_set['vot'] = 30.0
         trexpfac = np.ones(len(trip_set))[tod_index]
 
     # create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
@@ -665,7 +700,10 @@ def hdf5_trips_to_Emme(my_project, trip_set):
         
     # Load in supplemental trips
     # We're assuming all trips are only for income 2, toll classes
-    for matrix_name in ['sov_inc2', 'hov2_inc2', 'hov3_inc2','bike','walk', 'trnst','litrat','passenger_ferry','ferry','commuter_rail']:
+    mode_list = ['sov_inc2', 'hov2_inc2', 'hov3_inc2','bike','walk', 'trnst','litrat','passenger_ferry','ferry','commuter_rail']
+    if activitysim:
+        mode_list.remove('passenger_ferry')
+    for matrix_name in mode_list:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name : demand_matrix})
 
@@ -795,6 +833,9 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
         only on Income Class 2, so only these income class modes are modified here. '''
 
     tod = my_project.tod
+    if activitysim:
+        tod = asim_tod_lookup[tod]
+    
     # Create empty array to fill with trips
     demand_matrix = np.zeros((zonesDim,zonesDim), np.float16)
     hdf_file = h5py.File(os.path.join(supplemental_output_dir,tod + '.h5'), "r")
@@ -809,7 +850,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
 
     return demand_matrix
 
-def create_trip_tod_indices(tod, trip_set):
+def create_trip_tod_indices(tod):
     # Create an index for trips that belong to TOD (time of day)
     tod_dict = text_to_dictionary('time_of_day', 'lookup')
     uniqueTOD = set(tod_dict.values())
@@ -959,9 +1000,9 @@ def export_to_hdf5_pool(project_list):
     pool.map(start_export_to_hdf5, project_list[0:parallel_instances])
     pool.close()
 
-def start_export_to_hdf5(test):
+def start_export_to_hdf5(tod):
 
-    my_project = EmmeProject(test)
+    my_project = EmmeProject(tod)
     #do not average skims if using seed_trips because we are starting the first iteration
     if build_free_flow_skims:
         average_skims_to_hdf5_concurrent(my_project, False)
@@ -1022,33 +1063,60 @@ def feedback_check(emmebank_path_list):
      for emmebank_path in emmebank_path_list:
         my_bank =  _eb.Emmebank(emmebank_path)
         tod = my_bank.title
-        my_store=h5py.File('inputs/model/roster/' + tod + '.h5', "r+")
+        if activitysim:
+            my_store = h5py.File('outputs/activitysim/activitysim_skims_' + asim_tod_lookup[tod] + '.h5', "r+")
+        else:    
+            my_store = h5py.File('inputs/model/roster/' + tod + '.h5', "r+")
         #put current time skims in numpy:
         skims_dict = {}
 
-        for y in range (0, len(matrix_dict["Highway"])):
-           #trips
-            matrix_name= matrix_dict["Highway"][y]["Name"]
-            if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
-                
+        if activitysim:
+            df = pd.read_csv(r'inputs/model/skim_parameters/activitysim_skims.csv', index_col='activitysim').to_dict()
+            # df.index = df.index + "__" + asim_tod_lookup[tod]
+            for k, v in df['soundcast'].items():
+
+                # Load number of trips for this class
+                matrix_value = emmeMatrix_to_numpyMatrix(v, my_bank, 'float32', 1)
                 trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                
-                #new skims
-                matrix_name = matrix_name + 't'
-                matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
+
+                # Load time skims from Emme assignment
+                matrix_value = emmeMatrix_to_numpyMatrix(v+"t", my_bank, 'float32', 100)
                 new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
-                
-                #now old skims
-                old_skim = np.asmatrix(my_store['Skims'][matrix_name])
 
-                change_test=np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
+                # Load matrix values from past skims 
+                old_skim = np.asmatrix(my_store['Skims'][k+"__" + asim_tod_lookup[tod]])
 
-                text = tod + " " + str(change_test) + " " + matrix_name
+                change_test = np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
+
+                text = tod + " " + str(change_test) + " " +  k+"__" + asim_tod_lookup[tod]
                 logging.debug(text)
                 if change_test > STOP_THRESHOLD:
                     passed = False
                     break
+        else:
+            for y in range (0, len(matrix_dict["Highway"])):
+            #trips
+                matrix_name= matrix_dict["Highway"][y]["Name"]
+                if matrix_name not in ['tnc_inc1','tnc_inc2','tnc_inc3']:
+                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 1)
+                    
+                    trips = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+                    
+                    #new skims
+                    matrix_name = matrix_name + 't'
+                    matrix_value = emmeMatrix_to_numpyMatrix(matrix_name, my_bank, 'float32', 100)
+                    new_skim = np.where(matrix_value > np.iinfo('uint16').max, np.iinfo('uint16').max, matrix_value)
+                    
+                    #now old skims
+                    old_skim = np.asmatrix(my_store['Skims'][matrix_name])
+
+                    change_test = np.sum(np.multiply(np.absolute(new_skim-old_skim),trips))/np.sum(np.multiply(old_skim,trips))
+
+                    text = tod + " " + str(change_test) + " " + matrix_name
+                    logging.debug(text)
+                    if change_test > STOP_THRESHOLD:
+                        passed = False
+                        break
 
         my_bank.dispose()
      return passed
@@ -1256,7 +1324,6 @@ def calc_total_vehicles(my_project):
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
 
-
 def get_aadt(my_project):
     '''Calculate link level daily total vehicles/volume, store in a DataFrame'''
     
@@ -1287,17 +1354,16 @@ def get_aadt(my_project):
     
     return df
 
-def run_assignments_parallel_wrapped(project_name, trip_set):
+def run_assignments_parallel_wrapped(project_name):
     try:
-        pool_list = run_assignments_parallel(project_name, trip_set)
+        pool_list = run_assignments_parallel(project_name)
     except:
         print('%s: %s' % (project_name, traceback.format_exc()))
 
 
     return pool_list
 
-
-def run_assignments_parallel(project_name, trip_set):
+def run_assignments_parallel(project_name):
 
     start_of_run = time.time()
 
@@ -1310,7 +1376,7 @@ def run_assignments_parallel(project_name, trip_set):
     define_matrices(my_project)
 
     if not build_free_flow_skims:
-       hdf5_trips_to_Emme(my_project, trip_set)
+       hdf5_trips_to_Emme(my_project)
        matrix_controlled_rounding(my_project)
 
     populate_intrazonals(my_project)
@@ -1335,7 +1401,7 @@ def run_assignments_parallel(project_name, trip_set):
     # Load volume-delay functions (VDFs)
     vdf_initial(my_project)
 
-    # Run auto assignment and skimming
+    # # Run auto assignment and skimming
     traffic_assignment(my_project)
     attribute_based_skims(my_project, "Time")
 
@@ -1344,7 +1410,7 @@ def run_assignments_parallel(project_name, trip_set):
 
     # Skim for distance for a single time-of-day
     if my_project.tod in distance_skim_tod:
-      attribute_based_skims(my_project,"Distance")
+        attribute_based_skims(my_project,"Distance")
 
     # Generate toll skims for different user classes, and trucks
     for toll_class in ['@toll1', '@toll2', '@toll3', '@trkc2', '@trkc3']:
@@ -1352,7 +1418,7 @@ def run_assignments_parallel(project_name, trip_set):
     class_specific_volumes(my_project)
 
     # Export link volumes to calculate daily network flows (AADT for bike assignment)
-        # Create extra attributes to store link volume data
+    # Create extra attributes to store link volume data
     for name, desc in extra_attributes_dict.items():
         my_project.create_extra_attribute('LINK', name, desc, 'True')
         
@@ -1386,6 +1452,22 @@ def run_assignments_parallel(project_name, trip_set):
 
     return link_df
 
+if activitysim:
+    global trip_set   # FIXME: pass this to multiprocess instead of using global? 
+    trip_set = pd.read_csv(r'outputs/activitysim/final_trips.csv')
+    # Get TAZs
+    # FIXME: add this as an input database file? or just have it available after activitysim run
+    # maz_taz = pd.read_csv(r'R:\e2projects_two\activitysim\inputs\data\data_full\maz.csv')
+    maz_taz = pd.read_csv(r'outputs/activitysim/maz.csv')
+    trip_set = trip_set.merge(maz_taz, how='left', left_on='origin', right_on='MAZ')
+    trip_set.rename(columns={'TAZ': 'otaz'}, inplace=True)
+    trip_set.drop('MAZ', axis=1, inplace=True)
+    trip_set = trip_set.merge(maz_taz, how='left', left_on='destination', right_on='MAZ')
+    trip_set.rename(columns={'TAZ': 'dtaz'}, inplace=True)
+else:
+    my_store = h5py.File(hdf5_file_path, "r+")
+    trip_set = my_store["Trip"]
+
 def main():
     # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
     for tod in tods:
@@ -1393,37 +1475,23 @@ def main():
         if os.path.exists(strat_dir):
             shutil.rmtree(strat_dir)
 
-
-    # Process activitysim data
-    
-    if activitysim:
-        trip_set = pd.read_csv(r'C:\Workspace\asim_run_inputs\output_test\final_trips.csv')
-        # Get TAZs
-        maz_taz = pd.read_csv(r'R:\e2projects_two\activitysim\inputs\data\data_full\maz.csv')
-        trip_set = trip_set.merge(maz_taz, how='left', left_on='origin', right_on='MAZ')
-        trip_set.rename(columns={'TAZ': 'otaz'}, inplace=True)
-        trip_set.drop('MAZ', axis=1, inplace=True)
-        trip_set = trip_set.merge(maz_taz, how='left', left_on='destination', right_on='MAZ')
-        trip_set.rename(columns={'TAZ': 'dtaz'}, inplace=True)
-        
-    else:
-        my_store = h5py.File(hdf5_file_path, "r+")
-        trip_set = my_store["Trip"]
-        
-
     # Start Daysim-Emme Equilibration
     # This code is organized around the time periods for which we run assignments, 
     # often represented by the variable "tod". This variable will always
     # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     start_of_run = time.time()
     pool_list = []
-    # for i in range (0, 12, parallel_instances):
-    #     l = project_list[i:i+parallel_instances]
-    #     pool_list.append(start_pool(l))
-    run_assignments_parallel('projects/8to9/8to9.emp', trip_set)
+    if activitysim:
+        for i in range (0, len(activitysim_project_list), parallel_instances):
+            l = activitysim_project_list[i:i+parallel_instances]
+            pool_list.append(start_pool(l))
+    else:
+        for i in range (0, len(project_list), parallel_instances):
+            l = project_list[i:i+parallel_instances]
+            pool_list.append(start_pool(l))
+    # run_assignments_parallel('projects/7to8/7to8.emp')
 
-    ### calculate link daily volumes for use in bike model
-    
+    # # calculate link daily volumes for use in bike model
     daily_link_df = pd.DataFrame()
     for _df in pool_list[0]:
         daily_link_df = daily_link_df.append(_df)
@@ -1431,14 +1499,17 @@ def main():
     daily_link_df = grouped.agg({'@tveh':sum, 'length':min, 'modes':min})
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv(r'outputs\bike\daily_link_volume.csv')
-    start_transit_pool(project_list)
-    #run_transit(r'projects/7to8/7to8.emp')
-    
-    #daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
-    start_bike_pool(project_list, daily_link_df)
+    daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
+    if activitysim:
+        start_transit_pool(activitysim_project_list)
+        start_bike_pool(activitysim_project_list, daily_link_df)
+    else:
+        start_transit_pool(project_list)
+        start_bike_pool(project_list, daily_link_df)
+    # run_transit(r'projects/7to8/7to8.emp')
 
     f = open('outputs/logs/converge.txt', 'w')
-    ##if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
+    # if using seed_trips, we are starting the first iteration and do not want to compare skims from another run. 
     if build_free_flow_skims == False:
         if feedback_check(feedback_list) == False:
             go = 'continue'
@@ -1449,11 +1520,17 @@ def main():
     else:
         go = 'continue'
         json.dump(go, f)
-    # export skims even if skims converged
-    for i in range (0, 12, parallel_instances):
-        l = project_list[i:i+parallel_instances]
-        export_to_hdf5_pool(l)
-    #average_skims_to_hdf5_concurrent(EmmeProject('projects/7to8/7to8.emp'), False)
+
+    if activitysim:
+        for i in range (0, len(activitysim_project_list), parallel_instances):
+            l = activitysim_project_list[i:i+parallel_instances]
+            export_to_hdf5_pool(l)
+    else:
+        for i in range (0, len(project_list), parallel_instances):
+            l = project_list[i:i+parallel_instances]
+            export_to_hdf5_pool(l)
+
+    # average_skims_to_hdf5_concurrent(EmmeProject(r'projects\7to8\7to8.emp'), False)
     f.close()
     end_of_run = time.time()
     text = "Emme Skim Creation and Export to HDF5 completed normally"

@@ -24,22 +24,40 @@ def load_skim_data():
     """Load cost, time, and distance skim data required for mode choice models. """
     skim_dict = {}
 
+    asim_daysim_lookup = {'cost': 'TOLL_VTOLL',
+                          'time': '_TIME',
+                          'distance': '_DIST'}
+
     # Skim for cost, time, and distance for all auto modes
     for skim_type in ['cost', 'time', 'distance']:
         skim_dict[skim_type] = {}
         for mode in ['sov', 'hov2', 'hov3']:
-            # For auto skims, use the average of AM and PM peak periods
             skim_name = mode+'_inc2'+skim_type[0]
-            am_skim = load_skims(r'inputs\model\roster\7to8.h5', 
-                    table=skim_name, divide_by_100=True)
-            pm_skim = load_skims(r'inputs\model\roster\17to18.h5', 
-                    table=skim_name, divide_by_100=True)
+            if activitysim:
+                skim_name = mode.upper() + asim_daysim_lookup[skim_type] + "_M__AM" 
+                am_skim = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', 
+                        table=skim_name, divide_by_100=True)
+                skim_name = mode.upper() + asim_daysim_lookup[skim_type] + "_M__PM" 
+                pm_skim = load_skims(r'outputs\activitysim\activitysim_skims_PM.h5', 
+                        table=skim_name, divide_by_100=True)
+            else:
+                skim_name = mode+'_inc2'+skim_type[0]
+                am_skim = load_skims(r'inputs\model\roster\7to8.h5', 
+                        table=skim_name, divide_by_100=True)
+                pm_skim = load_skims(r'inputs\model\roster\17to18.h5', 
+                        table=skim_name, divide_by_100=True)
+            
+            # For auto skims, use the average of AM and PM peak periods
             skim_dict[skim_type][mode] = (am_skim + pm_skim) * .5
 
         # Get walk time skims
         if skim_type == 'time':
             for mode in ['walk', 'bike']:
-                skim_dict['time'][mode] = load_skims(r'inputs\model\roster\5to6.h5', table=mode+'t', divide_by_100=True)
+                if activitysim:
+                    skim_name = mode.upper()+skim_type.upper()
+                    skim_dict['time'][mode] = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', table='DIST'+mode.upper(), divide_by_100=True)
+                else:
+                    skim_dict['time'][mode] = load_skims(r'inputs\model\roster\5to6.h5', table=mode+'t', divide_by_100=True)
 
     # Skim for transit
     skim_list = ['ivtw','iwtw','ndbw','xfrw','auxw']
@@ -50,13 +68,26 @@ def load_skim_data():
     for skim in skim_list:
         for submode in submode_list:
             skim_name = skim+submode
-            am_skim = load_skims(r'inputs\model\roster\7to8.h5', table=skim_name, 
-                             divide_by_100=True) 
-            pm_skim = load_skims(r'inputs\model\roster\17to18.h5', table=skim_name, 
-                             divide_by_100=True)
-            skim_dict['transit'][skim_name] = (am_skim + pm_skim) *.5
+            if activitysim:
+                if submode in asim_mode_dict.keys():
+                    skim_name = "WLK_" + asim_mode_dict[submode] + "_WLK_" + asim_skim_dict[skim]
+                    am_skim = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', 
+                            table=skim_name + "__AM" , divide_by_100=True)
+                    pm_skim = load_skims(r'outputs\activitysim\activitysim_skims_PM.h5', 
+                            table=skim_name + "__PM" , divide_by_100=True)
+                    skim_dict['transit'][skim_name] = (am_skim + pm_skim) *.5
+            else:
+                am_skim = load_skims(r'outputs\activitysim\activitysim_skims_PM.h5', 
+                        table=skim_name, divide_by_100=True)
+                pm_skim = load_skims(r'inputs\model\roster\17to18.h5', 
+                        table=skim_name, divide_by_100=True)
+                skim_dict['transit'][skim_name] = (am_skim + pm_skim) *.5
     for skim in fare_list:
-        skim_dict['transit'][skim] = load_skims(r'inputs\model\roster\6to7.h5', table=skim, divide_by_100=True)
+        if activitysim:
+            skim_name = "WLK_LOC_WLK_FAR__AM"
+            skim_dict['time'][mode] = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', table=skim_name, divide_by_100=True)
+        else:
+            skim_dict['transit'][skim] = load_skims(r'inputs\model\roster\6to7.h5', table=skim, divide_by_100=True)
 
     return skim_dict
 
@@ -116,7 +147,7 @@ def clip_matrix(matrix, min_index, max_index):
                                
     return trimmed_matrix
 
-def calculate_mode_utilties(trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict):
+def calculate_mode_utilities(trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict):
 
     utility_matrices = {}
     
@@ -154,16 +185,30 @@ def calculate_mode_utilties(trip_purpose, skim_dict, auto_cost_dict, params_df, 
 
     # Calculate Walk to Transit Utility for all submodes
     # Keep only the best
+
+
     
     for submode, matrix_name in submode_dict.items():
-        utility_matrices[matrix_name] = np.exp(get_param(params_df, 'ascctw') + \
-        get_param(params_df, 'trwivt') * skim_dict['transit']['ivtw'+submode] + \
-        get_param(params_df, 'trwovt') * (skim_dict['transit']['auxwa'] + \
-        skim_dict['transit']['iwtw'+submode] + \
-        skim_dict['transit']['xfrw'+submode]) + \
-        get_param(params_df, 'trwcos') * skim_dict['transit']['mfafarps'])
-
-
+        if activitysim:
+            if submode in asim_mode_dict.keys():
+                utility_matrices[matrix_name] = np.exp(get_param(params_df, 'ascctw') + \
+                    get_param(params_df, 'trwivt') * \
+                    skim_dict['transit']['WLK_'+asim_mode_dict[submode]+'_WLK_'+asim_skim_dict['ivtw']] + \
+                    get_param(params_df, 'trwovt') *  
+                        (skim_dict['transit']['WLK_'+asim_mode_dict[submode]+'_WLK_'+asim_skim_dict['auxw']] + \
+                        skim_dict['transit']['WLK_'+asim_mode_dict[submode]+'_WLK_'+asim_skim_dict['iwtw']] + \
+                        skim_dict['transit']['WLK_'+asim_mode_dict[submode]+'_WLK_'+asim_skim_dict['xfrw']]) + \
+                    get_param(params_df, 'trwcos') * skim_dict['transit']['WLK_'+asim_mode_dict[submode]+'_WLK_'+asim_skim_dict['xfrw']]
+                    )
+        else:
+            utility_matrices[matrix_name] = np.exp(get_param(params_df, 'ascctw') + \
+            get_param(params_df, 'trwivt') * skim_dict['transit']['ivtw'+submode] + \
+            get_param(params_df, 'trwovt') * (skim_dict['transit']['auxwa'] + \
+            skim_dict['transit']['iwtw'+submode] + \
+            skim_dict['transit']['xfrw'+submode]) + \
+            get_param(params_df, 'trwcos') * skim_dict['transit']['mfafarps'])
+    if activitysim:
+        submode_dict.pop('p')
     for submode1 in submode_dict.values():
         for submode2 in submode_dict.values():
             if submode2 != submode1:
@@ -190,7 +235,7 @@ def build_df(h5file, h5table, cols):
 
     return pd.DataFrame(data)
 
-def calculate_trips(daysim, parcel, control_total):
+def calculate_trips(hh_df, parcel, control_total):
     """Calculate total daily trips to Sea-Tac based on houeshold size and employment. 
        Trips to the airport are estimated using the following formula, based on surveys 
        from New Jersey and North Carolina, and as applied in Minneapolis 
@@ -203,11 +248,15 @@ def calculate_trips(daysim, parcel, control_total):
 
     airport_trip_rate_pop = 0.02112
     airport_trip_rate_emp = 0.01486
+    
     # Zonal Population
-    cols = ['hhno','hhsize','hhtaz','hhexpfac']
-    daysim_df = build_df(h5file=daysim, h5table='Household', cols=cols)
-    taz_df = pd.DataFrame(daysim_df.groupby('hhtaz').sum()['hhsize']).reset_index()
-    taz_df.rename(columns={'hhtaz': 'TAZ'}, inplace=True)
+    if activitysim:
+        taz_df = hh_df.groupby('TAZ').sum()[['hhsize']].reset_index()
+    else:
+        cols = ['hhno','hhsize','hhtaz','hhexpfac']
+        hh_df = build_df(h5file=hh_df, h5table='Household', cols=cols)
+        taz_df = pd.DataFrame(hh_df.groupby('hhtaz').sum()['hhsize']).reset_index()
+        taz_df.rename(columns={'hhtaz': 'TAZ'}, inplace=True)
     # Multiply zonal population by the trip rate
     taz_df['airport_trips_pop'] = taz_df['hhsize']*airport_trip_rate_pop
 
@@ -276,13 +325,13 @@ def split_tod_internal(total_trips_by_mode, tod_factors_df):
     """Split trips into time of a day: apply time of the day factors to internal trips"""
 
     matrix_dict = {}
-    #for tod, dict in test.iteritems():
+    
     for tod in tod_factors_df.time_of_day.unique():
         #open work externals:
         tod_dict = {}
         tod_df = tod_factors_df[tod_factors_df['time_of_day'] == tod]
 
-        ixxi_work_store = h5py.File('outputs/supplemental/external_work_' + tod + '.h5', 'r')
+        ixxi_work_store = h5py.File('outputs/supplemental/external_work_' + tod + '.h5', 'a')
 
         # Time of day distributions to use foreach mode
         tod_dict = {'sov': 'sov',
@@ -295,6 +344,9 @@ def split_tod_internal(total_trips_by_mode, tod_factors_df):
                     'commuter_rail': 'commuter_rail',
                     'ferry': 'ferry',
                     'passenger_ferry': 'passenger_ferry'}
+
+        if activitysim:
+            tod_dict.pop('passenger_ferry')
 
         for mode, tod_type in tod_dict.items():
             if mode in ['sov','hov2','hov3']:
@@ -359,8 +411,19 @@ def main():
 
     conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
     parameters_df = pd.read_sql('SELECT * FROM mode_choice_parameters', con=conn)
+
     #FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
     tod_factors_df = pd.read_sql('SELECT * FROM time_of_day_factors', con=conn)
+    # If activitysim, regroup time periods
+    if activitysim:
+        asim_factors_df = pd.DataFrame()
+        for mode in tod_factors_df['mode'].unique():
+            df = tod_factors_df[tod_factors_df['mode'] == 'sov']
+            df['time_of_day'] = df['time_of_day'].map(asim_tod_lookup)
+            df = df.groupby('time_of_day').sum()[['value']].reset_index()
+            df['mode'] = mode
+            asim_factors_df = asim_factors_df.append(df)
+        tod_factors_df = asim_factors_df.copy()
 
     # Calculate mode shares for Home-Based Other purposes 
     # Work trips from externals are grown from observed data
@@ -372,16 +435,21 @@ def main():
 
     # Calculate auto costs from parking, operating, and cost skims
     auto_cost_dict = calculate_auto_cost(trip_purpose, skim_dict, parking_costs, parameters_df)
-    mode_utilities_dict = calculate_mode_utilties(trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict)
+    mode_utilities_dict = calculate_mode_utilities(trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict)
     mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
     mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir)
 
     # Create airport trip tables
-    daysim = h5py.File('inputs/scenario/landuse/hh_and_persons.h5','r+')
+    if activitysim:
+        syn_hh = pd.read_csv(r'outputs/activitysim/final_households.csv')
+        maz_taz = pd.read_csv(r'outputs/activitysim/maz.csv')
+        syn_hh = syn_hh.merge(maz_taz, how='left', left_on='home_zone_id', right_on='MAZ')
+    else:
+        syn_hh = h5py.File('inputs/scenario/landuse/hh_and_persons.h5','r+')
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql('SELECT * FROM seatac WHERE year=='+str(model_year), con=conn)['enplanements'].values[0]
-    airport_trips = calculate_trips(daysim, parcel, airport_control_total)
+    airport_trips = calculate_trips(syn_hh, parcel, airport_control_total)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips['TAZ'].values]
     destination_index = zone_lookup_dict[SEATAC]

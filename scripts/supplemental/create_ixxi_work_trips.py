@@ -19,8 +19,18 @@ output_dir = r'outputs/supplemental/'
 # FIXME:
 ############
 # Where do these come from? Should be calculated or stored in DB
-tod_factors = {'5to6' : .04, '6to7' : .075, '7to8' : 0.115, '8to9' : 0.091, '9to10' : 0.051, '10to14' : 0.179, '14to15' : 0.056, '15to16' : 0.071, '16to17' : 0.106, '17to18' : 0.101, 
-        '18to20' : 0.06, '20to5' : 0.055}
+tod_factors = {'5to6' : .04, 
+               '6to7' : .075, 
+               '7to8' : 0.115, 
+               '8to9' : 0.091, 
+               '9to10' : 0.051, 
+               '10to14' : 0.179, 
+               '14to15' : 0.056, 
+               '15to16' : 0.071, 
+               '16to17' : 0.106, 
+               '17to18' : 0.101, 
+               '18to20' : 0.06, 
+               '20to5' : 0.055}
 
 # FIXME: put this somewhere else, DB?
 jblm_taz_list = [3061, 3070, 3346, 3348, 3349, 3350, 3351, 3352, 3353, 3354, 3355, 3356]
@@ -70,7 +80,11 @@ def main():
 
     parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+model_year, con=conn)
     parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
-    parcels_urbansim.index = parcels_urbansim['parcelid']
+    if 'parcelid' in parcels_urbansim.columns:
+        parcels_urbansim.index = parcels_urbansim['parcelid']
+    else:
+        parcels_urbansim.index = parcels_urbansim['PARCELID']
+
     # FIXME: uniform upper/lower
     # Convert columns to upper case for now
     parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]
@@ -119,8 +133,6 @@ def main():
                                          (base_year_scaling['field'] == 'emptot_p')]['value'].values[0]
     model_year_totemp = parcels_urbansim['EMPTOT_P'].sum()
     emp_scaling = model_year_totemp/base_year_totemp
-    #work[ixxi_cols] = work[ixxi_cols]*emp_scaling
-    #externals_dont_grow=[3733]
     for col in work[ixxi_cols]:
         work[col] = np.where((work['PSRC_TAZ'].isin(EXTERNALS_DONT_GROW))|(work['External_Station'].isin(EXTERNALS_DONT_GROW)), work[col], work[col]*emp_scaling)
 
@@ -157,10 +169,18 @@ def main():
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    for tod, factor in tod_factors.items():
-        my_store = h5py.File(output_dir + '/' + 'external_work_' + tod + '.h5', "w")
+    tod_factors_df = pd.DataFrame(tod_factors.values(), index=tod_factors.keys()).reset_index()
+    tod_factors_df.rename(columns={'index':'tod', 0: 'factor'}, inplace=True)
+    # Reclassify factors for activitysim
+    if activitysim:
+        tod_factors_df['asim_tod'] = tod_factors_df['tod'].map(asim_tod_lookup)
+        tod_factors_df = tod_factors_df.groupby('asim_tod').sum()[['factor']].reset_index()
+        tod_factors_df.rename(columns={'asim_tod': 'tod'}, inplace=True)
+
+    for index, row in tod_factors_df.iterrows():
+        my_store = h5py.File(output_dir + '/' + 'external_work_' + row.tod + '.h5', "w")
         for mode, matrix in matrix_dict.items():
-            matrix = matrix * factor
+            matrix = matrix * row.factor
             my_store.create_dataset(str(mode), data=matrix)
         my_store.close()	
 

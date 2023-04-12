@@ -12,21 +12,21 @@ soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 ##############################
 # Initial Setup
 ##############################
-run_accessibility_calcs = True
-run_setup_emme_project_folders = True
-run_setup_emme_bank_folders = True
-run_copy_scenario_inputs = True
-run_import_networks = True
+run_accessibility_calcs = False
+run_setup_emme_project_folders = False
+run_setup_emme_bank_folders = False
+run_copy_scenario_inputs = False
+run_import_networks = False
 
 ##############################
 # Model Procedures
 ##############################
-run_skims_and_paths_free_flow = True
+run_skims_and_paths_free_flow = False
 run_skims_and_paths = True
 run_truck_model = True
 run_supplemental_trips = True
-run_daysim = True
-run_summaries = True
+run_daysim = False
+run_summaries = False
 
 ##############################
 # Modes and Path Types
@@ -48,6 +48,7 @@ distance_rate_dict = {'md': 8.5, 'ev': 8.5, 'am': 13.5, 'ni': 8.5, 'pm': 13.5}
 ##############################
 # Other Controls
 ##############################
+activitysim = True
 run_integrated = False
 should_build_shadow_price = False
 delete_banks = False

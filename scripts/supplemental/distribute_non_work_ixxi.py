@@ -164,10 +164,18 @@ def main():
     dictZoneLookup = dict((value,index) for index,value in enumerate(my_project.current_scenario.zone_numbers))
     
     # Load skim data
-    am_cost_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc2g')
-    am_dist_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1d', divide_by_100=True)
-    pm_cost_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='sov_inc2g')
-    pm_dist_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='sov_inc1d', divide_by_100=True)
+    if activitysim:
+        # Generalized Cost
+        am_cost_skim = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', mode_name='sov_inc2g')
+        am_dist_skim = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', mode_name='SOV_DIST_M__AM', divide_by_100=True)
+        pm_cost_skim = load_skims(r'outputs\activitysim\activitysim_skims_PM.h5', mode_name='sov_inc2g')
+        # Note there is only one time period with distance skims
+        pm_dist_skim = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', mode_name='SOV_DIST_M__AM', divide_by_100=True)
+    else:
+        am_cost_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc2g')
+        am_dist_skim = load_skims('inputs/model/roster/7to8.h5', mode_name='sov_inc1d', divide_by_100=True)
+        pm_cost_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='sov_inc2g')
+        pm_dist_skim = load_skims('inputs/model/roster/17to18.h5', mode_name='sov_inc1d', divide_by_100=True)
     # Average skims between AM and PM periods
     cost_skim = (am_cost_skim + pm_cost_skim) * .5
     dist_skim = (am_cost_skim + pm_dist_skim) * .5

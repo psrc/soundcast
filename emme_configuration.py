@@ -5,15 +5,17 @@
 ################################### 
 log_file_name = 'outputs/logs/skims_log.txt'
 STOP_THRESHOLD = 0.026    # Global convergence criteria
-parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
+parallel_instances = 12   # Number of simultaneous parallel processes.
+if activitysim:
+    parallel_instances = 5
 max_iter = 50             # Max number of iterations for assignment
 relative_gap = 0.0001      # Assignment Convergence Criteria
 best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
 normalized_gap = 0.00     # See above
 
-pop_sample = [1, 1, 1, 1, 1, 1, 1, 1]
+pop_sample = [1]
 # Assignment Iterations (must be same length as pop_sample:
-max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100]
+max_iterations_list = [100]
 min_pop_sample_convergence_test = 10
 shadow_work = [2, 1, 1, 1]
 shadow_con = 30 #%RMSE for shadow pricing to consider being converged
@@ -82,9 +84,42 @@ hov3_occupancy = 3.2
 
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
+asim_tod_lookup = {
+    '5to6': 'EA',
+    '6to7': 'AM',
+    '7to8': 'AM',
+    '8to9': 'AM', 
+    '9to10': 'AM',
+    '10to14': 'MD',
+    '14to15': 'MD',
+    '15to16': 'PM',
+    '16to17': 'PM',
+    '17to18': 'PM',
+    '18to20': 'EV',
+    '20to5': 'EV'
+}
+
+asim_mode_dict = {
+'r': 'LR',
+'c': 'COM',
+'f': 'FRY',
+'a': 'TRN'
+}
+
+asim_skim_dict = {
+    "ivtw": "TOTIVT",  # In-Vehicle Time
+    "iwtw": "IWAIT",  # Initial Wait Time
+    "ndbw": "BOARDS",  # Boardings
+    "xfrw": "XWAIT",  # Transfers
+    "auxw": "WAUX",  # Walk Access Time
+    "mfafarps": "FAR"
+}
+
 # Time of day periods
 tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
 project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
+asim_tod_list = ['7to8','10to14','17to18','18to20','5to6']
+activitysim_project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in asim_tod_list]
 
 emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
 
@@ -99,7 +134,7 @@ gc_skims = {'medium_trucks' : 'metrk', 'heavy_trucks' : 'hvtrk', 'sov' : 'sov_in
 truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 
 # Bike/Walk Skims
-bike_walk_skim_tod = ['5to6']
+bike_walk_skim_tod = ['7to8']
 
 # Transit Inputs:
 transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
@@ -119,11 +154,18 @@ transit_tod = {'5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
                '15to16' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
                '16to17' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
                '17to18' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
-               '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}           
+               '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}      
+
+activitysim_transit_tod = {
+              '5to6' : {'4k_tp' : 'am', 'num_of_hours' : 1},
+              '7to8' :  {'4k_tp' : 'am', 'num_of_hours' : 1}, 
+              '10to14' : {'4k_tp' : 'md', 'num_of_hours' : 4}, 
+              '17to18' : {'4k_tp' : 'pm', 'num_of_hours' : 1},
+              '18to20' : {'4k_tp' : 'ev', 'num_of_hours' : 2}}           
 
 # Transit Fare:
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
-fare_matrices_tod = ['6to7', '9to10']
+fare_matrices_tod = ['7to8', '10to14']
 
 # Intrazonals
 intrazonal_dict = {'distance' : 'izdist', 'time auto' : 'izatim', 'time bike' : 'izbtim', 'time walk' : 'izwtim'}
