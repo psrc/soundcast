@@ -5,8 +5,11 @@ import h5py
 from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
+
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
@@ -198,19 +201,19 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     # Calculate Drive Alone Utility
     utility_matrices['euda'] = np.exp(get_param(params_df, 'autivt') * auto_skim_dict['dabtm'] + \
         get_param(params_df, 'autcos') * auto_cost_dict['dabct'])
-    utility_matrices['euda'] = clip_matrix(utility_matrices['euda'], 0, zone_lookup_dict[LOW_PNR])
+    utility_matrices['euda'] = clip_matrix(utility_matrices['euda'], 0, zone_lookup_dict[emme_config['LOW_PNR']])
     
     # Calculate Shared Ride 2 utility
     utility_matrices['eus2'] = np.exp(get_param(params_df, 'asccs2') + \
         get_param(params_df, 'autivt') * auto_skim_dict['s2btm'] + \
         get_param(params_df, 'autcos') * auto_cost_dict['s2bct'])
-    utility_matrices['eus2'] = clip_matrix(utility_matrices['eus2'], 0, zone_lookup_dict[LOW_PNR])
+    utility_matrices['eus2'] = clip_matrix(utility_matrices['eus2'], 0, zone_lookup_dict[emme_config['LOW_PNR']])
 
     # Calculate Shared Ride 3+ Utility
     utility_matrices['eus3'] = np.exp(get_param(params_df, 'asccs3') + \
        get_param(params_df, 'autivt') * auto_skim_dict['s3btm'] + \
        get_param(params_df, 'autcos') * auto_cost_dict['s3bct'])
-    utility_matrices['eus3'] = clip_matrix(utility_matrices['eus3'], 0, zone_lookup_dict[LOW_PNR])
+    utility_matrices['eus3'] = clip_matrix(utility_matrices['eus3'], 0, zone_lookup_dict[emme_config['LOW_PNR']])
 
     # Calculate Walk to Transit Utility
     ###
@@ -222,7 +225,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
         transit_skim_dict["iwtwa"] + \
         transit_skim_dict['xfrwa']) + \
         get_param(params_df, 'trwcos') * transit_skim_dict['farwa'])
-    utility_matrices['eutw'] = clip_matrix(utility_matrices['eutw'], 0, zone_lookup_dict[MIN_EXTERNAL])
+    utility_matrices['eutw'] = clip_matrix(utility_matrices['eutw'], 0, zone_lookup_dict[emme_config['MIN_EXTERNAL']])
 
     # Calculate Walk to Light Rail Utility
         ###
@@ -234,7 +237,7 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
         transit_skim_dict["iwtwr"] + \
         transit_skim_dict['xfrwr']) + \
         get_param(params_df, 'trwcos') * transit_skim_dict['farwa'])
-    utility_matrices['eurw'] = clip_matrix(utility_matrices['eurw'], 0, zone_lookup_dict[MIN_EXTERNAL])
+    utility_matrices['eurw'] = clip_matrix(utility_matrices['eurw'], 0, zone_lookup_dict[emme_config['MIN_EXTERNAL']])
 
     # keep best utility between regular transit and light rail. Give to light rail if there is a tie. 
     utility_matrices['eutw'][utility_matrices['eurw'] >= utility_matrices['eutw']] = 0
@@ -243,12 +246,12 @@ def calculate_mode_utilties(trip_purpose, auto_skim_dict, walk_bike_skim_dict, t
     # Calculate Walk Utility
     utility_matrices['euwk'] = np.exp(get_param(params_df, 'asccwk') + \
        get_param(params_df, 'walktm') * walk_bike_skim_dict['walkt'])
-    utility_matrices['euwk'] = clip_matrix(utility_matrices['euwk'], 0, zone_lookup_dict[MIN_EXTERNAL])
+    utility_matrices['euwk'] = clip_matrix(utility_matrices['euwk'], 0, zone_lookup_dict[emme_config['MIN_EXTERNAL']])
     
     # Calculate Bike Utility
     utility_matrices['eubk'] = np.exp(get_param(params_df, 'asccbk') + \
        get_param(params_df, 'biketm') * walk_bike_skim_dict['biket'])
-    utility_matrices['eubk'] = clip_matrix(utility_matrices['eubk'], 0, zone_lookup_dict[MIN_EXTERNAL])
+    utility_matrices['eubk'] = clip_matrix(utility_matrices['eubk'], 0, zone_lookup_dict[emme_config['MIN_EXTERNAL']])
 
     return utility_matrices
         

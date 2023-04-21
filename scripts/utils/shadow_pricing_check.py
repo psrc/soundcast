@@ -19,7 +19,9 @@ import os.path
 import sys
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
-from input_configuration import *
+# from input_configuration import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 def get_percent_rmse(urbansim_file, daysim_file, guide_file):
     urbansim_data = pd.io.parsers.read_table(urbansim_file, sep = ' ') #Read in UrbanSim data

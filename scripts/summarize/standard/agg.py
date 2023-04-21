@@ -10,8 +10,10 @@ sys.path.append(os.getcwd())
 import re
 import math
 from collections import OrderedDict
-from input_configuration import base_year
+# from input_configuration import base_year
 import time
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 # Define relationships between daysim files
 daysim_merge_fields = {'Trip': 
@@ -140,7 +142,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
 
     geog_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'parcel_geog'][['right_column','right_index']].values))
     # Add geographic lookups at parcel level; only load relevant columns
-    parcel_geog = pd.read_sql_table('parcel_'+base_year+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db',
+    parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db',
         columns=geog_cols)
     buffered_parcels_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'buffered_parcels'][['right_column','right_index']]))
     buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), delim_whitespace=True,

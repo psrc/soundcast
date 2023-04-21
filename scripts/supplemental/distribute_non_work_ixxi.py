@@ -10,8 +10,10 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     ''' Loads H5 skim matrix for specified mode. '''
@@ -27,10 +29,10 @@ def calc_fric_fac(cost_skim, dist_skim, _coeff_df):
     ''' Calculate friction factors for all trip purposes '''
     friction_fac_dic = {}
     for index, row in _coeff_df.iterrows():
-        friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * autoop * avotda)))
+        friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * emme_config['autoop'] * emme_config['avotda'])))
         ## Set external zones to zero to prevent external-external trips
-        friction_fac_dic[row['purpose']][MIN_EXTERNAL:] = 0
-        friction_fac_dic[row['purpose']][:,[x for x in range(MIN_EXTERNAL, len(cost_skim))]] = 0
+        friction_fac_dic[row['purpose']][emme_config['MIN_EXTERNAL']:] = 0
+        friction_fac_dic[row['purpose']][:,[x for x in range(emme_config['MIN_EXTERNAL'], len(cost_skim))]] = 0
 
     return friction_fac_dic
 
@@ -90,15 +92,15 @@ def balance_matrices(trip_purps, my_project):
     for purpose in trip_purps:
         # For friction factors, make sure 0s in Externals are actually 0 and not fractional to avoid intrazonal trips
         my_project.matrix_calculator(result = 'mf' + purpose + 'fri', expression = '0', 
-                                 constraint_by_zone_destinations = str(MIN_EXTERNAL) + '-' + str(MAX_EXTERNAL), 
-                                 constraint_by_zone_origins = str(MIN_EXTERNAL) + '-' + str(MAX_EXTERNAL))
+                                 constraint_by_zone_destinations = str(emme_config['MIN_EXTERNAL']) + '-' + str(emme_config['MAX_EXTERNAL']),
+                                 constraint_by_zone_origins = str(emme_config['MIN_EXTERNAL']) + '-' + str(emme_config['MAX_EXTERNAL']))
         print("Balancing non-work external trips, for purpose: " + str(purpose))
         my_project.matrix_balancing(results_od_balanced_values = 'mf' + purpose + 'dis', 
                                     od_values_to_balance = 'mf' + purpose + 'fri', 
                                     origin_totals = 'mo' + purpose + 'pro', 
                                     destination_totals = 'md' + purpose + 'att', 
-                                    constraint_by_zone_destinations = '1-' + str(MAX_EXTERNAL), 
-                                    constraint_by_zone_origins = '1-' + str(MAX_EXTERNAL))
+                                    constraint_by_zone_destinations = '1-' + str(emme_config['MAX_EXTERNAL']),
+                                    constraint_by_zone_origins = '1-' + str(emme_config['MAX_EXTERNAL']))
 
 def calculate_daily_trips_externals(trip_purps, my_project):
     """ Transpose matrices to get return trips (internal-external -> external-internal) """
@@ -138,8 +140,8 @@ def emme_matrix_to_np(trip_purp_list, my_project):
         filtered = np.zeros_like(emme_data)
 
         # Add only external rows and columns from emme data
-        filtered[HIGH_TAZ:,:] = emme_data[HIGH_TAZ:,:]
-        filtered[:,HIGH_TAZ:] = emme_data[:,HIGH_TAZ:]
+        filtered[emme_config['HIGH_TAZ']:,:] = emme_data[emme_config['HIGH_TAZ']:,:]
+        filtered[:,emme_config['HIGH_TAZ']:] = emme_data[:,emme_config['HIGH_TAZ']:]
         trips_by_purpose[purpose] = filtered
 
     return trips_by_purpose
@@ -147,7 +149,7 @@ def emme_matrix_to_np(trip_purp_list, my_project):
 def main():
 
     # Load the trip productions and attractions
-    trip_table = pd.read_csv(trip_table_loc, index_col="taz")  # total 4K Ps and As by trip purpose
+    trip_table = pd.read_csv(emme_config['trip_table_loc'], index_col="taz")  # total 4K Ps and As by trip purpose
 
     # Import gravity model coefficients by trip purpose from db
     conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')

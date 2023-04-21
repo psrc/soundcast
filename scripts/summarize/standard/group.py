@@ -3,7 +3,9 @@ import pandas as pd
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 sys.path.append(os.getcwd())
-from standard_summary_configuration import *
+# from standard_summary_configuration import *
+import toml
+sum_config = toml.load(os.path.join(os.getcwd(), 'configuration/summary_configuration.toml'))
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
@@ -228,8 +230,8 @@ def trips(dataset):
     trip_person['deptm_hr'] = trip_person['deptm'].apply(lambda row: int(math.floor(row/60)))
 
     trip_person['income_group'] = pd.cut(trip_person['hhincome'],
-        bins=income_bins,
-        labels=income_bin_labels)
+        bins=sum_config['income_bins'],
+        labels=sum_config['income_bin_labels'])
     
     # Calcualte delay field
     if 'sov_ff_time' in trip.columns:
@@ -327,7 +329,7 @@ def taz_avg(dataset):
 	person_hh = pd.merge(person, hh, on='hhno', how='left')
 	trip = pd.merge(trip, person_hh, on=['pno','hhno'], how='left')
 
-	print 'total VMT by home TAZ'
+	print( 'total VMT by home TAZ')
 	# total VMT by home TAZ
 	taz_vmt = trip[['hhtaz','travdist']].groupby('hhtaz').sum()
 	taz_pop = person_hh[['hhtaz','psexpfac']].groupby('hhtaz').sum()
@@ -722,8 +724,8 @@ if __name__ == '__main__':
     }
 
     # Add runs, if set in standard_summary_configuration.py
-    if len(comparison_runs.keys()) > 0:
-        for comparison_name, comparison_dir in comparison_runs.iteritems():
+    if len(sum_config['comparison_runs'].keys()) > 0:
+        for comparison_name, comparison_dir in sum_config['comparison_runs'].iteritems():
             run_dir_dict[comparison_name] = comparison_dir
 
 	# Create daysim summaries
@@ -735,7 +737,7 @@ if __name__ == '__main__':
 		del daysim_h5 # drop from memory to save space for next comparison
 
     # Compare daysim to survey if set in standard_summary_configuration.py
-    if compare_survey:
+    if sum_config['compare_survey']:
         process_dataset(h5file=h5py.File(r'scripts\summarize\inputs\calibration\survey.h5'), scenario_name='survey')
 
     # Create network and accessibility summaries

@@ -8,8 +8,10 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 def balance_trips(df, trip_purposes, balanced_to):
     """ Balance trips to productions or attractions."""
@@ -101,7 +103,7 @@ def main():
 
     output_directory = 'outputs/supplemental'
 
-    my_project = EmmeProject(supplemental_project)   
+    my_project = EmmeProject(emme_config['supplemental_project'])
 
     conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
 
@@ -130,8 +132,8 @@ def main():
     df_external = df_external.astype(float)
 
     # Calculate the Inputs for the Year of the model      
-    if int(model_year) > data_year:   
-        growth_rate = (1+(external_rate*(int(model_year)-data_year)))
+    if int(config['model_year']) > data_year:
+        growth_rate = (1+(external_rate*(int(config['model_year'])-data_year)))
         df_external = df_external * growth_rate
 
     external_taz = df_external.loc[:,trip_productions + trip_attractions]
@@ -146,7 +148,7 @@ def main():
     df_enlisted['taz'] = df_enlisted['Zone'].copy()
 
     # Select data for model year only
-    df_enlisted = df_enlisted[df_enlisted['year'] == int(model_year)][['taz','military_jobs']]
+    df_enlisted = df_enlisted[df_enlisted['year'] == int(config['model_year'])][['taz','military_jobs']]
 
     # Aggregate enlisted personnel by TAZ
     enlisted_taz = df_enlisted.groupby('taz').sum().reset_index()
@@ -176,13 +178,13 @@ def main():
     # Calculate the Inputs for the Year of the model
     max_input_year = total_gq_df['year'].max()
 
-    if int(model_year) <= max_input_year:
-        total_gq_df = total_gq_df[total_gq_df['year'] == int(model_year)]
+    if int(config['model_year']) <= max_input_year:
+        total_gq_df = total_gq_df[total_gq_df['year'] == int(config['model_year'])]
         
     else:
         # Factor group quarters at an annual rate
         total_gq_df = total_gq_df[total_gq_df['year'] == int(max_input_year)]
-        total_gq_df['group_quarters'] = total_gq_df['group_quarters'] * (1+(group_quarters_rate*(int(model_year)-max_input_year)))
+        total_gq_df['group_quarters'] = total_gq_df['group_quarters'] * (1+(group_quarters_rate*(int(config['model_year'])-max_input_year)))
 
     total_gq_df = total_gq_df[['taz', 'dorm_share', 'military_share', 'other_share', 'group_quarters']]
 
@@ -222,13 +224,13 @@ def main():
     jblm_df = jblm_df.loc[:,keep_columns]
     jblm_df['trips'] = jblm_df['trips'].apply(float)
        
-    if int(model_year) > data_year:   
-        growth_rate = (1+(jblm_rate*(int(model_year)-data_year)))
+    if int(config['model_year']) > data_year:
+        growth_rate = (1+(jblm_rate*(int(config['model_year'])-data_year)))
         jblm_df['trips'] = jblm_df['trips'] * growth_rate
     
     # Create JBLM Input File for use in Emme
     working_file = open(output_directory+'/jblm.in', "w")
-    working_file.write('c ' + str(model_year) + ' Trip Generation' + '\n')
+    working_file.write('c ' + str(config['model_year']) + ' Trip Generation' + '\n')
     working_file.write('c JBLM trips are based on gate counts, blue tooth and zipcode survey data' + '\n')
     working_file.write('t matrices' + '\n')
     working_file.write('a matrix=mf' + str(jblm_matrix) + ' jblm ' + '0 JBLM Trips' + '\n')
@@ -291,8 +293,8 @@ def main():
     heavy_trucks['htkpro'] = heavy_trucks['htkpro'].apply(float)
     heavy_trucks['htkatt'] = heavy_trucks['htkatt'].apply(float)
        
-    if int(model_year) > data_year:   
-        growth_rate = (1+(truck_rate*(int(model_year)-data_year)))
+    if int(config['model_year']) > data_year:
+        growth_rate = (1+(truck_rate*(int(config['model_year'])-data_year)))
         heavy_trucks['htkpro'] = heavy_trucks['htkpro'] * growth_rate
         heavy_trucks['htkatt'] = heavy_trucks['htkatt'] * growth_rate
 
@@ -303,7 +305,7 @@ def main():
 
     # Apply land-use restrictions for productions/attraction in TAZs without appropriate industrial uses
     allowed_tazs = calc_heavy_truck_restrictions()
-    external_taz_list = list(range(MIN_EXTERNAL, MAX_EXTERNAL + 1))
+    external_taz_list = list(range(emme_config['MIN_EXTERNAL'], emme_config['MAX_EXTERNAL'] + 1))
     allowed_tazs = allowed_tazs.tolist() + external_taz_list
 
     heavy_trucks_taz = heavy_trucks_taz[heavy_trucks_taz['taz'].isin(allowed_tazs)]
@@ -317,8 +319,8 @@ def main():
     # SeaTac Airport 
     ###########################################################
     df_seatac = pd.read_sql_query("SELECT * FROM seatac", con=conn)
-    seatac_zone = df_seatac[df_seatac['year'] == int(model_year)]['taz'].values[0]
-    seatac_enplanements = df_seatac[df_seatac['year'] == int(model_year)]['enplanements'].values[0]
+    seatac_zone = df_seatac[df_seatac['year'] == int(config['model_year'])]['taz'].values[0]
+    seatac_enplanements = df_seatac[df_seatac['year'] == int(config['model_year'])]['enplanements'].values[0]
 
     ###########################################################
     ## Special Generators
@@ -330,14 +332,14 @@ def main():
     # Calculate the Inputs for the Year of the model
     max_input_year = df_special['year'].max()
 
-    if int(model_year) <= max_input_year:
-        df_special = df_special[df_special['year'] == model_year]
+    if int(config['model_year']) <= max_input_year:
+        df_special = df_special[df_special['year'] == config['model_year']]
         df_special['hboatt'] = df_special['trips'].astype('float')
         
     else:
         df_special = df_special[df_special['year'] == max_input_year]
         df_special['hboatt'] = df_special[df_special['year'] == max_input_year]['trips'].astype('float')
-        df_special['hboatt'] = df_special['hboatt'] * (1+(special_generator_rate*(int(model_year)-max_input_year)))
+        df_special['hboatt'] = df_special['hboatt'] * (1+(special_generator_rate*(int(config['model_year'])-max_input_year)))
 
     df_special = df_special[['taz','hboatt']]
                             
@@ -489,7 +491,7 @@ def main():
             df_parcels[purpose] = df_parcels[purpose] + (df_parcels[jobs] * df_job_production_rates.loc[jobs,purpose])
 
     # Scale delivery productions based on a target number of delivery trips
-    df_parcels['dtkpro'] = total_delivery_trips*(df_parcels['dtkpro']/df_parcels['dtkpro'].sum())
+    df_parcels['dtkpro'] = emme_config['total_delivery_trips']*(df_parcels['dtkpro']/df_parcels['dtkpro'].sum())
 
     ###########################################################
     # SeaTac Airport trip generation

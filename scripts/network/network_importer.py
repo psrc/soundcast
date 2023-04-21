@@ -8,9 +8,13 @@ from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
-from input_configuration import *
+# from emme_configuration import *
+# from input_configuration import *
 from EmmeProject import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 def json_to_dictionary(dict_name):
 
@@ -42,7 +46,7 @@ def distance_pricing(distance_rate, emmeProject):
    network = emmeProject.current_scenario.get_network()
    for link in network.links():
         if link.data3 > 0:
-            if add_distance_pricing:
+            if config['add_distance_pricing']:
                 for att in toll_atts:
                     link[att] = link[att] + (link.length * distance_rate)
    emmeProject.current_scenario.publish_network(network)
@@ -185,7 +189,7 @@ def run_importer(project_name):
     my_project = EmmeProject(project_name)
     headway_df = pd.read_csv('inputs/scenario/networks/headways.csv')
     tod_index = pd.Series(range(1,len(tod_networks)+1),index=tod_networks)
-    for key, value in sound_cast_net_dict.items():
+    for key, value in network_config['sound_cast_net_dict'].items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
             my_project.bank.delete_scenario(scenario)
@@ -201,29 +205,29 @@ def run_importer(project_name):
         
         my_project.process_shape('inputs/scenario/networks/shape/' + value + '_shape.in')
         my_project.process_turn('inputs/scenario/networks/turns/' + value + '_turns.in')
-        if my_project.tod in transit_tod_list:
+        if my_project.tod in network_config['transit_tod_list']:
             my_project.process_vehicles('inputs/scenario/networks/vehicles.txt')
             my_project.process_transit('inputs/scenario/networks/transit/' + value + '_transit.in')
-            for att in transit_line_extra_attributes:
+            for att in network_config['transit_line_extra_attributes']:
                 my_project.create_extra_attribute('TRANSIT_LINE', att)
             my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_transit_lines_'+ str(tod_index[value]) +'.txt', False)
             update_headways(my_project, headway_df)
 
         print(value)
-        for att in link_extra_attributes:
+        for att in network_config['link_extra_attributes']:
             my_project.create_extra_attribute('LINK', att)
-        for att in node_extra_attributes:
+        for att in network_config['node_extra_attributes']:
             my_project.create_extra_attribute('NODE', att)
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_links_'+ str(tod_index[value]) +'.txt')
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_nodes_'+ str(tod_index[value]) +'.txt')
 
         arterial_delay(my_project, rdly_factor)
-        if add_distance_pricing:
-            distance_pricing(distance_rate_dict[value], my_project)     
+        if config['add_distance_pricing']:
+            distance_pricing(config['distance_rate_dict'][value], my_project)
        
 def main():
 
-    run_importer(network_summary_project)
+    run_importer(network_config['network_summary_project'])
     
     print('networks imported')
 

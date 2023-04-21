@@ -9,8 +9,12 @@ sys.path.append(os.getcwd())
 import pandas as pd
 from shutil import copy2 as shcopy
 from sqlalchemy import create_engine
-from input_configuration import base_year
-from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL 
+# from input_configuration import base_year
+# from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
 
 # output directory
 validation_output_dir = 'outputs/validation'
@@ -99,7 +103,7 @@ def main():
     ########################################
 
     # Load observed data for given base year
-    df_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(base_year), con=conn)
+    df_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(config['base_year']), con=conn)
     df_obs['route_id'] = df_obs['route_id'].astype('int')
     df_line_obs = df_obs.copy()
 
@@ -136,7 +140,7 @@ def main():
     ########################################
 	
     # Light Rail
-    df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(base_year), con=conn)
+    df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(config['base_year']), con=conn)
 
     # Scale boardings for model period 5to20, based on boardings along entire line
     light_rail_list = [6996]
@@ -176,7 +180,7 @@ def main():
 
     # Get daily and model volumes
     #daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
-    daily_counts = pd.read_sql("SELECT * FROM daily_counts WHERE year=" + str(base_year), con=conn)
+    daily_counts = pd.read_sql("SELECT * FROM daily_counts WHERE year=" + str(config['base_year']), con=conn)
     df_daily = model_vol_df.groupby(['@countid']).agg({'@tveh':'sum', '@facilitytype': 'first'}).reset_index()
 
     # Merge observed with model
@@ -197,7 +201,7 @@ def main():
 
     # hourly counts
     # Create Time of Day (TOD) column based on start hour, group by TOD
-    hr_counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(base_year), con=conn)
+    hr_counts = pd.read_sql("SELECT * FROM hourly_counts WHERE year=" + str(config['base_year']), con=conn)
     hr_counts['tod'] = hr_counts['start_hour'].map(tod_lookup)
     counts_tod = hr_counts.groupby(['tod','flag']).sum()[['vehicles']].reset_index()
 
@@ -214,7 +218,7 @@ def main():
     df.to_csv(os.path.join(validation_output_dir,'hourly_volume.csv'), index=False)
 
     # Roll up results to assignment periods
-    df['time_period'] = df['tod'].map(sound_cast_net_dict)
+    df['time_period'] = df['tod'].map(network_config['sound_cast_net_dict'])
 
     ########################################
     # Ferry Boardings by Bike
@@ -251,7 +255,7 @@ def main():
     #df = df.groupby('type').sum()[['@tveh']].reset_index()
 
     # Observed screenline data
-    df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(base_year), con=conn)
+    df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(config['base_year']), con=conn)
     df_obs['observed'] = df_obs['observed'].astype('float')
 
     df_model = pd.read_csv(r'outputs\network\network_results.csv')
@@ -273,13 +277,13 @@ def main():
     ########################################
 
     # External stations
-    external_stations = range(MIN_EXTERNAL,MAX_EXTERNAL+1)
+    external_stations = range(emme_config['MIN_EXTERNAL'],emme_config['MAX_EXTERNAL']+1)
     df_model = df_model[df_model['@countid'].isin(external_stations)]
     _df = df_model.groupby('@countid').sum()[['@tveh']].reset_index()
 
     # Join to observed
     # By Mode
-    df_obs = pd.read_sql("SELECT * FROM observed_external_volumes WHERE year=" + str(base_year), con=conn)
+    df_obs = pd.read_sql("SELECT * FROM observed_external_volumes WHERE year=" + str(config['base_year']), con=conn)
     newdf = _df.merge(df_obs,left_on='@countid' ,right_on='external_station')
     newdf.rename(columns={'@tveh':'modeled','AWDT':'observed'},inplace=True)
     newdf['observed'] = newdf['observed'].astype('float')
@@ -402,7 +406,7 @@ def main():
     df_model = df_model.groupby(['mode','t_d_place']).sum()[['toexpfac']].reset_index()
 
     # Observed Data
-    df = pd.read_sql("SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year=" + str(base_year), con=conn)
+    df = pd.read_sql("SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year=" + str(config['base_year']), con=conn)
     df = df[df['geography'] == 'place']
     df = df[df['mode'] != 'worked_at_home']
     df['geog_name'] = df['geog_name'].apply(lambda row: row.split(' city')[0])
@@ -440,7 +444,7 @@ def main():
     df_model['modeled'] = df_model['toexpfac']
 
     # Load the census data
-    df_acs = pd.read_sql("SELECT * FROM acs_commute_mode_home_tract WHERE year=" + str(base_year), con=conn)
+    df_acs = pd.read_sql("SELECT * FROM acs_commute_mode_home_tract WHERE year=" + str(config['base_year']), con=conn)
     
     # Select only tract records
     df_acs = df_acs[df_acs['place_type'] == 'tr']
@@ -465,7 +469,7 @@ def main():
     df[['observed','modeled']] = df[['observed','modeled']].astype('float')
 
     # Add geography columns based on tract
-    parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(base_year)+"_geography", con=conn) 
+    parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(config['base_year'])+"_geography", con=conn)
 
     tract_geog = parcel_geog.groupby('Census2010Tract').first()[['CountyName','rg_proposed','CityName','GrowthCenterName','TAZ','District']].reset_index()
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2010Tract', how='left')

@@ -13,7 +13,9 @@ import numpy as np
 import pandana as pdna
 import inro.emme.database.emmebank as _eb
 from pyproj import Proj, transform
-from input_configuration import base_year
+# from input_configuration import base_year
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
@@ -225,7 +227,7 @@ def main():
     links = pd.read_csv(r'inputs/base_year/all_streets_links.csv', index_col=None)
 
     # Load geography lookups and join to parcel data
-    parcel_geog = pd.read_sql_table('parcel_'+base_year+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db')
+    parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db')
     parcel_geog['region'] = 1
         
     # Create a field that identifies whether parcel is inside or outside of an RGC

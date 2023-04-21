@@ -9,8 +9,10 @@ sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts\summarize"))
 import datetime
-from input_configuration import *
+# from input_configuration import *
 import h5toDF
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 
 #for_testing - hard coding the paths for now- fix later!
