@@ -65,7 +65,7 @@ def get_cost_time_distance_skim_data(trip_purpose):
 def get_walk_bike_skim_data():
     skim_dict = {}
     for skim_name in ['walkt', 'biket']:
-        skim_dict[skim_name]= load_skims(r'inputs\model\roster\5to6.h5', mode_name=skim_name, divide_by_100=True)
+        skim_dict[skim_name]= load_skims(r'inputs\model\roster\7to8.h5', mode_name=skim_name, divide_by_100=True)
     return skim_dict
 
 def get_transit_skim_data():
@@ -85,7 +85,7 @@ def get_transit_skim_data():
 
     for input, output in transit_skim_dict.iteritems():
         if input in ['farbx', 'farwa']:
-            skim_dict[input] = load_skims(r'inputs\model\roster\6to7.h5', mode_name = output, divide_by_100=True)
+            skim_dict[input] = load_skims(r'inputs\model\roster\7to8.h5', mode_name = output, divide_by_100=True)
         else:
             am_skim = load_skims(r'inputs\model\roster\7to8.h5', mode_name = output, 
                              divide_by_100=True) 

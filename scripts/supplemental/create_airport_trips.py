@@ -57,7 +57,7 @@ def load_skim_data():
                     skim_name = mode.upper()+skim_type.upper()
                     skim_dict['time'][mode] = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', table='DIST'+mode.upper(), divide_by_100=True)
                 else:
-                    skim_dict['time'][mode] = load_skims(r'inputs\model\roster\5to6.h5', table=mode+'t', divide_by_100=True)
+                    skim_dict['time'][mode] = load_skims(r'inputs\model\roster\7to8.h5', table=mode+'t', divide_by_100=True)
 
     # Skim for transit
     skim_list = ['ivtw','iwtw','ndbw','xfrw','auxw']
@@ -77,7 +77,7 @@ def load_skim_data():
                             table=skim_name + "__PM" , divide_by_100=True)
                     skim_dict['transit'][skim_name] = (am_skim + pm_skim) *.5
             else:
-                am_skim = load_skims(r'outputs\activitysim\activitysim_skims_PM.h5', 
+                am_skim = load_skims(r'inputs\model\roster\7to8.h5', 
                         table=skim_name, divide_by_100=True)
                 pm_skim = load_skims(r'inputs\model\roster\17to18.h5', 
                         table=skim_name, divide_by_100=True)
@@ -87,7 +87,7 @@ def load_skim_data():
             skim_name = "WLK_LOC_WLK_FAR__AM"
             skim_dict['time'][mode] = load_skims(r'outputs\activitysim\activitysim_skims_AM.h5', table=skim_name, divide_by_100=True)
         else:
-            skim_dict['transit'][skim] = load_skims(r'inputs\model\roster\6to7.h5', table=skim, divide_by_100=True)
+            skim_dict['transit'][skim] = load_skims(r'inputs\model\roster\7to8.h5', table=skim, divide_by_100=True)
 
     return skim_dict
 

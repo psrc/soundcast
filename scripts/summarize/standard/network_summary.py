@@ -355,6 +355,7 @@ def line_to_line_transfers(emme_project, tod):
         df_list.append(traversal_df)
         os.remove('outputs/transit/traversal_results.txt')
     df = pd.concat(df_list)
+    df['boardings'] = df['boardings'].astype('float')
     df = df.groupby(['from_line', 'to_line']).agg({'from_line_id' : min, 'to_line_id' : min, 'from_mode' : min, 'to_mode' : min, 'boardings' : sum, })
     df.reset_index(inplace = True)
     df['tod'] = tod
