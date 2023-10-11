@@ -13,12 +13,16 @@ import argparse
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+
 
 # Time of day periods
 #tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
-project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
+# project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in network_config['tods']]
 
 def json_to_dictionary(dict_name):
 
@@ -37,9 +41,9 @@ def start_pool(project_list):
     #seperate projects/banks for each time period and have a pool for each project/bank.
     #Fewer pools than projects/banks will cause script to crash.
 
-    pool = Pool(processes=parallel_instances)
+    pool = Pool(processes=emme_config['parallel_instances'])
     
-    pool.map(run_skim,project_list[0:parallel_instances])
+    pool.map(run_skim,project_list[0:emme_config['parallel_instances']])
     
     pool.close()
 
@@ -86,9 +90,9 @@ def run_skim(project_name):
 
 def main():
 
-    for i in range (0, 12, parallel_instances):
-
-        l = project_list[i:i+parallel_instances]
+    for i in range (0, 12, emme_config['parallel_instances']):
+        project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in network_config['tods']]
+        l = project_list[i:i+emme_config['parallel_instances']]
 
         start_pool(l)
 

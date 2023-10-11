@@ -24,14 +24,16 @@ import h5py
 import pandas as pd
 sys.path.append(os.path.join(os.getcwd(),"inputs","model","skim_parameters"))
 sys.path.append(os.getcwd())
-from input_configuration import *
 from logcontroller import *
-from input_configuration import *
-from emme_configuration import *
+# from emme_configuration import *
 from skim_templates import *
-import emme_configuration
-import input_configuration
+# import input_configuration
 import glob
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+
 
 def multipleReplace(text, wordDict):
     for key in wordDict:
@@ -108,8 +110,8 @@ def setup_emme_bank_folders():
         path = os.path.join('Banks', period, 'emmebank')
         emmebank = _eb.create(path, emmebank_dimensions_dict)
         emmebank.title = period
-        emmebank.unit_of_length = unit_of_length
-        emmebank.coord_unit_length = coord_unit_length  
+        emmebank.unit_of_length = network_config['unit_of_length']
+        emmebank.coord_unit_length = network_config['coord_unit_length']
         scenario = emmebank.create_scenario(1002)
         network = scenario.get_network()
         # At least one mode required per scenario. Other modes are imported in network_importer.py
@@ -129,7 +131,7 @@ def setup_emme_project_folders():
         shutil.rmtree('projects')
 
     # Create master project, associate with all emmebanks by time of day
-    project = app.create_project('projects', master_project)
+    project = app.create_project('projects', network_config['master_project'])
     desktop = app.start_dedicated(False, "psrc", project)
     data_explorer = desktop.data_explorer()
     for tod in tod_list:
@@ -139,7 +141,7 @@ def setup_emme_project_folders():
     database.open()
     desktop.project.save()
     desktop.close()
-    shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', master_project))
+    shcopy(emme_toolbox_path + '/standard.mtbx', os.path.join('projects', network_config['master_project']))
 
     # Create time of day projects, associate with emmebank
     tod_list.append('TruckModel') 
@@ -164,12 +166,12 @@ def copy_scenario_inputs():
             shutil.rmtree(os.path.join(os.getcwd(),path), ignore_errors=True)
 
     # Copy base_year folder from inputs directory
-    copyanything(os.path.join(soundcast_inputs_dir, 'base_year', base_year), 'inputs/base_year')
+    copyanything(os.path.join(config['soundcast_inputs_dir'], 'base_year', config['base_year']), 'inputs/base_year')
     
     # Copy network, landuse, and general (year-based) inputs
-    copyanything(os.path.join(soundcast_inputs_dir, 'db'),'inputs/db')
-    copyanything(os.path.join(soundcast_inputs_dir, 'landuse', model_year, landuse_inputs),'inputs/scenario/landuse')
-    copyanything(os.path.join(soundcast_inputs_dir, 'networks', model_year, network_inputs),'inputs/scenario/networks')
+    copyanything(os.path.join(config['soundcast_inputs_dir'], 'db'),'inputs/db')
+    copyanything(os.path.join(config['soundcast_inputs_dir'], 'landuse', config['model_year'], config['landuse_inputs']),'inputs/scenario/landuse')
+    copyanything(os.path.join(config['soundcast_inputs_dir'], 'networks', config['model_year'], config['network_inputs']),'inputs/scenario/networks')
     
 @timed
 def copy_shadow_price_file():
@@ -193,14 +195,14 @@ def clean_up():
 
 @timed
 def copy_accessibility_files():
-    if run_integrated:
+    if config['run_integrated']:
         import_integrated_inputs()
     else:
         if not os.path.exists('inputs/scenario/landuse'):
             os.makedirs('inputs/scenario/landuse')
         
         file_dict = {
-            os.path.join(soundcast_inputs_dir,'landuse',model_year,landuse_inputs,'parcels_urbansim.txt'): 'inputs/scenario/landuse',
+            os.path.join(config['soundcast_inputs_dir'],'landuse',config['model_year'],config['landuse_inputs'],'parcels_urbansim.txt'): 'inputs/scenario/landuse',
         }
 
         for src_file, dest_dir in file_dict.items():
@@ -225,7 +227,7 @@ def import_integrated_inputs():
     print('Importing land use files from urbansim...')
 
     # Copy soundcast inputs and separate input files
-    h5_inputs_dir = os.path.join(urbansim_outputs_dir,model_year,'soundcast_inputs.h5')
+    h5_inputs_dir = os.path.join(emme_config['urbansim_outputs_dir'],config['model_year'],'soundcast_inputs.h5')
     shcopy(h5_inputs_dir,r'inputs/scenario/landuse/hh_and_persons.h5')
 
     h5_inputs = h5_inputs = h5py.File('inputs/scenario/landuse/hh_and_persons.h5')
@@ -249,11 +251,11 @@ def update_skim_parameters():
     # from user_class and demand matrix list in skim_parameters input folder.
 
     keywords = []
-    if not include_av:
+    if not config['include_av']:
         keywords.append('av_')
-    if not include_tnc:
+    if not config['include_tnc']:
         keywords.append('tnc_')
-    if not include_delivery:
+    if not config['include_delivery']:
         keywords.append('delivery_')
 
     root_path = os.path.join(os.getcwd(),r'inputs/model/skim_parameters')
@@ -326,9 +328,9 @@ def update_daysim_modes():
     """
     Apply settings in input_configuration to daysim_configuration and roster files:
 
-    include_tnc: PaidRideShareModeIsAvailable,
-    include_av: AV_IncludeAutoTypeChoice,
-    tnc_av: AV_PaidRideShareModeUsesAVs 
+    config['include_tnc']: PaidRideShareModeIsAvailable,
+    config['include_av']: AV_IncludeAutoTypeChoice,
+    config['tnc_av']: AV_PaidRideShareModeUsesAVs
     """
 
     # Store values from input_configuration in a dictionary:
@@ -337,13 +339,13 @@ def update_daysim_modes():
     daysim_dict = {
         'AV_IncludeAutoTypeChoice': 'include_av',
         'AV_UseSeparateAVSkimMatricesByOccupancy': 'include_av',    # Must be updated or causes issues with roster 
-        'PaidRideShareModeIsAvailable':'include_tnc',
+        'PaidRideShareModeIsAvailable': 'include_tnc',
         'AV_PaidRideShareModeUsesAVs': 'tnc_av',
     }
 
     mode_config_dict = {}    
     for setting in av_settings:
-        mode_config_dict[setting] = globals()[setting]
+        mode_config_dict[setting] = config[setting]
   
     # Copy temp file to use 
     daysim_config_path = os.path.join(os.getcwd(),'daysim_configuration_template.properties')
@@ -369,23 +371,23 @@ def update_daysim_modes():
     # Exclude AV alternatives if not included in scenario
 
     df = pd.read_csv(r'inputs/model/roster/templates/psrc_roster_template.csv')
-    if not include_av:     # Remove TNC from mode list
+    if not config['include_av']:     # Remove TNC from mode list
         df = df[-df['mode'].isin(['av1','av2','av3'])]
-    if not include_tnc_to_transit:    # remove TNC-to-transit from potential path types
+    if not config['include_tnc_to_transit']:    # remove TNC-to-transit from potential path types
         df = df[-df['path-type'].isin(filter(lambda x: 'tnc' in x, df['path-type'].unique()))]
-    if not include_knr_to_transit:
+    if not config['include_knr_to_transit']:
         df = df[-df['path-type'].isin(filter(lambda x: 'knr' in x, df['path-type'].unique()))]
     df.fillna('null').to_csv(r'inputs/model/roster/psrc_roster.csv',index=False)
 
     df = pd.read_csv(r'inputs/model/roster/templates/psrc-roster.combinations_template.csv', index_col='#')
-    if not include_av:
+    if not config['include_av']:
         df[['av1','av2','av3']] = 'FALSE'
-    if not include_tnc:
+    if not config['include_tnc']:
         df.loc[df.index[['tnc' in i for i in df.index]],'transit'] = 'FALSE'
     # Adjust KNR path types
-    if not include_knr_to_transit:
+    if not config['include_knr_to_transit']:
 	    df.loc[['ferry-knr'],'transit'] = 'FALSE'
-    if not include_tnc_to_transit:
+    if not config['include_tnc_to_transit']:
         df.loc[['local-bus-tnc','light-rail-tnc'],'transit'] = 'FALSE'
     df.to_csv(r'inputs/model/roster/psrc-roster.combinations.csv')
 

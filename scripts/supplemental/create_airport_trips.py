@@ -5,8 +5,10 @@ import h5py
 from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 def load_skims(skim_file_loc, table, divide_by_100=False):
     ''' Load H5 skim matrix for specified mode table and time period.
@@ -150,7 +152,7 @@ def calculate_mode_utilties(trip_purpose, skim_dict, auto_cost_dict, params_df, 
             get_param(params_df, 'autcos') * auto_cost_dict[mode])
         else:
             util = np.exp(asc + get_param(params_df, mode+'tm') * skim_dict['time'][mode])
-        utility_matrices[mode] = clip_matrix(util, 0, zone_lookup_dict[LOW_PNR])
+        utility_matrices[mode] = clip_matrix(util, 0, zone_lookup_dict[emme_config['LOW_PNR']])
 
     # Calculate Walk to Transit Utility for all submodes
     # Keep only the best
@@ -224,7 +226,7 @@ def calculate_trips(daysim, parcel, control_total):
     adj_factor = control_total/trips['airport_trips'].sum()
     trips['adj_trips'] = trips['airport_trips']*adj_factor
     trips = trips[['TAZ', 'adj_trips']]
-    trips['SeaTac_Taz'] = SEATAC
+    trips['SeaTac_Taz'] = emme_config['SEATAC']
 
     return trips
 
@@ -380,11 +382,11 @@ def main():
     daysim = h5py.File('inputs/scenario/landuse/hh_and_persons.h5','r+')
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
-    airport_control_total = pd.read_sql('SELECT * FROM seatac WHERE year=='+str(model_year), con=conn)['enplanements'].values[0]
+    airport_control_total = pd.read_sql('SELECT * FROM seatac WHERE year=='+str(config['model_year']), con=conn)['enplanements'].values[0]
     airport_trips = calculate_trips(daysim, parcel, airport_control_total)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips['TAZ'].values]
-    destination_index = zone_lookup_dict[SEATAC]
+    destination_index = zone_lookup_dict[emme_config['SEATAC']]
     demand_matrix[origin_index,destination_index] = airport_trips['adj_trips'].values
     # Account for both directions of travel (from/to airport) by transposing the productions matrix
     trips_to_airport = demand_matrix/2

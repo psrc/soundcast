@@ -1,7 +1,10 @@
 import os, sys, math, h5py
 import pandas as pd
 sys.path.append(os.getcwd())
-from standard_summary_configuration import *
+import toml
+# from standard_summary_configuration import *
+sys.path.append(os.path.join(os.getcwd(),r'..\..\..'))
+sum_config = toml.load(os.path.join(os.getcwd(),r'../../../configuration/summary_configuration.toml'))
 
 labels = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/variable_labels.csv'))
 districts = pd.read_csv(os.path.join(os.getcwd(), r'scripts/summarize/inputs/calibration/district_lookup.csv'))
@@ -66,7 +69,7 @@ def hh(dataset, geog_file):
 	# Join RGC geography based on household TAZ location
 	hh = pd.merge(hh,geog_file,left_on='hhtaz', right_on='taz')
 
-	hh['income_bins'] = pd.cut(hh['hhincome'],bins=income_bins,labels=income_bin_labels)
+	hh['income_bins'] = pd.cut(hh['hhincome'],bins=sum_config['income_bins'],labels=sum_config['income_bin_labels'])
 
 	agg_fields = ['geog_name','income_bins','hrestype']
 

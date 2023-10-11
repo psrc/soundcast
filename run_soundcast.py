@@ -33,9 +33,14 @@ import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import pandas as pd
-from input_configuration import *
-from emme_configuration import *
+
+import toml
+# from emme_configuration import *
 from data_wrangling import *
+# data_wrangling.update_daysim_modes()
+
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 @timed
 def accessibility_calcs():
@@ -50,7 +55,7 @@ def accessibility_calcs():
         sys.exit(1)
     print('military jobs loaded')
 
-    if base_year != model_year:
+    if config['base_year'] != config['model_year']:
         print('Starting to update UrbanSim parcel data with 4k parking data file')
         returncode = subprocess.call([sys.executable,
                                   'scripts/utils/update_parking.py'])
@@ -72,7 +77,7 @@ def build_seed_skims(max_iterations):
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations), model_year, 
+        str(max_iterations), config['model_year'],
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
         sys.exit(1)
@@ -85,7 +90,7 @@ def build_free_flow_skims(max_iterations):
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations), model_year, 
+        str(max_iterations), config['model_year'],
         '-build_free_flow_skims'])
     if returncode != 0:
         sys.exit(1)
@@ -124,8 +129,8 @@ def modify_config(config_vals):
     
 @timed
 def build_shadow_only():
-     for shad_iter in range(0, len(shadow_work)):
-        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",shadow_work[shad_iter]),("$RUN_ALL", "false")])
+     for shad_iter in range(0, len(emme_config['shadow_work'])):
+        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",emme_config['shadow_work'][shad_iter]),("$RUN_ALL", "false")])
         logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
@@ -136,14 +141,14 @@ def build_shadow_only():
         rmse_list = shadow_con_file.readlines()
         iteration_number = len(rmse_list)
         current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
-        if current_rmse < shadow_con:
+        if current_rmse < emme_config['shadow_con']:
             print("done with shadow prices")
             shadow_con_file.close()
             return
 
 def run_truck_supplemental(iteration):
 
-    if run_supplemental_trips:
+    if config['run_supplemental_trips']:
         # Only run generation script once - does not change with feedback
         if iteration == 0:
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
@@ -156,7 +161,7 @@ def run_truck_supplemental(iteration):
             if returncode != 0:
                 sys.exit(1)
 
-    if run_truck_model:
+    if config['run_truck_model']:
         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
         if returncode != 0:
             sys.exit(1)
@@ -168,7 +173,7 @@ def daysim_assignment(iteration):
      # Run Daysim Activity Models
      ########################################
 
-    if run_daysim:
+    if config['run_daysim']:
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of Daysim", str(iteration))
@@ -184,10 +189,10 @@ def daysim_assignment(iteration):
     # Assign Demand to Networks
     ########################################
 
-    if run_skims_and_paths:
+    if config['run_skims_and_paths']:
         logger.info("Start of iteration %s of Skims and Paths", str(iteration))
-        num_iterations = str(max_iterations_list[iteration])
-        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, model_year])
+        num_iterations = str(emme_config['max_iterations_list'][iteration])
+        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, config['model_year']])
         logger.info("End of iteration %s of Skims and Paths", str(iteration))
         if returncode != 0:
             sys.exit(1)
@@ -195,7 +200,7 @@ def daysim_assignment(iteration):
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
-    if iteration > 0 and recipr_sample <= min_pop_sample_convergence_test:
+    if iteration > 0 and recipr_sample <= emme_config['min_pop_sample_convergence_test']:
             con_file = open('outputs/logs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
@@ -230,19 +235,19 @@ def main():
     update_daysim_modes()
     update_skim_parameters()
 
-    if run_setup_emme_bank_folders:
+    if config['run_setup_emme_bank_folders']:
         setup_emme_bank_folders()
 
-    if run_setup_emme_project_folders:
+    if config['run_setup_emme_project_folders']:
         setup_emme_project_folders()
 
-    if run_copy_scenario_inputs:
+    if config['run_copy_scenario_inputs']:
         copy_scenario_inputs()
 
-    if run_integrated:
+    if config['run_integrated']:
         import_integrated_inputs()
 
-    if run_accessibility_calcs:
+    if config['run_accessibility_calcs']:
         accessibility_calcs()
 
     if not os.path.exists('working'):
@@ -252,7 +257,7 @@ def main():
     # Initialize Networks
     ########################################
 
-    if run_import_networks:
+    if config['run_import_networks']:
         time_copy = datetime.datetime.now()
         logger.info("Start of network importer")
         returncode = subprocess.call([sys.executable,
@@ -266,7 +271,7 @@ def main():
     # Start with Free Flow Skims
     ########################################
 
-    if run_skims_and_paths_free_flow:
+    if config['run_skims_and_paths_free_flow']:
         build_free_flow_skims(10)
 
     ########################################
@@ -274,34 +279,34 @@ def main():
     # Main Loop
     ########################################
 
-    if (run_daysim or run_skims_and_paths):
-        for iteration in range(len(pop_sample)):
+    if (config['run_daysim'] or config['run_skims_and_paths']):
+        for iteration in range(len(emme_config['pop_sample'])):
 
             print("We're on iteration %d" % (iteration))
             logger.info(("We're on iteration %d\r\n" % (iteration)))
             time_start = datetime.datetime.now()
             logger.info("Starting run at %s" % str((time_start)))
 
-            if not should_build_shadow_price:
-                if include_telecommute:
+            if not config['should_build_shadow_price']:
+                if config['include_telecommute']:
                     telecommute = "true"
                 else:
                     telecommute = "false"
                 # Set up your Daysim Configration
-                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true"),("$TELECOMMUTE" , telecommute)])
+                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",emme_config['pop_sample'][iteration]),("$RUN_ALL", "true"),("$TELECOMMUTE" , telecommute)])
 
             else:
                 # We are building shadow prices from scratch, only use shadow pricing if pop sample is 2 or less
-                if pop_sample[iteration-1] > 2:
-                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+                if emme_config['pop_sample'][iteration-1] > 2:
+                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",emme_config['pop_sample'][iteration]),("$RUN_ALL", "true")])
                 else:
-                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",pop_sample[iteration]),("$RUN_ALL", "true")])
+                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",emme_config['pop_sample'][iteration]),("$RUN_ALL", "true")])
 
             # Run Skimming and/or Daysim
             daysim_assignment(iteration)
 
             # Check Convergence 
-            converge = check_convergence(iteration, pop_sample[iteration])
+            converge = check_convergence(iteration, emme_config['pop_sample'][iteration])
             if converge == 'stop':
                 print("System converged!")
                 break
@@ -309,21 +314,21 @@ def main():
 
     # If building shadow prices, update work and school shadow prices
     # using converged skims from current run, then re-run daysim and assignment.
-    if should_build_shadow_price:
+    if config['should_build_shadow_price']:
         build_shadow_only()
         modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
         #This function needs an iteration parameter. Value of 1 is fine. 
         daysim_assignment(1)
 
     # Export skims for use in Urbansim if needed
-    if run_integrated:
+    if config['run_integrated']:
         subprocess.call([sys.executable, 'scripts/utils/urbansim_skims.py'])
 
-    if run_summaries:
+    if config['run_summaries']:
         run_all_summaries()
 
     clean_up()
-    print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(good_thing))
+    print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(emme_config['good_thing']))
 
 if __name__ == "__main__":
     logger = logcontroller.setup_custom_logger('main_logger')
@@ -337,5 +342,5 @@ if __name__ == "__main__":
     logger.info('--------------------RUN ENDING--------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
 
-    if delete_banks:
+    if config['delete_banks']:
         shutil.rmtree('/Banks', ignore_errors=True)

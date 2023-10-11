@@ -4,7 +4,7 @@ import numpy as np
 import os, sys
 os.chdir(r"D:\stefan\sc_calibration\soundcast")
 from accessibility_configuration import *
-from emme_configuration import *
+# from emme_configuration import *
 import re
 import sys
 from pyproj import Proj, transform

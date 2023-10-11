@@ -17,8 +17,11 @@ import h5py
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
-from emme_configuration import *
+# from emme_configuration import *
 from EmmeProject import *
+import toml
+
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
 def init_dir(directory):
     if os.path.exists(directory):
@@ -305,7 +308,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
                           'hbo': ['eusm', 'nwshda', 'nwshs2', 'nwshs3', 'nwshtw', 'nwshrw', 'nwshbk', 'nwshwk']}
 
     
-    my_store = h5py.File(urbansim_skims_dir + '/' + trip_purpose + '_ratio.h5', "w")
+    my_store = h5py.File(emme_config['urbansim_skims_dir'] + '/' + trip_purpose + '_ratio.h5', "w")
     grp = my_store.create_group(trip_purpose)
     for mode in output_mode_share_name[trip_purpose]:
             grp.create_dataset(mode, data = mode_shares_dict[mode])
@@ -313,7 +316,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict):
     my_store.close()
 
 def urbansim_skims_to_h5(h5_name, skim_dict):
-    my_store = h5py.File(urbansim_skims_dir + '/' + h5_name + '.h5', "w")
+    my_store = h5py.File(emme_config['urbansim_skims_dir'] + '/' + h5_name + '.h5', "w")
     grp = my_store.create_group('results')
     for name, skim in skim_dict.items():
             skim = skim[0:max_internal_zone, 0:max_internal_zone]
@@ -380,7 +383,7 @@ def main():
        
         #mode_choice_to_h5(trip_purpose, mode_shares_dict)
         #print trip_purpose, 'is done'
-    urbansim_skims_to_h5(model_year+'-travelmodel', urbansim_skim_dict)
+    urbansim_skims_to_h5(config['model_year']+'-travelmodel', urbansim_skim_dict)
 
        
 my_project = EmmeProject(r'projects/Supplementals/Supplementals.emp')
@@ -393,8 +396,8 @@ parameters_dict = json_to_dictionary('urbansim_skims_parameters.json')
 ensembles_path = r'inputs/scenario/supplemental/generation/ensembles/ensembles_list.csv'
 parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
 
-if not os.path.exists(urbansim_skims_dir):
-    os.makedirs(urbansim_skims_dir)
+if not os.path.exists(emme_config['urbansim_skims_dir']):
+    os.makedirs(emme_config['urbansim_skims_dir'])
 
 if __name__ == "__main__":
     main()

@@ -16,8 +16,10 @@ import pandas as pd
 import h5toDF
 import math
 import os.path
-from input_configuration import *
+# from input_configuration import *
 import sys
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
 

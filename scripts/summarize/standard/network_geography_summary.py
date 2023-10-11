@@ -7,7 +7,10 @@ import pyodbc
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
-from standard_summary_configuration import county_map
+# from standard_summary_configuration import county_map
+
+import toml
+sum_config = toml.load(os.path.join(os.getcwd(), 'configuration/summary_configuration.toml'))
 
 # Load city boundaries from Elmer
 
@@ -176,7 +179,7 @@ df_rgc['aggregation'] = 'regional_growth_center'
 
 # County
 df_county = df_network.groupby('@countyid').sum()[['VMT','VHT','total_delay']].reset_index()
-df_county['geography'] = df_county['@countyid'].map(county_map)
+df_county['geography'] = df_county['@countyid'].map(sum_config['county_map'])
 df_county = df_county[~df_county['geography'].isnull()]
 df_county.drop('@countyid', axis=1, inplace=True)
 df_county.rename(columns={'total_delay': 'delay'}, inplace=True)

@@ -25,9 +25,12 @@ import json
 import shutil
 from distutils import dir_util
 sys.path.append(os.getcwd())
-from input_configuration import *
-from emme_configuration import *
+# from input_configuration import *
+# from emme_configuration import *
 from scripts.EmmeProject import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
 
 daily_network_fname = 'outputs/network/daily_network_results.csv'
 keep_atts = ['@type']
@@ -166,7 +169,7 @@ def main():
 
     time_period_list = []
 
-    for tod, time_period in sound_cast_net_dict.items():
+    for tod, time_period in network_config['sound_cast_net_dict'].items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -198,7 +201,7 @@ def main():
     daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
     daily_network = daily_scenario.get_network()
 
-    for tod, time_period in sound_cast_net_dict.items():
+    for tod, time_period in network_config['sound_cast_net_dict'].items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -210,10 +213,10 @@ def main():
        daily_scenario.set_attribute_values('LINK', [attr], values)
 
     daily_network = daily_scenario.get_network()
-    attr_list = ['@tv' + x for x in tods]
+    attr_list = ['@tv' + x for x in network_config['tods']]
 
     for link in daily_network.links():
-       for item in tods:
+       for item in network_config['tods']:
            link['@tveh'] = link['@tveh'] + link['@v' + item]
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
 

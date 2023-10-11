@@ -19,9 +19,12 @@ import inro.modeller as _m
 from EmmeProject import *
 import datetime
 from aq_crash_configuration import *
-from input_configuration import *
-from emme_configuration import *
+# from input_configuration import *
+# from emme_configuration import *
 from h5toDF import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
 
 
 def group_vmt_speed(my_project):
@@ -32,7 +35,7 @@ def group_vmt_speed(my_project):
     for item in speed_bins:
         speed_dict[item] = {'Car' : 0, 'Light Truck' : 0,  'Medium Truck' : 0, 'Heavy Truck': 0}
 
-    for key, value in sound_cast_net_dict.iteritems():
+    for key, value in network_config['sound_cast_net_dict'].iteritems():
 
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
@@ -64,7 +67,7 @@ def group_vmt_class(my_project):
     # store vmt by functional class 1= Freeway, 3= Expressway, etc
     vmt_func_class= {1 : 0, 3 : 0,  5 : 0, 7 : 0}
     
-    for key, value in sound_cast_net_dict.iteritems():
+    for key, value in network_config['sound_cast_net_dict'].iteritems():
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
 
@@ -155,7 +158,7 @@ def main():
     emme_project = EmmeProject(filepath)
     ## Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
-    df_emissions = emissions_calc(vmt_speed_dict, model_year)
+    df_emissions = emissions_calc(vmt_speed_dict, config['model_year'])
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
     print 'injury calcs'

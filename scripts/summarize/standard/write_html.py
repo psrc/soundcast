@@ -1,4 +1,5 @@
 import os, sys, shutil
+import toml
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
@@ -7,9 +8,11 @@ sys.path.append(os.path.join(os.getcwd(),r"scripts/summarize/notebooks"))
 sys.path.append(os.getcwd())
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
-from input_configuration import model_year, base_year
-from settings import run_comparison, run_rtp
+# from input_configuration import model_year, base_year
+# from settings import run_comparison, run_rtp
 
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+sum_config = toml.load(os.path.join(os.getcwd(), 'configuration/summary_configuration.toml'))
 
 def write_nb(sheet_name, nb_path, output_path):
 
@@ -41,7 +44,7 @@ def write_nb(sheet_name, nb_path, output_path):
 
 def main():
 
-    if run_rtp:
+    if sum_config['run_rtp']:
         dirname = r'outputs/RTP'
         if not os.path.exists(dirname):
             os.makedirs(dirname)
@@ -59,7 +62,7 @@ def main():
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
-        if run_comparison:
+        if sum_config['run_comparison']:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
     #for geog in ['county','rg','rgc','city']:
     #    write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')

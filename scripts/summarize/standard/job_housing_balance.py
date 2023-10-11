@@ -13,7 +13,9 @@ import numpy as np
 import pandana as pdna
 import inro.emme.database.emmebank as _eb
 from pyproj import Proj, transform
-from input_configuration import base_year
+# from input_configuration import base_year
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 def get_transit_time(bank, max_time):
     '''Extract transit travel times from skim matrices, between all zones'''

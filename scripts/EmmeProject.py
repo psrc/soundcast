@@ -26,8 +26,10 @@ import json
 from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
-from input_configuration import *
+# from input_configuration import *
 from EmmeProject import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 
 class EmmeProject:

@@ -14,7 +14,9 @@ import h5py
 import numpy as np
 from sqlalchemy import create_engine
 sys.path.append(os.getcwd())
-from input_configuration import *
+# from input_configuration import *
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
 db_path = r'inputs/db/soundcast_inputs.db'
 input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
@@ -23,7 +25,7 @@ input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
 conn = create_engine('sqlite:///'+db_path)
 df_parcels = pd.read_csv(input_parcels, delim_whitespace=True)
 df_parking_zones = pd.read_sql('SELECT * FROM parking_zones', con=conn)
-df_parking_cost = pd.read_sql('SELECT * FROM parking_costs WHERE year=='+model_year, con=conn)
+df_parking_cost = pd.read_sql('SELECT * FROM parking_costs WHERE year=='+config['model_year'], con=conn)
 df_parcels = pd.merge(left=df_parcels, right=df_parking_zones, left_on="TAZ_P", right_on="TAZ", how = 'left')
 
 # Join daily costs with parcel data 

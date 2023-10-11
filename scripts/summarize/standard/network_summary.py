@@ -29,10 +29,14 @@ from sqlalchemy import create_engine
 from nbconvert.preprocessors import ExecutePreprocessor
 from EmmeProject import EmmeProject
 from standard_summary_configuration import *
-from input_configuration import *
-from emme_configuration import *
+# from input_configuration import *
+# from emme_configuration import *
 pd.options.mode.chained_assignment = None  # mute chained assignment warnings
-
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
+sum_config = toml.load(os.path.join(os.getcwd(), 'configuration/summary_configuration.toml'))
 
 def json_to_dictionary(dict_name):
     """ Read skim parameter JSON inputs as dictionary """
@@ -47,12 +51,12 @@ def get_intrazonal_vol(emmeproject, df_vol):
     """Calculate intrazonal volumes for all modes"""
 
     iz_uc_list = ['sov_inc','hov2_inc','hov3_inc']
-    if include_av:
+    if config['include_av']:
         iz_uc_list += 'av_sov_inc','av_hov2_inc','av_hov3_inc'
     iz_uc_list = [uc+str(1+i) for i in range(3) for uc in iz_uc_list]
-    if include_tnc:
+    if config['include_tnc']:
         iz_uc_list += ['tnc_inc1','tnc_inc2','tnc_inc3']
-    if include_delivery:
+    if config['include_delivery']:
         iz_uc_list += ['delivery_truck']
     iz_uc_list += ['medium_truck','heavy_truck']
 
@@ -67,7 +71,7 @@ def calc_total_vehicles(my_project):
     my_project.network_calculator("link_calculation", result='@mveh', expression='@medium_truck/1.5') # medium trucks       
     my_project.network_calculator("link_calculation", result='@hveh', expression='@heavy_truck/2.0') #heavy trucks     
     my_project.network_calculator("link_calculation", result='@bveh', expression='@trnv3/2.0') # buses
-    if include_delivery:
+    if config['include_delivery']:
         my_project.network_calculator("link_calculation", result='@dveh', expression='@delivery_truck/1.5') # medium trucks       
      
     # Calculate total vehicles as @tveh, depending on which modes are included
@@ -78,11 +82,11 @@ def calc_total_vehicles(my_project):
     tnc_str = '+ @tnc_inc1 + @tnc_inc2 + @tnc_inc3 '
 
     str_expression = str_base
-    if include_av:
+    if config['include_av']:
         str_expression += av_str
-    if include_tnc:
+    if config['include_tnc']:
         str_expression += tnc_str
-    if include_delivery:
+    if config['include_delivery']:
         str_expression += ' + @dveh'
 
     my_project.network_calculator("link_calculation", result='@tveh', expression=str_expression)
@@ -238,7 +242,7 @@ def summarize_network(df, writer):
     # Totals by functional classification
     for metric in ['VMT','VHT','delay']:
         _df = pd.pivot_table(df, values=metric, index=['tod','period'],columns='facility_type', aggfunc='sum').reset_index()
-        _df = sort_df(df=_df, sort_list=tods , sort_column='tod')
+        _df = sort_df(df=_df, sort_list=network_config['tods'] , sort_column='tod')
         _df = _df.reset_index(drop=True)
         _df.to_excel(writer, sheet_name=metric+' by FC')
         _df.to_csv(r'outputs/network/' + metric.lower() +'_facility.csv', index=False)
@@ -247,14 +251,14 @@ def summarize_network(df, writer):
     lane_miles = df[df['tod']=='7to8']
     lane_miles = pd.pivot_table(lane_miles, values='lane_miles', index='@countyid',columns='facility_type', aggfunc='sum').reset_index()
     lane_miles['@countyid'] = lane_miles['@countyid'].astype(int)
-    lane_miles = lane_miles.replace({'@countyid': county_map})
-    lane_miles = lane_miles[lane_miles['@countyid'].isin(county_map.values())]
+    lane_miles = lane_miles.replace({'@countyid': sum_config['county_map']})
+    lane_miles = lane_miles[lane_miles['@countyid'].isin(sum_config['county_map'].values())]
     lane_miles.rename(columns = {col:col+'_lane_miles' for col in lane_miles.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     
 
     county_vmt = pd.pivot_table(df, values='VMT', index=['@countyid'],columns='facility_type', aggfunc='sum').reset_index()
     county_vmt['@countyid'] = county_vmt['@countyid'].astype(int)
-    county_vmt = county_vmt.replace({'@countyid': county_map})
+    county_vmt = county_vmt.replace({'@countyid': sum_config['county_map']})
     county_vmt.rename(columns = {col:col+'_vmt' for col in county_vmt.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     lane_miles = lane_miles.merge(county_vmt, how='left', on ='@countyid')
     lane_miles.to_csv(r'outputs/network/county_vmt_lane_miles.csv', index=False)
@@ -263,21 +267,21 @@ def summarize_network(df, writer):
     # Update uc_list based on inclusion of TNC and AVs
     new_uc_list = []
 
-    if include_delivery:
+    if config['include_delivery']:
         new_uc_list.append('@dveh')	
 
-    if (not include_tnc) & (not include_av):
-        for uc in uc_list:
+    if (not config['include_tnc']) & (not config['include_av']):
+        for uc in sum_config['uc_list']:
             if ('@tnc' not in uc) & ('@av' not in uc):
                 new_uc_list.append(uc)
                 
-    if (include_tnc) & (not include_av):
-        for uc in uc_list:
+    if (config['include_tnc']) & (not config['include_av']):
+        for uc in sum_config['uc_list']:
             if '@av' not in uc:
                 new_uc_list.append(uc)
                 
-    if (not include_tnc) & (include_av):
-        for uc in uc_list:
+    if (not config['include_tnc']) & (config['include_av']):
+        for uc in sum_config['uc_list']:
             if '@tnc' not in uc:
                 new_uc_list.append(uc)
                 
@@ -286,7 +290,7 @@ def summarize_network(df, writer):
     for uc in new_uc_list:
         _df[uc] = df[uc]*df['length']
     _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
+    _df = sort_df(df=_df, sort_list=network_config['tods'], sort_column='tod')
     _df.to_excel(excel_writer=writer, sheet_name="VMT by UC")
     _df.to_csv(r'outputs/network/vmt_user_class.csv', index=False)
 
@@ -295,7 +299,7 @@ def summarize_network(df, writer):
     for uc in new_uc_list:
         _df[uc] = df[uc]*df['auto_time']/60
     _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
+    _df = sort_df(df=_df, sort_list=network_config['tods'], sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="VHT by UC")
     _df.to_csv(r'outputs/network/vht_user_class.csv', index=False)
@@ -305,14 +309,14 @@ def summarize_network(df, writer):
     for uc in new_uc_list:
         _df[uc] = ((_df['auto_time']-_df['freeflow_time'])*_df[uc])/60
     _df = _df[new_uc_list+['tod']].groupby('tod').sum().reset_index()
-    _df = sort_df(df=_df, sort_list=tods, sort_column='tod')
+    _df = sort_df(df=_df, sort_list=network_config['tods'], sort_column='tod')
     _df = _df.reset_index(drop=True)
     _df.to_excel(excel_writer=writer, sheet_name="Delay by UC")
     _df.to_csv(r'outputs/network/delay_user_class.csv', index=False)
 
     # Results by County
     
-    df['county_name'] = df['@countyid'].map(county_map)
+    df['county_name'] = df['@countyid'].map(sum_config['county_map'])
     df['county_name'].fillna('Outside Region', inplace=True)
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
@@ -426,21 +430,21 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df.to_csv(r'outputs\transit\total_transit_trips.csv')
 
     # Boardings by agency
-    df_transit_line['agency_name'] = df_transit_line['agency_code'].map(agency_lookup)
+    df_transit_line['agency_name'] = df_transit_line['agency_code'].map({int(k):v for k,v in sum_config['agency_lookup'].items()})
     df_daily = df_transit_line.groupby('agency_name').sum()[['boardings']].reset_index().sort_values('boardings', ascending=False)
-    df_daily.to_csv(boardings_by_agency_path, index=False)
+    df_daily.to_csv(sum_config['boardings_by_agency_path'], index=False)
 
     # Boardings for special routes
-    df_special = df_transit_line[df_transit_line['route_code'].isin(special_route_lookup.keys())].groupby('route_code').sum()[['boardings']].sort_values('boardings', ascending=False)
+    df_special = df_transit_line[df_transit_line['route_code'].isin({int(k) for k in sum_config['special_route_lookup'].keys()})].groupby('route_code').sum()[['boardings']].sort_values('boardings', ascending=False)
     df_special = df_special.reset_index()
-    df_special['description'] = df_special['route_code'].map(special_route_lookup)
-    df_special[['route_code','description','boardings']].to_csv(special_routes_path, index=False)
+    df_special['description'] = df_special['route_code'].map({int(k):v for k,v in sum_config['special_route_lookup'].items()})
+    df_special[['route_code','description','boardings']].to_csv(sum_config['special_routes_path'], index=False)
 
     # Boardings by Time of Day
     df_tod_agency  = df_transit_line.pivot_table(columns='tod',index='agency_name',values='boardings',aggfunc='sum')
-    df_tod_agency = df_tod_agency[transit_tod_list]
+    df_tod_agency = df_tod_agency[network_config['transit_tod_list']]
     df_tod_agency = df_tod_agency.sort_values('7to8', ascending=False).reset_index()
-    df_tod_agency.to_csv(boardings_by_tod_agency_path, index=False)
+    df_tod_agency.to_csv(sum_config['boardings_by_tod_agency_path'], index=False)
 
     # Daily Boardings by Stop
     df_transit_segment = pd.read_csv(r'outputs\transit\transit_segment_results.csv')
@@ -450,16 +454,16 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
     df = pd.merge(df_transit_node, df_transit_segment, left_on='node_id', right_on='i_node')
     df.rename(columns={'segment_boarding': 'total_boardings'}, inplace=True)
     df['transfers'] = df['total_boardings'] - df['initial_boardings']
-    df.to_csv(boardings_by_stop_path)
+    df.to_csv(sum_config['boardings_by_stop_path'])
 
     # Light rail station boardings
-    df = pd.read_csv(boardings_by_stop_path)
+    df = pd.read_csv(sum_config['boardings_by_stop_path'])
     df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings", con=conn)
     df_obs['year'] = df_obs['year'].fillna(0).astype('int')
-    df_obs = df_obs[(df_obs['year'] == int(base_year)) | (df_obs['year'] == 0)]
+    df_obs = df_obs[(df_obs['year'] == int(config['base_year'])) | (df_obs['year'] == 0)]
 
     # Translate daily boardings to 5 to 20
-    df_line_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(base_year), con=conn)
+    df_line_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(config['base_year']), con=conn)
     df_line_obs['route_id'] = df_line_obs['route_id'].astype('int')
     light_rail_list = [6996]
     daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
@@ -476,19 +480,19 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
 
     df_total = df.copy()[cols]
     df_total.loc['Total',cols] = df[cols].sum().values
-    df_total.to_csv(light_rail_boardings_path)
+    df_total.to_csv(sum_config['light_rail_boardings_path'])
 
 def main():
 
     conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
 
     # Delete any existing files
-    for _path in [transit_line_path,transit_node_path,transit_segment_path,network_results_path]:
+    for _path in [sum_config['transit_line_path'],sum_config['transit_node_path'],sum_config['transit_segment_path'],sum_config['network_results_path']]:
         if os.path.exists(_path ):
             os.remove(_path )
 
     ## Access Emme project with all time-of-day banks available
-    my_project = EmmeProject(network_summary_project)
+    my_project = EmmeProject(network_config['network_summary_project'])
     network = my_project.current_scenario.get_network()
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))
@@ -511,18 +515,18 @@ def main():
 
     # Loop through all Time-of-Day banks to get network summaries
     # Initialize extra network and transit attributes
-    for tod_hour, tod_segment in sound_cast_net_dict.items():
+    for tod_hour, tod_segment in network_config['sound_cast_net_dict'].items():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
-        if tod_hour in transit_tod.keys():
+        if tod_hour in network_config['transit_tod'].keys():
             _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
         df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
         
-        for name, description in extra_attributes_dict.items():
+        for name, description in network_config['extra_attributes_dict'].items():
             my_project.create_extra_attribute('LINK', name, description, 'True')
         # Calculate transit results for time periods with transit assignment:
-        if my_project.tod in transit_tod.keys():
-            for name, desc in transit_extra_attributes_dict.items():
+        if my_project.tod in network_config['transit_tod'].keys():
+            for name, desc in sum_config['transit_extra_attributes_dict'].items():
                 my_project.create_extra_attribute('TRANSIT_LINE', name, desc, 'True')
                 my_project.transit_line_calculator(result=name, expression=name[1:])
             _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(emme_project=my_project, 
@@ -535,7 +539,7 @@ def main():
         
             # Calculate transit line OD table for select lines
             if tod_hour in transit_line_od_period_list:         
-                for line_id, name in transit_line_dict.items():
+                for line_id, name in sum_config['transit_line_dict'].items():
                     # Calculate results for all path types
                     for class_name in ['trnst','commuter_rail','ferry','litrat','passenger_ferry']:
                         for matrix in my_project.bank.matrices():
@@ -574,10 +578,11 @@ def main():
         _network_df['tod'] = my_project.tod
         network_df = network_df.append(_network_df)
 
-    output_dict = {network_results_path: network_df, iz_vol_path: df_iz_vol,
-                    transit_line_path: df_transit_line,
-                    transit_node_path: df_transit_node,
-                    transit_segment_path: df_transit_segment}
+    output_dict = {sum_config['network_results_path']: network_df, 
+                   sum_config['iz_vol_path']: df_iz_vol,
+                   sum_config['transit_line_path']: df_transit_line,
+                   sum_config['transit_node_path']: df_transit_node,
+                   sum_config['transit_segment_path']: df_transit_segment}
 
     # Append hourly results to file output
     for filepath, df in output_dict.items():

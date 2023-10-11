@@ -12,16 +12,18 @@ import xlsxwriter
 import numpy as np
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
-import input_configuration
+# import input_configuration
 import inro.emme.desktop.app as app
 import inro.modeller as _m
 from EmmeProject import *
 import datetime
-from benefit_cost_configuration import *
-from input_configuration import *
-from emme_configuration import *
+# from benefit_cost_configuration import *
+# from input_configuration import *
+# from emme_configuration import *
 from h5toDF import *
-
+import toml
+config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
 
 
 def get_variables_trips(output_df,trip_variables, hh_variables, person_variables):
@@ -87,7 +89,7 @@ def group_vmt_speed(my_project):
     for item in speed_bins:
         speed_dict[item] = {'Car' : 0, 'Light Truck' : 0,  'Medium Truck' : 0, 'Heavy Truck': 0}
 
-    for key, value in sound_cast_net_dict.iteritems():
+    for key, value in network_config['sound_cast_net_dict'].iteritems():
 
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
@@ -119,7 +121,7 @@ def group_vmt_class(my_project):
     # store vmt by functional class 1= Freeway, 3= Expressway, etc
     vmt_func_class= {1 : 0, 3 : 0,  5 : 0, 7 : 0}
     
-    for key, value in sound_cast_net_dict.iteritems():
+    for key, value in network_config['sound_cast_net_dict'].iteritems():
         my_project.change_active_database(key)
         network = my_project.current_scenario.get_network()
 
@@ -186,7 +188,7 @@ def truck_costs(my_project):
    
     truck_dict = {'Truck Medium VHT': 0, 'Truck Heavy VHT': 0, 'Truck Medium VMT': 0, 'Truck Heavy VMT': 0, 'Truck Medium Tolls': 0, 'Truck Heavy Tolls': 0}
 
-    for key, value in sound_cast_net_dict.iteritems():
+    for key, value in network_config['sound_cast_net_dict'].iteritems():
         my_project.change_active_database(key)
         #these are already in network_summary, but just repeating to make this a standalone script
         my_project.network_calculator("link_calculation", result = None, expression = '@mveh*timau/60')
@@ -315,7 +317,7 @@ def main():
     emme_project = EmmeProject(project)
     # Calculate link level benefits
     vmt_speed_dict = group_vmt_speed(emme_project)
-    df_emissions = emissions_calc(vmt_speed_dict, model_year)
+    df_emissions = emissions_calc(vmt_speed_dict, config['model_year'])
     noise_vmt = noise_calc(vmt_speed_dict)
     injury_rates_vmt = injury_calc(injury_file, emme_project)
     truck_outputs = truck_costs(emme_project)

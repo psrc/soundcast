@@ -5,7 +5,7 @@ import h5py
 import sys
 import time
 
-# Relative path between notebooks and goruped output directories
+# Relative path between notebooks and grouped output directories
 # for testing
 
 #os.chdir(r"H:\vision2050\soundcast\integrated\final_runs\base_year\2014\scripts\summarize\notebooks")
