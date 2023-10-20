@@ -8,8 +8,8 @@ dependencies:
   - blosc=1.21.0=h0e60522_0
   - brotlipy=0.7.0=py37hcc03f2d_1001
   - bzip2=1.0.8=h8ffe710_4
-  - ca-certificates=2022.07.19=haa95532_0
-  - certifi=2022.9.24=py37haa95532_0
+  - ca-certificates=2023.01.10=haa95532_0
+  - certifi=2022.12.7=py37haa95532_0
   - cffi=1.14.5=py37hd8e9650_0
   - chardet=4.0.0=py37h03978a9_1
   - cryptography=3.4.7=py37h20c650d_0
@@ -33,7 +33,8 @@ dependencies:
   - numpy=1.19.2=py37hadc3359_0
   - numpy-base=1.19.2=py37ha3acd2a_0
   - openpyxl=3.0.7=pyhd3eb1b0_0
-  - openssl=1.1.1q=h2bbff1b_0
+  - openssl=1.1.1s=h2bbff1b_0
+  - pandana=0.6.1=py37h90003fb_0
   - pandas=1.2.3=py37hf11a4ad_0
   - pip=21.0.1=py37haa95532_0
   - pyasn1=0.4.8=py_0
@@ -55,6 +56,8 @@ dependencies:
   - sqlalchemy=1.4.5=py37h2bbff1b_0
   - sqlite=3.35.4=h2bbff1b_0
   - threadpoolctl=2.1.0=pyh5ca1d4c_0
+  - toml=0.10.2=pyhd3eb1b0_0
+  - tomli=2.0.1=py37haa95532_0
   - typing_extensions=3.7.4.3=pyha847dfd_0
   - urllib3=1.26.4=pyhd8ed1ab_0
   - vc=14.2=h21ff451_1
@@ -67,7 +70,6 @@ dependencies:
   - zipp=3.4.1=pyhd3eb1b0_0
   - zlib=1.2.11=h62dcd97_4
   - pip:
-    - cython==0.29.32
-    - pandana==0.6.1
-    - tables==3.5.1
-prefix: C:\ProgramData\Anaconda3\envs\model_py3
+    - hdf5plugin==4.2.0
+    - tables==3.6.1
+prefix: C:\Users\Modeller\.conda\envs\model_py3
