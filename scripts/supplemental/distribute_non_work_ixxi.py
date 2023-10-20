@@ -29,8 +29,8 @@ def calc_fric_fac(cost_skim, dist_skim, _coeff_df):
     ''' Calculate friction factors for all trip purposes '''
     friction_fac_dic = {}
     for index, row in _coeff_df.iterrows():
-        MIN_EXTERNAL_INDEX = dictZoneLookup[MIN_EXTERNAL]
-        friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * autoop * avotda)))
+        MIN_EXTERNAL_INDEX = dictZoneLookup[emme_config['MIN_EXTERNAL']]
+        friction_fac_dic[row['purpose']] = np.exp((row['coefficient_value'])*(cost_skim + (dist_skim * emme_config['autoop'] * emme_config['avotda'])))
         ## Set external zones to zero to prevent external-external trips
         friction_fac_dic[row['purpose']][MIN_EXTERNAL_INDEX:,MIN_EXTERNAL_INDEX:] = 0
         #friction_fac_dic[row['purpose']][:,[x for x in range(MIN_EXTERNAL_INDEX, len(cost_skim))]] = 0

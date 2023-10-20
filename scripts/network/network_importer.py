@@ -188,7 +188,7 @@ def arterial_delay(emmeProject, factor):
 def run_importer(project_name):
     my_project = EmmeProject(project_name)
     headway_df = pd.read_csv('inputs/scenario/networks/headways.csv')
-    tod_index = pd.Series(range(1,len(tod_networks)+1),index=tod_networks)
+    tod_index = pd.Series(range(1,len(network_config['tod_networks'])+1),index=network_config['tod_networks'])
     for key, value in network_config['sound_cast_net_dict'].items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
@@ -221,7 +221,7 @@ def run_importer(project_name):
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_links_'+ str(tod_index[value]) +'.txt')
         my_project.import_extra_attributes('inputs/scenario/networks/extra_attributes/' + value + '_link_attributes.in/extra_nodes_'+ str(tod_index[value]) +'.txt')
 
-        arterial_delay(my_project, rdly_factor)
+        arterial_delay(my_project, network_config['rdly_factor'])
         if config['add_distance_pricing']:
             distance_pricing(config['distance_rate_dict'][value], my_project)
        
