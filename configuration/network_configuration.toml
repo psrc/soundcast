@@ -6,6 +6,7 @@ network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 
 unit_of_length = 'mi'    # units of miles in Emme
+rdly_factor = 0.25
 coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
 main_log_file = 'soundcast_log.txt'
 
@@ -23,6 +24,7 @@ feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
 # Time of day periods
 tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
+tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
 #project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
 emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
