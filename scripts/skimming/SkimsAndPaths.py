@@ -1053,6 +1053,8 @@ def bike_facility_weight(my_project, link_df):
     # and replace geodb typology with the 2-tier definition
     df = get_link_attribute('@bkfac', network)
     df = df.merge(link_df)
+    df['@bkfac'] = df['@bkfac'].astype(int)
+    df['@bkfac'] = df['@bkfac'].astype(str)
     df = df.replace(network_config['bike_facility_crosswalk'])
 
     # Replace the facility ID with the estimated  marginal rate of substituion

@@ -213,7 +213,7 @@ num_of_hours = 2
 # "Premium" represents trails and fully separated bike facilities
 # "Standard" represents painted bike lanes only
 [bike_facility_crosswalk]
-["bike_facility_crosswalk.@bkfac"]
+[bike_facility_crosswalk."@bkfac"]
 0 = "none"      # No bike lane
 1 = "standard"  # Striped bike lane
 2 = "premium"   # Protected bike lane
