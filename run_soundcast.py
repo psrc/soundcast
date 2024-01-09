@@ -33,11 +33,10 @@ import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import pandas as pd
-
 import toml
-# from emme_configuration import *
 from data_wrangling import *
-# data_wrangling.update_daysim_modes()
+from skimming import SkimsAndPaths
+
 
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
@@ -88,12 +87,8 @@ def build_seed_skims(max_iterations):
 def build_free_flow_skims(max_iterations):
     print("Building free flow skims.")
     time_copy = datetime.datetime.now()
-    returncode = subprocess.call([sys.executable,
-        'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations), config['model_year'],
-        '-build_free_flow_skims'])
-    if returncode != 0:
-        sys.exit(1)
+    SkimsAndPaths.run(True, max_iterations)
+    
                   
     time_skims = datetime.datetime.now()
     print('###### Finished skimbuilding:', str(time_skims - time_copy))
@@ -192,11 +187,9 @@ def daysim_assignment(iteration):
     if config['run_skims_and_paths']:
         logger.info("Start of iteration %s of Skims and Paths", str(iteration))
         num_iterations = str(emme_config['max_iterations_list'][iteration])
-        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, config['model_year']])
+        SkimsAndPaths.run(False, num_iterations)
         logger.info("End of iteration %s of Skims and Paths", str(iteration))
-        if returncode != 0:
-            sys.exit(1)
-
+        
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
