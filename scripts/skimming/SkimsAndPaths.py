@@ -21,15 +21,20 @@ import traceback
 
 # os.chdir('..\..')
 
+
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
+from TOD_Parameters import *
+from User_Classes import *
 from data_wrangling import text_to_dictionary, json_to_dictionary
 import toml
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+tod_parameters_dict = create_tod_dict(network_config)
+user_classes = create_user_class_dict(json_to_dictionary('user_classes'))
 
 
 #Create a logging file to report model progress
@@ -104,36 +109,28 @@ def define_matrices(my_project):
     """Create and load matrix data."""
 
     start_define_matrices = time.time()
+    tod_parameters = tod_parameters_dict[my_project.tod]
     # Load in the necessary Dictionaries
-    matrix_dict = json_to_dictionary("user_classes")
+    #matrix_dict = json_to_dictionary("user_classes")
     bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict", "nonmotor")
-
-    for x in range (0, len(network_config['emme_matrix_subgroups'])):
-        for y in range (0, len(matrix_dict[network_config['emme_matrix_subgroups'][x]])):
-                my_project.create_matrix(matrix_dict[network_config['emme_matrix_subgroups'][x]][y]["Name"],
-                          matrix_dict[network_config['emme_matrix_subgroups'][x]][y]["Description"], "FULL")
-
-    # Create the Highway Skims in Emme
-        #Check to see if we want to make Distance skims for this period:
-    if my_project.tod in network_config['distance_skim_tod']:
-            #overide the global skim matrix designation (time & cost most likely) to make sure distance skims are created for this tod
-        my_skim_matrix_designation=network_config['skim_matrix_designation_limited'] + network_config['skim_matrix_designation_all_tods']
-    else:
-        my_skim_matrix_designation = network_config['skim_matrix_designation_all_tods']
-
-    for x in range (0, len(my_skim_matrix_designation)):
-            for y in range (0, len(matrix_dict["Highway"])):
-                my_project.create_matrix(matrix_dict["Highway"][y]["Name"]+my_skim_matrix_designation[x], 
-                                          matrix_dict["Highway"][y]["Description"], "FULL")
+    
+    #create trip table matrices
+    for user_type in user_classes.keys():
+        for user in user_classes[user_type].users:
+                my_project.create_matrix(user.name, user.description, "FULL")
+    # create highway skims
+    for skim_type in tod_parameters.skim_types:
+        for user in user_classes["Highway"].users:
+            my_project.create_matrix(user.name + skim_type, user.description, "FULL")
                    
     #Create Generalized Cost Skims matrices for only for tod in generalized_cost_tod
-    if my_project.tod in network_config['generalized_cost_tod']:
+    if tod_parameters.skim_generalized_cost:
         for key, value in network_config['gc_skims'].items():
             my_project.create_matrix(value + 'g', "Generalized Cost Skim: " + key, "FULL")
 
     #Create empty Transit Skim matrices in Emme only for tod in transit_skim_tod list
     # Actual In Vehicle Times by Mode
-    if my_project.tod in network_config['transit_skim_tod']:
+    if tod_parameters.run_transit:
         for item in network_config['transit_submodes']:
             my_project.create_matrix('ivtwa' + item, "Actual IVTs by Mode: " + item, "FULL")
             my_project.create_matrix('ivtwr' + item, "Actual IVTs by Mode, Light Rail Assignment: " + item, "FULL")
@@ -148,7 +145,7 @@ def define_matrices(my_project):
             my_project.create_matrix(key, value, "FULL")  
                
     #bike & walk, do not need for all time periods. most likely just 1:
-    if my_project.tod in network_config['bike_walk_skim_tod']:
+    if tod_parameters.skim_bike_walk:
         for key in bike_walk_matrix_dict.keys():
             my_project.create_matrix(bike_walk_matrix_dict[key]['time'], bike_walk_matrix_dict[key]['description'], "FULL")
           
@@ -1382,10 +1379,10 @@ def main():
     start_of_run = time.time()
     pool_list = []
     project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in network_config['tods']]
-    for i in range(0, 12, emme_config['parallel_instances']):
-        l = project_list[i:i+emme_config['parallel_instances']]
-        pool_list.append(start_pool(l))
-    #run_assignments_parallel('projects/8to9/8to9.emp')
+    # for i in range(0, 12, emme_config['parallel_instances']):
+    #     l = project_list[i:i+emme_config['parallel_instances']]
+    #     pool_list.append(start_pool(l))
+    run_assignments_parallel('projects/8to9/8to9.emp')
 
     ### calculate link daily volumes for use in bike model
     
