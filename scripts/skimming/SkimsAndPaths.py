@@ -17,15 +17,16 @@ import logging
 import datetime
 import argparse
 import traceback
+sys.path.append(os.path.join(os.getcwd(), "scripts"))
+sys.path.append(os.path.join(os.getcwd(), "inputs"))
+sys.path.append(os.getcwd())
 from EmmeProject import *
 from skimming.TOD_Parameters import *
 from skimming.User_Classes import *
 from data_wrangling import text_to_dictionary, json_to_dictionary
 import toml
 
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.getcwd())
+
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -33,8 +34,7 @@ emme_config = toml.load(
 network_config = toml.load(
     os.path.join(os.getcwd(), "configuration/network_configuration.toml")
 )
-tod_parameters_dict = create_tod_dict(network_config)
-user_classes = create_user_class_dict(json_to_dictionary("user_classes"))
+
 
 
 # Create a logging file to report model progress
@@ -97,11 +97,11 @@ def delete_matrices(my_project, matrix_type):
             my_project.delete_matrix(matrix)
 
 
-def define_matrices(my_project):
+def define_matrices(my_project, user_classes, tod_parameters):
     """Create and load matrix data."""
 
     start_define_matrices = time.time()
-    tod_parameters = tod_parameters_dict[my_project.tod]
+    #tod_parameters = tod_parameters_dict[my_project.tod]
     # Load in the necessary Dictionaries
     # matrix_dict = json_to_dictionary("user_classes")
     bike_walk_matrix_dict = json_to_dictionary("bike_walk_matrix_dict", "nonmotor")
@@ -266,7 +266,7 @@ def calc_bus_pce(my_project):
     )
 
 
-def traffic_assignment(my_project):
+def traffic_assignment(my_project, max_num_iterations):
 
     start_traffic_assignment = time.time()
     print("starting traffic assignment for" + my_project.tod)
@@ -1104,16 +1104,16 @@ def matrix_controlled_rounding(my_project):
     logging.debug(text)
 
 
-def start_pool(project_list):
+def start_pool(project_list, free_flow_skims, max_iterations):
     # An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and
     # it cannot be destroyed/recreated in same script. In order to run things con-currently in the same script, must have
     # seperate projects/banks for each time period and have a pool for each project/bank.
     # Fewer pools than projects/banks will cause script to crash.
     pool = Pool(processes=emme_config["parallel_instances"])
-    pool_list = pool.map(
-        run_assignments_parallel_wrapped,
-        project_list[0 : emme_config["parallel_instances"]],
-    )
+    params = []
+    for item in project_list:
+        params.append((item, free_flow_skims, max_iterations))
+    pool_list = pool.starmap(run_assignments_parallel_wrapped, params)
     pool.close()
 
     return pool_list
@@ -1228,11 +1228,11 @@ def export_to_hdf5_pool(project_list):
     pool.close()
 
 
-def start_export_to_hdf5(test):
+def start_export_to_hdf5(test, free_flow_skims):
 
     my_project = EmmeProject(test)
     # do not average skims if using seed_trips because we are starting the first iteration
-    if build_free_flow_skims:
+    if free_flow_skims:
         average_skims_to_hdf5_concurrent(my_project, False)
     else:
         average_skims_to_hdf5_concurrent(my_project, True)
@@ -1650,28 +1650,31 @@ def get_aadt(my_project):
     return df
 
 
-def run_assignments_parallel_wrapped(project_name):
+def run_assignments_parallel_wrapped(project_name, free_flow_skims, max_iterations):
     try:
-        pool_list = run_assignments_parallel(project_name)
+        pool_list = run_assignments_parallel(project_name, free_flow_skims, max_iterations)
     except:
         print("%s: %s" % (project_name, traceback.format_exc()))
 
     return pool_list
 
 
-def run_assignments_parallel(project_name):
+def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
+    
+    user_classes = create_user_class_dict(json_to_dictionary("user_classes"))
 
     start_of_run = time.time()
 
     my_project = EmmeProject(project_name)
+    tod_parameters = TOD_Parameters(network_config, my_project.tod)
 
     # Delete and create new demand and skim matrices:
     for matrix_type in ["FULL", "ORIGIN", "DESTINATION"]:
         delete_matrices(my_project, matrix_type)
 
-    define_matrices(my_project)
+    define_matrices(my_project, user_classes, tod_parameters)
 
-    if not build_free_flow_skims:
+    if not free_flow_skims:
         hdf5_trips_to_Emme(my_project, hdf5_file_path)
         matrix_controlled_rounding(my_project)
 
@@ -1698,7 +1701,7 @@ def run_assignments_parallel(project_name):
     vdf_initial(my_project)
 
     # Run auto assignment and skimming
-    traffic_assignment(my_project)
+    traffic_assignment(my_project, max_iterations)
     attribute_based_skims(my_project, "Time")
 
     # Assign bike and walk trips
@@ -1766,10 +1769,11 @@ def run_assignments_parallel(project_name):
 
 
 def run(free_flow_skims=False, num_iterations=100):
-    global build_free_flow_skims
-    global max_num_iterations
-    build_free_flow_skims = free_flow_skims
-    max_num_iterations = num_iterations
+    #global build_free_flow_skims
+    #global max_num_iterations
+    #build_free_flow_skims = free_flow_skims
+    
+    #max_num_iterations = num_iterations
     # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
     for tod in network_config["tods"]:
         strat_dir = os.path.join("Banks", tod, "STRATS_s1002")
@@ -1787,7 +1791,7 @@ def run(free_flow_skims=False, num_iterations=100):
     ]
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
-        pool_list.append(start_pool(l))
+        pool_list.append(start_pool(l, free_flow_skims, num_iterations))
     # run_assignments_parallel("projects/8to9/8to9.emp")
 
     ### calculate link daily volumes for use in bike model
@@ -1807,7 +1811,7 @@ def run(free_flow_skims=False, num_iterations=100):
 
     f = open("outputs/logs/converge.txt", "w")
     ##if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
-    if build_free_flow_skims == False:
+    if free_flow_skims == False:
         if feedback_check(network_config["feedback_list"]) == False:
             go = "continue"
             json.dump(go, f)

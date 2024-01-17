@@ -38,6 +38,7 @@ from data_wrangling import *
 from skimming import SkimsAndPaths
 
 
+
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 
@@ -163,7 +164,6 @@ def run_truck_supplemental(iteration):
 
 @timed
 def daysim_assignment(iteration):
-     
      ########################################
      # Run Daysim Activity Models
      ########################################
@@ -216,6 +216,12 @@ def get_current_commit_hash():
     return commit
 
 def main():
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["NUMBA_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
     ########################################
     # Initialize Banks, Projects, Directories
@@ -227,6 +233,9 @@ def main():
     build_output_dirs()
     update_daysim_modes()
     update_skim_parameters()
+    
+    # this import statement needs to happen here, after update_skim_parameters:
+    
 
     if config['run_setup_emme_bank_folders']:
         setup_emme_bank_folders()
@@ -324,6 +333,7 @@ def main():
     print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(emme_config['good_thing']))
 
 if __name__ == "__main__":
+    
     logger = logcontroller.setup_custom_logger('main_logger')
     logger.info('--------------------NEW RUN STARTING--------------------')
     start_time = datetime.datetime.now()
