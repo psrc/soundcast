@@ -1221,10 +1221,14 @@ def run_transit(project_name):
     my_project.bank.dispose()
 
 
-def export_to_hdf5_pool(project_list):
+def export_to_hdf5_pool(project_list, free_flow_skims):
+    params = []
+    for item in project_list:
+        params.append((item, free_flow_skims))
+    #pool_list = pool.starmap(run_assignments_parallel_wrapped, params)
 
     pool = Pool(processes=emme_config["parallel_instances"])
-    pool.map(start_export_to_hdf5, project_list[0 : emme_config["parallel_instances"]])
+    pool.starmap(start_export_to_hdf5, params)
     pool.close()
 
 
@@ -1824,7 +1828,7 @@ def run(free_flow_skims=False, num_iterations=100):
     # export skims even if skims converged
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
-        export_to_hdf5_pool(l)
+        export_to_hdf5_pool(l, free_flow_skims)
     # average_skims_to_hdf5_concurrent(EmmeProject('projects/7to8/7to8.emp'), False)
     f.close()
     end_of_run = time.time()
