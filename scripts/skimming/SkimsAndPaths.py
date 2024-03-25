@@ -1053,12 +1053,15 @@ def bike_facility_weight(my_project, link_df):
     # and replace geodb typology with the 2-tier definition
     df = get_link_attribute('@bkfac', network)
     df = df.merge(link_df)
+    df['@bkfac'] = df['@bkfac'].astype(int)
+    df['@bkfac'] = df['@bkfac'].astype(str)
     df = df.replace(network_config['bike_facility_crosswalk'])
 
     # Replace the facility ID with the estimated  marginal rate of substituion
     # value from Broach et al., 2012 (e.g., replace 'standard' with -0.108)
     df['facility_wt'] = df['@bkfac']
     df = df.replace(network_config['facility_dict'])
+    df['facility_wt'] = df['facility_wt'].astype(float)
 
     return df
 
@@ -1112,7 +1115,8 @@ def process_slope_weight(df, my_project):
 
     # Separate the slope into bins with the penalties as indicator values
     upslope_df['slope_wt'] = pd.cut(upslope_df['@upslp'], bins=network_config['slope_bins'], labels=network_config['slope_labels'], right=False)
-    upslope_df['slope_wt'] = upslope_df['slope_wt'].astype('float')
+    #upslope_df['slope_wt'] = upslope_df['slope_wt'].astype('float')
+    upslope_df['slope_wt'] = upslope_df['slope_wt'].astype('str')
     upslope_df = upslope_df.replace(to_replace=network_config['slope_dict'])
 
     return upslope_df
