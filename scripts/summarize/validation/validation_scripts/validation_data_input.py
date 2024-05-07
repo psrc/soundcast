@@ -4,9 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-#config = toml.load(os.path.join(os.getcwd(), 'validation_configuration.toml'))
-print (os.getcwd())
-config = toml.load(r'C:\Workspace\travel-modeling\estimation\validation_configuration.toml')
+config = toml.load(os.path.join(os.getcwd(), '..\\..\\..\\..\\configuration', 'validation_configuration.toml'))
 # Read data for model and survey data
 def get_data(df_name, survey_data_path, col_list=None):
 

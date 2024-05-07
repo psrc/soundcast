@@ -3,12 +3,12 @@ import toml
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-config = toml.load(os.path.join(os.getcwd(), "validation_configuration.toml"))
+config = toml.load(os.path.join(os.getcwd(), "configuration", "validation_configuration.toml"))
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def run_ipynb(sheet_name, nb_path):
-    print("create " + sheet_name + " summary")
+    print("creating " + sheet_name + " summary")
     with open(nb_path + r"/" + sheet_name + ".ipynb") as f:
         nb = nbformat.read(f, as_version=4)
         if sys.version_info > (3, 0):
@@ -23,20 +23,26 @@ def run_ipynb(sheet_name, nb_path):
 
 
 def main():
+
+    # Try to remove existing data first
+    output_dir = os.path.join(os.getcwd(),config['p_output_dir'],'validation-notebook')
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+
     for sheet_name in config["summary_list"]:
-        run_ipynb(sheet_name, CURRENT_DIR)
+        run_ipynb(sheet_name, os.path.join(r'scripts/summarize/validation/validation_scripts'))
 
     # render quarto book
     # TODO: automate _quarto.yml chapter list
-    text = "quarto render " + CURRENT_DIR
+    text = "quarto render " + os.path.join(r'scripts/summarize/validation/validation_scripts')
     os.system(text)
     print("validation notebook created")
 
     # Move these files to output folder
-    # if os.path.exists(os.path.join(os.getcwd(),config['p_output_dir'],"validation-notebook")):
-    #     os.remove(os.path.join(os.getcwd(),config['p_output_dir'],"validation-notebook"))
-    # os.rename((os.path.join(CURRENT_DIR,"validation-notebook"))),
-    #            os.path.join(os.getcwd(),config['p_output_dir'],"validation-notebook")))
+    if not os.path.exists(os.path.join(os.getcwd(),config['p_output_dir'])):
+        os.makedirs(os.path.join(os.getcwd(),config['p_output_dir']))
+    shutil.move((os.path.join(r'scripts/summarize/validation',"validation-notebook")),
+               output_dir)
 
 
 if __name__ == "__main__":

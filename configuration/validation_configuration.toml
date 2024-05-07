@@ -12,21 +12,21 @@ p_acs_auto_ownership = "R:/e2projects_two/activitysim/estimation/2017_2019_data/
 p_maz_bg_lookup =      "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv"
 
 # validation output directory
-p_output_dir = "outputs/validation"
+p_output_dir = "outputs/2023_validation"
 
 ################################################################
 # run validation notebooks
 ################################################################
-summary_list = ['validation_scripts/telecommute',
-               'validation_scripts/work_location',
-               'validation_scripts/transit_pass_ownership',
-               'validation_scripts/school_location',
-               'validation_scripts/auto_ownership',
-               'validation_scripts/work_tour_mode',
-               'validation_scripts/school_tour_mode',
-               'validation_scripts/escort_tour_mode',
-               'validation_scripts/other_home_based_tour_mode']
-#summary_list = ['validation_scripts/work_location']
+summary_list = ['work_location',
+               'transit_pass_ownership',
+               'school_location',
+               'auto_ownership',
+               'work_tour_mode',
+               'school_tour_mode',
+               'escort_tour_mode',
+                'telecommute',
+               'other_home_based_tour_mode']
+# summary_list = ['telecommute']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]
