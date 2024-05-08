@@ -2,7 +2,6 @@
 # Validation input files and output directory names
 ################################################################
 
-model_dir = "//modelstation4/c$/workspace/sc_2023/soundcast"
 survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
 tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
 base_year = "2018"
