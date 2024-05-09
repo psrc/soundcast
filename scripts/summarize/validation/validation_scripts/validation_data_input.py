@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-config = toml.load(os.path.join(os.getcwd(), '..\\..\\..\\..\\configuration', 'validation_configuration.toml'))
-model_dir = os.path.join(os.getcwd(), '..\\..\\..\\..\\')
-# Read data for model and survey data
+config = toml.load(os.path.join(os.getcwd(), r'../../../../configuration', 'validation_configuration.toml'))
+model_dir = os.path.join(os.getcwd(), r'../../../..')
+# Read data for model and survey dat
 def get_data(df_name, survey_data_path, col_list=None):
 
     if col_list is None:
