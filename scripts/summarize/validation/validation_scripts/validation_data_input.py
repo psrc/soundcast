@@ -5,8 +5,8 @@ import numpy as np
 import plotly.express as px
 
 config = toml.load(os.path.join(os.getcwd(), r'../../../../configuration', 'validation_configuration.toml'))
-model_dir = os.path.join(os.getcwd(), r'../../../..')
-# Read data for model and survey dat
+
+# Read data for model and survey data
 def get_data(df_name, survey_data_path, col_list=None):
 
     if col_list is None:
@@ -17,7 +17,7 @@ def get_data(df_name, survey_data_path, col_list=None):
         survey_cols = col_list
 
     # model data
-    model = pd.read_csv(os.path.join(model_dir, 'outputs', 'daysim', '_'+df_name+'.tsv'), sep='\t', usecols=model_cols)
+    model = pd.read_csv(os.path.join(config['model_dir'], 'outputs', 'daysim', '_'+df_name+'.tsv'), sep='\t', usecols=model_cols)
     model['source'] = "model"
 
     # survey data
