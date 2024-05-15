@@ -31,8 +31,9 @@ summary_list = ['work_location',
                'school_tour_mode',
                'escort_tour_mode',
                 'telecommute',
-               'other_home_based_tour_mode']
-# summary_list = ['other_home_based_tour_mode']
+              'other_home_based_tour_mode',
+              'tour_destination','trip_destination']
+#summary_list = ['other_home_based_tour_mode','tour_destination','trip_destination']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]

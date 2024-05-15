@@ -37,10 +37,10 @@ def main():
     print("validation notebook created")
 
     # Move these files to output folder
-    # if not os.path.exists(os.path.join(os.getcwd(),config['p_output_dir'])):
-    #     os.makedirs(os.path.join(os.getcwd(),config['p_output_dir']))
-    # shutil.move((os.path.join(r'scripts/summarize/validation',"validation-notebook")),
-    #            output_dir)
+    if not os.path.exists(os.path.join(os.getcwd(),config['p_output_dir'])):
+        os.makedirs(os.path.join(os.getcwd(),config['p_output_dir']))
+    shutil.move((os.path.join(r'scripts/summarize/validation',"validation-notebook")),
+               output_dir)
 
 
 if __name__ == "__main__":

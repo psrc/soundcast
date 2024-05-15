@@ -24,6 +24,10 @@ book:
         - validation_scripts/school_tour_mode.ipynb
         - validation_scripts/escort_tour_mode.ipynb
         - validation_scripts/other_home_based_tour_mode.ipynb
+    - part: "Destination Choice"
+      chapters:
+        - validation_scripts/tour_destination.ipynb
+        - validation_scripts/trip_destination.ipynb
 
 format:
   html:
