@@ -14,6 +14,7 @@ book:
     - validation_scripts/telecommute.ipynb
     - validation_scripts/auto_ownership.ipynb
     - validation_scripts/transit_pass_ownership.ipynb
+    - validation_scripts/day_pattern.ipynb
     - part: "Location Choice"
       chapters:
         - validation_scripts/work_location.ipynb
