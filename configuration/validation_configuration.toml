@@ -12,7 +12,6 @@ model_dir = '../../../..'
 
 survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
 tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
-base_year = "2018"
 
 # other validation dataset
 p_acs_auto_ownership = "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/bg_auto_ownership.csv"
