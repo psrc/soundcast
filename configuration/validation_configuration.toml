@@ -9,9 +9,11 @@ model_dir = '../../../..'
 # ---- (JL: for summary development)
 #model_dir = "C:/workspace/sc_2023_base_year"
 
+# ---- survey results
+# 2023
 survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
 tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
-# 2017/2019 survey data
+# 2017/2019
 include_2017_2019 = true
 survey_2017_dir = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached/uncloned"
 tour_survey_2017_dir = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
@@ -38,9 +40,7 @@ summary_list = ['work_location',
                'tour_destination',
                'trip_destination',
                'day_pattern']
-#summary_list = ['tour_destination',
-#               'trip_destination',
-#               'day_pattern']
+#summary_list = ['telecommute']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]
