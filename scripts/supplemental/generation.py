@@ -105,8 +105,8 @@ def main():
 
     my_project = EmmeProject(emme_config['supplemental_project'])
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
-
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
+    
     ###########################################################
     # PSRC Zone System for TAZ joining
     ###########################################################

@@ -70,7 +70,7 @@ def main():
     network_importer(my_project)
 
     # Load input data from DB and CSVs
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+config['model_year'], con=conn)
     parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")

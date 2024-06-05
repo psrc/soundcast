@@ -151,7 +151,7 @@ def main():
     trip_table = pd.read_csv(emme_config['trip_table_loc'], index_col="taz")  # total 4K Ps and As by trip purpose
 
     # Import gravity model coefficients by trip purpose from db
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
     coeff_df = pd.read_sql('SELECT * FROM gravity_model_coefficients', con=conn)
                                
     # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)

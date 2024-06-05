@@ -96,7 +96,7 @@ tod_lookup = {  0:'20to5',
 
 def main():
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     ########################################
     # Transit Boardings by Line

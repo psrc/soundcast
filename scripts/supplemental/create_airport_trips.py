@@ -359,7 +359,7 @@ def main():
     #Create a dictionary lookup where key is the taz id and value is it's numpy index. 
     zone_lookup_dict = dict((value,index) for index,value in enumerate(zones))
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
     parameters_df = pd.read_sql('SELECT * FROM mode_choice_parameters', con=conn)
     #FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
     tod_factors_df = pd.read_sql('SELECT * FROM time_of_day_factors', con=conn)

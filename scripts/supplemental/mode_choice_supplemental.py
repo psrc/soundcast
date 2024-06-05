@@ -279,7 +279,7 @@ def main():
     global zone_lookup_dict
     zone_lookup_dict = dict((value,index) for index,value in enumerate(zones))
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
     parameters_df = pd.read_sql('SELECT * FROM mode_choice_parameters', con=conn)
     parcels_file_name = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
