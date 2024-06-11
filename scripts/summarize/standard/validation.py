@@ -115,25 +115,25 @@ def main():
 
     # Merge modeled with observed boarding data
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
-    df.rename(columns={'boardings': 'modeled_5to20', 'observed_20to5': 'observed_5to20'}, inplace=True)
-    df['diff'] = df['modeled_5to20']-df['observed_5to20']
-    df['perc_diff'] = df['diff']/df['observed_5to20']
-    df[['modeled_5to20','observed_5to20']] = df[['modeled_5to20','observed_5to20']].fillna(-1)
+    df.rename(columns={'boardings': 'model_boardings', 'observed_daily': 'observed_boardings'}, inplace=True)
+    df['diff'] = df['model_boardings']-df['observed_boardings']
+    df['perc_diff'] = df['diff']/df['observed_boardings']
+    df[['model_boardings','observed_boardings']] = df[['model_boardings','observed_boardings']].fillna(-1)
 
     # Write to file
     df.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_line.csv'), index=False)
 
     # Boardings by agency
     df_agency = df.groupby(['agency']).sum().reset_index()
-    df_agency['diff'] = df_agency['modeled_5to20']-df_agency['observed_5to20']
-    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_5to20']
+    df_agency['diff'] = df_agency['model_boardings']-df_agency['observed_boardings']
+    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_boardings']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                        index=False, columns=['agency','observed_5to20','modeled_5to20','diff','perc_diff'])
+                        index=False, columns=['agency','observed_boardings','model_boardings','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
-                        index=False, columns=['description','route_code','agency','observed_5to20','modeled_5to20','diff','perc_diff'])
+                        index=False, columns=['description','route_code','agency','observed_boardings','model_boardings','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
@@ -348,7 +348,7 @@ def main():
     # Join to the observed data
     df_speed = df_speed.merge(_df,on=['Corridor_Number','tod'])
 
-    df_speed.plot(kind='scatter', y='model_speed', x='observed_speed')
+    # df_speed.plot(kind='scatter', y='model_speed', x='observed_speed')
     df_speed.to_csv(r'outputs\validation\corridor_speeds.csv', index=False)
 
     ########################################
@@ -356,10 +356,15 @@ def main():
     ########################################
 
     # Auto Ownership
-    df_obs = pd.read_sql("SELECT * FROM observed_auto_ownership_acs_block_group", con=conn)
-    df_obs.index = df_obs['GEOID10']
-    df_obs.drop(['id','GEOID10'], inplace=True, axis=1)
+    df_obs = pd.read_sql("SELECT * FROM observed_auto_ownership_acs_block_group WHERE year="+str(config['model_year']), con=conn)
+    if int(config['base_year']) < 2020:
+        geocol = 'GEOID10'
+    else:
+        geocol = 'GEOID20'
+    df_obs[geocol] = df_obs[geocol].astype('int64')
+    df_obs.index = df_obs[geocol]
     df_obs.rename(columns={'cars_none_control': 0, 'cars_one_control': 1, 'cars_two_or_more_control': 2}, inplace=True)
+    df_obs = df_obs[[0,1,2]]
     df_obs_sum = df_obs.sum()
     df_obs_sum = pd.DataFrame(df_obs_sum, columns=['census'])
     df_obs = df_obs.unstack().reset_index()
@@ -369,13 +374,14 @@ def main():
     # Record categories to max of 2+
     df_model.loc[df_model['hhvehs'] >= 2, 'hhvehs'] = 2
     df_model = df_model.groupby(['hhvehs','hh_block_group']).sum()[['hhexpfac']].reset_index()
+    df_model['hhvehs'] = df_model['hhvehs'].astype('int')
 
     df_model_sum = df_model.pivot_table(index='hh_block_group', columns='hhvehs', aggfunc='sum', values='hhexpfac')
     df_model_sum = df_model_sum.fillna(0)
     df_model_sum = df_model_sum.sum()
     df_model_sum = pd.DataFrame(df_model_sum.reset_index(drop=True), columns=['model'])
     df_sum = df_obs_sum.merge(df_model_sum,left_index=True,right_index=True)
-    df = df_model.merge(df_obs, left_on=['hh_block_group','hhvehs'], right_on=['GEOID10','hhvehs'], how='left')
+    df = df_model.merge(df_obs, left_on=['hh_block_group','hhvehs'], right_on=[geocol,'hhvehs'], how='left')
     df.rename(columns={'hhexpfac': 'modeled'}, inplace=True)
     df.to_csv(r'outputs\validation\auto_ownership_block_group.csv', index=False)
 

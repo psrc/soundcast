@@ -489,7 +489,7 @@ def main():
 
     
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     # Delete any existing files
     for _path in [sum_config['transit_line_path'],sum_config['transit_node_path'],sum_config['transit_segment_path'],sum_config['network_results_path']]:

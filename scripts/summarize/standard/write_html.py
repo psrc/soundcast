@@ -49,26 +49,26 @@ def main():
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         #for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
-        for sheet in ['costs','transit','mode_share','person','access','standard','emissions','freight','travel_time']:
-            dirname = os.path.join(r'outputs/compare/RTP',sheet)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            write_nb('RTP_'+sheet, "scripts/summarize/notebooks", r'outputs/RTP')
+    #     for sheet in ['access','costs','mode_share','person','standard','emissions','freight','travel_time','transit']:
+    #         dirname = os.path.join(r'outputs/compare/RTP',sheet)
+    #         if not os.path.exists(dirname):
+    #             os.makedirs(dirname)
+    #         write_nb('RTP_'+sheet, "scripts/summarize/notebooks", r'outputs/RTP')
 
-    # Create HTML sheets from jupyter notebooks
-    # Run all RTP summaries and generate comparison notebook inputs
-    for geog in ['city','county', 'rg','topsheet','rgc']:
-        dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
-        if sum_config['run_comparison']:
-            write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
-    #for geog in ['county','rg','rgc','city']:
-    #    write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
+    # # Create HTML sheets from jupyter notebooks
+    # # Run all RTP summaries and generate comparison notebook inputs
+    # for geog in ['city','county', 'rg','topsheet','rgc']:
+    #     dirname = os.path.join(os.getcwd(),'outputs/compare',geog)
+    #     if not os.path.exists(dirname):
+    #         os.makedirs(dirname)
+    #     write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
+    #     if sum_config['run_comparison']:
+    #         write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
+    # #for geog in ['county','rg','rgc','city']:
+    # #    write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         
 
-    write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
+    # write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
     # write validation notebooks
     for sheet_name in ['auto_ownership','bike_validation','day_pattern','daysim_overview',
