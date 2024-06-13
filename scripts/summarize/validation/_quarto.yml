@@ -11,25 +11,28 @@ book:
 
   chapters:
     - index.qmd
-    - part: "Regional Summary"
     - validation_scripts/telecommute.ipynb
     - validation_scripts/auto_ownership.ipynb
     - validation_scripts/transit_pass_ownership.ipynb
     - validation_scripts/day_pattern.ipynb
-    - part: "Location Choice"
+    - part: "<b>LOCATION CHOICE</b>"
       chapters:
         - validation_scripts/work_location.ipynb
         - validation_scripts/school_location.ipynb
-    - part: "Tour Mode Choice"
+    - part: "<b>TOUR MODE CHOICE</b>"
       chapters:
         - validation_scripts/work_tour_mode.ipynb
         - validation_scripts/school_tour_mode.ipynb
         - validation_scripts/escort_tour_mode.ipynb
         - validation_scripts/other_home_based_tour_mode.ipynb
-    - part: "Destination Choice"
+    - part: "<b>DESTINATION CHOICE</b>"
       chapters:
         - validation_scripts/tour_destination.ipynb
         - validation_scripts/trip_destination.ipynb
+    - part: "<b>REGIONAL SUMMARY</b>"
+      chapters:
+        - validation_scripts/persons.ipynb
+        - validation_scripts/households.ipynb
 
 format:
   html:
