@@ -114,6 +114,7 @@ def main():
                                                             'boardings': 'sum'}).reset_index()
 
     # Merge modeled with observed boarding data
+    df_model_daily['route_code'] = df_model_daily['route_code'].astype('int')
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
     df.rename(columns={'boardings': 'model_boardings', 'observed_daily': 'observed_boardings'}, inplace=True)
     df['diff'] = df['model_boardings']-df['observed_boardings']
@@ -141,26 +142,22 @@ def main():
 	
     # Light Rail
     df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(config['base_year']), con=conn)
-
-    # Scale boardings for model period 5to20, based on boardings along entire line
-    light_rail_list = [6996]
-    daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
-    df_obs['observed_5to20'] = df_obs['boardings']/daily_factor
+    df_obs.rename(columns={'boardings': 'observed_boardings'}, inplace=True)
 
     df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
     df = df[df['i_node'].isin(df_obs['emme_node'])]
     df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
-    df.rename(columns={'total_boardings':'modeled_5to20'},inplace=True)
-    df['observed_5to20'] = df['observed_5to20'].astype('float')
+    df.rename(columns={'total_boardings':'model_boardings'},inplace=True)
+    df['observed_boardings'] = df['observed_boardings'].astype('float')
     df.index = df['station_name']
-    df_total = df.copy()[['observed_5to20','modeled_5to20']]
-    df_total.loc['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
+    df_total = df.copy()[['observed_boardings','model_boardings']]
+    df_total.loc['Total',['observed_boardings','model_boardings']] = df[['observed_boardings','model_boardings']].sum().values
     df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
 
     # Light Rail Transfers
     df_transfer = df.copy() 
     df_transfer['observed_transfer_rate'] = df_transfer['observed_transfer_rate'].fillna(-99).astype('float')
-    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled_5to20']
+    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['model_boardings']
     df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
     df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
     df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]
