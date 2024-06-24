@@ -27,8 +27,8 @@ def main():
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-    # for sheet_name in config["network_summary_list"]:
-    #     run_ipynb(sheet_name, os.path.join(r'scripts/summarize/validation_network/validation_scripts'))
+    for sheet_name in config["network_summary_list"]:
+        run_ipynb(sheet_name, os.path.join(r'scripts/summarize/validation_network/validation_scripts'))
 
     # render quarto book
     # TODO: automate _quarto.yml chapter list
