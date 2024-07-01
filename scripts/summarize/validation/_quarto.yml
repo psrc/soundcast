@@ -33,6 +33,7 @@ book:
       chapters:
         - validation_scripts/persons.ipynb
         - validation_scripts/households.ipynb
+        - validation_scripts/tours.ipynb
 
 format:
   html:

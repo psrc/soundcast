@@ -1,0 +1,31 @@
+project:
+  type: book
+  output-dir: "network-validation-notebook"
+  
+book:
+  title: "<br>Network Summary"
+  repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize
+  search: false
+  sidebar:
+    logo: PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - validation_scripts/traffic_validation.ipynb
+    - validation_scripts/transit_validation.ipynb
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, custom.scss]
+      dark: [darkly, custom.scss]
+    echo: false
+    code-tools: true
+    warning: false
+
+toc: true
+
+
+
+
