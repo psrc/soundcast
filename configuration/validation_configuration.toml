@@ -5,9 +5,9 @@
 
 # model results
 # ---- local soundcast run
-#model_dir = '../../../..'
+model_dir = '../../../..'
 # ---- (JL: for summary development)
-model_dir = "//modelstation2/c$/Workspace/sc_base_year_2023_7_1_24"
+#model_dir = "//modelstation2/c$/Workspace/sc_base_year_2023_7_1_24"
 
 # ---- survey results
 # 2023
