@@ -21,6 +21,7 @@ book:
         - validation_scripts/school_location.ipynb
     - part: "<b>TOUR MODE CHOICE</b>"
       chapters:
+        - validation_scripts/all_tour_mode.ipynb
         - validation_scripts/work_tour_mode.ipynb
         - validation_scripts/school_tour_mode.ipynb
         - validation_scripts/escort_tour_mode.ipynb
