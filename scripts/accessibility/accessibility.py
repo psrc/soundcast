@@ -222,7 +222,7 @@ def main():
 
     # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
     parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * light_rail_walk_factor
-    parcels.loc[parcels.dist_lrt<=2, 'dist_fry'] = parcels['dist_fry'] * ferry_walk_factor
+    parcels['dist_fry'] * ferry_walk_factor
     parcels_done = clean_up(parcels)
 
     parcels_done.to_csv(output_parcels, index = False, sep = ' ')
