@@ -46,8 +46,10 @@ summary_list = ['work_location',
                 'day_pattern',
                 'persons',
                 'households',
-                'tours']
-#summary_list = ['all_tour_mode']
+                'tours',
+                'intermediate_stop_generation',
+                'time_choice']
+#summary_list = ['time_choice']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]

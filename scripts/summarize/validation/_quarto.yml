@@ -15,6 +15,8 @@ book:
     - validation_scripts/auto_ownership.ipynb
     - validation_scripts/transit_pass_ownership.ipynb
     - validation_scripts/day_pattern.ipynb
+    - validation_scripts/intermediate_stop_generation.ipynb
+    - validation_scripts/time_choice.ipynb
     - part: "<b>LOCATION CHOICE</b>"
       chapters:
         - validation_scripts/work_location.ipynb
