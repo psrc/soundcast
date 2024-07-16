@@ -15,12 +15,15 @@ book:
     - validation_scripts/auto_ownership.ipynb
     - validation_scripts/transit_pass_ownership.ipynb
     - validation_scripts/day_pattern.ipynb
+    - validation_scripts/intermediate_stop_generation.ipynb
+    - validation_scripts/time_choice.ipynb
     - part: "<b>LOCATION CHOICE</b>"
       chapters:
         - validation_scripts/work_location.ipynb
         - validation_scripts/school_location.ipynb
     - part: "<b>TOUR MODE CHOICE</b>"
       chapters:
+        - validation_scripts/all_tour_mode.ipynb
         - validation_scripts/work_tour_mode.ipynb
         - validation_scripts/school_tour_mode.ipynb
         - validation_scripts/escort_tour_mode.ipynb
