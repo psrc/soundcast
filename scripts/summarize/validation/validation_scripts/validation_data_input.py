@@ -22,7 +22,7 @@ def get_data(df_name, col_list=None, max_rows=None):
     model['source'] = "model"
 
     # survey data
-    if df_name == 'tour':
+    if df_name in ['tour','person_day']:
         survey_path = config['tour_survey_dir']
         survey_2017_path = config['tour_survey_2017_dir']
     else:
