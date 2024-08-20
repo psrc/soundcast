@@ -7,7 +7,7 @@
 # ---- local soundcast run
 model_dir = '../../../..'
 # ---- (JL: for summary development)
-#model_dir = "//modelstation2/c$/Workspace/sc_base_year_2023_7_1_24"
+#model_dir = "//modelstation2/c$/Workspace/sc_2023_08_08_24"
 
 # ---- survey results
 # 2023
@@ -48,8 +48,9 @@ summary_list = ['work_location',
                 'households',
                 'tours',
                 'intermediate_stop_generation',
-                'time_choice']
-#summary_list = ['time_choice']
+                'time_choice',
+                'workbased_subtour_mode']
+#summary_list = ['work_location','workbased_subtour_mode']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]
