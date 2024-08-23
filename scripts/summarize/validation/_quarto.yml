@@ -28,6 +28,7 @@ book:
         - validation_scripts/school_tour_mode.ipynb
         - validation_scripts/escort_tour_mode.ipynb
         - validation_scripts/other_home_based_tour_mode.ipynb
+        - validation_scripts/workbased_subtour_mode.ipynb
     - part: "<b>DESTINATION CHOICE</b>"
       chapters:
         - validation_scripts/tour_destination.ipynb
