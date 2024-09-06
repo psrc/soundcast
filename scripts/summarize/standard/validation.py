@@ -88,7 +88,7 @@ tod_lookup = {  0:'20to5',
                 17:'17to18',
                 18:'18to20',
                 19:'18to20',
-                20:'18to20',
+                20:'20to5',
                 21:'20to5',
                 22:'20to5',
                 23:'20to5',
@@ -96,7 +96,7 @@ tod_lookup = {  0:'20to5',
 
 def main():
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     ########################################
     # Transit Boardings by Line
@@ -114,26 +114,27 @@ def main():
                                                             'boardings': 'sum'}).reset_index()
 
     # Merge modeled with observed boarding data
+    df_model_daily['route_code'] = df_model_daily['route_code'].astype('int')
     df = df_model_daily.merge(df_obs, left_on='route_code', right_on='route_id', how='left')
-    df.rename(columns={'boardings': 'modeled_5to20', 'observed_20to5': 'observed_5to20'}, inplace=True)
-    df['diff'] = df['modeled_5to20']-df['observed_5to20']
-    df['perc_diff'] = df['diff']/df['observed_5to20']
-    df[['modeled_5to20','observed_5to20']] = df[['modeled_5to20','observed_5to20']].fillna(-1)
+    df.rename(columns={'boardings': 'model_boardings', 'observed_daily': 'observed_boardings'}, inplace=True)
+    df['diff'] = df['model_boardings']-df['observed_boardings']
+    df['perc_diff'] = df['diff']/df['observed_boardings']
+    df[['model_boardings','observed_boardings']] = df[['model_boardings','observed_boardings']].fillna(-1)
 
     # Write to file
     df.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_line.csv'), index=False)
 
     # Boardings by agency
     df_agency = df.groupby(['agency']).sum().reset_index()
-    df_agency['diff'] = df_agency['modeled_5to20']-df_agency['observed_5to20']
-    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_5to20']
+    df_agency['diff'] = df_agency['model_boardings']-df_agency['observed_boardings']
+    df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_boardings']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
-                        index=False, columns=['agency','observed_5to20','modeled_5to20','diff','perc_diff'])
+                        index=False, columns=['agency','observed_boardings','model_boardings','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
-                        index=False, columns=['description','route_code','agency','observed_5to20','modeled_5to20','diff','perc_diff'])
+                        index=False, columns=['description','route_code','agency','observed_boardings','model_boardings','diff','perc_diff'])
 
     ########################################
     # Transit Boardings by Stop
@@ -141,26 +142,22 @@ def main():
 	
     # Light Rail
     df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings WHERE year=" + str(config['base_year']), con=conn)
-
-    # Scale boardings for model period 5to20, based on boardings along entire line
-    light_rail_list = [6996]
-    daily_factor = df_line_obs[df_line_obs['route_id'].isin(light_rail_list)]['daily_factor'].values[0]
-    df_obs['observed_5to20'] = df_obs['boardings']/daily_factor
+    df_obs.rename(columns={'boardings': 'observed_boardings'}, inplace=True)
 
     df = pd.read_csv(r'outputs\transit\boardings_by_stop.csv')
     df = df[df['i_node'].isin(df_obs['emme_node'])]
     df = df.merge(df_obs, left_on='i_node', right_on='emme_node')
-    df.rename(columns={'total_boardings':'modeled_5to20'},inplace=True)
-    df['observed_5to20'] = df['observed_5to20'].astype('float')
+    df.rename(columns={'total_boardings':'model_boardings'},inplace=True)
+    df['observed_boardings'] = df['observed_boardings'].astype('float')
     df.index = df['station_name']
-    df_total = df.copy()[['observed_5to20','modeled_5to20']]
-    df_total.loc['Total',['observed_5to20','modeled_5to20']] = df[['observed_5to20','modeled_5to20']].sum().values
+    df_total = df.copy()[['observed_boardings','model_boardings']]
+    df_total.loc['Total',['observed_boardings','model_boardings']] = df[['observed_boardings','model_boardings']].sum().values
     df_total.to_csv(r'outputs\validation\light_rail_boardings.csv', index=True)
 
     # Light Rail Transfers
     df_transfer = df.copy() 
     df_transfer['observed_transfer_rate'] = df_transfer['observed_transfer_rate'].fillna(-99).astype('float')
-    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['modeled_5to20']
+    df_transfer['modeled_transfer_rate'] = df_transfer['transfers']/df_transfer['model_boardings']
     df_transfer['diff'] = df_transfer['modeled_transfer_rate']-df_transfer['observed_transfer_rate']
     df_transfer['percent_diff'] = df_transfer['diff']/df_transfer['observed_transfer_rate']
     df_transfer = df_transfer[['modeled_transfer_rate','observed_transfer_rate','diff','percent_diff']]
@@ -348,7 +345,7 @@ def main():
     # Join to the observed data
     df_speed = df_speed.merge(_df,on=['Corridor_Number','tod'])
 
-    df_speed.plot(kind='scatter', y='model_speed', x='observed_speed')
+    # df_speed.plot(kind='scatter', y='model_speed', x='observed_speed')
     df_speed.to_csv(r'outputs\validation\corridor_speeds.csv', index=False)
 
     ########################################
@@ -356,10 +353,15 @@ def main():
     ########################################
 
     # Auto Ownership
-    df_obs = pd.read_sql("SELECT * FROM observed_auto_ownership_acs_block_group", con=conn)
-    df_obs.index = df_obs['GEOID10']
-    df_obs.drop(['id','GEOID10'], inplace=True, axis=1)
+    df_obs = pd.read_sql("SELECT * FROM observed_auto_ownership_acs_block_group WHERE year="+str(config['model_year']), con=conn)
+    if int(config['base_year']) < 2020:
+        geocol = 'GEOID10'
+    else:
+        geocol = 'GEOID20'
+    df_obs[geocol] = df_obs[geocol].astype('int64')
+    df_obs.index = df_obs[geocol]
     df_obs.rename(columns={'cars_none_control': 0, 'cars_one_control': 1, 'cars_two_or_more_control': 2}, inplace=True)
+    df_obs = df_obs[[0,1,2]]
     df_obs_sum = df_obs.sum()
     df_obs_sum = pd.DataFrame(df_obs_sum, columns=['census'])
     df_obs = df_obs.unstack().reset_index()
@@ -369,13 +371,14 @@ def main():
     # Record categories to max of 2+
     df_model.loc[df_model['hhvehs'] >= 2, 'hhvehs'] = 2
     df_model = df_model.groupby(['hhvehs','hh_block_group']).sum()[['hhexpfac']].reset_index()
+    df_model['hhvehs'] = df_model['hhvehs'].astype('int')
 
     df_model_sum = df_model.pivot_table(index='hh_block_group', columns='hhvehs', aggfunc='sum', values='hhexpfac')
     df_model_sum = df_model_sum.fillna(0)
     df_model_sum = df_model_sum.sum()
     df_model_sum = pd.DataFrame(df_model_sum.reset_index(drop=True), columns=['model'])
     df_sum = df_obs_sum.merge(df_model_sum,left_index=True,right_index=True)
-    df = df_model.merge(df_obs, left_on=['hh_block_group','hhvehs'], right_on=['GEOID10','hhvehs'], how='left')
+    df = df_model.merge(df_obs, left_on=['hh_block_group','hhvehs'], right_on=[geocol,'hhvehs'], how='left')
     df.rename(columns={'hhexpfac': 'modeled'}, inplace=True)
     df.to_csv(r'outputs\validation\auto_ownership_block_group.csv', index=False)
 

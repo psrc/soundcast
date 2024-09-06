@@ -175,8 +175,8 @@ def main():
 
     my_project = EmmeProject(emme_config["supplemental_project"])
 
-    conn = create_engine("sqlite:///inputs/db/soundcast_inputs.db")
-
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
+    
     ###########################################################
     # PSRC Zone System for TAZ joining
     ###########################################################
@@ -187,12 +187,11 @@ def main():
     ###########################################################
     # Auto External Stations
     ###########################################################
-    df_external = pd.read_sql("SELECT * FROM auto_externals", con=conn)
-    df_external["taz"] = df_external["taz"].astype(int)
-    df_external = df_external.loc[
-        :, ["taz", "year"] + trip_productions + trip_attractions
-    ]
-    data_year = int(df_external["year"][0])
+
+    df_external = pd.read_sql("SELECT * FROM auto_externals where year="+str(config['base_year']), con=conn)
+    df_external['taz'] = df_external['taz'].astype(int)
+    df_external = df_external.loc[:,['taz','year'] + trip_productions + trip_attractions]
+    data_year = int(df_external['year'][0])
 
     # NOTE: need to scale these measures from a base year
 
@@ -768,10 +767,10 @@ def main():
         df_taz[purpose] = df_taz[purpose] + revised_external_taz[purpose]
     df_taz.to_csv(output_directory + "/5_add_externals.csv", index=True)
 
-    # Soundcast uses pre-determined HSP trips to meet external counts. Need to adjust these here for non-work-ixxi:
-    external_trip_table = pd.read_sql("SELECT * FROM externals_unadjusted", con=conn)
-    external_trip_table.set_index("taz", inplace=True)
-    external_trip_table = external_trip_table[["hsppro", "hspatt"]]
+    #Soundcast uses pre-determined HSP trips to meet external counts. Need to adjust these here for non-work-ixxi:
+    external_trip_table =  pd.read_sql('SELECT * FROM externals_unadjusted where year='+str(config['base_year']), con=conn) 
+    external_trip_table.set_index('taz', inplace = True)
+    external_trip_table = external_trip_table[['hsppro', 'hspatt']]
     df_taz.update(external_trip_table)
 
     # Zero out JBLM trips that were generated above (so only inlcude Shopping, HBO, OtO and WtO)

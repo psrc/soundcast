@@ -227,7 +227,7 @@ def main():
     links = pd.read_csv(r'inputs/base_year/all_streets_links.csv', index_col=None)
 
     # Load geography lookups and join to parcel data
-    parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography', 'sqlite:///inputs/db/soundcast_inputs.db')
+    parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography', 'sqlite:///inputs/db/'+config['db_name'])
     parcel_geog['region'] = 1
         
     # Create a field that identifies whether parcel is inside or outside of an RGC

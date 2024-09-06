@@ -48,8 +48,8 @@ def main():
         dirname = r'outputs/RTP'
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        #for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
-        for sheet in ['costs','transit','mode_share','person','access','standard','emissions','freight','travel_time']:
+        # for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
+        for sheet in ['costs','mode_share','person','access','standard','emissions','freight','travel_time','transit']:
             dirname = os.path.join(r'outputs/compare/RTP',sheet)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
@@ -64,14 +64,16 @@ def main():
         write_nb(geog+'_summary', "scripts/summarize/notebooks", r'outputs')
         if sum_config['run_comparison']:
             write_nb('compare_results_'+geog, "scripts/summarize/notebooks", r'outputs/compare')
-    #for geog in ['county','rg','rgc','city']:
-    #    write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
+    for geog in ['county','rg','rgc','city']:
+       write_nb(geog+'_network_summary', "scripts/summarize/notebooks", r'outputs')
         
 
     write_nb('metrics', "scripts/summarize/notebooks", r'outputs/')
     
     # write validation notebooks
-    for sheet_name in ['auto_ownership','bike_validation','day_pattern','daysim_overview',
+    for sheet_name in ['auto_ownership',
+                        # 'bike_validation',
+                        'day_pattern','daysim_overview',
                         'intermediate_stop_generation','school_location',
                         'time_choice','tour_destination','tour_distance',
                         'tour_mode','trip_destination','trip_mode',

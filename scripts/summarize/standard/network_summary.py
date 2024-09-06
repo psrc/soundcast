@@ -125,15 +125,18 @@ def freeflow_skims(my_project, dictZoneLookup):
     daysim.close()
 
     # Write to TSV files
-    trip_df = pd.read_csv(r'outputs/daysim/_trip.tsv', delim_whitespace=True)
-    trip_df['od'] = trip_df['otaz'].astype('str')+'-'+trip_df['dtaz'].astype('str')
-    skim_df['sov_ff_time'] = skim_df['ff_travtime']
-    # Delete sov_ff_time if it already exists
-    if 'sov_ff_time' in trip_df.columns:
-        trip_df.drop('sov_ff_time', axis=1, inplace=True)
-    skim_df = skim_df.reset_index(drop=True)
-    trip_df = pd.merge(trip_df, skim_df[['od','sov_ff_time']], on='od', how='left')
-    trip_df.to_csv(r'outputs/daysim/_trip.tsv', sep='\t', index=False)
+    file_dict = {r'outputs/daysim/_trip.tsv': r'outputs/daysim/_trip.tsv',
+                 r'inputs/base_year/survey/_trip.tsv': r'inputs/base_year/survey/_trip.tsv'}
+    for output_dir, df_dir in file_dict.items():
+        df = pd.read_csv(df_dir, delim_whitespace=True)
+        df['od'] = df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
+        skim_df['sov_ff_time'] = skim_df['ff_travtime']
+        # Delete sov_ff_time if it already exists
+        if 'sov_ff_time' in df.columns:
+            df.drop('sov_ff_time', axis=1, inplace=True)
+        skim_df = skim_df.reset_index(drop=True)
+        df = pd.merge(df, skim_df[['od','sov_ff_time']], on='od', how='left')
+        df.to_csv(output_dir, sep='\t', index=False)
 
 def jobs_transit(output_path):
     buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
@@ -484,7 +487,9 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
 
 def main():
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    
+
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     # Delete any existing files
     for _path in [sum_config['transit_line_path'],sum_config['transit_node_path'],sum_config['transit_segment_path'],sum_config['network_results_path']]:

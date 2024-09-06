@@ -3,7 +3,7 @@
 ####################################
 master_project = 'LoadTripTables'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
-transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
+transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
 
 unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = 0.25
@@ -23,7 +23,7 @@ feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 
 
 # Time of day periods
-tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
+tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5']
 tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
 #project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
@@ -44,7 +44,7 @@ truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 bike_walk_skim_tod = ['5to6']
 
 # Transit Inputs:
-transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
+transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
 
 # Transit Fare:
@@ -185,7 +185,9 @@ num_of_hours = 1
 [transit_tod.18to20]
 4k_tp = "ev"
 num_of_hours = 2
-
+[transit_tod.20to5]
+4k_tp = "ni"
+num_of_hours = 9
 
 # Intrazonals
 [intrazonal_dict]

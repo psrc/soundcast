@@ -252,16 +252,13 @@ def main():
     parcels = process_parcels(parcels, transit_df, net, intersections_df)
 
     # Report a raw distance to HCT and all transit before calibration
-    parcels["raw_dist_hct"] = parcels[
-        ["dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
-    ].min(axis=1)
-    parcels["raw_dist_transit"] = parcels[
-        ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
-    ].min(axis=1)
 
-    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates.
-    parcels.loc[parcels.dist_lrt <= 1, "dist_lrt"] = parcels["dist_lrt"] * 0.5
-    parcels.loc[parcels.dist_lrt <= 2, "dist_fry"] = parcels["dist_fry"] * 0.5
+    parcels['raw_dist_hct'] = parcels[[ 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
+    parcels['raw_dist_transit'] = parcels[['dist_lbus','dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
+
+    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
+    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * light_rail_walk_factor
+    parcels['dist_fry'] * ferry_walk_factor
     parcels_done = clean_up(parcels)
 
     parcels_done.to_csv(output_parcels, index=False, sep=" ")

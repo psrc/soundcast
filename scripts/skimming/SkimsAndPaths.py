@@ -1125,16 +1125,14 @@ def init_pool(daily_link_df):
 
 
 def start_transit_pool(project_list):
-
-    pool = Pool(11)
-    pool.map(run_transit_wrapped, project_list[0:11])
+    pool = Pool(12)
+    pool.map(run_transit_wrapped, project_list[0:12])
     pool.close()
 
 
 def start_bike_pool(project_list, daily_link_df):
-
-    pool = Pool(11, init_pool, [daily_link_df])
-    pool.map(run_bike_wrapped, project_list[0:11])
+    pool = Pool(12, init_pool, [daily_link_df])
+    pool.map(run_bike_wrapped, project_list[0:12])
     pool.close()
 
 
@@ -1808,9 +1806,9 @@ def run(free_flow_skims=False, num_iterations=100):
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv(r"outputs\bike\daily_link_volume.csv")
     start_transit_pool(project_list)
-    # run_transit(r'projects/7to8/7to8.emp')
-
-    # daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
+    # run_transit(r'projects/20to5/20to5.emp')
+    
+    daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
     start_bike_pool(project_list, daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
@@ -1826,10 +1824,13 @@ def run(free_flow_skims=False, num_iterations=100):
         go = "continue"
         json.dump(go, f)
     # export skims even if skims converged
+    
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
         export_to_hdf5_pool(l, free_flow_skims)
     # average_skims_to_hdf5_concurrent(EmmeProject('projects/7to8/7to8.emp'), False)
+
+    
     f.close()
     end_of_run = time.time()
     text = "Emme Skim Creation and Export to HDF5 completed normally"
