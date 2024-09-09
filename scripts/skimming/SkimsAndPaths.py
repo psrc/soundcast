@@ -27,25 +27,14 @@ from data_wrangling import text_to_dictionary, json_to_dictionary
 import toml
 
 
-
 emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 )
 network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
+os.path.join(os.getcwd(), "configuration/network_configuration.toml")
 )
 
-
-
-# Create a logging file to report model progress
-logging.basicConfig(filename=emme_config["log_file_name"], level=logging.DEBUG)
-
-# Report model starting
-current_time = str(time.strftime("%H:%M:%S"))
-logging.debug("----Began SkimsAndPaths script at " + current_time)
-
 hdf5_file_path = "outputs/daysim/daysim_outputs.h5"
-
 
 def create_hdf5_skim_container(hdf5_name):
     # create containers for TOD skims
@@ -1777,6 +1766,20 @@ def run(free_flow_skims=False, num_iterations=100):
     
     #max_num_iterations = num_iterations
     # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
+    
+
+
+
+    # Create a logging file to report model progress
+    logging.basicConfig(filename=emme_config["log_file_name"], level=logging.DEBUG)
+
+    # Report model starting
+    current_time = str(time.strftime("%H:%M:%S"))
+    logging.debug("----Began SkimsAndPaths script at " + current_time)
+
+    
+
+    
     for tod in network_config["tods"]:
         strat_dir = os.path.join("Banks", tod, "STRATS_s1002")
         if os.path.exists(strat_dir):
@@ -1794,7 +1797,8 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
         pool_list.append(start_pool(l, free_flow_skims, num_iterations))
-    # run_assignments_parallel("projects/8to9/8to9.emp")
+    
+    #run_assignments_parallel("projects/8to9/8to9.emp", free_flow_skims, num_iterations)
 
     ### calculate link daily volumes for use in bike model
 
