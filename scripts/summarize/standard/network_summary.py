@@ -253,14 +253,13 @@ def summarize_network(df, writer):
     df['lane_miles'] = df['length'] * df['num_lanes']
     lane_miles = df[df['tod']=='7to8']
     lane_miles = pd.pivot_table(lane_miles, values='lane_miles', index='@countyid',columns='facility_type', aggfunc='sum').reset_index()
-    lane_miles['@countyid'] = lane_miles['@countyid'].astype(int)
+    lane_miles['@countyid'] = lane_miles['@countyid'].astype(int).astype(str)
     lane_miles = lane_miles.replace({'@countyid': sum_config['county_map']})
     lane_miles = lane_miles[lane_miles['@countyid'].isin(sum_config['county_map'].values())]
     lane_miles.rename(columns = {col:col+'_lane_miles' for col in lane_miles.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     
-
     county_vmt = pd.pivot_table(df, values='VMT', index=['@countyid'],columns='facility_type', aggfunc='sum').reset_index()
-    county_vmt['@countyid'] = county_vmt['@countyid'].astype(int)
+    county_vmt['@countyid'] = county_vmt['@countyid'].astype(int).astype(str)
     county_vmt = county_vmt.replace({'@countyid': sum_config['county_map']})
     county_vmt.rename(columns = {col:col+'_vmt' for col in county_vmt.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     lane_miles = lane_miles.merge(county_vmt, how='left', on ='@countyid')
@@ -319,7 +318,7 @@ def summarize_network(df, writer):
 
     # Results by County
     
-    df['county_name'] = df['@countyid'].map(sum_config['county_map'])
+    df['county_name'] = df['@countyid'].astype(int).astype(str).map(sum_config['county_map'])
     df['county_name'].fillna('Outside Region', inplace=True)
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
@@ -349,9 +348,6 @@ def line_to_line_transfers(emme_project, tod):
     for class_name in ['trnst','commuter_rail','ferry','litrat','passenger_ferry']:
         report = process(spec, class_name = class_name, output_file = 'outputs/transit/traversal_results.txt') 
         traversal_df = pd.read_csv('outputs/transit/traversal_results.txt', skiprows=16, skipinitialspace=True, sep = ' ', names = ['from_line', 'to_line', 'boardings'])
-    
-        
-
         traversal_df = traversal_df.merge(transit_lines, left_on= 'from_line', right_on='lindex')
         traversal_df = traversal_df.rename(columns={'line':'from_line_id', 'mode':'from_mode'})
         traversal_df.drop(columns=['lindex'], inplace = True)
@@ -524,8 +520,11 @@ def main():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
         if tod_hour in network_config['transit_tod'].keys():
-            _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
-        df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
+            try:
+                _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
+                df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
+            except:
+                pass
         
         for name, description in network_config['extra_attributes_dict'].items():
             my_project.create_extra_attribute('LINK', name, description, 'True')
