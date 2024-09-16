@@ -6,93 +6,111 @@ import inro.emme.database.emmebank as _eb
 import json
 import numpy as np
 import time
-import os,sys
+import os, sys
 import logging
 import datetime
 import argparse
-sys.path.append(os.path.join(os.getcwd(),"scripts"))
-sys.path.append(os.path.join(os.getcwd(),"inputs"))
+
+sys.path.append(os.path.join(os.getcwd(), "scripts"))
+sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
 import toml
-emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
-network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+
+emme_config = toml.load(
+    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+)
+network_config = toml.load(
+    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
+)
 
 
 # Time of day periods
-#tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
+# tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5' ]
 # project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in network_config['tods']]
+
 
 def json_to_dictionary(dict_name):
 
-    #Determine the Path to the input files and load them
+    # Determine the Path to the input files and load them
 
-    input_filename = os.path.join('inputs/skim_params/',dict_name+'.json').replace("\\","/")
-    
+    input_filename = os.path.join("inputs/skim_params/", dict_name + ".json").replace(
+        "\\", "/"
+    )
+
     my_dictionary = json.load(open(input_filename))
-    
-    return(my_dictionary)
+
+    return my_dictionary
 
 
 def start_pool(project_list):
-    #An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and
-    #it cannot be destroyed/recreated in same script. In order to run things con-currently in the same script, must have
-    #seperate projects/banks for each time period and have a pool for each project/bank.
-    #Fewer pools than projects/banks will cause script to crash.
+    # An Emme databank can only be used by one process at a time. Emme Modeler API only allows one instance of Modeler and
+    # it cannot be destroyed/recreated in same script. In order to run things con-currently in the same script, must have
+    # seperate projects/banks for each time period and have a pool for each project/bank.
+    # Fewer pools than projects/banks will cause script to crash.
 
-    pool = Pool(processes=emme_config['parallel_instances'])
-    
-    pool.map(run_skim,project_list[0:emme_config['parallel_instances']])
-    
+    pool = Pool(processes=emme_config["parallel_instances"])
+
+    pool.map(run_skim, project_list[0 : emme_config["parallel_instances"]])
+
     pool.close()
 
 
 def run_skim(project_name):
-    #Function to calculate reliability skims
+    # Function to calculate reliability skims
 
-     start_time_skim = time.time()
+    start_time_skim = time.time()
 
-     my_project = EmmeProject(project_name)
-     attribute_name = '@reliab'
+    my_project = EmmeProject(project_name)
+    attribute_name = "@reliab"
 
-     skim_desig = 'r'
+    skim_desig = "r"
 
-     skim_traffic = my_project.m.tool("inro.emme.traffic_assignment.path_based_traffic_analysis")
+    skim_traffic = my_project.m.tool(
+        "inro.emme.traffic_assignment.path_based_traffic_analysis"
+    )
 
-     skim_specification = json_to_dictionary("general_attribute_based_skim")
+    skim_specification = json_to_dictionary("general_attribute_based_skim")
 
-     my_user_classes = json_to_dictionary("user_classes")
+    my_user_classes = json_to_dictionary("user_classes")
 
-     my_project.create_extra_attribute("LINK", attribute_name, 'reliability index', True)
+    my_project.create_extra_attribute("LINK", attribute_name, "reliability index", True)
 
-     exp = '0.max.(timau-((length * 60 / ul2) * (1 + .72 * (1 * (volau + @bveh) / (ul1* lanes)) ^ 7.2)))'
+    exp = "0.max.(timau-((length * 60 / ul2) * (1 + .72 * (1 * (volau + @bveh) / (ul1* lanes)) ^ 7.2)))"
 
-     my_project.network_calculator("link_calculation", result = attribute_name, expression = exp, selections_by_link = "ul3=1,2")
+    my_project.network_calculator(
+        "link_calculation",
+        result=attribute_name,
+        expression=exp,
+        selections_by_link="ul3=1,2",
+    )
 
-     mod_skim = skim_specification
-     for x in range (0, len(mod_skim["classes"])):
+    mod_skim = skim_specification
+    for x in range(0, len(mod_skim["classes"])):
 
-        matrix_name= my_user_classes["Highway"][x]["Name"]+skim_desig
+        matrix_name = my_user_classes["Highway"][x]["Name"] + skim_desig
 
         if my_project.bank.matrix(matrix_name):
 
             my_project.delete_matrix(matrix_name)
 
-        my_project.create_matrix(matrix_name, 'reliability skim', 'FULL')
+        my_project.create_matrix(matrix_name, "reliability skim", "FULL")
 
         mod_skim["classes"][x]["analysis"]["results"]["od_values"] = matrix_name
 
         mod_skim["path_analysis"]["link_component"] = attribute_name
 
-     skim_traffic(mod_skim)
+    skim_traffic(mod_skim)
 
 
 def main():
 
-    for i in range (0, 12, emme_config['parallel_instances']):
-        project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in network_config['tods']]
-        l = project_list[i:i+emme_config['parallel_instances']]
+    for i in range(0, 12, emme_config["parallel_instances"]):
+        project_list = [
+            "Projects/" + tod + "/" + tod + ".emp" for tod in network_config["tods"]
+        ]
+        l = project_list[i : i + emme_config["parallel_instances"]]
 
         start_pool(l)
 

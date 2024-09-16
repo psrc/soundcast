@@ -33,11 +33,11 @@ import logcontroller
 import inro.emme.database.emmebank as _eb
 import random
 import pandas as pd
-
 import toml
-# from emme_configuration import *
 from data_wrangling import *
-# data_wrangling.update_daysim_modes()
+from skimming import SkimsAndPaths
+
+
 
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
@@ -88,12 +88,8 @@ def build_seed_skims(max_iterations):
 def build_free_flow_skims(max_iterations):
     print("Building free flow skims.")
     time_copy = datetime.datetime.now()
-    returncode = subprocess.call([sys.executable,
-        'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations), config['model_year'],
-        '-build_free_flow_skims'])
-    if returncode != 0:
-        sys.exit(1)
+    SkimsAndPaths.run(True, max_iterations)
+    
                   
     time_skims = datetime.datetime.now()
     print('###### Finished skimbuilding:', str(time_skims - time_copy))
@@ -168,7 +164,6 @@ def run_truck_supplemental(iteration):
 
 @timed
 def daysim_assignment(iteration):
-     
      ########################################
      # Run Daysim Activity Models
      ########################################
@@ -192,11 +187,9 @@ def daysim_assignment(iteration):
     if config['run_skims_and_paths']:
         logger.info("Start of iteration %s of Skims and Paths", str(iteration))
         num_iterations = str(emme_config['max_iterations_list'][iteration])
-        returncode = subprocess.call([sys.executable, 'scripts/skimming/SkimsAndPaths.py', num_iterations, config['model_year']])
+        SkimsAndPaths.run(False, num_iterations)
         logger.info("End of iteration %s of Skims and Paths", str(iteration))
-        if returncode != 0:
-            sys.exit(1)
-
+        
 @timed
 def check_convergence(iteration, recipr_sample):
     converge = "not yet"
@@ -225,6 +218,12 @@ def get_current_commit_hash():
     return commit
 
 def main():
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["NUMBA_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
     ########################################
     # Initialize Banks, Projects, Directories
@@ -236,6 +235,9 @@ def main():
     build_output_dirs()
     update_daysim_modes()
     update_skim_parameters()
+    
+    # this import statement needs to happen here, after update_skim_parameters:
+    
 
     if config['run_setup_emme_bank_folders']:
         setup_emme_bank_folders()
@@ -333,6 +335,7 @@ def main():
     print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(emme_config['good_thing']))
 
 if __name__ == "__main__":
+    
     logger = logcontroller.setup_custom_logger('main_logger')
     logger.info('--------------------NEW RUN STARTING--------------------')
     start_time = datetime.datetime.now()

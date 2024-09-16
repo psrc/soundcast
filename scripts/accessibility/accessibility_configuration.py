@@ -1,60 +1,143 @@
 import os, sys
+
 sys.path.append(os.getcwd())
 # from input_configuration import *
 # import toml
 # config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
-parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
-output_parcels = 'outputs/landuse/buffered_parcels.txt'
-nodes_file_name = 'inputs/base_year/all_streets_nodes.csv'
-links_file_name = 'inputs/base_year/all_streets_links.csv'
-transit_stops_name = 'inputs/scenario/networks/transit_stops.csv'
+parcels_file_name = "inputs/scenario/landuse/parcels_urbansim.txt"
+output_parcels = "outputs/landuse/buffered_parcels.txt"
+nodes_file_name = "inputs/base_year/all_streets_nodes.csv"
+links_file_name = "inputs/base_year/all_streets_links.csv"
+transit_stops_name = "inputs/scenario/networks/transit_stops.csv"
 
-max_dist = 24140.2 # 3 miles in meters
+max_dist = 24140.2  # 3 miles in meters
 
-distances = { # in meters; 
-              # keys correspond to suffices of the resulting parcel columns
-              # ORIGINAL VALUES !!
-             1: 2640, # 0.5 mile
-             2: 5280 # 1 mile
-
-             }
+distances = {  # in meters;
+    # keys correspond to suffices of the resulting parcel columns
+    # ORIGINAL VALUES !!
+    1: 2640,  # 0.5 mile
+    2: 5280,  # 1 mile
+}
 
 # These will be disaggregated from the parcel data to the network.
 # Keys are the functions applied when aggregating over buffers.
 
 parcel_attributes = {
-              "sum": ["HH_P", "STUGRD_P", "STUHGH_P", "STUUNI_P", 
-                      "EMPMED_P", "EMPOFC_P", "EMPEDU_P", "EMPFOO_P", "EMPGOV_P", "EMPIND_P", 
-                      "EMPSVC_P", "EMPOTH_P", "EMPTOT_P", "EMPRET_P",
-                      "PARKDY_P", "PARKHR_P", "NPARKS", "APARKS", "daily_weighted_spaces", "hourly_weighted_spaces"],
-              "ave": [ "PPRICDYP", "PPRICHRP"],
-              }
+    "sum": [
+        "HH_P",
+        "STUGRD_P",
+        "STUHGH_P",
+        "STUUNI_P",
+        "EMPMED_P",
+        "EMPOFC_P",
+        "EMPEDU_P",
+        "EMPFOO_P",
+        "EMPGOV_P",
+        "EMPIND_P",
+        "EMPSVC_P",
+        "EMPOTH_P",
+        "EMPTOT_P",
+        "EMPRET_P",
+        "PARKDY_P",
+        "PARKHR_P",
+        "NPARKS",
+        "APARKS",
+        "daily_weighted_spaces",
+        "hourly_weighted_spaces",
+    ],
+    "ave": ["PPRICDYP", "PPRICHRP"],
+}
 
 
-col_order =[u'parcelid', u'xcoord_p', u'ycoord_p', u'sqft_p', u'taz_p', u'lutype_p', u'hh_p',
-       u'stugrd_p', u'stuhgh_p', u'stuuni_p', u'empedu_p', u'empfoo_p',
-       u'empgov_p', u'empind_p', u'empmed_p', u'empofc_p', u'empret_p',
-       u'empsvc_p', u'empoth_p', u'emptot_p', u'parkdy_p', u'parkhr_p',
-       u'ppricdyp', u'pprichrp', u'hh_1', u'stugrd_1', u'stuhgh_1',
-       u'stuuni_1', u'empedu_1', u'empfoo_1', u'empgov_1', u'empind_1',
-       u'empmed_1', u'empofc_1', u'empret_1', u'empsvc_1', u'empoth_1',
-       u'emptot_1', u'parkdy_1', u'parkhr_1', u'ppricdy1', u'pprichr1',
-       u'nodes1_1', u'nodes3_1', u'nodes4_1', u'tstops_1', u'nparks_1',
-       u'aparks_1', u'hh_2', u'stugrd_2', u'stuhgh_2', u'stuuni_2',
-       u'empedu_2', u'empfoo_2', u'empgov_2', u'empind_2', u'empmed_2',
-       u'empofc_2', u'empret_2', u'empsvc_2', u'empoth_2', u'emptot_2',
-       u'parkdy_2', u'parkhr_2', u'ppricdy2', u'pprichr2', u'nodes1_2',
-       u'nodes3_2', u'nodes4_2', u'tstops_2', u'nparks_2', u'aparks_2',
-       u'dist_lbus', u'dist_ebus', u'dist_crt', u'dist_fry', u'dist_lrt',
-       u'dist_brt', u'raw_dist_hct', u'raw_dist_transit']
+col_order = [
+    "parcelid",
+    "xcoord_p",
+    "ycoord_p",
+    "sqft_p",
+    "taz_p",
+    "lutype_p",
+    "hh_p",
+    "stugrd_p",
+    "stuhgh_p",
+    "stuuni_p",
+    "empedu_p",
+    "empfoo_p",
+    "empgov_p",
+    "empind_p",
+    "empmed_p",
+    "empofc_p",
+    "empret_p",
+    "empsvc_p",
+    "empoth_p",
+    "emptot_p",
+    "parkdy_p",
+    "parkhr_p",
+    "ppricdyp",
+    "pprichrp",
+    "hh_1",
+    "stugrd_1",
+    "stuhgh_1",
+    "stuuni_1",
+    "empedu_1",
+    "empfoo_1",
+    "empgov_1",
+    "empind_1",
+    "empmed_1",
+    "empofc_1",
+    "empret_1",
+    "empsvc_1",
+    "empoth_1",
+    "emptot_1",
+    "parkdy_1",
+    "parkhr_1",
+    "ppricdy1",
+    "pprichr1",
+    "nodes1_1",
+    "nodes3_1",
+    "nodes4_1",
+    "tstops_1",
+    "nparks_1",
+    "aparks_1",
+    "hh_2",
+    "stugrd_2",
+    "stuhgh_2",
+    "stuuni_2",
+    "empedu_2",
+    "empfoo_2",
+    "empgov_2",
+    "empind_2",
+    "empmed_2",
+    "empofc_2",
+    "empret_2",
+    "empsvc_2",
+    "empoth_2",
+    "emptot_2",
+    "parkdy_2",
+    "parkhr_2",
+    "ppricdy2",
+    "pprichr2",
+    "nodes1_2",
+    "nodes3_2",
+    "nodes4_2",
+    "tstops_2",
+    "nparks_2",
+    "aparks_2",
+    "dist_lbus",
+    "dist_ebus",
+    "dist_crt",
+    "dist_fry",
+    "dist_lrt",
+    "dist_brt",
+    "raw_dist_hct",
+    "raw_dist_transit",
+]
 
 # These are already on network (from add-ons).
 # Keys correspond to the resulting parcel columns (minus suffix).
 # Values correspond the names in the add-on dataset.
 transit_attributes = ["tstops"]
 intersections = ["nodes1", "nodes3", "nodes4"]
-
 
 transit_modes = {"lbus": "bus", "ebus": "express", 
        "fry": "ferry", "crt": "commuter_rail", "lrt": "light_rail", "brt": "brt"} # will compute nearest distance to these
