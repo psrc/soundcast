@@ -29,6 +29,13 @@ book:
         - validation_scripts/escort_tour_mode.ipynb
         - validation_scripts/other_home_based_tour_mode.ipynb
         - validation_scripts/workbased_subtour_mode.ipynb
+    - part: "<b>TRIP MODE CHOICE</b>"
+      chapters:
+        - validation_scripts/all_trip_mode.ipynb
+        - validation_scripts/work_trip_mode.ipynb   
+        - validation_scripts/school_trip_mode.ipynb   
+        - validation_scripts/escort_trip_mode.ipynb   
+        - validation_scripts/other_home_based_trip_mode.ipynb       
     - part: "<b>DESTINATION CHOICE</b>"
       chapters:
         - validation_scripts/tour_destination.ipynb
