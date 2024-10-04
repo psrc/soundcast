@@ -206,7 +206,9 @@ def run_all_summaries():
     for script in ['daily_bank','network_summary','emissions','agg','validation','job_accessibility']:
         print(script)
         subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
-    subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py && conda deactivate', shell=True)
+    subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py', shell=True)
+    subprocess.run('conda activate summary && python scripts/summarize/validation_network/create_network_validation.py', shell=True)
+    subprocess.run('conda activate summary && python scripts/summarize/validation/create_validation_pages.py && conda deactivate', shell=True)
 
 def get_current_commit_hash():
     try:

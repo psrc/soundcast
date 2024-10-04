@@ -282,7 +282,7 @@ def main():
     os.makedirs(output_dir)
 
     global conn
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     # Load running emission rates by vehicle type, for the model year
     df_running_rates = pd.read_sql('SELECT * FROM running_emission_rates_by_veh_type WHERE year=='+config['model_year'], con=conn)

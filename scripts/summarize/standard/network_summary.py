@@ -125,15 +125,18 @@ def freeflow_skims(my_project, dictZoneLookup):
     daysim.close()
 
     # Write to TSV files
-    trip_df = pd.read_csv(r'outputs/daysim/_trip.tsv', delim_whitespace=True)
-    trip_df['od'] = trip_df['otaz'].astype('str')+'-'+trip_df['dtaz'].astype('str')
-    skim_df['sov_ff_time'] = skim_df['ff_travtime']
-    # Delete sov_ff_time if it already exists
-    if 'sov_ff_time' in trip_df.columns:
-        trip_df.drop('sov_ff_time', axis=1, inplace=True)
-    skim_df = skim_df.reset_index(drop=True)
-    trip_df = pd.merge(trip_df, skim_df[['od','sov_ff_time']], on='od', how='left')
-    trip_df.to_csv(r'outputs/daysim/_trip.tsv', sep='\t', index=False)
+    file_dict = {r'outputs/daysim/_trip.tsv': r'outputs/daysim/_trip.tsv',
+                 r'inputs/base_year/survey/_trip.tsv': r'inputs/base_year/survey/_trip.tsv'}
+    for output_dir, df_dir in file_dict.items():
+        df = pd.read_csv(df_dir, delim_whitespace=True)
+        df['od'] = df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
+        skim_df['sov_ff_time'] = skim_df['ff_travtime']
+        # Delete sov_ff_time if it already exists
+        if 'sov_ff_time' in df.columns:
+            df.drop('sov_ff_time', axis=1, inplace=True)
+        skim_df = skim_df.reset_index(drop=True)
+        df = pd.merge(df, skim_df[['od','sov_ff_time']], on='od', how='left')
+        df.to_csv(output_dir, sep='\t', index=False)
 
 def jobs_transit(output_path):
     buf = pd.read_csv(r'outputs/landuse/buffered_parcels.txt', sep=' ')
@@ -250,14 +253,13 @@ def summarize_network(df, writer):
     df['lane_miles'] = df['length'] * df['num_lanes']
     lane_miles = df[df['tod']=='7to8']
     lane_miles = pd.pivot_table(lane_miles, values='lane_miles', index='@countyid',columns='facility_type', aggfunc='sum').reset_index()
-    lane_miles['@countyid'] = lane_miles['@countyid'].astype(int)
+    lane_miles['@countyid'] = lane_miles['@countyid'].astype(int).astype(str)
     lane_miles = lane_miles.replace({'@countyid': sum_config['county_map']})
     lane_miles = lane_miles[lane_miles['@countyid'].isin(sum_config['county_map'].values())]
     lane_miles.rename(columns = {col:col+'_lane_miles' for col in lane_miles.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     
-
     county_vmt = pd.pivot_table(df, values='VMT', index=['@countyid'],columns='facility_type', aggfunc='sum').reset_index()
-    county_vmt['@countyid'] = county_vmt['@countyid'].astype(int)
+    county_vmt['@countyid'] = county_vmt['@countyid'].astype(int).astype(str)
     county_vmt = county_vmt.replace({'@countyid': sum_config['county_map']})
     county_vmt.rename(columns = {col:col+'_vmt' for col in county_vmt.columns if col in ['highway', 'arterial', 'connector']}, inplace = True)
     lane_miles = lane_miles.merge(county_vmt, how='left', on ='@countyid')
@@ -316,7 +318,7 @@ def summarize_network(df, writer):
 
     # Results by County
     
-    df['county_name'] = df['@countyid'].map(sum_config['county_map'])
+    df['county_name'] = df['@countyid'].astype(int).astype(str).map(sum_config['county_map'])
     df['county_name'].fillna('Outside Region', inplace=True)
     _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
@@ -346,9 +348,6 @@ def line_to_line_transfers(emme_project, tod):
     for class_name in ['trnst','commuter_rail','ferry','litrat','passenger_ferry']:
         report = process(spec, class_name = class_name, output_file = 'outputs/transit/traversal_results.txt') 
         traversal_df = pd.read_csv('outputs/transit/traversal_results.txt', skiprows=16, skipinitialspace=True, sep = ' ', names = ['from_line', 'to_line', 'boardings'])
-    
-        
-
         traversal_df = traversal_df.merge(transit_lines, left_on= 'from_line', right_on='lindex')
         traversal_df = traversal_df.rename(columns={'line':'from_line_id', 'mode':'from_mode'})
         traversal_df.drop(columns=['lindex'], inplace = True)
@@ -484,7 +483,9 @@ def summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segmen
 
 def main():
 
-    conn = create_engine('sqlite:///inputs/db/soundcast_inputs.db')
+    
+
+    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
 
     # Delete any existing files
     for _path in [sum_config['transit_line_path'],sum_config['transit_node_path'],sum_config['transit_segment_path'],sum_config['network_results_path']]:
@@ -519,8 +520,11 @@ def main():
         print('processing network summary for time period: ' + str(tod_hour))
         my_project.change_active_database(tod_hour)
         if tod_hour in network_config['transit_tod'].keys():
-            _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
-        df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
+            try:
+                _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
+                df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
+            except:
+                pass
         
         for name, description in network_config['extra_attributes_dict'].items():
             my_project.create_extra_attribute('LINK', name, description, 'True')

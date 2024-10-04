@@ -18,7 +18,7 @@ sys.path.append(os.getcwd())
 import toml
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
-db_path = r'inputs/db/soundcast_inputs.db'
+db_path = os.path.join('inputs/db', config['db_name'])
 input_parcels = r'inputs/scenario/landuse/parcels_urbansim.txt'
 
 # Load data

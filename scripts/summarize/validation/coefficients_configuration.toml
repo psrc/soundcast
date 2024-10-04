@@ -1,0 +1,5 @@
+dir_1 = 'C:\Workspace\testing_estimation_2023_new\estimation'
+dir_2 = 'C:\Workspace\working_estimation_2019\estimation'
+
+scen_1_name = 'new'
+scen_2_name = 'old'

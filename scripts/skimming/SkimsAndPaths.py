@@ -27,25 +27,14 @@ from data_wrangling import text_to_dictionary, json_to_dictionary
 import toml
 
 
-
 emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 )
 network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
+os.path.join(os.getcwd(), "configuration/network_configuration.toml")
 )
 
-
-
-# Create a logging file to report model progress
-logging.basicConfig(filename=emme_config["log_file_name"], level=logging.DEBUG)
-
-# Report model starting
-current_time = str(time.strftime("%H:%M:%S"))
-logging.debug("----Began SkimsAndPaths script at " + current_time)
-
 hdf5_file_path = "outputs/daysim/daysim_outputs.h5"
-
 
 def create_hdf5_skim_container(hdf5_name):
     # create containers for TOD skims
@@ -1125,16 +1114,14 @@ def init_pool(daily_link_df):
 
 
 def start_transit_pool(project_list):
-
-    pool = Pool(11)
-    pool.map(run_transit_wrapped, project_list[0:11])
+    pool = Pool(12)
+    pool.map(run_transit_wrapped, project_list[0:12])
     pool.close()
 
 
 def start_bike_pool(project_list, daily_link_df):
-
-    pool = Pool(11, init_pool, [daily_link_df])
-    pool.map(run_bike_wrapped, project_list[0:11])
+    pool = Pool(12, init_pool, [daily_link_df])
+    pool.map(run_bike_wrapped, project_list[0:12])
     pool.close()
 
 
@@ -1779,6 +1766,20 @@ def run(free_flow_skims=False, num_iterations=100):
     
     #max_num_iterations = num_iterations
     # Remove strategy output directory if it exists; for first assignment, do not add results to existing volumes
+    
+
+
+
+    # Create a logging file to report model progress
+    logging.basicConfig(filename=emme_config["log_file_name"], level=logging.DEBUG)
+
+    # Report model starting
+    current_time = str(time.strftime("%H:%M:%S"))
+    logging.debug("----Began SkimsAndPaths script at " + current_time)
+
+    
+
+    
     for tod in network_config["tods"]:
         strat_dir = os.path.join("Banks", tod, "STRATS_s1002")
         if os.path.exists(strat_dir):
@@ -1796,7 +1797,8 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
         pool_list.append(start_pool(l, free_flow_skims, num_iterations))
-    # run_assignments_parallel("projects/8to9/8to9.emp")
+    
+    #run_assignments_parallel("projects/8to9/8to9.emp", free_flow_skims, num_iterations)
 
     ### calculate link daily volumes for use in bike model
 
@@ -1808,9 +1810,9 @@ def run(free_flow_skims=False, num_iterations=100):
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv(r"outputs\bike\daily_link_volume.csv")
     start_transit_pool(project_list)
-    # run_transit(r'projects/7to8/7to8.emp')
-
-    # daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
+    # run_transit(r'projects/20to5/20to5.emp')
+    
+    daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
     start_bike_pool(project_list, daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
@@ -1826,10 +1828,13 @@ def run(free_flow_skims=False, num_iterations=100):
         go = "continue"
         json.dump(go, f)
     # export skims even if skims converged
+    
     for i in range(0, 12, emme_config["parallel_instances"]):
         l = project_list[i : i + emme_config["parallel_instances"]]
         export_to_hdf5_pool(l, free_flow_skims)
     # average_skims_to_hdf5_concurrent(EmmeProject('projects/7to8/7to8.emp'), False)
+
+    
     f.close()
     end_of_run = time.time()
     text = "Emme Skim Creation and Export to HDF5 completed normally"
