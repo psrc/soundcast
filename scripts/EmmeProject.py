@@ -31,7 +31,7 @@ sys.path.append(os.getcwd())
 from EmmeProject import *
 import toml
 
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
+#config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 
 class EmmeProject:
@@ -58,13 +58,24 @@ class EmmeProject:
         count = d[element]
         return count
 
-    def change_active_database(self, database_name):
-        for database in self.data_explorer.databases():
-            if database.title() == database_name:
-                database.open()
-                self.bank = self.m.emmebank
-                self.tod = self.bank.title
-                self.current_scenario = list(self.bank.scenarios())[0]
+    def change_active_database(self, database_title, scenario_id = '1002'):
+        database_names = [database.title() for database in self.data_explorer.databases()]
+        if database_title in database_names:
+            database_index = database_names.index(database_title)
+            database = self.data_explorer.databases()[database_index]
+            database.open()
+            self.bank = self.m.emmebank
+            self.tod = self.bank.title
+            scenario_ids = [scenario.id for scenario in self.bank.scenarios()]
+
+            if scenario_id in scenario_ids:
+                scenario_index = scenario_ids.index(scenario_id)
+                self.current_scenario = self.bank.scenarios()[scenario_index]
+            else:
+                sys.exit(f"Scearnio ID {scenario_id} does not exist. Exiting program.")
+        else:
+            sys.exit(f"Database Title {database_title} does not exist. Exiting program.")
+                
 
     def process_modes(self, mode_file):
         NAMESPACE = "inro.emme.data.network.mode.mode_transaction"
@@ -301,6 +312,9 @@ class EmmeProject:
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
         self.transit_segment_calc_result = network_calc(spec)
+
+    def close(self):
+        self.desktop.close()
 
 
 def json_to_dictionary(dict_name):

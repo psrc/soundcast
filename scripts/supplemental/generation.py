@@ -17,6 +17,7 @@ emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 )
 
+config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 def balance_trips(df, trip_purposes, balanced_to):
     """Balance trips to productions or attractions."""
@@ -174,6 +175,7 @@ def main():
     output_directory = "outputs/supplemental"
 
     my_project = EmmeProject(emme_config["supplemental_project"])
+    
 
     conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
     

@@ -9,19 +9,8 @@ from multiprocessing import Pool, pool
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-# from emme_configuration import *
-# from input_configuration import *
 from EmmeProject import *
 import toml
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-)
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
-
 
 def json_to_dictionary(dict_name):
     # Determine the Path to the input files and load them
@@ -54,12 +43,12 @@ def update_headways(emmeProject, headways_df):
     emmeProject.current_scenario.publish_network(network)
 
 
-def distance_pricing(distance_rate, emmeProject):
+def distance_pricing(distance_rate, emmeProject, input_configuration):
     toll_atts = ["@toll1", "@toll2", "@toll3", "@trkc1", "@trkc2", "@trkc3"]
     network = emmeProject.current_scenario.get_network()
     for link in network.links():
         if link.data3 > 0:
-            if config["add_distance_pricing"]:
+            if input_configuration.add_distance_pricing:
                 for att in toll_atts:
                     link[att] = link[att] + (link.length * distance_rate)
     emmeProject.current_scenario.publish_network(network)
@@ -213,14 +202,14 @@ def arterial_delay(emmeProject, factor):
     emmeProject.current_scenario.publish_network(network)
 
 
-def run_importer(project_name):
-    my_project = EmmeProject(project_name)
+def run_importer(settings):
+    my_project = EmmeProject(settings.network_settings.network_summary_project)
     headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
     tod_index = pd.Series(
-        range(1, len(network_config["tod_networks"]) + 1),
-        index=network_config["tod_networks"],
+        range(1, len(settings.network_settings.tod_networks) + 1),
+        index=settings.network_settings.tod_networks,
     )
-    for key, value in network_config["sound_cast_net_dict"].items():
+    for key, value in settings.network_settings.sound_cast_net_dict.items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
             my_project.bank.delete_scenario(scenario)
@@ -240,12 +229,12 @@ def run_importer(project_name):
             "inputs/scenario/networks/shape/" + value + "_shape.in"
         )
         my_project.process_turn("inputs/scenario/networks/turns/" + value + "_turns.in")
-        if my_project.tod in network_config["transit_tod_list"]:
+        if my_project.tod in settings.network_settings.transit_tod_list:
             my_project.process_vehicles("inputs/scenario/networks/vehicles.txt")
             my_project.process_transit(
                 "inputs/scenario/networks/transit/" + value + "_transit.in"
             )
-            for att in network_config["transit_line_extra_attributes"]:
+            for att in settings.network_settings.transit_line_extra_attributes:
                 my_project.create_extra_attribute("TRANSIT_LINE", att)
             my_project.import_extra_attributes(
                 "inputs/scenario/networks/extra_attributes/"
@@ -258,9 +247,9 @@ def run_importer(project_name):
             update_headways(my_project, headway_df)
 
         print(value)
-        for att in network_config["link_extra_attributes"]:
+        for att in settings.network_settings.link_extra_attributes:
             my_project.create_extra_attribute("LINK", att)
-        for att in network_config["node_extra_attributes"]:
+        for att in settings.network_settings.node_extra_attributes:
             my_project.create_extra_attribute("NODE", att)
         my_project.import_extra_attributes(
             "inputs/scenario/networks/extra_attributes/"
@@ -277,16 +266,9 @@ def run_importer(project_name):
             + ".txt"
         )
 
-        arterial_delay(my_project, network_config["rdly_factor"])
-        if config["add_distance_pricing"]:
-            distance_pricing(config["distance_rate_dict"][value], my_project)
-
-
-def main():
-    run_importer(network_config["network_summary_project"])
-
-    print("networks imported")
-
-
-if __name__ == "__main__":
-    main()
+        arterial_delay(my_project, settings.network_settings.rdly_factor)
+        if settings.input_settings.add_distance_pricing:
+            distance_pricing(settings.distance_rate_dict[value], my_project, settings.input_settings)
+        my_project.bank.dispose()
+    my_project.close()
+        
