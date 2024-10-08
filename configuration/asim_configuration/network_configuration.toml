@@ -1,0 +1,233 @@
+#####################################
+# Network Import Settings
+####################################
+master_project = 'LoadTripTables'
+network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+transit_tod_list = ['5to9', '9to15', '15to18', '18to20', '20to5']
+
+unit_of_length = 'mi'    # units of miles in Emme
+rdly_factor = 0.25
+coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
+main_log_file = 'soundcast_log.txt'
+
+link_extra_attributes = ['@psrcedgeid', '@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed','@bkfac','@upslp', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3', '@fgts', '@ttf']
+node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
+transit_line_extra_attributes = ['@transittype']
+
+
+# VOT ranges for assignment classes
+vot_1_max = 14.32    # VOT for User Class 1 < vot_1_max
+vot_2_max = 26.64    # vot_1_max < VOT for User Class 2 < vot_2_max
+
+feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
+
+
+# Time of day periods
+tods = ['5to9', '9to15', '15to18', '18to20', '20to5']
+tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
+#project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
+
+emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
+
+# Skim for time, cost
+skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
+skim_matrix_designation_limited = ['d']    # Distance skim
+
+# Skim for distance for only these time periods
+distance_skim_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
+generalized_cost_tod = ['5to9', '15to18']
+
+
+truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
+
+# Bike/Walk Skims
+bike_walk_skim_tod = ['5to9']
+
+# Transit Inputs:
+transit_skim_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
+
+# Transit Fare:
+zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
+fare_matrices_tod = ['5to9', '9to15']
+
+
+taz_area_file = 'inputs/model/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/model/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
+
+#################################
+# Bike Model Settings
+#################################
+# AADT segmentation breaks to apply volume penalties
+aadt_bins = [0,10000,20000,30000,9999999]
+aadt_labels = [0,1,2,3] # Corresponding "bucket" labels for AADT segmentation for aadt_dict
+
+# Bin definition of total elevation gain (per link)
+slope_bins = [-1.0,0.02,0.04,0.06,1.0]
+slope_labels = [0,1,2,3]
+
+#avg_bike_speed = 10 # miles per hour
+
+# Multiplier for storing skim results
+#bike_skim_mult = 100    # divide by 100 to store as int
+
+# Calibration factor for bike weights on ferry links
+ferry_bike_factor = 1
+
+#################################
+# Truck Model Settings
+#################################
+
+truck_model_project = 'Projects/TruckModel/TruckModel.emp'
+districts_file = 'truck_districts.ens'
+truck_base_net_name = 'am_roadway.in'
+
+# 4k time of day
+tod_list = ['am','md', 'pm', 'ev', 'ni']
+# External Magic Numbers
+LOW_STATION = 3733
+HIGH_STATION = 3750
+EXTERNAL_DISTRICT = 'ga20'
+
+
+#####################################
+# Network Import Settings
+####################################
+[sound_cast_net_dict]
+'5to9' = 'am'
+'9to15' = 'md'   
+'15to18' = 'pm' 
+'18to20' = 'ev' 
+'20to5' = 'ni'
+
+[extra_attributes_dict]
+"@tveh" = "total vehicles"
+"@mveh" = "medium trucks"
+"@hveh" = "heavy trucks"
+"@dveh" = "delivery trucks"
+"@vmt" = "vmt"
+"@vht" = "vht"
+"@trnv" = "buses in auto equivalents"
+"@ovol" = "observed volume"
+"@bveh" = "number of buses"
+
+# TNC fraction to assign
+# Based on survey data from SANDAG for now
+[tnc_occupancy]
+11 = 1.0   # non-AV, 1 passenger (+ driver)
+12 = 0.5 # non-AV, 2 passengers
+13 = 0.3 # non-AV 3.33 passengers on average
+21 = 1.0   # AV, 1 passenger
+22 = 0.5 # AV, 2 passenger
+23 = 0.4 # AV, 3+ passengers
+
+
+[gc_skims]
+medium_trucks = "metrk"
+heavy_trucks = "hvtrk"
+sov = "sov_inc2"
+delivery_trucks = "deltrk"
+
+
+[transit_node_attributes]
+
+[transit_node_attributes.headway_fraction]
+name = "@hdwfr"
+init_value = 0.5
+[transit_node_attributes.wait_time_perception]
+name = "@wait"
+init_value = 2
+[transit_node_attributes.in_vehicle_time]
+name = "@invt"
+init_value = 1
+
+
+[transit_tod]
+
+[transit_tod.5to9]
+4k_tp = "am"
+num_of_hours = 4
+[transit_tod.9to15]
+4k_tp = "md"
+num_of_hours = 6
+[transit_tod.15to18]
+4k_tp = "pm"
+num_of_hours = 3
+[transit_tod.18to20]
+4k_tp = "ev"
+num_of_hours = 2
+[transit_tod.20to5]
+4k_tp = "ni"
+num_of_hours = 9
+
+# Intrazonals
+[intrazonal_dict]
+"distance" = "izdist"
+"time auto" = "izatim"
+"time bike" = "izbtim"
+"time walk" = "izwtim"
+
+#################################
+# Bike Model Settings
+#################################
+
+# Distance perception penalties for link AADT from Broach et al., 2012
+# 1 is AADT 10k-20k, 2 is 20k-30k, 3 is 30k+
+# No penalty applied for AADT < 10k
+[aadt_dict]
+
+[aadt_dict.volume_wt]
+1 = 0.368
+2 = 1.4
+3 = 7.157
+
+# Crosswalk of bicycle facilities from geodatabase to a 2-tier typology - premium, standard (and none)
+# Associated with IJBikeFacility from modeAttributes table
+# "Premium" represents trails and fully separated bike facilities
+# "Standard" represents painted bike lanes only
+[bike_facility_crosswalk]
+[bike_facility_crosswalk."@bkfac"]
+0 = "none"      # No bike lane
+1 = "standard"  # Striped bike lane
+2 = "premium"   # Protected bike lane
+3 = "none"      # Paved/striped shoulder
+4 = "none"      # Marked shared lane
+5 = "none"      # Bike provision undefined
+6 = "none"      # Defined bike route no provisions
+8 = "premium"   # Shared use path
+9 = "standard"  # Buffered bike lane (minimally coded as of 2018 BY)
+10 = "standard" # neighborhood greenway (minimally coded as of 2018 BY)
+
+# Perception factor values corresponding to these tiers, from Broch et al., 2012
+[facility_dict]
+[facility_dict.facility_wt]
+premium = -0.16
+standard = -0.108
+none = 0
+
+# Perception factor values for 3-tiered measure of elevation gain per link
+[slope_dict]
+[slope_dict.slope_wt]
+1 = 0.371 # between 2-4% grade
+2 = 1.203 # between 4-6% grade
+3 = 3.239 # greater than 6% grade
+
+
+
+#################################
+# Truck Model Settings
+#################################
+#TOD to create Bi-Dir skims (AM/EV Peak)
+[truck_generalized_cost_tod]
+5to9 = "am"
+15to18 = "pm"
+#GC & Distance skims that get read in from Soundcast
+
+[truck_adjustment_factor]
+ltpro = 0.544
+mtpro = 0.545
+htpro = 0.53
+ltatt = 0.749
+mtatt = 0.75
+htatt = 1.0
