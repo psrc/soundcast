@@ -19,6 +19,7 @@ class InputSettings(BaseModel):
     network_inputs: str
     db_name: str
     soundcast_inputs_dir: str
+    use_activitysim: bool
 
     ##############################
     # Initial Setup
