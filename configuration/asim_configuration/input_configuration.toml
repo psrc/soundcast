@@ -11,7 +11,7 @@ landuse_inputs = 'base_year'
 network_inputs = 'network_2023_v2'
 db_name = 'soundcast_inputs_2023.db'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
-
+use_activitysim = False
 ##############################
 # Initial Setup
 ##############################
