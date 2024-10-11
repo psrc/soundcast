@@ -23,7 +23,7 @@ sys.path.append(os.getcwd())
 from EmmeProject import *
 from skimming.tod_parameters import *
 from skimming.user_classes import *
-from scripts.data_wrangling_hold import text_to_dictionary, json_to_dictionary
+from settings.data_wrangling import text_to_dictionary, json_to_dictionary
 import toml
 import logcontroller
 from settings import run_args
