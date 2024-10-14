@@ -14,7 +14,7 @@
 
 import logging
 from settings import run_args
-from settings import config_settings
+from scripts.settings import state
 
 # from emme_configuration import main_log_file
 from functools import wraps
@@ -26,7 +26,7 @@ sys.path.append(os.getcwd())
 # os.chdir(r'..')
 import toml
 
-settings = config_settings.generate_settings(run_args.args.configs_dir)
+state = state.generate_state(run_args.args.configs_dir)
 # network_config = toml.load(
 #     os.path.join(os.getcwd(), "configuration\\network_configuration.toml")
 # )

@@ -202,14 +202,17 @@ def arterial_delay(emmeProject, factor):
     emmeProject.current_scenario.publish_network(network)
 
 
-def run_importer(settings):
-    my_project = EmmeProject(settings.network_settings.network_summary_project)
-    headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
+def run_importer(state):
+    my_project = EmmeProject(state.network_settings.network_summary_project)
+    if state.input_settings.abm_model=='activitysim':
+        headway_df = pd.read_csv("inputs/scenario/networks/headways_asim.csv")
+    else:
+        headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
     tod_index = pd.Series(
-        range(1, len(settings.network_settings.tod_networks) + 1),
-        index=settings.network_settings.tod_networks,
+        range(1, len(state.network_settings.tod_networks) + 1),
+        index=state.network_settings.tod_networks,
     )
-    for key, value in settings.network_settings.sound_cast_net_dict.items():
+    for key, value in state.network_settings.sound_cast_net_dict.items():
         my_project.change_active_database(key)
         for scenario in list(my_project.bank.scenarios()):
             my_project.bank.delete_scenario(scenario)
@@ -229,12 +232,12 @@ def run_importer(settings):
             "inputs/scenario/networks/shape/" + value + "_shape.in"
         )
         my_project.process_turn("inputs/scenario/networks/turns/" + value + "_turns.in")
-        if my_project.tod in settings.network_settings.transit_tod_list:
+        if my_project.tod in state.network_settings.transit_tod_list:
             my_project.process_vehicles("inputs/scenario/networks/vehicles.txt")
             my_project.process_transit(
                 "inputs/scenario/networks/transit/" + value + "_transit.in"
             )
-            for att in settings.network_settings.transit_line_extra_attributes:
+            for att in state.network_settings.transit_line_extra_attributes:
                 my_project.create_extra_attribute("TRANSIT_LINE", att)
             my_project.import_extra_attributes(
                 "inputs/scenario/networks/extra_attributes/"
@@ -247,9 +250,9 @@ def run_importer(settings):
             update_headways(my_project, headway_df)
 
         print(value)
-        for att in settings.network_settings.link_extra_attributes:
+        for att in state.network_settings.link_extra_attributes:
             my_project.create_extra_attribute("LINK", att)
-        for att in settings.network_settings.node_extra_attributes:
+        for att in state.network_settings.node_extra_attributes:
             my_project.create_extra_attribute("NODE", att)
         my_project.import_extra_attributes(
             "inputs/scenario/networks/extra_attributes/"
@@ -266,9 +269,9 @@ def run_importer(settings):
             + ".txt"
         )
 
-        arterial_delay(my_project, settings.network_settings.rdly_factor)
-        if settings.input_settings.add_distance_pricing:
-            distance_pricing(settings.distance_rate_dict[value], my_project, settings.input_settings)
+        arterial_delay(my_project, state.network_settings.rdly_factor)
+        if state.input_settings.add_distance_pricing:
+            distance_pricing(state.distance_rate_dict[value], my_project, state.input_settings)
         my_project.bank.dispose()
     my_project.close()
         

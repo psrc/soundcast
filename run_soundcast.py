@@ -35,16 +35,18 @@ import random
 import pandas as pd
 import toml
 from settings import run_args
-from settings import config_settings
+from settings import state
 from settings import data_wrangling
 from skimming import SkimsAndPaths
 from network import network_importer
 from accessibility import accessibility
 from pathlib import Path
 
+state = state.generate_state(run_args.args.configs_dir)
 
-def accessibility_calcs(settings):
-    data_wrangling.copy_accessibility_files(settings.input_settings)
+
+def accessibility_calcs():
+    data_wrangling.copy_accessibility_files()
     print('adding military jobs to regular jobs')
     print('adding JBLM workers to external workers')
     print('adjusting non-work externals')
@@ -55,7 +57,7 @@ def accessibility_calcs(settings):
         sys.exit(1)
     print('military jobs loaded')
 
-    if settings.input_settings.base_year != settings.input_settings.model_year:
+    if state.input_settings.base_year != state.input_settings.model_year:
         print('Starting to update UrbanSim parcel data with 4k parking data file')
         returncode = subprocess.call([sys.executable,
                                   'scripts/utils/update_parking.py'])
@@ -73,12 +75,12 @@ def accessibility_calcs(settings):
     print('Done with accessibility calculations')
 
 @data_wrangling.timed    
-def build_seed_skims(max_iterations, input_settings):
+def build_seed_skims(max_iterations):
     print("Processing skims and paths.")
     time_copy = datetime.datetime.now()
     returncode = subprocess.call([sys.executable,
         'scripts/skimming/SkimsAndPaths.py',
-        str(max_iterations), input_settings.model_year,
+        str(max_iterations), state.input_settings.model_year,
         '-use_daysim_output_seed_trips'])
     if returncode != 0:
         sys.exit(1)
@@ -86,10 +88,10 @@ def build_seed_skims(max_iterations, input_settings):
     time_skims = datetime.datetime.now()
     print('###### Finished skimbuilding:', str(time_skims - time_copy))
 
-def build_free_flow_skims(settings, max_iterations):
+def build_free_flow_skims(max_iterations):
     print("Building free flow skims.")
     time_copy = datetime.datetime.now()
-    SkimsAndPaths.run(settings, True, max_iterations)
+    SkimsAndPaths.run(True, max_iterations)
     
                   
     time_skims = datetime.datetime.now()
@@ -125,9 +127,9 @@ def modify_config(config_vals):
      sys.exit(1)
     
 @data_wrangling.timed
-def build_shadow_only(emme_settings):
-     for shad_iter in range(0, len(emme_settings.shadow_work)):
-        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",emme_settings.shadow_work[shad_iter]),("$RUN_ALL", "false")])
+def build_shadow_only():
+     for shad_iter in range(0, len(state.emme_settings.shadow_work)):
+        modify_config([("$SHADOW_PRICE", "true"),("$SAMPLE",state.emme_settings.shadow_work[shad_iter]),("$RUN_ALL", "false")])
         logger.info("Start of%s iteration of work location for shadow prices", str(shad_iter))
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of work location for shadow prices", str(shad_iter))
@@ -138,14 +140,14 @@ def build_shadow_only(emme_settings):
         rmse_list = shadow_con_file.readlines()
         iteration_number = len(rmse_list)
         current_rmse = float(rmse_list[iteration_number - 1].rstrip("\n"))
-        if current_rmse < emme_settings.shadow_con:
+        if current_rmse < state.emme_settings.shadow_con:
             print("done with shadow prices")
             shadow_con_file.close()
             return
 
-def run_truck_supplemental(iteration, input_settings):
+def run_truck_supplemental(iteration):
 
-    if input_settings.run_supplemental_trips:
+    if state.input_settings.run_supplemental_trips:
         # Only run generation script once - does not change with feedback
         if iteration == 0:
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
@@ -158,18 +160,18 @@ def run_truck_supplemental(iteration, input_settings):
             if returncode != 0:
                 sys.exit(1)
 
-    if input_settings.run_truck_model:
+    if state.input_settings.run_truck_model:
         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
         if returncode != 0:
             sys.exit(1)
 
 @data_wrangling.timed
-def daysim_assignment(iteration, settings):
+def daysim_assignment(iteration):
      ########################################
      # Run Daysim Activity Models
      ########################################
 
-    if settings.input_settings.run_daysim:
+    if state.input_settings.run_daysim:
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call('Daysim/Daysim.exe -c Daysim/daysim_configuration.properties')
         logger.info("End of %s iteration of Daysim", str(iteration))
@@ -179,22 +181,22 @@ def daysim_assignment(iteration, settings):
     ########################################
     # Calcualte Trucks and Supplemental Demand
     ########################################
-    run_truck_supplemental(iteration, settings.input_settings)
+    run_truck_supplemental(iteration, state.input_settings)
 
     ########################################
     # Assign Demand to Networks
     ########################################
 
-    if settings.input_settings.run_skims_and_paths:
+    if state.input_settings.run_skims_and_paths:
         logger.info("Start of iteration %s of Skims and Paths", str(iteration))
-        num_iterations = str(settings.emme_settings.max_iterations_list[iteration])
-        SkimsAndPaths.run(settings, False, num_iterations)
+        num_iterations = str(state.emme_settings.max_iterations_list[iteration])
+        SkimsAndPaths.run(state, False, num_iterations)
         logger.info("End of iteration %s of Skims and Paths", str(iteration))
         
 @data_wrangling.timed
-def check_convergence(iteration, emme_settings):
+def check_convergence(iteration):
     converge = "not yet"
-    if iteration > 0 and emme_settings.pop_sample[iteration] <= emme_settings.min_pop_sample_convergence_test:
+    if iteration > 0 and state.emme_settings.pop_sample[iteration] <= state.emme_settings.min_pop_sample_convergence_test:
             con_file = open('outputs/logs/converge.txt', 'r')
             converge = json.load(con_file)   
             con_file.close()
@@ -219,7 +221,7 @@ def get_current_commit_hash():
     return commit
 
 
-def main(settings):
+def main():
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -237,26 +239,26 @@ def main(settings):
     logger.info("Using Git hash %s ", str(hash))
 
     data_wrangling.build_output_dirs()
-    data_wrangling.update_daysim_modes(settings.input_settings)
-    data_wrangling.update_skim_parameters(settings.input_settings)
+    data_wrangling.update_daysim_modes()
+    data_wrangling.update_skim_parameters()
     
     # this import statement needs to happen here, after update_skim_parameters:
     
 
-    if settings.input_settings.run_setup_emme_bank_folders:
-        data_wrangling.setup_emme_bank_folders(settings)
+    if state.input_settings.run_setup_emme_bank_folders:
+        data_wrangling.setup_emme_bank_folders()
 
-    if settings.input_settings.run_setup_emme_project_folders:
-        data_wrangling.setup_emme_project_folders(settings)
+    if state.input_settings.run_setup_emme_project_folders:
+        data_wrangling.setup_emme_project_folders()
 
-    if settings.input_settings.run_copy_scenario_inputs:
-        data_wrangling.copy_scenario_inputs(settings)
+    if state.input_settings.run_copy_scenario_inputs:
+        data_wrangling.copy_scenario_inputs()
 
-    if settings.input_settings.run_integrated:
+    if state.input_settings.run_integrated:
         data_wrangling.import_integrated_inputs()
 
-    if settings.input_settings.run_accessibility_calcs:
-        accessibility_calcs(settings)
+    if state.input_settings.run_accessibility_calcs:
+        accessibility_calcs()
 
     if not os.path.exists('working'):
         os.makedirs('working')
@@ -265,10 +267,10 @@ def main(settings):
     # Initialize Networks
     ########################################
 
-    if settings.input_settings.run_import_networks:
+    if state.input_settings.run_import_networks:
         time_copy = datetime.datetime.now()
         logger.info("Start of network importer")
-        network_importer.run_importer(settings)
+        network_importer.run_importer(state)
         logger.info("End of network importer")
         time_network = datetime.datetime.now()
 
@@ -276,42 +278,46 @@ def main(settings):
     # Start with Free Flow Skims
     ########################################
 
-    if settings.input_settings.run_skims_and_paths_free_flow:
-        build_free_flow_skims(settings, 10)
+    if state.input_settings.run_skims_and_paths_free_flow:
+        build_free_flow_skims(10)
 
     ########################################
     # Generate Demand and Assign Volumes
     # Main Loop
     ########################################
 
-    if (settings.input_settings.run_daysim or settings.input_settings.run_skims_and_paths):
-        for iteration in range(len(settings.emme_settings.pop_sample)):
+    if (state.input_settings.run_daysim or state.input_settings.run_skims_and_paths):
+        for iteration in range(len(state.emme_settings.pop_sample)):
 
             print("We're on iteration %d" % (iteration))
             logger.info(("We're on iteration %d\r\n" % (iteration)))
             time_start = datetime.datetime.now()
             logger.info("Starting run at %s" % str((time_start)))
 
-            if not settings.input_settings.should_build_shadow_price:
-                if settings.input_settings.include_telecommute:
+            # set daysim model inputs (allows for daysim to be run with different configurations)
+            
+
+            if not state.input_settings.should_build_shadow_price:
+                if state.input_settings.include_telecommute:
                     telecommute = "true"
                 else:
                     telecommute = "false"
                 # Set up your Daysim Configration
-                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",settings.emme_settings.pop_sample[iteration]),("$RUN_ALL", "true"),("$TELECOMMUTE" , telecommute)])
+                modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",state.emme_settings.pop_sample[iteration]),
+                               ("$RUN_ALL", "true"),("$TELECOMMUTE", telecommute), ("$INPUTDIR", state.input_settings.abm_model)])
 
             else:
                 # We are building shadow prices from scratch, only use shadow pricing if pop sample is 2 or less
-                if settings.emme_settings.pop_sample[iteration-1] > 2:
-                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",settings.emme_settings.pop_sample[iteration]),("$RUN_ALL", "true")])
+                if state.emme_settings.pop_sample[iteration-1] > 2:
+                    modify_config([("$SHADOW_PRICE" ,"false"),("$SAMPLE",state.emme_settings.pop_sample[iteration]),("$RUN_ALL", "true")])
                 else:
-                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",settings.emme_settings.pop_sample[iteration]),("$RUN_ALL", "true")])
+                    modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE",state.emme_settings.pop_sample[iteration]),("$RUN_ALL", "true")])
 
             # Run Skimming and/or Daysim
-            daysim_assignment(iteration, settings)
+            daysim_assignment(iteration)
 
             # Check Convergence 
-            converge = check_convergence(iteration, settings.emme_settings)
+            converge = check_convergence(iteration)
             if converge == 'stop':
                 print("System converged!")
                 break
@@ -319,36 +325,36 @@ def main(settings):
 
     # If building shadow prices, update work and school shadow prices
     # using converged skims from current run, then re-run daysim and assignment.
-    if settings.input_settings.should_build_shadow_price:
+    if state.input_settings.should_build_shadow_price:
         build_shadow_only()
         modify_config([("$SHADOW_PRICE" ,"true"),("$SAMPLE","1"), ("$RUN_ALL", "true")])
         #This function needs an iteration parameter. Value of 1 is fine. 
         daysim_assignment(1)
 
     # Export skims for use in Urbansim if needed
-    if settings.input_settings.run_integrated:
+    if state.input_settings.run_integrated:
         subprocess.call([sys.executable, 'scripts/utils/urbansim_skims.py'])
 
-    if settings.input_settings.run_summaries:
+    if state.input_settings.run_summaries:
         run_all_summaries()
 
     data_wrangling.clean_up()
-    print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(settings.emme_settings.good_thing))
+    print('###### OH HAPPY DAY!  ALL DONE. GO GET ' + random.choice(state.emme_settings.good_thing))
 
 if __name__ == "__main__":
-    settings = config_settings.generate_settings(run_args.args.configs_dir)
+    #settings = config_settings.generate_settings(run_args.args.configs_dir)
     #logger = logcontroller.setup_custom_logger('main_logger', settings.network_settings.main_log_file)
     logger = logcontroller.setup_custom_logger('main_logger', r'soundcast_log.txt')
     
     logger.info('--------------------NEW RUN STARTING--------------------')
     start_time = datetime.datetime.now()
 
-    main(settings)
+    main()
 
     end_time = datetime.datetime.now()
     elapsed_total = end_time - start_time
     logger.info('--------------------RUN ENDING--------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
 
-    if config['delete_banks']:
+    if state.emme_settings.delete_banks:
         shutil.rmtree('/Banks', ignore_errors=True)

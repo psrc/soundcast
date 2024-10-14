@@ -24,6 +24,7 @@ import subprocess
 import pandas as pd
 import json
 from multiprocessing import Pool, pool
+from settings.data_wrangling import text_to_dictionary, json_to_dictionary
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
@@ -35,7 +36,7 @@ import toml
 
 
 class EmmeProject:
-    def __init__(self, filepath):
+    def __init__(self, filepath, state):
         self.desktop = app.start_dedicated(True, "cth", filepath)
         self.m = _m.Modeller(self.desktop)
         for t in self.m.toolboxes:
@@ -51,6 +52,7 @@ class EmmeProject:
         self.tod = self.bank.title
         self.current_scenario = list(self.bank.scenarios())[0]
         self.data_explorer = self.desktop.data_explorer()
+        self.state = state
 
     def network_counts_by_element(self, element):
         network = self.current_scenario.get_network()
@@ -179,7 +181,7 @@ class EmmeProject:
         )
 
     def matrix_calculator(self, **kwargs):
-        spec = json_to_dictionary("templates/matrix_calc_spec")
+        spec = json_to_dictionary("matrix_calc_spec", self.state.model_input_dir, "templates")
         for name, value in kwargs.items():
             if name == "aggregation_origins":
                 spec["aggregation"]["origins"] = value
@@ -242,7 +244,8 @@ class EmmeProject:
         process(folder_name, scenario=self.m.scenario, revert_on_error=revert_on_error)
 
     def network_calculator(self, type, **kwargs):
-        spec = json_to_dictionary(os.path.join("lookup", type))
+        #spec = json_to_dictionary(os.path.join("lookup", type))
+        spec = json_to_dictionary(type, self.state.model_input_dir, "lookup")
         for name, value in kwargs.items():
             if name == "selections_by_link":
                 spec["selections"]["link"] = value
@@ -258,7 +261,8 @@ class EmmeProject:
         process(file_name, throw_on_error=True)
 
     def matrix_balancing(self, **kwargs):
-        spec = json_to_dictionary("templates/matrix_balancing_spec")
+        #spec = json_to_dictionary("templates/matrix_balancing_spec")
+        spec = json_to_dictionary("matrix_blancing_spec", self.state.model_input_dir, "templates")
         for name, value in kwargs.items():
             if name == "results_od_balanced_values":
                 spec["results"]["od_balanced_values"] = value
@@ -296,7 +300,8 @@ class EmmeProject:
         )
 
     def transit_line_calculator(self, **kwargs):
-        spec = json_to_dictionary("templates/transit_line_calculation")
+        #spec = json_to_dictionary("templates/transit_line_calculation")
+        spec = json_to_dictionary("transit_line_calculation", self.state.model_input_dir, "templates")
         for name, value in kwargs.items():
             spec[name] = value
 
@@ -305,7 +310,8 @@ class EmmeProject:
         self.transit_line_calc_result = network_calc(spec)
 
     def transit_segment_calculator(self, **kwargs):
-        spec = json_to_dictionary("templates/transit_segment_calculation")
+        #spec = json_to_dictionary("templates/transit_segment_calculation")
+        spec = json_to_dictionary("transit_segment_calculation", self.state.model_input_dir, "templates")
         for name, value in kwargs.items():
             spec[name] = value
 
@@ -317,14 +323,14 @@ class EmmeProject:
         self.desktop.close()
 
 
-def json_to_dictionary(dict_name):
-    # Determine the Path to the input files and load them
-    input_filename = os.path.join(
-        "inputs/model/skim_parameters/", dict_name + ".json"
-    ).replace("\\", "/")
-    my_dictionary = json.load(open(input_filename))
+# def json_to_dictionary(dict_name):
+#     # Determine the Path to the input files and load them
+#     input_filename = os.path.join(
+#         "inputs/model/skim_parameters/", dict_name + ".json"
+#     ).replace("\\", "/")
+#     my_dictionary = json.load(open(input_filename))
 
-    return my_dictionary
+#     return my_dictionary
 
 
 def close():
