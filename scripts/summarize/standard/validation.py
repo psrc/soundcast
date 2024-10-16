@@ -275,18 +275,25 @@ def main():
 
     # External stations
     external_stations = range(emme_config['MIN_EXTERNAL'],emme_config['MAX_EXTERNAL']+1)
-    df_model = df_model[df_model['@countid'].isin(external_stations)]
-    _df = df_model.groupby('@countid').sum()[['@tveh']].reset_index()
+    df_model = model_vol_df.copy()
+    _df = df_model[(df_model['i_node'].isin(external_stations))|(df_model['j_node'].isin(external_stations))]
+    _df_i = _df.groupby('i_node').sum()[['@tveh']].reset_index()
+    _df_j = _df.groupby('j_node').sum()[['@tveh']].reset_index()
+    _df = _df_i.merge(_df_j, left_on='i_node', right_on='j_node')
+    _df['@tveh'] = _df[['@tveh_x','@tveh_y']].sum(axis=1)
+    _df = _df[['i_node','@tveh']]
+    _df.rename(columns={'i_node': 'external_station'}, inplace=True)
+    _df = _df[_df['external_station'].isin(external_stations)]
 
     # Join to observed
-    # By Mode
     df_obs = pd.read_sql("SELECT * FROM observed_external_volumes WHERE year=" + str(config['base_year']), con=conn)
-    newdf = _df.merge(df_obs,left_on='@countid' ,right_on='external_station')
+    newdf = _df.merge(df_obs,on='external_station')
     newdf.rename(columns={'@tveh':'modeled','AWDT':'observed'},inplace=True)
     newdf['observed'] = newdf['observed'].astype('float')
     newdf['diff'] = newdf['modeled'] - newdf['observed']
     newdf = newdf[['external_station','location','county','observed','modeled','diff']].sort_values('observed',ascending=False)
     newdf.to_csv(r'outputs\validation\external_volumes.csv',index=False)
+    newdf
 	
 	
 	########################################
