@@ -9,6 +9,22 @@ run_comparison = false
 # annualization factor; continuing with value used from Vision 2050
 weekday_to_annual = 300
 
+#################################
+# RELATIVE PATHS between notebooks and output/survey directories
+#################################
+# summary output directory
+p_output_dir = 'outputs/2023_summary'
+
+# output_path = '../../../../outputs'
+# survey_path = '../../../../inputs/base_year/survey'
+output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
+survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
+
+#################################
+# run validation notebooks
+#################################
+summary_list = ['topsheet',
+                'vmt']
 
 #################################
 # NETWORK SUMMARY
@@ -103,7 +119,7 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
 # To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
 # e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
 #                          'soundcast_2040': 'C:/user/soundcast_2040'}
-comparison_runs = {}
+[comparison_runs]
 compare_survey = true    # compare daysim results in Tableau and topsheet outputs
 
 #### Transit Groupings ###############################################################
@@ -159,6 +175,20 @@ max_dist = 24140.2
 18to20 = 18
 20to5 = 20
 
+[tod_dict]
+5to6 = 'AM'
+6to7 = 'AM'
+7to8 = 'AM'
+8to9 = 'AM'
+9to10 = 'Mid-Day'
+10to14 = 'Mid-Day'
+14to15 = 'Mid-Day'
+15to16 = 'PM'
+16to17 = 'PM'
+17to18 = 'PM'
+18to20 = 'Evening'
+20to5 = 'Night'
+
 [agency_lookup]
 1 = "King County Metro"
 2 = "Pierce Transit"
@@ -198,6 +228,36 @@ max_dist = 24140.2
 118585 = "Passenger Ferry Vashon Island to Seattle"
 118225 = "Passenger Ferry West Seattle to Seattle"
 118337 = "C Line to Downtown Seattle"
+
+[facility_type_dict]
+1 = 'Highway'
+2 = 'Highway'
+3 = 'Arterial'
+4 = 'Arterial'
+5 = 'Connector'
+6 = 'Arterial'
+
+[purp_dict]
+0 = 'Home'
+1 = 'Work'
+2 = 'School'
+3 = 'Escort'
+4 = 'Personal Business'
+5 = 'Shopping'
+6 = 'Meal'
+7 = 'Social'
+8 = 'Recreational'
+9 = 'Medical'
+10 = 'Change Mode'
+
+[mode_dict]
+1 = 'Walk'
+2 = 'Bike'
+3 = 'SOV'
+4 = 'HOV2'
+5 = 'HOV3+'
+6 = 'Transit'
+8 = 'School Bus'
 
 ################################################
 # Emissions calculations
