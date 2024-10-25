@@ -169,7 +169,8 @@ def main():
         "total-people",
     ]
 
-    parcel_file = "inputs/scenario/landuse/parcels_urbansim.txt"
+    # Load parcel file with updated military parcels (processed in create_ixxi_work_trips.py previously)
+    parcel_file = "outputs/landuse/parcels_urbansim.txt"
 
     output_directory = "outputs/supplemental"
 

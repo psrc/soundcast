@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 # import toml
 # config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 
-parcels_file_name = "inputs/scenario/landuse/parcels_urbansim.txt"
+parcels_file_name = "outputs/landuse/parcels_urbansim.txt"
 output_parcels = "outputs/landuse/buffered_parcels.txt"
 nodes_file_name = "inputs/base_year/all_streets_nodes.csv"
 links_file_name = "inputs/base_year/all_streets_links.csv"
@@ -25,28 +25,28 @@ distances = {  # in meters;
 
 parcel_attributes = {
     "sum": [
-        "HH_P",
-        "STUGRD_P",
-        "STUHGH_P",
-        "STUUNI_P",
-        "EMPMED_P",
-        "EMPOFC_P",
-        "EMPEDU_P",
-        "EMPFOO_P",
-        "EMPGOV_P",
-        "EMPIND_P",
-        "EMPSVC_P",
-        "EMPOTH_P",
-        "EMPTOT_P",
-        "EMPRET_P",
-        "PARKDY_P",
-        "PARKHR_P",
-        "NPARKS",
-        "APARKS",
+        "hh_p",
+        "stugrd_p",
+        "stuhgh_p",
+        "stuuni_p",
+        "empmed_p",
+        "empofc_p",
+        "empedu_p",
+        "empfoo_p",
+        "empgov_p",
+        "empind_p",
+        "empsvc_p",
+        "empoth_p",
+        "emptot_p",
+        "empret_p",
+        "parkdy_p",
+        "parkhr_p",
+        "nparks",
+        "aparks",
         "daily_weighted_spaces",
         "hourly_weighted_spaces",
     ],
-    "ave": ["PPRICDYP", "PPRICHRP"],
+    "ave": ["ppricdyp", "pprichrp"],
 }
 
 

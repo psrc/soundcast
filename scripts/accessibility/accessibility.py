@@ -66,8 +66,8 @@ def process_dist_attribute(parcels, network, name, x, y):
 
 def process_parcels(parcels, transit_df, net, intersections_df):
     # Add a field so you can compute the weighted average number of spaces later
-    parcels["daily_weighted_spaces"] = parcels["PARKDY_P"] * parcels["PPRICDYP"]
-    parcels["hourly_weighted_spaces"] = parcels["PARKHR_P"] * parcels["PPRICHRP"]
+    parcels["daily_weighted_spaces"] = parcels["parkdy_p"] * parcels["ppricdyp"]
+    parcels["hourly_weighted_spaces"] = parcels["parkhr_p"] * parcels["pprichrp"]
 
     # Start processing attributes
     newdf = None
@@ -95,10 +95,10 @@ def process_parcels(parcels, transit_df, net, intersections_df):
         )
 
     # Parking prices are weighted average, weighted by the number of spaces in the buffer, divided by the total spaces
-    newdf["PPRICDYP_1"] = newdf["daily_weighted_spaces_1"] / newdf["PARKDY_P_1"]
-    newdf["PPRICDYP_2"] = newdf["daily_weighted_spaces_2"] / newdf["PARKDY_P_2"]
-    newdf["PPRICHRP_1"] = newdf["hourly_weighted_spaces_1"] / newdf["PARKHR_P_1"]
-    newdf["PPRICHRP_2"] = newdf["hourly_weighted_spaces_2"] / newdf["PARKHR_P_2"]
+    newdf["ppricdyp_1"] = newdf["daily_weighted_spaces_1"] / newdf["parkdy_1"]
+    newdf["ppricdyp_2"] = newdf["daily_weighted_spaces_2"] / newdf["parkdy_2"]
+    newdf["pprichrp_1"] = newdf["hourly_weighted_spaces_1"] / newdf["parkhr_1"]
+    newdf["pprichrp_2"] = newdf["hourly_weighted_spaces_2"] / newdf["parkhr_2"]
 
     parcels.reset_index(level=0, inplace=True)
     parcels = pd.merge(parcels, newdf, on="node_ids", copy=False)
@@ -147,10 +147,10 @@ def clean_up(parcels):
     parcels = parcels.rename(columns=rename)
     parcels = parcels.rename(
         columns={
-            "PPRICDYP_1": "PPRICDY1",
-            "PPRICHRP_1": "PPRICHR1",
-            "PPRICDYP_2": "PPRICDY2",
-            "PPRICHRP_2": "PPRICHR2",
+            "ppricdyp_1": "ppricdy1",
+            "pprichrp_1": "pprichr1",
+            "ppricdyp_2": "ppricdy2",
+            "pprichrp_2": "pprichr2",
         }
     )
 
@@ -180,18 +180,18 @@ def main():
     # parcels.loc[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
 
     ## Update UW Emp parcel with parking costs
-    # parcels.loc[parcels.PARCELID==751794, 'PARKDY_P'] = 1144
+    # parcels.loc[parcels.PARCELID==751794, 'parkdy_P'] = 1144
     # parcels.loc[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
-    # parcels.loc[parcels.PARCELID==751794, 'PPRICDYP'] = 1500
-    # parcels.loc[parcels.PARCELID==751794, 'PPRICHRP'] = 300
+    # parcels.loc[parcels.PARCELID==751794, 'ppricdyp'] = 1500
+    # parcels.loc[parcels.PARCELID==751794, 'pprichrp'] = 300
 
     ## This UW parcel is in the wrong zone.
     # parcels.loc[parcels.PARCELID==751794, 'TAZ_P'] = 303
 
     # check for missing data!
     for col_name in parcels.columns:
-        # daysim does not use EMPRSC_P
-        if col_name != "EMPRSC_P":
+        # daysim does not use emprsc_p
+        if col_name != "emprsc_p":
             if parcels[col_name].sum() == 0:
                 print(col_name + " column sum is zero! Exiting program.")
                 sys.exit(1)
@@ -243,7 +243,7 @@ def main():
     intersections_df["nodes4"] = np.where(intersections_df["edge_count"] > 3, 1, 0)
 
     # assign network nodes to parcels, for buffer variables
-    assign_nodes_to_dataset(parcels, net, "node_ids", "XCOORD_P", "YCOORD_P")
+    assign_nodes_to_dataset(parcels, net, "node_ids", "xcoord_p", "ycoord_p")
 
     # assign network nodes to transit stops, for buffer variable
     assign_nodes_to_dataset(transit_df, net, "node_ids", "x", "y")
