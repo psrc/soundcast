@@ -118,10 +118,10 @@ def destination_parking_costs(df, zone_lookup_dict):
     """Calculate average daily parking price per zone."""
 
     np_array = np.zeros(len(zone_lookup_dict))
-    df = df[df.PPRICDYP > 0]
-    df = df.groupby("TAZ_P").mean()[["PPRICDYP"]].reset_index()
-    df["zone_index"] = df.TAZ_P.apply(lambda x: zone_lookup_dict[x])
-    np_array[df.zone_index] = df["PPRICDYP"]
+    df = df[df.ppricdyp > 0]
+    df = df.groupby("taz_p").mean()[["ppricdyp"]].reset_index()
+    df["zone_index"] = df.taz_p.apply(lambda x: zone_lookup_dict[x])
+    np_array[df.zone_index] = df["ppricdyp"]
 
     return np_array
 
@@ -257,10 +257,10 @@ def calculate_trips(daysim, parcel, control_total):
     taz_df["airport_trips_pop"] = taz_df["hhsize"] * airport_trip_rate_pop
 
     # Zonal Employment (total minus education jobs)
-    parcel["emptot_minus_edu"] = parcel["EMPTOT_P"] - parcel["EMPEDU_P"]
+    parcel["emptot_minus_edu"] = parcel["emptot_p"] - parcel["empedu_p"]
     parcel["airport_trips_emp"] = parcel["emptot_minus_edu"] * airport_trip_rate_emp
-    parcel_df = parcel.groupby("TAZ_P").sum()[["airport_trips_emp"]].reset_index()
-    parcel_df.rename(columns={"TAZ_P": "TAZ"}, inplace=True)
+    parcel_df = parcel.groupby("taz_p").sum()[["airport_trips_emp"]].reset_index()
+    parcel_df.rename(columns={"taz_p": "TAZ"}, inplace=True)
 
     trips = parcel_df.merge(taz_df, on="TAZ")
     trips["airport_trips"] = trips["airport_trips_pop"] + trips["airport_trips_emp"]
@@ -416,7 +416,7 @@ def main():
     zonesDim = len(my_project.current_scenario.zone_numbers)
 
     parcel = pd.read_csv(
-        "inputs/scenario/landuse/parcels_urbansim.txt", delim_whitespace=True
+        "outputs/landuse/parcels_urbansim.txt", delim_whitespace=True
     )
 
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
