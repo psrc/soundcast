@@ -1,0 +1,10 @@
+#,walk,bike,sov,hov2,hov3,transit,park-and-ride,school-bus,av1,av2,av3
+full-network,True,True,True,True,True,False,False,True,FALSE,FALSE,FALSE
+local-bus,False,False,False,False,False,True,False,False,FALSE,FALSE,FALSE
+ferry-knr,False,False,False,False,False,FALSE,False,False,FALSE,FALSE,FALSE
+local-bus-tnc,False,False,False,False,False,FALSE,False,False,FALSE,FALSE,FALSE
+light-rail,False,False,False,False,False,True,False,False,FALSE,FALSE,FALSE
+light-rail-tnc,False,False,False,False,False,FALSE,False,False,FALSE,FALSE,FALSE
+premium-bus,False,False,False,False,False,True,False,False,FALSE,FALSE,FALSE
+commuter-rail,False,False,False,False,False,True,False,False,FALSE,FALSE,FALSE
+ferry,False,False,False,False,False,True,False,False,FALSE,FALSE,FALSE

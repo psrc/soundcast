@@ -1,4 +1,34 @@
 {
+  "5to9": {
+    "Files": {
+      "fare_box_file": "am_fares_farebox.in",
+      "monthly_pass_file": "am_fares_monthly_pass.in"
+    },
+    "Names": {
+      "fare_box_matrix": "afarbx",
+      "monthly_fare_matrix": "afarps"
+    }
+  },
+  "9to15": {
+    "Files": {
+      "fare_box_file": "md_fares_farebox.in",
+      "monthly_pass_file": "md_fares_monthly_pass.in"
+    },
+    "Names": {
+      "fare_box_matrix": "mfarbx",
+      "monthly_fare_matrix": "mfarps"
+    }
+  },
+  "15to18": {
+    "Files": {
+      "fare_box_file": "am_fares_farebox.in",
+      "monthly_pass_file": "am_fares_monthly_pass.in"
+    },
+    "Names": {
+      "fare_box_matrix": "afarbx",
+      "monthly_fare_matrix": "afarps"
+    }
+  },
   "9to10": {
     "Files": {
       "fare_box_file": "md_fares_farebox.in",

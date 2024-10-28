@@ -1,0 +1,10 @@
+{
+    "result": "@agency",
+    "expression": "ut3",
+    "aggregation": null,
+    "selections": {
+        "link": null,
+        "transit_line": "all"
+    },
+    "type": "NETWORK_CALCULATION"
+}

@@ -1,0 +1,10 @@
+{
+    "result": "@testm",
+    "expression": "vauteq * (60/hdw)\n",
+    "aggregation": "+",
+    "selections": {
+        "link": "all",
+        "transit_line": "all"
+    },
+    "type": "NETWORK_CALCULATION"
+}

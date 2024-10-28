@@ -1,0 +1,14 @@
+{
+  "heavy_trucks": {
+    "dist_bidir_name": "bhvyds",
+    "gc_name": "hvtrkg",
+    "dist_name": "heavy_truckd",
+    "gc_bidir_name": "bhvycs"
+  },
+  "medium_trucks": {
+    "dist_bidir_name": "bmedds",
+    "gc_name": "metrkg",
+    "dist_name": "medium_truckd",
+    "gc_bidir_name": "bmedcs"
+  }
+}
