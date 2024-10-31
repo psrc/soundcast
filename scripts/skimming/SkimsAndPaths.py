@@ -808,7 +808,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     tod_index = create_trip_tod_indices(my_project.tod)
 
     # Create the HDF5 Container if needed and open it in read/write mode using "r+"
-    my_store = h5py.File(hdf_filename, "r+")
+    my_store = h5py.File(hdf_filename, "r")
 
     # Read the Matrix File from the Dictionary File and Set Unique Matrix Names
     matrix_dict = text_to_dictionary("demand_matrix_dictionary")
@@ -926,7 +926,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
             mat_name = matrix_dict[(int(mode[x]), int(vot[x]), av_flag)]
             myOtaz = dictZoneLookup[otaz[x]]
             myDtaz = dictZoneLookup[dtaz[x]]
-            trips = np.asscalar(np.float32(trexpfac[x]))
+            trips = np.float32(trexpfac[x]).item()
             trips = round(trips, 2)
 
             # Assign TNC trips using fractional occupancy (factor of 1 for 1 passenger, 0.5 for 2 passengers, etc.)
@@ -1041,7 +1041,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
     # For the given TOD, get the index of all the trips for that Time Period
-    my_store = h5py.File(hdf5_file_path, "r+")
+    my_store = h5py.File(hdf5_file_path, "r")
     daysim_set = my_store["Trip"]
     # open departure time array
     deptm = np.asarray(daysim_set["deptm"])
@@ -1154,7 +1154,17 @@ def run_bike(project_name):
 
     my_project.bank.dispose()
 
+def run_bike_test(project_name, daily_link_df):
 
+    start_of_run = time.time()
+    my_project = EmmeProject(project_name)
+
+    # Bicycle Assignment
+    calc_bike_weight(my_project, daily_link_df)
+    tod = project_name.split("/")[1]
+    bike_assignment(my_project, tod)
+
+    my_project.bank.dispose()
 def run_transit(project_name):
     start_of_run = time.time()
 
@@ -1400,7 +1410,7 @@ def volume_weight(my_project, df, network_settings):
     over_df = df[df["facility_wt"] < 0].replace(to_replace=network_settings.aadt_dict)
     over_df["volume_wt"] = 0
     under_df = df[df["facility_wt"] >= 0]
-    df = over_df.append(under_df)
+    df = pd.concat([over_df, under_df])
 
     return df
 
@@ -1487,23 +1497,23 @@ def calc_bike_weight(my_project, link_df):
     # add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
     df["total_wt"] = (
         1
-        - np.float(state.network_settings.facility_dict["facility_wt"]["premium"])
-        + df["facility_wt"]
-        + df["slope_wt"]
-        + df["volume_wt"]
+        - np.float64(state.network_settings.facility_dict["facility_wt"]["premium"])
+        + df["facility_wt"].astype(float)
+        + df["slope_wt"].astype(float)
+        + df["volume_wt"].astype(float)
     )
 
     # Calibrate ferry links
     _index = df["modes"].str.contains("f")
     df.loc[_index, "total_wt"] = df["total_wt"] * state.network_settings.ferry_bike_factor
-
+    
     # Write link data for analysis
 
     df.to_csv(r"outputs/bike/bike_attr_%s.csv" % (my_project.tod,))
 
     # export total link weight as an Emme attribute file ('@bkwt.in')
     write_generalized_time(df, my_project.tod)
-
+   
 
 def bike_assignment(my_project, tod):
     """ Assign bike trips using links weights based on slope, traffic, and facility type, for a given TOD."""
@@ -1808,7 +1818,7 @@ def run(free_flow_skims=False, num_iterations=100):
 
     daily_link_df = pd.DataFrame()
     for _df in pool_list[0]:
-        daily_link_df = daily_link_df.append(_df)
+        daily_link_df = pd.concat([daily_link_df, _df], axis=0)
         grouped = daily_link_df.groupby(["link_id"])
     daily_link_df = grouped.agg({"@tveh": sum, "length": min, "modes": min})
     daily_link_df.reset_index(level=0, inplace=True)
@@ -1818,6 +1828,7 @@ def run(free_flow_skims=False, num_iterations=100):
     
     #daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
     start_bike_pool(project_list, daily_link_df)
+    #run_bike_test("projects/8to9/8to9.emp", daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
     ##if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
