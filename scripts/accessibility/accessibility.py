@@ -5,9 +5,9 @@ import os
 import re
 import sys
 from pyproj import Proj, transform
-
+#sys.path.append(os.path.join(os.getcwd(), "scripts/accessibility"))
 sys.path.append(os.getcwd())
-from accessibility_configuration import *
+import accessibility.accessibility_configuration as accessibility_configuration
 
 # from emme_configuration import *
 # from input_configuration import *
@@ -42,7 +42,7 @@ def reproject_to_wgs84(
 
 def process_net_attribute(network, attr, fun):
     newdf = None
-    for dist_index, dist in distances.items():
+    for dist_index, dist in accessibility_configuration.distances.items():
         res_name = "%s_%s" % (
             re.sub("_?p$", "", attr),
             dist_index,
@@ -57,7 +57,7 @@ def process_net_attribute(network, attr, fun):
 
 def process_dist_attribute(parcels, network, name, x, y):
     network.set_pois(name, x, y)
-    res = network.nearest_pois(max_dist, name, num_pois=1, max_distance=999)
+    res = network.nearest_pois(accessibility_configuration.max_dist, name, num_pois=1, max_distance=999)
     res[res != 999] = (res[res != 999] / 5280.0).astype(res.dtypes)  # convert to miles
     res_name = "dist_%s" % name
     parcels[res_name] = res.loc[parcels.node_ids].values
@@ -71,7 +71,7 @@ def process_parcels(parcels, transit_df, net, intersections_df):
 
     # Start processing attributes
     newdf = None
-    for fun, attrs in parcel_attributes.items():
+    for fun, attrs in accessibility_configuration.parcel_attributes.items():
         for attr in attrs:
             net.set(parcels.node_ids, variable=parcels[attr], name=attr)
             res = process_net_attribute(net, attr, fun)
@@ -81,14 +81,14 @@ def process_parcels(parcels, transit_df, net, intersections_df):
                 newdf = pd.merge(newdf, res, on="node_ids", copy=False)
 
     # sum of bus stops in buffer
-    for name in transit_attributes:
+    for name in accessibility_configuration.transit_attributes:
         net.set(transit_df["node_ids"].values, transit_df[name], name=name)
         newdf = pd.merge(
             newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False
         )
 
     # sum of intersections in buffer
-    for name in intersections:
+    for name in accessibility_configuration.intersections:
         net.set(intersections_df["node_ids"].values, intersections_df[name], name=name)
         newdf = pd.merge(
             newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False
@@ -104,10 +104,10 @@ def process_parcels(parcels, transit_df, net, intersections_df):
     parcels = pd.merge(parcels, newdf, on="node_ids", copy=False)
 
     # set the number of pois on the network for the distance variables (transit + 1 for parks)
-    net.init_pois(len(transit_modes) + 1, max_dist, 1)
+    net.init_pois(len(accessibility_configuration.transit_modes) + 1, accessibility_configuration.max_dist, 1)
 
     # calc the distance from each parcel to nearest transit stop by type
-    for new_name, attr in transit_modes.items():
+    for new_name, attr in accessibility_configuration.transit_modes.items():
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         if transit_type_df[attr].sum() > 0:
@@ -164,16 +164,16 @@ def clean_up(parcels):
         ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt"]
     ].min(axis=1)
 
-    for col in col_order:
+    for col in accessibility_configuration.col_order:
         parcels_final[col] = parcels[col]
 
     parcels_final["xcoord_p"] = parcels_final["xcoord_p"].astype(int)
     return parcels_final
 
 
-def main():
+def run():
     # read in data
-    parcels = pd.read_csv(parcels_file_name, sep=" ", index_col=None)
+    parcels = pd.read_csv(accessibility_configuration.parcels_file_name, sep=" ", index_col=None)
 
     ## Move SeaTac Parcel so that it is on the terminal.
     # parcels.loc[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
@@ -201,8 +201,8 @@ def main():
     parcels.NPARKS = 0
 
     # nodes must be indexed by node_id column, which is the first column
-    nodes = pd.read_csv(nodes_file_name, index_col="node_id")
-    links = pd.read_csv(links_file_name, index_col=None)
+    nodes = pd.read_csv(accessibility_configuration.nodes_file_name, index_col="node_id")
+    links = pd.read_csv(accessibility_configuration.links_file_name, index_col=None)
 
     # get rid of circular links
     links = links.loc[(links.from_node_id != links.to_node_id)]
@@ -218,11 +218,11 @@ def main():
     net = pdna.network.Network(
         nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp
     )
-    for dist in distances:
+    for dist in accessibility_configuration.distances:
         net.precompute(dist)
 
     # get transit stops
-    transit_df = pd.read_csv(transit_stops_name)
+    transit_df = pd.read_csv(accessibility_configuration.transit_stops_name)
     transit_df["tstops"] = 1
 
     # intersections:
@@ -255,12 +255,12 @@ def main():
     parcels['raw_dist_transit'] = parcels[['dist_lbus','dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
 
     # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * light_rail_walk_factor
-    parcels['dist_fry'] * ferry_walk_factor
+    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * accessibility_configuration.light_rail_walk_factor
+    parcels['dist_fry'] * accessibility_configuration.ferry_walk_factor
     parcels_done = clean_up(parcels)
 
-    parcels_done.to_csv(output_parcels, index=False, sep=" ")
+    parcels_done.to_csv(accessibility_configuration.output_parcels, index=False, sep=" ")
 
 
 if __name__ == "__main__":
-    main()
+    run()

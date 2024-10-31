@@ -19,6 +19,7 @@ emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 )
 
+config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     """Loads H5 skim matrix for specified mode."""

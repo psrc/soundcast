@@ -1,0 +1,57 @@
+###################################
+# Assignment Criteria
+###################################
+log_file_name = 'outputs/logs/skims_log.txt'
+STOP_THRESHOLD = 0.026    # Global convergence criteria
+parallel_instances = 5
+relative_gap = 0.0001      # Assignment Convergence Criteria
+best_relative_gap = 0.00  # Set to zero, only using relative gap as criteria
+normalized_gap = 0.00     # See above
+
+pop_sample = [1, 1, 1, 1, 1, 1, 1, 1]
+# Assignment Iterations must be same length as pop_sample:
+max_iterations_list = [10, 100, 100, 100, 100, 100, 100, 100]
+min_pop_sample_convergence_test = 10
+shadow_work = [2, 1, 1, 1]
+shadow_con = 30 # %RMSE for shadow pricing to consider being converged
+
+###################################
+# Zone Defintions
+###################################
+MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-based)
+MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
+HIGH_TAZ = 3700
+LOW_PNR = 3751
+#HIGH_PNR = 4000
+SEATAC = 983
+EXTERNALS_DONT_GROW=[3733]
+
+
+#################################
+# Supplementals Settings
+#################################
+
+trip_table_loc = 'outputs/supplemental/7_balance_trip_ends.csv'
+supplemental_project = 'projects/supplementals/supplementals.emp'
+supplemental_output_dir = 'outputs/supplemental'
+
+# Define gravity model coefficients
+autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
+avotda = 0.0303    # VOT
+
+# Home delivery trips, must be > 0
+total_delivery_trips = 1
+
+#This is what you get if the model runs cleanly, but it's random:
+good_thing = ["a cookie", "a run", "a puppy", "a seal sighting",  "a beer", "some sunshine", "a nap"]
+
+#################################
+# Integrated Run Settings
+#################################
+# Only required for integrated Urbans runs; leave as default for standard runs
+
+# Root dir for all Soundcast runs
+urbansim_skims_dir = 'E:\soundcast_root'
+
+# Urbansim outputs dir
+urbansim_outputs_dir = 'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'

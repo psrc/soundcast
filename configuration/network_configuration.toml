@@ -52,9 +52,9 @@ zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
 fare_matrices_tod = ['6to7', '9to10']
 
 
-taz_area_file = 'inputs/model/intrazonals/taz_acres.in'
-origin_tt_file = 'inputs/model/intrazonals/origin_tt.in'
-destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
+taz_area_file = 'inputs/model/daysim/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/model/daysim/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/model/daysim/intrazonals/destination_tt.in'
 
 #################################
 # Bike Model Settings

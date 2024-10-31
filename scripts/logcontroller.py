@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import logging
+from settings import run_args
+from scripts.settings import state
 
 # from emme_configuration import main_log_file
 from functools import wraps
@@ -24,29 +26,51 @@ sys.path.append(os.getcwd())
 # os.chdir(r'..')
 import toml
 
+state = state.generate_state(run_args.args.configs_dir)
+# network_config = toml.load(
+#     os.path.join(os.getcwd(), "configuration\\network_configuration.toml")
+# )
 
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration\\network_configuration.toml")
-)
-
-
-def setup_custom_logger(name):
+def setup_custom_logger(name, log_file, level=logging.INFO):
+    """To setup as many loggers as you want"""
+    
     # create dir for main log file if it doesn't exist
     try:
         os.makedirs("outputs/logs")
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    logging.basicConfig(
-        filename=network_config["main_log_file"],
-        format="%(asctime)s %(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S %p",
-    )
-    handler = logging.StreamHandler()
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler = logging.FileHandler(log_file)        
+    handler.setFormatter(formatter)
+
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(level)
     logger.addHandler(handler)
+
     return logger
+
+def create_skims_and_paths_logger():
+    return setup_custom_logger('skims_logger', 'outputs/logs/skims_log.txt')
+
+# def setup_custom_logger(name, file_name):
+#     # create dir for main log file if it doesn't exist
+#     try:
+#         os.makedirs("outputs/logs")
+#     except OSError as e:
+#         if e.errno != errno.EEXIST:
+#             raise
+#     logging.basicConfig(
+#         filename=file_name,
+#         format="%(asctime)s %(message)s",
+#         datefmt="%m/%d/%Y %I:%M:%S %p",
+#     )
+#     handler = logging.StreamHandler()
+#     logger = logging.getLogger(name)
+#     logger.setLevel(logging.INFO)
+#     logger.addHandler(handler)
+#     return logger
 
 
 def timed(f):

@@ -14,6 +14,8 @@ emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 )
 
+config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
+
 
 def load_skims(skim_file_loc, table, divide_by_100=False):
     """Load H5 skim matrix for specified mode table and time period.

@@ -1,0 +1,67 @@
+{
+"spec1" :[
+{
+    "by_mode_subset": {
+        "modes": [
+            "b"
+        ],
+        "actual_in_vehicle_times": "mfivtwcb"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+},
+{
+    "by_mode_subset": {
+        "modes": [
+            "p"
+        ],
+        "actual_in_vehicle_times": "mfivtwcp"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+},
+{
+    "by_mode_subset": {
+        "modes": [
+            "r"
+        ],
+        "actual_in_vehicle_times": "mfivtwcr"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+},
+{
+    "by_mode_subset": {
+        "modes": [
+            "c"
+        ],
+        "actual_in_vehicle_times": "mfivtwcc"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+},
+{
+    "by_mode_subset": {
+        "modes": [
+            "f"
+        ],
+        "actual_in_vehicle_times": "mfivtwcf"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
+},
+{
+    "by_mode_subset": {
+        "modes": [
+            "b",
+            "c",
+            "f",
+            "p",
+            "r",
+            "w",
+            "x"
+        ],
+        "actual_in_vehicle_times": "mfivtwc",
+        "actual_aux_transit_times": "mfauxwc",
+        "avg_boardings": "mfndbwc"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS",
+    "actual_first_waiting_times": "mfiwtwc",
+    "actual_total_waiting_times": "mftwtwc"
+}]
+}
