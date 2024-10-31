@@ -489,6 +489,7 @@ def main():
     calculate_daily_trips(my_project, conn)
     write_truck_trips(my_project)
     write_summary(my_project)
+    my_project.close()
 
 
 if __name__ == "__main__":
