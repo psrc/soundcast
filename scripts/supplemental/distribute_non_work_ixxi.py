@@ -31,11 +31,11 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
         return skim_file
 
 
-def calc_fric_fac(cost_skim, dist_skim, _coeff_df):
+def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup):
     """Calculate friction factors for all trip purposes"""
     friction_fac_dic = {}
     for index, row in _coeff_df.iterrows():
-        MIN_EXTERNAL_INDEX = dictZoneLookup[emme_config["MIN_EXTERNAL"]]
+        MIN_EXTERNAL_INDEX = zone_lookup[emme_config["MIN_EXTERNAL"]]
         friction_fac_dic[row["purpose"]] = np.exp(
             (row["coefficient_value"])
             * (cost_skim + (dist_skim * emme_config["autoop"] * emme_config["avotda"]))
@@ -209,7 +209,7 @@ def main():
 
     my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp")
 
-    global dictZoneLookup
+    #global dictZoneLookup
     dictZoneLookup = dict(
         (value, index)
         for index, value in enumerate(my_project.current_scenario.zone_numbers)
@@ -229,7 +229,7 @@ def main():
     dist_skim = (am_dist_skim + pm_dist_skim) * 0.5
 
     # Compute friction factors by trip purpose
-    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df)
+    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df, dictZoneLookup)
 
     # Create trip table for externals
     distribute_trips_externals(trip_table, trip_purpose_list, fric_facs, my_project)

@@ -94,8 +94,8 @@ def finalize_emissions(df, col_suffix=""):
 	pm10['pollutantID'] = 'PM10'
 	pm25 = df[df['pollutantID'].isin([110,116,117])].groupby('veh_type').sum().reset_index()
 	pm25['pollutantID'] = 'PM25'
-	df = df.append(pm10)
-	df = df.append(pm25)
+	df = pd.concat([df, pm10])
+	df = pd.concat([df, pm25])
 
 	return df
 
@@ -193,8 +193,8 @@ def calculate_intrazonal_emissions(df_running_rates, output_dir):
 	df_intra_heavy = df_intra[df_intra['veh_type'] == 'heavytruck']
 	df_intra_heavy.loc[:,'veh_type'] = 'heavy'
 
-	df_intra = df_intra_light.append(df_intra_medium)
-	df_intra = df_intra.append(df_intra_heavy)
+	df_intra = pd.concat([df_intra_light, df_intra_medium])
+	df_intra = pd.concat([df_intra, df_intra_heavy])
 
 	# For intrazonals, assume standard speed bin and roadway type for all intrazonal trips
 	speedbin = 4
@@ -236,7 +236,7 @@ def calculate_start_emissions():
     df_summer = df_summer[df_summer['monthID'] == 7]
     df_winter = start_rates_df[~start_rates_df['pollutantID'].isin(sum_config['summer_list'])]
     df_winter = df_winter[df_winter['monthID'] == 1]
-    start_rates_df = df_winter.append(df_summer)
+    start_rates_df = pd.concat([df_winter, df_summer])
 
     # Sum total emissions across all times of day, by county, for each pollutant
     start_rates_df = start_rates_df.groupby(['pollutantID','county','veh_type']).sum()[['ratePerVehicle']].reset_index()
@@ -257,7 +257,7 @@ def calculate_start_emissions():
     df_bus = df_bus.groupby(['pollutantID','county']).sum().reset_index()
     df_bus['veh_type'] = 'transit'
 
-    df = df.append(df_bus)
+    df = pd.concat([df, df_bus])
 
     df.to_csv(r'outputs/emissions/start_emissions.csv', index=False)
 
@@ -295,7 +295,7 @@ def main():
     df_summer = df_summer[df_summer['monthID'] == 7]
     df_winter = df_running_rates[~df_running_rates['pollutantID'].isin(sum_config['summer_list'])]
     df_winter = df_winter[df_winter['monthID'] == 1]
-    df_running_rates = df_winter.append(df_summer)
+    df_running_rates = pd.concat([df_winter, df_summer])
 
     # Group interzonal trips and calculate interzonal emissions
     df_interzonal_vmt = calculate_interzonal_vmt()

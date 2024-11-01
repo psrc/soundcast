@@ -162,7 +162,7 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
         _df = new_parcel_df_groupby[[geo] + ['HHaveraged_EMPTOT_P_1','HHaveraged_EMPTOT_P_3']]
         _df.columns = ['geography_value', 'jobs_1_mile_walk','jobs_3_mile_bike']
         _df['geography_group'] = geo
-        df = df.append(_df)
+        df = pd.concat([df, _df])
 
     #df = pd.melt(df, 'Geography', var_name='Data Item')
     #df['Grouping'] = 'Total'

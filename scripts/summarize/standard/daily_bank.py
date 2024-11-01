@@ -78,8 +78,8 @@ def create_emmebank(dir_name):
 def copy_emmebank(from_dir, to_dir):
     if os.path.exists(to_dir):
         shutil.rmtree(to_dir)
-    os.makedirs(to_dir)
-    dir_util.copy_tree(from_dir, to_dir)
+    #os.makedirs(to_dir)
+    shutil.copytree(from_dir, to_dir)
 
 def merge_networks(master_network, merge_network):
     for node in merge_network.nodes():
@@ -113,7 +113,7 @@ def export_link_values(my_project):
         df_attr.columns = ['nodes','value']
         df_attr['measure'] = str(attr)
 
-        df = df.append(df_attr)
+        df = pd.concat([df, df_attr])
     
     # Lengthen tablewise
     df = df.pivot(index='nodes',columns='measure',values='value').reset_index()
