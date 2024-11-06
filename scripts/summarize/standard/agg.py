@@ -53,14 +53,14 @@ def create_dir(_dir):
 def get_row_col_list(row, full_col_list):
     row_list = ['agg_fields','values']
     for field_type in ['filter_fields']:
-        if type(row[field_type]) != np.float:
+        if type(row[field_type]) != float:
             row_list += [field_type]
     col_list = list(row[row_list].values)
     col_list = [i.split(',') for i in col_list]
     col_list = list(np.unique([item.strip(' ') for sublist in col_list for item in sublist]))
 
     # Identify column values from query field with regular expressions
-    if type(row['query']) != np.float:
+    if type(row['query']) != float:
         # query_fields_cols = [i.strip() for i in re.split(',|>|==|>=|<|<=|!=|&',row['query'])]
         regex = re.compile('[^a-zA-Z]')
         query_fields_cols = [regex.sub('', i).strip() for i in re.split(',|>|==|>=|<|<=|!=|&',row['query'])]
@@ -83,13 +83,13 @@ def execute_eval(df, row, col_list, fname):
 
     # Process query field
     query = ''
-    if type(row['query']) != np.float:
+    if type(row['query']) != float:
         query = """.query('"""+ str(row['query']) + """')"""
 
     agg_fields_cols = [i.strip() for i in row['agg_fields'].split(',')]
     values_cols = [i.strip() for i in row['values'].split(',')]
 
-    if type(row['filter_fields']) == np.float:
+    if type(row['filter_fields']) == float:
         expr = 'df[' + str(col_list) + ']' + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
 
         # Write results to target output    
@@ -148,7 +148,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography','sqlite:///inputs/db/'+config['db_name'],
         columns=geog_cols)
     buffered_parcels_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'buffered_parcels'][['right_column','right_index']]))
-    buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), delim_whitespace=True,
+    buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), sep='\t',
                                    usecols=buffered_parcels_cols)
 
     # Create output folder for flattened output
@@ -173,10 +173,10 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     if os.path.exists(expr_log_path):
         os.remove(expr_log_path)
 
-    hh_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, nrows=0)
-    person_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, nrows=0)
-    trip_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True, nrows=0)
-    tour_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True, nrows=0)
+    hh_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), sep='\t', nrows=0)
+    person_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), sep='\t', nrows=0)
+    trip_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), sep='\t', nrows=0)
+    tour_full_col_list = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), sep='\t', nrows=0)
 
 
     var_list = list(variables_df['new_variable'])
@@ -212,7 +212,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
                 _buffered_cols.append(i)
 
         if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
+            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), sep='\t', usecols=load_cols)
         else:
             household = h5_df(daysim_h5, 'Household', load_cols)
     
@@ -272,7 +272,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         load_cols += df_geog['left_index'].values.tolist()
 
         if survey:
-            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
+            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), sep='\t', usecols=load_cols)
         else:
             person = h5_df(daysim_h5, 'Person', load_cols)
 
@@ -280,7 +280,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in hh_full_col_list] + ['hhno','hhparcel']
         if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
+            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), sep='\t', usecols=load_cols)
         else:
             household = h5_df(daysim_h5, 'Household', load_cols)
             
@@ -326,7 +326,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in hh_full_col_list] + ['hhno','hhparcel']
         if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
+            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), sep='\t', usecols=load_cols)
         else:
             household = h5_df(daysim_h5, 'Household', load_cols)
 
@@ -334,7 +334,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno','psexpfac']
         if survey:
-            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
+            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), sep='\t', usecols=load_cols)
         else:
             person = h5_df(daysim_h5, 'Person', load_cols)
 
@@ -354,14 +354,14 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
             load_cols += df_geog['left_index'].values.tolist()
 
         if survey:
-            trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), delim_whitespace=True, usecols=load_cols)
+            trip = pd.read_csv(os.path.join(path_dir_base,'_trip.tsv'), sep='\t', usecols=load_cols)
         else:
             trip = h5_df(daysim_h5, 'Trip', load_cols)
     
         # tours
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in tour_full_col_list] + ['pno','hhno','tour']
-        tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True, usecols=load_cols)
+        tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), sep='\t', usecols=load_cols)
 
         # merge geography and other variables
         geog_cols = [i for i in col_list if i in geography_lookup['right_column_rename'].values]
@@ -406,7 +406,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in hh_full_col_list] + ['hhno','hhparcel']
         if survey:
-            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), delim_whitespace=True, usecols=load_cols)
+            household = pd.read_csv(os.path.join(path_dir_base,'_household.tsv'), sep='\t', usecols=load_cols)
         else:
             household = h5_df(daysim_h5, 'Household', load_cols)
 
@@ -414,7 +414,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
         # Also account for any added user variables
         load_cols = [i for i in col_list if i in person_full_col_list] + ['hhno','pno']
         if survey:
-            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), delim_whitespace=True, usecols=load_cols)
+            person = pd.read_csv(os.path.join(path_dir_base,'_person.tsv'), sep='\t', usecols=load_cols)
         else:
             person = h5_df(daysim_h5, 'Person', load_cols)
 
@@ -435,7 +435,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
             load_cols += df_geog['left_index'].values.tolist()
 
         if survey:
-            tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), delim_whitespace=True, usecols=load_cols)
+            tour = pd.read_csv(os.path.join(path_dir_base,'_tour.tsv'), sep='\t', usecols=load_cols)
         else:
             tour = h5_df(daysim_h5, 'Tour', load_cols)
 

@@ -220,7 +220,7 @@ def calculate_start_emissions():
     df_veh = pd.read_sql('SELECT * FROM vehicle_population WHERE year=='+config['base_year'], con=conn)
 
     # Scale all vehicles by difference between base year and model total vehicles owned from auto onwership model
-    df_hh = pd.read_csv(r'outputs/daysim/_household.tsv', delim_whitespace=True, usecols=['hhvehs'])
+    df_hh = pd.read_csv(r'outputs/daysim/_household.tsv', sep='\t', usecols=['hhvehs'])
     tot_veh = df_hh['hhvehs'].sum()
 
     # Scale county vehicles by total change

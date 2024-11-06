@@ -220,7 +220,7 @@ def main():
                  3: 15840 # 3 miles
                  }
 
-    parcel_df = pd.read_csv(r'inputs/scenario/landuse/parcels_urbansim.txt', delim_whitespace=True)
+    parcel_df = pd.read_csv(r'outputs/landuse/parcels_urbansim.txt', sep='\s+')
     #parcel_df['region'] = 1
     nodes = pd.read_csv(r'inputs/base_year/all_streets_nodes.csv')
     nodes.set_index('node_id', inplace= True)    # required for newer version of pandana
@@ -234,7 +234,7 @@ def main():
     parcel_geog['rgc_binary'] = 0
     parcel_geog.loc[parcel_geog['GrowthCenterName'] != 'Not in RGC', 'rgc_binary'] = 1
 
-    parcel_df = pd.merge(parcel_df, parcel_geog, left_on='PARCELID', right_on='ParcelID', how='left')
+    parcel_df = pd.merge(parcel_df, parcel_geog, left_on='parcelid', right_on='ParcelID', how='left')
 
     # Join race from the synthetic population
     myh5 = h5py.File(r'inputs\scenario\landuse\hh_and_persons.h5','r')

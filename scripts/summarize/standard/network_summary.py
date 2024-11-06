@@ -23,15 +23,10 @@ import pandas as pd
 import numpy as np
 import json
 import h5py
-from pyproj import Proj, transform
-import nbformat
 from sqlalchemy import create_engine
-from nbconvert.preprocessors import ExecutePreprocessor
 from EmmeProject import EmmeProject
-from standard_summary_configuration import *
-# from input_configuration import *
-# from emme_configuration import *
-pd.options.mode.chained_assignment = None  # mute chained assignment warnings
+# from standard_summary_configuration import *
+# pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 import toml
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
@@ -128,7 +123,7 @@ def freeflow_skims(my_project, dictZoneLookup):
     file_dict = {r'outputs/daysim/_trip.tsv': r'outputs/daysim/_trip.tsv',
                  r'inputs/base_year/survey/_trip.tsv': r'inputs/base_year/survey/_trip.tsv'}
     for output_dir, df_dir in file_dict.items():
-        df = pd.read_csv(df_dir, delim_whitespace=True)
+        df = pd.read_csv(df_dir, sep='\t')
         df['od'] = df['otaz'].astype('str')+'-'+df['dtaz'].astype('str')
         skim_df['sov_ff_time'] = skim_df['ff_travtime']
         # Delete sov_ff_time if it already exists
@@ -214,7 +209,7 @@ def summarize_network(df, writer):
 
     # Exclude trips taken on non-designated facilities (facility_type == 0)
     # These are artificial (weave lanes to connect HOV) or for non-auto uses 
-    df = df[df['data3'] != 0]    # data3 represents facility_type
+    df = df[df['data3'] != 0].copy()    # data3 represents facility_type
 
     # calculate total link VMT and VHT
     df['VMT'] = df['@tveh']*df['length']
@@ -324,7 +319,7 @@ def summarize_network(df, writer):
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
     _df.to_csv(r'outputs/network/county_network.csv', index=False)
 
-    writer.save()
+    writer.close()
 
 def line_to_line_transfers(emme_project, tod):
     emme_project.create_extra_attribute('TRANSIT_LINE', '@ln2ln')
@@ -358,7 +353,7 @@ def line_to_line_transfers(emme_project, tod):
         df_list.append(traversal_df)
         os.remove('outputs/transit/traversal_results.txt')
     df = pd.concat(df_list)
-    df = df.groupby(['from_line', 'to_line']).agg({'from_line_id' : min, 'to_line_id' : min, 'from_mode' : min, 'to_mode' : min, 'boardings' : sum, })
+    df = df.groupby(['from_line', 'to_line']).agg({'from_line_id' : 'min', 'to_line_id' : 'min', 'from_mode' : 'min', 'to_mode' : 'min', 'boardings' : 'sum', })
     df.reset_index(inplace = True)
     df['tod'] = tod
     return df
@@ -606,9 +601,9 @@ def main():
     summarize_network(network_df, writer)
 
     # create detailed transit summaries
-    df_transit_line = pd.read_csv(transit_line_path)
-    df_transit_node = pd.read_csv(transit_node_path)
-    df_transit_segment = pd.read_csv(transit_segment_path)
+    df_transit_line = pd.read_csv(sum_config['transit_line_path'])
+    df_transit_node = pd.read_csv(sum_config['transit_node_path'])
+    df_transit_segment = pd.read_csv(sum_config['transit_segment_path'])
     summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
 
 if __name__ == "__main__":
