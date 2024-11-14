@@ -39,17 +39,17 @@ def process_net_attribute(network, attr, fun, distances):
 def get_weighted_jobs(household_data, new_column_name):
     for res_name in res_name_list:
           weighted_res_name = new_column_name + res_name
-          household_data[weighted_res_name] = household_data[res_name]*household_data['HH_P']
+          household_data[weighted_res_name] = household_data[res_name]*household_data['hh_p']
           # print weighted_res_name
     return household_data
 
 def get_average_jobs(household_data, geo_boundry, new_columns_name):
-    data = household_data.groupby([geo_boundry]).sum()
+    data = household_data[[geo_boundry,'hh_p']+res_name_list+['HHweighted_'+i for i in res_name_list]].groupby([geo_boundry]).sum()
     data.reset_index(inplace = True)
     for res_name in res_name_list: 
          weighted_res_name = 'HHweighted_' + res_name
          averaged_res_name = new_columns_name + res_name
-         data[averaged_res_name] = data[weighted_res_name]/data['HH_P']
+         data[averaged_res_name] = data[weighted_res_name]/data['hh_p']
     return data
 
 def get_average_jobs_transit(transit_data, geo_attr, parcel_attributes_list):
@@ -60,17 +60,17 @@ def get_average_jobs_transit(transit_data, geo_attr, parcel_attributes_list):
         
         # Calculated weight values
         weighted_attr = 'HHweighted_' + attr
-        transit_data[weighted_attr] = transit_data['HH_P']*transit_data[attr]
+        transit_data[weighted_attr] = transit_data['hh_p']*transit_data[attr]
     
     # Group results by geographic defintion
-    transit_data_groupby = transit_data.groupby([geo_attr]).sum()
+    transit_data_groupby = transit_data[[geo_attr,'hh_p']+parcel_attributes_list+['HHweighted_'+i for i in parcel_attributes_list]].groupby([geo_attr]).sum()
     # Make sure geography has at least 1 household so we can compute a weighted average
-    transit_data_groupby['HH_P'] = transit_data_groupby['HH_P'].replace(0,1)
+    transit_data_groupby['hh_p'] = transit_data_groupby['hh_p'].replace(0,1)
     transit_data_groupby.reset_index(inplace = True)
     for attr in parcel_attributes_list: 
         weighted_attr = 'HHweighted_' + attr
         averaged_attr = 'HHaveraged_' + attr
-        transit_data_groupby[averaged_attr] = transit_data_groupby[weighted_attr]/transit_data_groupby['HH_P']
+        transit_data_groupby[averaged_attr] = transit_data_groupby[weighted_attr]/transit_data_groupby['hh_p']
     return transit_data_groupby
 
 def get_transit_information(bank):
@@ -118,7 +118,7 @@ def get_transit_information(bank):
 def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_list):
     """ Calculate weighted average numbers of jobs available to a parcel by mode, within a max distance."""
 
-    parcel_attributes = {"sum": ['EMPTOT_P']}
+    parcel_attributes = {"sum": ['emptot_p']}
 
     # assign impedance
     imp = pd.DataFrame(links.Shape_Length)
@@ -132,8 +132,8 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
         net.precompute(dist)
 
     # assign network nodes to parcels, for buffer variables
-    assign_nodes_to_dataset(parcel_df, net, 'node_ids', 'XCOORD_P', 'YCOORD_P')
-    x, y = parcel_df.XCOORD_P, parcel_df.YCOORD_P
+    assign_nodes_to_dataset(parcel_df, net, 'node_ids', 'xcoord_p', 'ycoord_p')
+    x, y = parcel_df.xcoord_p, parcel_df.ycoord_p
     parcel_df['node_ids'] = net.get_node_ids(x, y)
 
     # start processing attributes
@@ -148,7 +148,7 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
                 newdf = pd.merge(newdf, res, on="node_ids", copy=False)
 
     # parcel level jobs - weighted
-    new_parcel_df = pd.merge(newdf, parcel_df[['node_ids', 'HH_P'] + geo_list], on="node_ids", copy=False)
+    new_parcel_df = pd.merge(newdf, parcel_df[['node_ids', 'hh_p'] + geo_list], on="node_ids", copy=False)
 
     # Append results to initally empty df
     df = pd.DataFrame()
@@ -159,7 +159,7 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
         # flag the minority tracts
         new_parcel_df_groupby = get_average_jobs(new_parcel_df, geo, 'HHaveraged_')
 
-        _df = new_parcel_df_groupby[[geo] + ['HHaveraged_EMPTOT_P_1','HHaveraged_EMPTOT_P_3']]
+        _df = new_parcel_df_groupby[[geo] + ['HHaveraged_emptot_1','HHaveraged_emptot_3']].copy()
         _df.columns = ['geography_value', 'jobs_1_mile_walk','jobs_3_mile_bike']
         _df['geography_group'] = geo
         df = pd.concat([df, _df])
@@ -177,15 +177,15 @@ def get_parcel_data_max_travel_time(travel_time_df, max_time, origin_df, dest_df
     if not include_intrazonal:
         travel_time_df = travel_time_df[travel_time_df['from'] != travel_time_df['to']]
     # Calculate total jobs at destination TAZs
-    reachable_destinations = travel_time_df.merge(dest_df, left_on='to', right_on='TAZ_P', how='left')
+    reachable_destinations = travel_time_df.merge(dest_df, left_on='to', right_on='taz_p', how='left')
     reachable_destinations = reachable_destinations.groupby(reachable_destinations['from'])[parcel_attributes_list].sum()
     
     reachable_destinations.reset_index(inplace=True)
 
-    origin_dest = origin_df.merge(reachable_destinations, left_on='TAZ_P', right_on='from', how = 'left') 
+    origin_dest = origin_df.merge(reachable_destinations, left_on='taz_p', right_on='from', how = 'left') 
 
     # groupby destination information by origin geo id 
-    origin_dest_emp = pd.DataFrame(origin_dest.groupby('PARCELID')[parcel_attributes_list+['HH_P']].sum())
+    origin_dest_emp = pd.DataFrame(origin_dest.groupby('parcelid')[parcel_attributes_list+['hh_p']].sum())
     
     origin_dest_emp.reset_index(inplace=True)
     return origin_dest_emp
@@ -209,7 +209,7 @@ def main():
         for geog_type in ['_geog_vs_reg_total','_geog_vs_50_percent']:
             geo_list.append(equity_geog+geog_type)
 
-    parcel_attributes_list = ['EMPTOT_P']
+    parcel_attributes_list = ['emptot_p']
     
     global res_name_list
     res_name_list = []
@@ -228,6 +228,7 @@ def main():
 
     # Load geography lookups and join to parcel data
     parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography', 'sqlite:///inputs/db/'+config['db_name'])
+    parcel_geog.drop('taz_p', axis=1, inplace=True)   # avoid duplicating existing fields
     parcel_geog['region'] = 1
         
     # Create a field that identifies whether parcel is inside or outside of an RGC
@@ -259,15 +260,15 @@ def main():
     #######################################################
 
     # Parcel variables that should be summarized; only total jobs are considered currently but jobs by sector could be included
-    parcel_attributes_list = ['EMPTOT_P']
+    parcel_attributes_list = ['emptot_p']
 
     # Work with only necessary cols
-    origin_df = parcel_df[['PARCELID','TAZ_P','HH_P']]
+    origin_df = parcel_df[['parcelid','taz_p','hh_p']]
 
     # Aggregate destinations by TAZ since we are used taz-level skims
-    dest_df = pd.DataFrame(parcel_df.groupby(['TAZ_P'])[parcel_attributes_list].sum())
+    dest_df = pd.DataFrame(parcel_df.groupby(['taz_p'])[parcel_attributes_list].sum())
     dest_df.reset_index(inplace=True)
-    dest_df['TAZ_P'] = dest_df['TAZ_P'].astype('object')
+    dest_df['taz_p'] = dest_df['taz_p'].astype('object')
 
     # extract transit travel time from emme matrices from AM time period
     bank = _eb.Emmebank(os.path.join(os.getcwd(), r'Banks/7to8/emmebank'))
@@ -278,7 +279,7 @@ def main():
     auto_time_max = 30
 
     origin_dest_emp = get_parcel_data_max_travel_time(transit_time_df, transit_time_max, origin_df, dest_df, parcel_attributes_list, include_intrazonal = False)
-    transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
+    transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='parcelid', right_on='ParcelID', how='left')
 
     # Append results to initally empty df
     df = pd.DataFrame()
@@ -286,22 +287,22 @@ def main():
 
         average_jobs_df = get_average_jobs_transit(transit_hh_emp, geo, parcel_attributes_list) 
 
-        _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
+        _df = average_jobs_df[[geo] + ['HHaveraged_emptot_p']].copy()
         _df.loc[:,'geography_group'] = geo
         _df.columns = ['geography', 'value','geography_group']
-        df = df.append(_df)
+        df = pd.concat([df,_df])
 
     # Add summaries by race from synthetic population
     if 'prace' in person_df.columns:
         avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
-        avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+        avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='parcelid', how='left')
         # Write person records with individual jobs access
         avg_race_df.to_csv(os.path.join(output_dir,'transit_jobs_access_person.csv'))
-        avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
+        avg_race_df  = avg_race_df.groupby('prace').mean()[['emptot_p']]
         avg_race_df = avg_race_df.reset_index()
-        avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
+        avg_race_df.rename(columns={'prace': 'geography', 'emptot_p': 'value'}, inplace=True)
         avg_race_df['geography_group'] = 'race'
-        df = df.append(avg_race_df)
+        df = pd.concat([df,avg_race_df])
 
     df.to_csv(os.path.join(output_dir,'transit_jobs_access.csv'))
 
@@ -323,7 +324,7 @@ def main():
 
 
     origin_dest_emp = get_parcel_data_max_travel_time(auto_time_df, auto_time_max, origin_df, dest_df, parcel_attributes_list, include_intrazonal = False)
-    auto_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
+    auto_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='parcelid', right_on='ParcelID', how='left')
     
     # Append results to initally empty df
     df = pd.DataFrame()
@@ -331,20 +332,20 @@ def main():
 
         average_jobs_df = get_average_jobs_transit(auto_hh_emp, geo, parcel_attributes_list) 
 
-        _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
+        _df = average_jobs_df[[geo] + ['HHaveraged_emptot_p']].copy()
         _df.loc[:,'geography_group'] = geo
         _df.columns = ['geography', 'value','geography_group']
-        df = df.append(_df)
+        df = pd.concat([df,_df])
 
     if 'prace' in person_df.columns:
         avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
-        avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
+        avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='parcelid', how='left')
         avg_race_df.to_csv(os.path.join(output_dir,'auto_jobs_access_person.csv'))
-        avg_race_df  = avg_race_df.groupby('prace').mean()[['EMPTOT_P']]
+        avg_race_df  = avg_race_df.groupby('prace').mean()[['emptot_p']]
         avg_race_df = avg_race_df.reset_index()
-        avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
+        avg_race_df.rename(columns={'prace': 'geography', 'emptot_p': 'value'}, inplace=True)
         avg_race_df['geography_group'] = 'race'
-        df = df.append(avg_race_df)
+        df = pd.concat([df,avg_race_df])
     df.to_csv(os.path.join(output_dir,'auto_jobs_access.csv'))
 
 if __name__ == "__main__":

@@ -255,13 +255,13 @@ def main():
     df_obs = pd.read_sql("SELECT * FROM observed_screenline_volumes WHERE year=" + str(config['base_year']), con=conn)
     df_obs['observed'] = df_obs['observed'].astype('float')
 
-    df_model = pd.read_csv(r'outputs\network\network_results.csv')
+    # df_model = pd.read_csv(r'outputs\network\network_results.csv')
     df_model = model_vol_df.copy()
     df_model['screenline_id'] = df_model['type'].astype('str')
     # Auburn screenline is the combination of 14 and 15, change label for 14 and 15 to a combined label
     df_model.loc[df_model['screenline_id'].isin(['14','15']),'screenline_id'] = '14/15'
-    _df = df_model.groupby('screenline_id').sum()[['@tveh']].reset_index()
-
+    # _df = df_model.groupby('screenline_id').sum()[['@tveh']].reset_index()
+    _df = df_model[['@tveh','screenline_id']].groupby('screenline_id').sum()[['@tveh']].reset_index()
     _df = _df.merge(df_obs, on='screenline_id')
     _df.rename(columns={'@tveh':'modeled'},inplace=True)
     _df = _df[['name','observed','modeled','county']]
@@ -482,6 +482,7 @@ def main():
     parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(config['base_year'])+"_geography", con=conn)
 
     tract_geog = parcel_geog.groupby('Census2020Tract').first()[['CountyName','rg_proposed','CityName','GrowthCenterName','TAZ','District']].reset_index()
+    tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1)
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2020Tract', how='left')
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
 	

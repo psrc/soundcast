@@ -44,7 +44,7 @@ def calculate_interzonal_vmt():
     df['geog_name'] = df['@countyid'].map(county_id_lookup)
 
     # Remove links with facility type = 0 from the calculation
-    df['facility_type'] = df['data3']    # Rename for human readability
+    df['facility_type'] = df['data3'].copy()    # Rename for human readability
     df = df[df['facility_type'] > 0]
 
     # Calculate VMT by bus, SOV, HOV2, HOV3+, medium truck, heavy truck

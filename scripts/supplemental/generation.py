@@ -48,7 +48,7 @@ def calc_heavy_truck_restrictions():
 
     #  Load land use type from parcels and a lookup for landuse type codes
     parcels = pd.read_csv(
-        r"outputs/landuse/buffered_parcels.txt", delim_whitespace=True
+        r"outputs/landuse/buffered_parcels.txt", sep='\s+'
     )
     df = parcels.merge(
         pd.read_csv(r"inputs/model/lookup/lu_type.csv"),

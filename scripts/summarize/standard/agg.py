@@ -148,7 +148,7 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     parcel_geog = pd.read_sql_table('parcel_'+config['base_year']+'_geography','sqlite:///inputs/db/'+config['db_name'],
         columns=geog_cols)
     buffered_parcels_cols = list(np.unique(geography_lookup[geography_lookup.right_table == 'buffered_parcels'][['right_column','right_index']]))
-    buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), sep='\t',
+    buffered_parcels = pd.read_csv(os.path.join(os.getcwd(),r'outputs/landuse/buffered_parcels.txt'), sep='\s+',
                                    usecols=buffered_parcels_cols)
 
     # Create output folder for flattened output
