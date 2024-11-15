@@ -5,6 +5,12 @@ import sys
 import os
 import sqlite3
 from sqlalchemy import create_engine
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
+
 
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
@@ -102,7 +108,7 @@ def main():
     """
 
     # Load network for supplemental trip calculations
-    my_project = EmmeProject(emme_config["supplemental_project"])
+    my_project = EmmeProject(emme_config["supplemental_project"], state)
     network_importer(my_project)
 
     # Load input data from DB and CSVs
@@ -310,7 +316,8 @@ def main():
     parcels_urbansim.to_csv(
         r"outputs/landuse/parcels_urbansim.txt", sep=" ", index=False
     )
-
+    
+    my_project.close()
 
 if __name__ == "__main__":
     main()

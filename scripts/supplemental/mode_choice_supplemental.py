@@ -9,6 +9,11 @@ sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
 import toml
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -506,7 +511,7 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir):
 def main():
     output_dir = r"outputs/supplemental/"
 
-    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp")
+    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
     zones = my_project.current_scenario.zone_numbers
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
     global zone_lookup_dict

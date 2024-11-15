@@ -12,6 +12,11 @@ sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
 import toml
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -52,7 +57,7 @@ def calc_heavy_truck_restrictions():
         r"outputs/landuse/buffered_parcels.txt", delim_whitespace=True
     )
     df = parcels.merge(
-        pd.read_csv(r"inputs/model/lookup/lu_type.csv"),
+        pd.read_csv(f"inputs/model/{state.input_settings.abm_model}/lookup/lu_type.csv"),
         left_on="lutype_p",
         right_on="land_use_type_id",
     )
@@ -175,7 +180,7 @@ def main():
 
     output_directory = "outputs/supplemental"
 
-    my_project = EmmeProject(emme_config["supplemental_project"])
+    my_project = EmmeProject(emme_config["supplemental_project"], state)
     
 
     conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
@@ -829,6 +834,8 @@ def main():
     balanced_df = balance_trips(df_taz, balance_to_productions, "pro")
     balanced_df = balance_trips(df_taz, balance_to_attractions, "att")
     balanced_df.to_csv(output_directory + "/7_balance_trip_ends.csv", index=True)
+
+    my_project.close()
 
 
 if __name__ == "__main__":

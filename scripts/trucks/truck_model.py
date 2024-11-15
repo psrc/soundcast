@@ -23,6 +23,12 @@ from EmmeProject import *
 # from input_configuration import *
 import toml
 
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
+
 config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 network_config = toml.load(
     os.path.join(os.getcwd(), "configuration/network_configuration.toml")
@@ -46,7 +52,7 @@ def network_importer(my_project):
 
 def json_to_dictionary(dict_name):
     # Determine the Path to the input files and load them
-    input_filename = os.path.join("inputs/model/trucks/", dict_name + ".txt").replace(
+    input_filename = os.path.join(f"inputs/model/{state.input_settings.abm_model}/trucks/", dict_name + ".txt").replace(
         "\\", "/"
     )
     my_dictionary = json.load(open(input_filename))
@@ -160,7 +166,7 @@ def import_skims(my_project, input_skims, zones, zonesDim):
     np_gc_skims = {}
     np_bidir_gc_skims = {}
     for tod in network_config["truck_generalized_cost_tod"].keys():
-        hdf_file = h5py.File("inputs/model/roster/" + tod + ".h5", "r")
+        hdf_file = h5py.File(f"inputs/model/{state.input_settings.abm_model}/roster/" + tod + ".h5", "r")
         for item in input_skims.values():
             # gc
             skim_name = item["gc_name"]
@@ -460,14 +466,14 @@ def write_summary(my_project):
 
 
 def main():
-    my_project = EmmeProject(network_config["truck_model_project"])
+    my_project = EmmeProject(network_config["truck_model_project"], state)
     # zones = my_project.current_scenario.zone_numbers
 
     input_skims = json_to_dictionary('input_skims')
-    truck_matrix_list = pd.read_csv(r'inputs/model/trucks/truck_matrices.csv')
+    truck_matrix_list = pd.read_csv(f'inputs/model/{state.input_settings.abm_model}/trucks/truck_matrices.csv')
     
     conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
-    balanced_prod_att = pd.read_csv(r'outputs/supplemental/7_balance_trip_ends.csv')
+    balanced_prod_att = pd.read_csv('outputs/supplemental/7_balance_trip_ends.csv')
 
     network_importer(my_project)
     zones = my_project.current_scenario.zone_numbers
@@ -476,7 +482,7 @@ def main():
     # Load zone partitions (used to identify external zones)
     my_project.initialize_zone_partition("ga")
     my_project.process_zone_partition(
-        "inputs/model/trucks/" + network_config["districts_file"]
+        f"inputs/model/{state.input_settings.abm_model}/trucks/" + network_config["districts_file"]
     )
 
     my_project.delete_matrices("ALL")

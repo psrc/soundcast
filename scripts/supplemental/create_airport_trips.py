@@ -3,12 +3,17 @@ import numpy as np
 import os, sys
 import h5py
 from sqlalchemy import create_engine
-
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
 import toml
+
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -41,10 +46,10 @@ def load_skim_data():
             # For auto skims, use the average of AM and PM peak periods
             skim_name = mode + "_inc2" + skim_type[0]
             am_skim = load_skims(
-                r"inputs\model\roster\7to8.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", table=skim_name, divide_by_100=True
             )
             pm_skim = load_skims(
-                r"inputs\model\roster\17to18.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", table=skim_name, divide_by_100=True
             )
             skim_dict[skim_type][mode] = (am_skim + pm_skim) * 0.5
 
@@ -52,7 +57,7 @@ def load_skim_data():
         if skim_type == "time":
             for mode in ["walk", "bike"]:
                 skim_dict["time"][mode] = load_skims(
-                    r"inputs\model\roster\5to6.h5", table=mode + "t", divide_by_100=True
+                    f"inputs/model/{state.input_settings.abm_model}/roster/5to6.h5", table=mode + "t", divide_by_100=True
                 )
 
     # Skim for transit
@@ -65,15 +70,15 @@ def load_skim_data():
         for submode in submode_list:
             skim_name = skim + submode
             am_skim = load_skims(
-                r"inputs\model\roster\7to8.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", table=skim_name, divide_by_100=True
             )
             pm_skim = load_skims(
-                r"inputs\model\roster\17to18.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", table=skim_name, divide_by_100=True
             )
             skim_dict["transit"][skim_name] = (am_skim + pm_skim) * 0.5
     for skim in fare_list:
         skim_dict["transit"][skim] = load_skims(
-            r"inputs\model\roster\6to7.h5", table=skim, divide_by_100=True
+            f"inputs/model/{state.input_settings.abm_model}/roster/6to7.h5", table=skim, divide_by_100=True
         )
 
     return skim_dict
@@ -411,7 +416,7 @@ def summarize(
 def main():
     output_dir = r"outputs/supplemental/"
 
-    my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp")
+    my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp", state)
     zones = my_project.current_scenario.zone_numbers
     zonesDim = len(my_project.current_scenario.zone_numbers)
 
@@ -501,6 +506,7 @@ def main():
     # Output final trip tables, by time of the day and trip mode.
     output_trips(output_dir, airport_matrix_dict)
 
+    my_project.close()
 
 if __name__ == "__main__":
     main()

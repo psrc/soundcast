@@ -14,6 +14,11 @@ sys.path.append(os.getcwd())
 # from emme_configuration import *
 from EmmeProject import *
 import toml
+from settings import run_args
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -208,7 +213,7 @@ def main():
 
     output_dir = os.path.join(os.getcwd(), r"outputs\supplemental")
 
-    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp")
+    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
 
     #global dictZoneLookup
     dictZoneLookup = dict(
@@ -217,13 +222,13 @@ def main():
     )
 
     # Load skim data
-    am_cost_skim = load_skims("inputs/model/roster/7to8.h5", mode_name="sov_inc2g")
+    am_cost_skim = load_skims(f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc2g")
     am_dist_skim = load_skims(
-        "inputs/model/roster/7to8.h5", mode_name="sov_inc1d", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc1d", divide_by_100=True
     )
-    pm_cost_skim = load_skims("inputs/model/roster/17to18.h5", mode_name="sov_inc2g")
+    pm_cost_skim = load_skims(f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", mode_name="sov_inc2g")
     pm_dist_skim = load_skims(
-        "inputs/model/roster/17to18.h5", mode_name="sov_inc1d", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", mode_name="sov_inc1d", divide_by_100=True
     )
     # Average skims between AM and PM periods
     cost_skim = (am_cost_skim + pm_cost_skim) * 0.5
@@ -254,6 +259,7 @@ def main():
         ixxi_h5.create_dataset(mode, data=ixxi_data)
 
     ixxi_h5.close()
+    my_project.close()
 
 
 if __name__ == "__main__":
