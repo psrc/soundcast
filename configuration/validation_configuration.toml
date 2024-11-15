@@ -2,7 +2,7 @@
 # Validation input files and output directory names
 ################################################################
 
-
+protected_namespaces = '()'
 # model results
 # ---- local soundcast run
 model_dir = '../../../..'

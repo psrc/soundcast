@@ -262,7 +262,7 @@ class EmmeProject:
 
     def matrix_balancing(self, **kwargs):
         #spec = json_to_dictionary("templates/matrix_balancing_spec")
-        spec = json_to_dictionary("matrix_blancing_spec", self.state.model_input_dir, "templates")
+        spec = json_to_dictionary("matrix_balancing_spec", self.state.model_input_dir, "templates")
         for name, value in kwargs.items():
             if name == "results_od_balanced_values":
                 spec["results"]["od_balanced_values"] = value
@@ -325,6 +325,7 @@ class EmmeProject:
 
     def close(self):
         self.desktop.close()
+        self.m.close()
 
 
 # def json_to_dictionary(dict_name):

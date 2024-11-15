@@ -40,6 +40,12 @@ from settings import data_wrangling
 from skimming import SkimsAndPaths
 from network import network_importer
 from accessibility import accessibility
+from supplemental import create_ixxi_work_trips
+from supplemental import generation
+from supplemental import distribute_non_work_ixxi
+from supplemental import mode_choice_supplemental
+from supplemental import create_airport_trips
+from trucks import truck_model
 from pathlib import Path
 
 state = state.generate_state(run_args.args.configs_dir)
@@ -51,10 +57,8 @@ def accessibility_calcs():
     print('adding JBLM workers to external workers')
     print('adjusting non-work externals')
     print('creating ixxi file for Daysim')
-    returncode = subprocess.call([sys.executable, 'scripts/supplemental/create_ixxi_work_trips.py'])
-    if returncode != 0:
-        print('Military Job loading failed')
-        sys.exit(1)
+    create_ixxi_work_trips.main()
+    
     print('military jobs loaded')
 
     if state.input_settings.base_year != state.input_settings.model_year:
@@ -145,20 +149,32 @@ def build_shadow_only():
             shadow_con_file.close()
             return
 
-def run_truck_supplemental(iteration):
+def run_truck_supplemental(iteration, statwe):
 
     if state.input_settings.run_supplemental_trips:
         # Only run generation script once - does not change with feedback
+        # generation.main()
+        # distribute_non_work_ixxi.main()
+        # create_airport_trips.main()
+        # truck_model.main()
         if iteration == 0:
             returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
             if returncode != 0:
                 sys.exit(1)
-
-        base_path = 'scripts/supplemental'
-        for script in ['distribute_non_work_ixxi', 'create_airport_trips']:
-            returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
-            if returncode != 0:
+        
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
+        if returncode != 0:
                 sys.exit(1)
+
+        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips.py'])
+        if returncode != 0:
+                sys.exit(1)   
+
+        # base_path = 'scripts/supplemental'
+        # for script in ['distribute_non_work_ixxi', 'create_airport_trips']:
+        #     returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
+        #     if returncode != 0:
+        #         sys.exit(1)
 
     if state.input_settings.run_truck_model:
         returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
@@ -190,7 +206,7 @@ def daysim_assignment(iteration):
     if state.input_settings.run_skims_and_paths:
         logger.info("Start of iteration %s of Skims and Paths", str(iteration))
         num_iterations = str(state.emme_settings.max_iterations_list[iteration])
-        SkimsAndPaths.run(state, False, num_iterations)
+        SkimsAndPaths.run(False, num_iterations)
         logger.info("End of iteration %s of Skims and Paths", str(iteration))
         
 @data_wrangling.timed

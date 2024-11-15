@@ -29,31 +29,37 @@ sys.path.append(os.getcwd())
 # from emme_configuration import *
 from scripts.EmmeProject import *
 import toml
-config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
-network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+from settings import run_args
+from settings import data_wrangling
+from scripts.settings import state
+from pathlib import Path
+
+state = state.generate_state(run_args.args.configs_dir)
+#config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
+#network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
 
 daily_network_fname = 'outputs/network/daily_network_results.csv'
 keep_atts = ['@type']
 
-def json_to_dictionary(dict_name):
+# def json_to_dictionary(dict_name):
 
-    skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters")) 
-    input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
-    my_dictionary = json.load(open(input_filename))
+#     skim_params_loc = os.path.abspath(os.path.join(os.getcwd(),"inputs/model/skim_parameters")) 
+#     input_filename = os.path.join(skim_params_loc,dict_name+'.json').replace("\\","/")
+#     my_dictionary = json.load(open(input_filename))
 
-    return(my_dictionary)
+#    return(my_dictionary)
 
-def text_to_dictionary(dict_name):
+# def text_to_dictionary(dict_name):
 
-    input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.txt').replace("\\","/")
-    my_file=open(input_filename)
-    my_dictionary = {}
+#     input_filename = os.path.join('inputs/model/skim_parameters/',dict_name+'.txt').replace("\\","/")
+#     my_file=open(input_filename)
+#     my_dictionary = {}
 
-    for line in my_file:
-        k, v = line.split(':')
-        my_dictionary[eval(k)] = v.strip()
+#     for line in my_file:
+#         k, v = line.split(':')
+#         my_dictionary[eval(k)] = v.strip()
 
-    return(my_dictionary)
+#     return(my_dictionary)
 
 
 def create_emmebank(dir_name):
@@ -151,7 +157,7 @@ def main():
     emme_toolbox_path = os.path.join(os.environ['EMMEPATH'], 'toolboxes')
     shcopy(emme_toolbox_path + '/standard.mtbx', 'projects/daily')
 
-    matrix_dict = text_to_dictionary('demand_matrix_dictionary')
+    matrix_dict = text_to_dictionary('demand_matrix_dictionary', state.model_input_dir)
     uniqueMatrices = set(matrix_dict.values())
 
     # delete and create new matrices since this is a full copy of another time period
@@ -169,7 +175,7 @@ def main():
 
     time_period_list = []
 
-    for tod, time_period in network_config['sound_cast_net_dict'].items():
+    for tod, time_period in state.network_settings.sound_cast_net_dict.items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -201,7 +207,7 @@ def main():
     daily_volume_attr = daily_scenario.create_extra_attribute('LINK', '@tveh')
     daily_network = daily_scenario.get_network()
 
-    for tod, time_period in network_config['sound_cast_net_dict'].items():
+    for tod, time_period in state.network_settings.sound_cast_net_dict.items():
        path = os.path.join('Banks', tod, 'emmebank')
        bank = _emmebank.Emmebank(path)
        scenario = bank.scenario(1002)
@@ -213,10 +219,10 @@ def main():
        daily_scenario.set_attribute_values('LINK', [attr], values)
 
     daily_network = daily_scenario.get_network()
-    attr_list = ['@tv' + x for x in network_config['tods']]
+    attr_list = ['@tv' + x for x in state.network_settings.tods]
 
     for link in daily_network.links():
-       for item in network_config['tods']:
+       for item in state.network_settings.tods:
            link['@tveh'] = link['@tveh'] + link['@v' + item]
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
 

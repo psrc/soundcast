@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 import typing
 from pathlib import Path
@@ -6,6 +6,7 @@ import toml
 import typing
 import settings.run_args
 class InputSettings(BaseModel):
+    model_config  = ConfigDict(protected_namespaces=())
     # toml input notes:
     # dictionary keys are always interpreted as strings
     # there’s no way to mark the end of a TOML table: all dictionaries/tables come after all other values
@@ -122,10 +123,13 @@ class EmmeSettings(BaseModel):
     # Urbansim outputs dir
     urbansim_outputs_dir: str
 
+    delete_banks: bool
+
 class NetworkSettings(BaseModel):
     #####################################
     # Network Import Settings
     ####################################
+    model_config  = ConfigDict(protected_namespaces=())
     master_project: str
     network_summary_project: str
     transit_tod_list: list
@@ -270,6 +274,7 @@ class NetworkSettings(BaseModel):
     truck_adjustment_factor: dict
 
 class Settings(BaseModel):
+    model_config  = ConfigDict(protected_namespaces=())
     input_settings: InputSettings
     emme_settings: EmmeSettings
     network_settings: NetworkSettings

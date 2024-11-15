@@ -3,6 +3,7 @@
 #################################
 # Summary Comparisons
 #################################
+protected_namespaces = '()'
 run_rtp = true
 run_comparison = false
 

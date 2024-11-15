@@ -1,6 +1,7 @@
 #####################################
 # Network Import Settings
 ####################################
+protected_namespaces = '()'
 master_project = 'LoadTripTables'
 network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
 transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']

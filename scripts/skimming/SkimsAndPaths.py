@@ -46,7 +46,7 @@ def create_hdf5_skim_container(hdf5_name):
     # create containers for TOD skims
     start_time = time.time()
 
-    hdf5_filename = Path(f"{state.model_input_dir}/{hdf5_name}.h5")
+    hdf5_filename = Path(f"{state.model_input_dir}/roster/{hdf5_name}.h5")
 
     my_user_classes = json_to_dictionary("user_classes", state.model_input_dir)
 
@@ -811,7 +811,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     my_store = h5py.File(hdf_filename, "r")
 
     # Read the Matrix File from the Dictionary File and Set Unique Matrix Names
-    matrix_dict = text_to_dictionary("demand_matrix_dictionary")
+    matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir, )
     uniqueMatrices = set(matrix_dict.values())
 
     # Stores in the HDF5 Container to read or write to
@@ -854,7 +854,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     demand_matrices = {}
 
     for matrix_name in ["medium_truck", "heavy_truck", "delivery_truck"]:
-        demand_matrix = load_trucks(my_project, matrix_name, zonesDim, state.network_settings)
+        demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})
 
     # Load in supplemental trips
@@ -871,7 +871,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
         "ferry",
         "commuter_rail",
     ]:
-        demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim, state.emme_settings)
+        demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})
 
     # Create empty demand matrices for other modes without supplemental trips
@@ -1032,7 +1032,7 @@ def load_supplemental_trips(my_project, matrix_name, zonesDim):
 
 def create_trip_tod_indices(tod):
     # Create an index for trips that belong to TOD (time of day)
-    tod_dict = text_to_dictionary("time_of_day", "lookup")
+    tod_dict = text_to_dictionary("time_of_day", state.model_input_dir, "lookup")
     uniqueTOD = set(tod_dict.values())
     todIDListdict = {}
 
@@ -1063,7 +1063,7 @@ def create_trip_tod_indices(tod):
 
 def matrix_controlled_rounding(my_project):
 
-    matrix_dict = text_to_dictionary("demand_matrix_dictionary")
+    matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir)
     uniqueMatrices = set(matrix_dict.values())
 
     NAMESPACE = "inro.emme.matrix_calculation.matrix_controlled_rounding"
@@ -1812,7 +1812,7 @@ def run(free_flow_skims=False, num_iterations=100):
         l = project_list[i : i + state.emme_settings.parallel_instances]
         pool_list.append(start_pool(l, free_flow_skims, num_iterations))
     
-    #run_assignments_parallel("projects/5to9/5to9.emp", free_flow_skims, num_iterations)
+    #run_assignments_parallel("projects/5to6/5to6.emp", free_flow_skims, num_iterations)
 
     # ### calculate link daily volumes for use in bike model
 

@@ -88,7 +88,7 @@ def text_to_dictionary(dict_name, model_inputs_dir, subdir=""):
     e.g., key: value
     """
 
-    input_filename = Path(model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.txt")
+    input_filename = model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.txt"
     my_file = open(input_filename)
     my_dictionary = {}
 
@@ -104,7 +104,7 @@ def json_to_dictionary(dict_name, model_inputs_dir, subdir=""):
     Import JSON-formatted input as dictionary. Expects file extension .json.
     """
 
-    input_filename = Path(model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.json")
+    input_filename = model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.json"
     my_dictionary = json.load(open(input_filename))
 
     return my_dictionary

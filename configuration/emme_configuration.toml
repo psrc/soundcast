@@ -1,6 +1,7 @@
 ###################################
 # Assignment Criteria
 ###################################
+protected_namespaces = '()'
 log_file_name = 'outputs/logs/skims_log.txt'
 STOP_THRESHOLD = 0.026    # Global convergence criteria
 parallel_instances = 12   # Number of simultaneous parallel processes. Must be a factor of 12.
@@ -55,3 +56,6 @@ urbansim_skims_dir = 'E:\soundcast_root'
 
 # Urbansim outputs dir
 urbansim_outputs_dir = 'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
+
+# Delete Banks:
+delete_banks = false
