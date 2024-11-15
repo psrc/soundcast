@@ -156,7 +156,7 @@ for hh_dict in allocation_list:
         # hh_df should have more households at the parcel because they were moved there
         assert len(hh_df[hh_df.hhparcel==parcel]) > int(parcel_df[parcel_df.parcelid == parcel].hh_p) 
     else:
-        hh_df = hh_df.append(sample2)
+        hh_df = pd.concat([hh_df, sample2])
         # nummber of households should be the same
         assert len(hh_df) > parcel_df.hh_p.sum()
         parcel = hh_dict['parcel_ids'][0]

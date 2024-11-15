@@ -26,7 +26,7 @@ import h5py
 from pyproj import Proj, transform
 import nbformat
 from sqlalchemy import create_engine
-from nbconvert.preprocessors import ExecutePreprocessor
+#from nbconvert.preprocessors import ExecutePreprocessor
 from EmmeProject import EmmeProject
 from standard_summary_configuration import *
 from input_configuration import *
@@ -197,7 +197,7 @@ def sort_df(df, sort_list, sort_column):
     """ Sort a dataframe based on user-defined list of indices """
 
     df[sort_column] = df[sort_column].astype('category')
-    df[sort_column].cat.set_categories(sort_list, inplace=True)
+    df[sort_column] = df[sort_column].cat.set_categories(sort_list)
     df = df.sort_values(sort_column)
 
     return df
@@ -298,11 +298,11 @@ def summarize_network(df, writer):
     # Results by County
     
     df['county_name'] = df['@countyid'].map(county_map)
-    _df = df.groupby('county_name').sum()[['VMT','VHT','delay']].reset_index()
+    _df = df.groupby('county_name')[['VMT','VHT','delay']].sum().reset_index()
     _df.to_excel(excel_writer=writer, sheet_name='County Results')
     _df.to_csv(r'outputs/network/county_network.csv', index=False)
 
-    writer.save()
+    writer.close()
 
 def line_to_line_transfers(emme_project, tod):
     emme_project.create_extra_attribute('TRANSIT_LINE', '@ln2ln')
@@ -500,7 +500,7 @@ def main():
         my_project.change_active_database(tod_hour)
         if tod_hour in transit_tod.keys():
             _df_transit_transfers = line_to_line_transfers(my_project, tod_hour)
-        df_transit_transfers = df_transit_transfers.append(_df_transit_transfers)
+        df_transit_transfers = pd.concat([df_transit_transfers, _df_transit_transfers])
         
         for name, description in extra_attributes_dict.items():
             my_project.create_extra_attribute('LINK', name, description, 'True')
@@ -513,9 +513,9 @@ def main():
                                                                                     df_transit_line=df_transit_line,
                                                                                     df_transit_node=df_transit_node, 
                                                                                     df_transit_segment=df_transit_segment)
-            df_transit_line = df_transit_line.append(_df_transit_line)
-            df_transit_node = df_transit_node.append(_df_transit_node)
-            df_transit_segment = df_transit_segment.append(_df_transit_segment)
+            df_transit_line = pd.concat([df_transit_line, _df_transit_line])
+            df_transit_node = pd.concat([df_transit_node, _df_transit_node])
+            df_transit_segment = pd.concat([df_transit_segment, _df_transit_segment])
         
             # Calculate transit line OD table for select lines
             if tod_hour in transit_line_od_period_list:         
@@ -556,7 +556,7 @@ def main():
         network = my_project.current_scenario.get_network()
         _network_df = export_network_attributes(network)
         _network_df['tod'] = my_project.tod
-        network_df = network_df.append(_network_df)
+        network_df = pd.concat([network_df, _network_df])
 
     output_dict = {network_results_path: network_df, iz_vol_path: df_iz_vol,
                     transit_line_path: df_transit_line,

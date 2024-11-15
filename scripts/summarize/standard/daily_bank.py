@@ -110,7 +110,7 @@ def export_link_values(my_project):
         df_attr.columns = ['nodes','value']
         df_attr['measure'] = str(attr)
 
-        df = df.append(df_attr)
+        df = pd.concat([df, df_attr])
     
     # Lengthen tablewise
     df = df.pivot(index='nodes',columns='measure',values='value').reset_index()

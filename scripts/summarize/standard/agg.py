@@ -51,14 +51,14 @@ def create_dir(_dir):
 def get_row_col_list(row, full_col_list):
     row_list = ['agg_fields','values']
     for field_type in ['filter_fields']:
-        if type(row[field_type]) != np.float:
+        if type(row[field_type]) != float:
             row_list += [field_type]
     col_list = list(row[row_list].values)
     col_list = [i.split(',') for i in col_list]
     col_list = list(np.unique([item.strip(' ') for sublist in col_list for item in sublist]))
 
     # Identify column values from query field with regular expressions
-    if type(row['query']) != np.float:
+    if type(row['query']) != float:
         # query_fields_cols = [i.strip() for i in re.split(',|>|==|>=|<|<=|!=|&',row['query'])]
         regex = re.compile('[^a-zA-Z]')
         query_fields_cols = [regex.sub('', i).strip() for i in re.split(',|>|==|>=|<|<=|!=|&',row['query'])]
@@ -81,13 +81,13 @@ def execute_eval(df, row, col_list, fname):
 
     # Process query field
     query = ''
-    if type(row['query']) != np.float:
+    if type(row['query']) != float:
         query = """.query('"""+ str(row['query']) + """')"""
 
     agg_fields_cols = [i.strip() for i in row['agg_fields'].split(',')]
     values_cols = [i.strip() for i in row['values'].split(',')]
 
-    if type(row['filter_fields']) == np.float:
+    if type(row['filter_fields']) == float:
         expr = 'df[' + str(col_list) + ']' + query + ".groupby(" + str(agg_fields_cols) + ")." + row['aggfunc'] + "()[" + str(values_cols) + "]"
 
         # Write results to target output    

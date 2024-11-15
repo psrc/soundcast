@@ -36,14 +36,14 @@ def parcel_summary():
 	_df['measure'] = 'mean'
 	_df['field'] = _df.index
 	_df.reset_index(inplace=True, drop=True)
-	results_df = results_df.append(_df)
+	results_df = pd.concat([results_df, _df])
 
 	_df = pd.DataFrame(df[parking_cols].max(),
 	                  columns=['value'])
 	_df['measure'] = 'max'
 	_df['field'] = _df.index
 	_df.reset_index(inplace=True, drop=True)
-	results_df = results_df.append(_df)
+	results_df = pd.concat([results_df, _df])
 
 	results_df.to_csv(r'outputs/landuse/parcels_urbansim_summary.txt', index=False)
 

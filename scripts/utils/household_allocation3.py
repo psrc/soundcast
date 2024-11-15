@@ -211,7 +211,7 @@ for row in hh_allocation_df.iterrows():
         print len(hh_df)
     else:
         print len(hh_df)
-        hh_df = hh_df.append(sample2)
+        hh_df = pd.concat([hh_df, sample2])
        # nummber of households should be more because they are being added, not moved. 
         assert len(hh_df) > parcel_df.hh_p.sum()
         parcel = hh_dict['parcel_ids'][0]

@@ -160,7 +160,7 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
         _df = new_parcel_df_groupby[[geo] + ['HHaveraged_EMPTOT_P_1','HHaveraged_EMPTOT_P_3']]
         _df.columns = ['geography_value', 'jobs_1_mile_walk','jobs_3_mile_bike']
         _df['geography_group'] = geo
-        df = df.append(_df)
+        df = pd.concat([df, _df])
 
     #df = pd.melt(df, 'Geography', var_name='Data Item')
     #df['Grouping'] = 'Total'
@@ -287,7 +287,7 @@ def main():
         _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
         _df.loc[:,'geography_group'] = geo
         _df.columns = ['geography', 'value','geography_group']
-        df = df.append(_df)
+        df = pd.concat([df, _df])
 
     # Add summaries by race from synthetic population
     avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
@@ -298,7 +298,7 @@ def main():
     avg_race_df = avg_race_df.reset_index()
     avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
     avg_race_df['geography_group'] = 'race'
-    df = df.append(avg_race_df)
+    df = pd.concat([df, avg_race_df])
 
     df.to_csv(os.path.join(output_dir,'transit_jobs_access.csv'))
 
@@ -331,7 +331,7 @@ def main():
         _df = average_jobs_df[[geo] + ['HHaveraged_EMPTOT_P']]
         _df.loc[:,'geography_group'] = geo
         _df.columns = ['geography', 'value','geography_group']
-        df = df.append(_df)
+        df = pd.concat([df, _df])
 
     avg_race_df = person_df[['hhno','pno','prace']].merge(hh_df[['hhno','hhparcel']], on='hhno', how='left')
     avg_race_df = avg_race_df.merge(origin_dest_emp, left_on='hhparcel', right_on='PARCELID', how='left')
@@ -340,7 +340,7 @@ def main():
     avg_race_df = avg_race_df.reset_index()
     avg_race_df.rename(columns={'prace': 'geography', 'EMPTOT_P': 'value'}, inplace=True)
     avg_race_df['geography_group'] = 'race'
-    df = df.append(avg_race_df)
+    df = pd.concat([df, avg_race_df])
     df.to_csv(os.path.join(output_dir,'auto_jobs_access.csv'))
 
 if __name__ == "__main__":

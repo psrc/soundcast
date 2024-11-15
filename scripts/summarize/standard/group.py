@@ -595,7 +595,7 @@ def truck_summary(net_file, fname):
         tot_df.rename(columns={'modeledTot':'model','observedTot':'observed'},inplace=True)
         tot_df['truck_type'] = 'all'
 
-        df = med_df.append(hvy_df).append(tot_df)
+        df = pd.concat([med_df, hvy_df, tot_df])
         write_csv(df=df, fname='trucks.csv')
 
 def screenlines(net_file, fname):
