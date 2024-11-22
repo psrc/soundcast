@@ -15,16 +15,19 @@ weekday_to_annual = 300
 # summary output directory
 p_output_dir = 'outputs/2023_summary'
 
-# output_path = '../../../../outputs'
-# survey_path = '../../../../inputs/base_year/survey'
-output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
-survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
+# sc_run_path = '../../../../'
+sc_run_path = 'C:/workspace/sc_2023_08_05_24'
+output_folder = 'outputs'
+survey_folder = 'inputs/base_year/survey'
+# output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
+# survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
+
 
 #################################
-# run validation notebooks
+# run summary notebooks
 #################################
-summary_list = ['topsheet',
-                'vmt']
+# run jupyter scripts
+summary_list = ['topsheet', 'vmt']
 
 #################################
 # NETWORK SUMMARY
@@ -114,13 +117,7 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
 
 ######## Observed Transit Boardings############################################
 
-# Grouped outputs
 
-# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
-# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
-#                          'soundcast_2040': 'C:/user/soundcast_2040'}
-[comparison_runs]
-compare_survey = true    # compare daysim results in Tableau and topsheet outputs
 
 #### Transit Groupings ###############################################################
 # transit_time_group_file= 'inputs/model/lookup/transit_time_groups.csv'
@@ -144,6 +141,18 @@ max_dist = 24140.2
 
 
 # dictionaries
+
+# Grouped outputs
+
+# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
+# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
+#                          'soundcast_2040': 'C:/user/soundcast_2040'}
+# [comparison_runs]
+# compare_survey = true    # compare daysim results in Tableau and topsheet outputs
+
+# source names
+[comparison_runs_list]
+'i5 toll' = 'C:/workspace/sc_2050_i5_toll'
 
 #################################
 # Summary Comparisons
