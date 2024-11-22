@@ -7,7 +7,7 @@
 ##############################
 model_year = '2023'
 base_year = '2023'
-landuse_inputs = '23_on_23'
+landuse_inputs = '23_on_23_v3'
 network_inputs = 'network_2023_v3'
 db_name = 'soundcast_inputs_2023_TEST.db'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
@@ -16,17 +16,17 @@ soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 # Initial Setup
 ##############################
 run_accessibility_calcs = true
-run_setup_emme_project_folders = true
-run_setup_emme_bank_folders = true
-run_copy_scenario_inputs = true
-run_import_networks = true
+run_setup_emme_project_folders = false
+run_setup_emme_bank_folders = false
+run_copy_scenario_inputs = false
+run_import_networks = false
 
 ##############################
 # Model Procedures
 ##############################
-run_skims_and_paths_free_flow = true
+run_skims_and_paths_free_flow = false
 run_skims_and_paths = true
-run_truck_model = true
+run_truck_model = false
 run_supplemental_trips = true
 run_daysim = true
 run_summaries = true
