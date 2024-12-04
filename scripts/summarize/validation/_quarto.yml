@@ -45,6 +45,9 @@ book:
         - validation_scripts/persons.ipynb
         - validation_scripts/households.ipynb
         - validation_scripts/tours.ipynb
+    - part: "<b>ANALYSIS</b>"
+      chapters:
+        - validation_scripts/telecommute_analysis.ipynb
 
 format:
   html:
