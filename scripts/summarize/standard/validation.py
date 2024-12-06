@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.getcwd())
 import pandas as pd
 from shutil import copy2 as shcopy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine,text
 # from input_configuration import base_year
 # from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL
 import toml
@@ -103,15 +103,15 @@ def main():
     ########################################
 
     # Load observed data for given base year
-    df_obs = pd.read_sql("SELECT * FROM observed_transit_boardings WHERE year=" + str(config['base_year']), con=conn)
+    df_obs = pd.read_sql(text("SELECT * FROM observed_transit_boardings WHERE year=" + str(config['base_year'])), con=conn.connect())
     df_obs['route_id'] = df_obs['route_id'].astype('int')
     df_line_obs = df_obs.copy()
 
     # Load model results and calculate modeled daily boarding by line
     df_transit_line = pd.read_csv(r'outputs\transit\transit_line_results.csv')
     df_model = df_transit_line.copy()
-    df_model_daily = df_model.groupby('route_code').agg({   'description': 'first',
-                                                            'boardings': 'sum'}).reset_index()
+    df_model_daily = df_model.groupby(['route_code','mode']).agg({'description': 'first',
+                                                                  'boardings': 'sum'}).reset_index()
 
     # Merge modeled with observed boarding data
     df_model_daily['route_code'] = df_model_daily['route_code'].astype('int')
@@ -130,6 +130,13 @@ def main():
     df_agency['perc_diff'] = df_agency['diff']/df_agency['observed_boardings']
     df_agency.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_agency.csv'), 
                         index=False, columns=['agency','observed_boardings','model_boardings','diff','perc_diff'])
+    
+    # Boardings by mode
+    df_mode = df.groupby(['mode']).sum().reset_index()
+    df_mode['diff'] = df_mode['model_boardings']-df_mode['observed_boardings']
+    df_mode['perc_diff'] = df_mode['diff']/df_mode['observed_boardings']
+    df_mode.to_csv(os.path.join(validation_output_dir,'daily_boardings_by_mode.csv'), 
+                    index=False, columns=['mode','observed_boardings','model_boardings','diff','perc_diff'])
 
     # Boardings for special lines
     df_special = df[df['route_code'].isin(special_route_list)]
