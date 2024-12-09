@@ -17,7 +17,7 @@ def get_data(df_name, col_list=None, source=None, max_rows=None):
         survey_cols = col_list
 
     if not source or "model" in source:
-        print(f"read {df_name} model")
+        # print(f"read {df_name} model")
         model = pd.read_csv(os.path.join(config['model_dir'], 'outputs', 'daysim', '_'+df_name+'.tsv'),
                             sep='\t', usecols=model_cols, nrows=max_rows)
         model['source'] = "model"
@@ -34,7 +34,7 @@ def get_data(df_name, col_list=None, source=None, max_rows=None):
         survey_2017_path = config['survey_2017_dir']
 
     if not source or "survey" in source:
-        print(f"read {df_name} survey")
+        # print(f"read {df_name} survey")
         survey = pd.read_csv(os.path.join(survey_path, '_'+df_name+'.tsv'),
                             sep='\t', usecols=model_cols, nrows=max_rows)
         survey['source'] = "survey"
@@ -44,7 +44,7 @@ def get_data(df_name, col_list=None, source=None, max_rows=None):
 
     if config['include_2017_2019']:
         if not source or "survey (2017/2019)" in source:
-            print(f"read {df_name} survey (2017/2019)")
+            # print(f"read {df_name} survey (2017/2019)")
             # 2017 survey data
             survey_2017 = pd.read_csv(os.path.join(survey_2017_path, '_'+df_name+'.tsv'),
                                     sep='\t', usecols=model_cols, nrows=max_rows)
