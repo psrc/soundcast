@@ -142,6 +142,6 @@ intersections = ["nodes1", "nodes3", "nodes4"]
 transit_modes = {"lbus": "bus", "ebus": "express", 
        "fry": "ferry", "crt": "commuter_rail", "lrt": "light_rail", "brt": "brt"} # will compute nearest distance to these
 
-light_rail_walk_factor = 1
+light_rail_walk_factor = .5
 
 ferry_walk_factor = .5
