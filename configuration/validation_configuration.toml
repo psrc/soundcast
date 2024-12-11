@@ -7,14 +7,18 @@
 # ---- local soundcast run
 model_dir = '../../../..'
 # ---- (JL: for summary development)
-# model_dir = "//modelstation2/c$/Workspace/sc_2023_08_08_24"
+# model_dir = "//modelstation2/c$/Workspace/sc_2023_12_07_24"
 
 # ---- survey results
 # 2023
 survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
 tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
+## updated 2023
+include_update = true
+survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_10_24/cleaned/skims_attached/uncloned"
+tour_survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_10_24/cleaned/skims_attached"
 # 2017/2019
-include_2017_2019 = true
+include_2017_2019 = false
 survey_2017_dir = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached/uncloned"
 tour_survey_2017_dir = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 
@@ -28,28 +32,36 @@ p_output_dir = "outputs/2023_validation"
 ################################################################
 # run validation notebooks
 ################################################################
-network_summary_list = ['transit_validation',
-                        'traffic_validation']
+network_summary_list = [#'transit_validation',
+                        #'traffic_validation',
+                        'bike_validation']
 #network_summary_list = ['traffic_validation']
-summary_list = ['work_location',
-                'transit_pass_ownership',
-                'school_location',
+summary_list = ['all_tour_mode',
+                'all_trip_mode',
                 'auto_ownership',
-                'telecommute',
-                'all_tour_mode',
-                'work_tour_mode',
-                'school_tour_mode',
-                'escort_tour_mode',
-                'other_home_based_tour_mode',
-                'tour_destination',
-                'trip_destination',
                 'day_pattern',
-                'persons',
+                'escort_tour_mode',
+                'escort_trip_mode',
                 'households',
-                'tours',
                 'intermediate_stop_generation',
+                'other_home_based_tour_mode',
+                'other_home_based_trip_mode',
+                'persons',
+                'school_location',
+                'school_tour_mode',
+                'school_trip_mode',
+                'telecommute_analysis',
+                'telecommute',
                 'time_choice',
-                'workbased_subtour_mode']
+                'tour_destination',
+                'tours',
+                'transit_pass_ownership',
+                'trip_destination',
+                'work_location',
+                'work_tour_mode',
+                'work_trip_mode',
+                'workbased_subtour_mode',
+                ]
 # summary_list = ['work_tour_mode','school_tour_mode','school_tour_mode',
 #     'escort_tour_mode','other_home_based_tour_mode','workbased_subtour_mode']
 

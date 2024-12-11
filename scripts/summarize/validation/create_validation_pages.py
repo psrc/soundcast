@@ -17,7 +17,7 @@ def run_ipynb(sheet_name, nb_path):
         ep.preprocess(nb, {"metadata": {"path": nb_path + r"/"}})
         with open(nb_path + r"/" + sheet_name + ".ipynb", "wt") as f:
             nbformat.write(nb, f)
-    print(sheet_name + " validation notebook created")
+    print("done")
 
 
 def main():
