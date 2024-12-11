@@ -414,7 +414,7 @@ def main():
     zonesDim = len(my_project.current_scenario.zone_numbers)
 
     parcel = pd.read_csv(
-        "outputs/landuse/parcels_urbansim.txt", delim_whitespace=True
+        "outputs/landuse/parcels_urbansim.txt", sep="\s+"
     )
 
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.

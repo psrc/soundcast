@@ -219,11 +219,13 @@ max_dist = 24140.2
 1673 = "C-Line Rapid Ride"
 1674 = "D-Line Rapid Ride"
 1675 = "E-Line Rapid Ride"
+1677 = "H-Line Rapid Ride"
 4950 = "Central Link"
 6995 = "Tacoma Link"
 6998 = "Sounder South"
 6999 = "Sounder North"
 3701 = "Swift Blue Line"
+3702 = "Swift Green Line"
 
 # Transit Line OD Table list 
 [transit_line_dict]

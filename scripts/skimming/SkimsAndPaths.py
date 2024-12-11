@@ -1384,8 +1384,9 @@ def bike_facility_weight(my_project, link_df):
 
     # Replace the facility ID with the estimated  marginal rate of substituion
     # value from Broach et al., 2012 (e.g., replace 'standard' with -0.108)
-    df["facility_wt"] = df["@bkfac"]
-    df = df.replace(network_config["facility_dict"])
+    df["facility_wt"] = df["@bkfac"].copy()
+    with pd.option_context('future.no_silent_downcasting', True):
+        df = df.replace(network_config["facility_dict"])
     df["facility_wt"] = df["facility_wt"].astype(float)
 
     return df
@@ -1747,7 +1748,7 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
     df["modes"] = df["modes"].astype("str").fillna("")
     grouped = df.groupby(["link_id"])
 
-    link_df = grouped.agg({"@tveh": sum, "length": min, "modes": min})
+    link_df = grouped.agg({"@tveh": "sum", "length": "min", "modes": "min"})
     link_df.reset_index(level=0, inplace=True)
     link_df["tod"] = my_project.tod
 
@@ -1820,7 +1821,7 @@ def run(free_flow_skims=False, num_iterations=100):
     for _df in pool_list[0]:
         daily_link_df = pd.concat([daily_link_df, _df], axis=0)
         grouped = daily_link_df.groupby(["link_id"])
-    daily_link_df = grouped.agg({"@tveh": sum, "length": min, "modes": min})
+    daily_link_df = grouped.agg({"@tveh": "sum", "length": "min", "modes": "min"})
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv(r"outputs\bike\daily_link_volume.csv")
     start_transit_pool(project_list)
