@@ -9,12 +9,11 @@ sys.path.append(os.getcwd())
 import pandas as pd
 from shutil import copy2 as shcopy
 from sqlalchemy import create_engine,text
-# from input_configuration import base_year
-# from emme_configuration import sound_cast_net_dict, MIN_EXTERNAL, MAX_EXTERNAL
 import toml
 config = toml.load(os.path.join(os.getcwd(), 'configuration/input_configuration.toml'))
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))
 network_config = toml.load(os.path.join(os.getcwd(), 'configuration/network_configuration.toml'))
+summary_config = toml.load(os.path.join(os.getcwd(), 'configuration/summary_configuration.toml'))
 
 # output directory
 validation_output_dir = 'outputs/validation'
@@ -35,9 +34,11 @@ agency_lookup = {
     7: 'Everett Transit'
 }
 # List of route IDs to separate for analysis
-special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,
-                        4200,4201,4202,4203,4204,1671,1672,1673,1674,1675,1676,1040,1007,6550,
-                        5001,5002,5003,5004,5005,5006,5007]
+# special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,
+#                         4200,4201,4202,4203,4204,1671,1672,1673,1674,1675,1676,1040,1007,6550,
+#                         5001,5002,5003,5004,5005,5006,5007]
+
+
 
 facility_type_lookup = {
     1:'Freeway',   # Interstate
@@ -139,7 +140,7 @@ def main():
                     index=False, columns=['mode','observed_boardings','model_boardings','diff','perc_diff'])
 
     # Boardings for special lines
-    df_special = df[df['route_code'].isin(special_route_list)]
+    df_special = df[df['route_code'].astype('str').isin(summary_config["special_route_lookup"].keys())]
     df_special.to_csv(os.path.join(validation_output_dir,'daily_boardings_key_routes.csv'), 
                         index=False, columns=['description','route_code','agency','observed_boardings','model_boardings','diff','perc_diff'])
 
@@ -473,14 +474,14 @@ def main():
                 'Other': 'Other',
                'Transit':'Transit'}
 
-    df_acs['mode'] = df_acs['variable_description'].map(mode_map)
+    df_acs['mode'] = df_acs['mode'].map(mode_map)
     df_acs = df_acs[-df_acs['mode'].isnull()]
 
     # Drop the Other mode for now
     df_acs = df_acs[df_acs['mode'] != 'Other']
 
     # Merge the model and observed data
-    df = df_acs[['mode','geoid','place_name','estimate','margin_of_error']].merge(df_model,left_on=['geoid','mode'], 
+    df = df_acs[['mode','geoid','place_name','estimate']].merge(df_model,left_on=['geoid','mode'], 
                                                                              right_on=['to_tract','mode'])
     df.rename(columns={'estimate': 'observed', 'trexpfac': 'modeled'}, inplace=True)
     df[['observed','modeled']] = df[['observed','modeled']].astype('float')
@@ -489,7 +490,8 @@ def main():
     parcel_geog = pd.read_sql("SELECT * FROM parcel_"+str(config['base_year'])+"_geography", con=conn)
 
     tract_geog = parcel_geog.groupby('Census2020Tract').first()[['CountyName','rg_proposed','CityName','GrowthCenterName','TAZ','District']].reset_index()
-    tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1)
+    tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1).astype('int64')
+    # tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1)
     df = df.merge(tract_geog, left_on='geoid', right_on='Census2020Tract', how='left')
     df.to_csv(r'outputs\validation\acs_commute_share_by_home_tract.csv', index=False)
 	
