@@ -463,11 +463,11 @@ def main():
     my_project = EmmeProject(network_config["truck_model_project"])
     # zones = my_project.current_scenario.zone_numbers
 
-    input_skims = json_to_dictionary('input_skims')
-    truck_matrix_list = pd.read_csv(r'inputs/model/trucks/truck_matrices.csv')
-    
-    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
-    balanced_prod_att = pd.read_csv(r'outputs/supplemental/7_balance_trip_ends.csv')
+    input_skims = json_to_dictionary("input_skims")
+    truck_matrix_list = pd.read_csv(r"inputs/model/trucks/truck_matrices.csv")
+
+    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
+    balanced_prod_att = pd.read_csv(r"outputs/supplemental/7_balance_trip_ends.csv")
 
     network_importer(my_project)
     zones = my_project.current_scenario.zone_numbers

@@ -61,7 +61,7 @@ parcel_emp_cols = parcel_attributes = [
     "empsvc_p",
     "empoth_p",
     "emptot_p",
-"empret_p",
+    "empret_p",
 ]
 
 
@@ -106,12 +106,16 @@ def main():
     network_importer(my_project)
 
     # Load input data from DB and CSVs
-    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
+    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
 
-    parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+config['model_year'], con=conn)
-    parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
-    parcels_urbansim.index = parcels_urbansim['parcelid']
-    
+    parcels_military = pd.read_sql(
+        "SELECT * FROM enlisted_personnel WHERE year==" + config["model_year"], con=conn
+    )
+    parcels_urbansim = pd.read_csv(
+        "inputs/scenario/landuse/parcels_urbansim.txt", sep=" "
+    )
+    parcels_urbansim.index = parcels_urbansim["parcelid"]
+
     # FIXME: uniform upper/lower
     # Convert columns to upper case for now
     # parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]

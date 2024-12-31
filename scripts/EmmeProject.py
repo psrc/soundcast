@@ -301,10 +301,9 @@ class EmmeProject:
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         network_calc = self.m.tool(NAMESPACE)
         self.transit_segment_calc_result = network_calc(spec)
-    
+
     def close(self):
         self.desktop.close()
-
 
 
 def json_to_dictionary(dict_name):

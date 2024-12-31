@@ -3,7 +3,10 @@ import toml
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-config = toml.load(os.path.join(os.getcwd(), "configuration", "validation_configuration.toml"))
+config = toml.load(
+    os.path.join(os.getcwd(), "configuration", "validation_configuration.toml")
+)
+
 
 def run_ipynb(sheet_name, nb_path):
     print("creating " + sheet_name + " summary")
@@ -21,26 +24,31 @@ def run_ipynb(sheet_name, nb_path):
 
 
 def main():
-
     # Try to remove existing data first
-    output_dir = os.path.join(os.getcwd(),config['p_output_dir'],'validation-notebook')
+    output_dir = os.path.join(
+        os.getcwd(), config["p_output_dir"], "validation-notebook"
+    )
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
     for sheet_name in config["summary_list"]:
-        run_ipynb(sheet_name, os.path.join(r'scripts/summarize/validation/validation_scripts'))
+        run_ipynb(
+            sheet_name, os.path.join(r"scripts/summarize/validation/validation_scripts")
+        )
 
     # render quarto book
     # TODO: automate _quarto.yml chapter list
-    text = "quarto render " + os.path.join(r'scripts/summarize/validation')
+    text = "quarto render " + os.path.join(r"scripts/summarize/validation")
     os.system(text)
     print("validation notebook created")
 
     # Move these files to output folder
-    if not os.path.exists(os.path.join(os.getcwd(),config['p_output_dir'])):
-        os.makedirs(os.path.join(os.getcwd(),config['p_output_dir']))
-    shutil.move((os.path.join(r'scripts/summarize/validation',"validation-notebook")),
-               output_dir)
+    if not os.path.exists(os.path.join(os.getcwd(), config["p_output_dir"])):
+        os.makedirs(os.path.join(os.getcwd(), config["p_output_dir"]))
+    shutil.move(
+        (os.path.join(r"scripts/summarize/validation", "validation-notebook")),
+        output_dir,
+    )
 
 
 if __name__ == "__main__":

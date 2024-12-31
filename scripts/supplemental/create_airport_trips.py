@@ -413,17 +413,15 @@ def main():
     zones = my_project.current_scenario.zone_numbers
     zonesDim = len(my_project.current_scenario.zone_numbers)
 
-    parcel = pd.read_csv(
-        "outputs/landuse/parcels_urbansim.txt", sep="\s+"
-    )
+    parcel = pd.read_csv("outputs/landuse/parcels_urbansim.txt", sep="\s+")
 
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
     zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))
 
-    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
-    parameters_df = pd.read_sql('SELECT * FROM mode_choice_parameters', con=conn)
-    #FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
-    tod_factors_df = pd.read_sql('SELECT * FROM time_of_day_factors', con=conn)
+    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
+    parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=conn)
+    # FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
+    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=conn)
 
     # Calculate mode shares for Home-Based Other purposes
     # Work trips from externals are grown from observed data

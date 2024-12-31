@@ -32,7 +32,6 @@ network_config = toml.load(
 
 
 def json_to_dictionary(dict_name):
-
     # Determine the Path to the input files and load them
 
     input_filename = os.path.join("inputs/skim_params/", dict_name + ".json").replace(
@@ -88,11 +87,9 @@ def run_skim(project_name):
 
     mod_skim = skim_specification
     for x in range(0, len(mod_skim["classes"])):
-
         matrix_name = my_user_classes["Highway"][x]["Name"] + skim_desig
 
         if my_project.bank.matrix(matrix_name):
-
             my_project.delete_matrix(matrix_name)
 
         my_project.create_matrix(matrix_name, "reliability skim", "FULL")
@@ -105,7 +102,6 @@ def run_skim(project_name):
 
 
 def main():
-
     for i in range(0, 12, emme_config["parallel_instances"]):
         project_list = [
             "Projects/" + tod + "/" + tod + ".emp" for tod in network_config["tods"]
@@ -116,5 +112,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

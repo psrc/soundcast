@@ -227,13 +227,16 @@ def main():
 
     # intersections:
     # combine from and to columns
-    all_nodes = pd.DataFrame(pd.concat([net.edges_df["from"], net.edges_df['to']], axis=0), columns=["node_ids"])
+    all_nodes = pd.DataFrame(
+        pd.concat([net.edges_df["from"], net.edges_df["to"]], axis=0),
+        columns=["node_ids"],
+    )
 
     # get the frequency of each node, which is the number of intersecting ways
-    intersections_df = pd.DataFrame(all_nodes['node_ids'].value_counts())
+    intersections_df = pd.DataFrame(all_nodes["node_ids"].value_counts())
     intersections_df = intersections_df.rename(columns={"count": "edge_count"})
     intersections_df.reset_index(0, inplace=True)
-    #intersections_df = intersections_df.rename(columns={"index": "node_ids"})
+    # intersections_df = intersections_df.rename(columns={"index": "node_ids"})
 
     # add a column for each way count
     intersections_df["nodes1"] = np.where(intersections_df["edge_count"] == 1, 1, 0)
@@ -251,12 +254,18 @@ def main():
 
     # Report a raw distance to HCT and all transit before calibration
 
-    parcels['raw_dist_hct'] = parcels[[ 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
-    parcels['raw_dist_transit'] = parcels[['dist_lbus','dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
+    parcels["raw_dist_hct"] = parcels[
+        ["dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
+    ].min(axis=1)
+    parcels["raw_dist_transit"] = parcels[
+        ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
+    ].min(axis=1)
 
-    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * light_rail_walk_factor
-    parcels['dist_fry'] * ferry_walk_factor
+    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates.
+    parcels.loc[parcels.dist_lrt <= 1, "dist_lrt"] = (
+        parcels["dist_lrt"] * light_rail_walk_factor
+    )
+    parcels["dist_fry"] * ferry_walk_factor
     parcels_done = clean_up(parcels)
 
     parcels_done.to_csv(output_parcels, index=False, sep=" ")
