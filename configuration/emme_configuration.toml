@@ -45,6 +45,11 @@ external_rate = 0.0096
 truck_rate = 0.0135
 group_quarters_rate = 0.0034
 
+# Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
+low_income = 51250
+medium_income = 102500
+high_income = 152350
+
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
 avotda = 0.0303    # VOT

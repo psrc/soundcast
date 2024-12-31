@@ -131,20 +131,6 @@ def main():
 
     i5_station = emme_config["EXTERNALS_DONT_GROW"][0]
 
-    # Break points for classifications
-    # Income in 2014 $'s
-    # low_income = 37000
-    # medium_income = 74000
-    # high_income = 111000
-    # Scaled using average CPI change between 2014 and 2023
-    # cpi_old = 246.018
-    # cpi_new = 340.845
-    # cpi_scale = 1.385
-    # Income in 2023 $'s
-    low_income = 51250
-    medium_income = 102500
-    high_income = 152350
-
     # Lists for HH and Person Files
     hh_variables = ["hhno", "hhsize", "hhparcel", "hhincome"]
     person_variables = ["pno", "hhno", "pptyp"]
@@ -555,16 +541,16 @@ def main():
 
     # Create a Column for Income 1, 2 ,3 or 4
     df_hh["income-class"] = 0
-    df_hh.loc[df_hh["hhincome"] <= low_income, "income-class"] = 1
+    df_hh.loc[df_hh["hhincome"] <= emme_config["low_income"], "income-class"] = 1
     df_hh.loc[
-        (df_hh["hhincome"] > low_income) & (df_hh["hhincome"] <= medium_income),
+        (df_hh["hhincome"] > emme_config["low_income"]) & (df_hh["hhincome"] <= emme_config["medium_income"]),
         "income-class",
     ] = 2
     df_hh.loc[
-        (df_hh["hhincome"] > medium_income) & (df_hh["hhincome"] <= high_income),
+        (df_hh["hhincome"] > emme_config["medium_income"]) & (df_hh["hhincome"] <= emme_config["high_income"]),
         "income-class",
     ] = 3
-    df_hh.loc[df_hh["hhincome"] > high_income, "income-class"] = 4
+    df_hh.loc[df_hh["hhincome"] > emme_config["high_income"], "income-class"] = 4
 
     # Create a Column for school age children 0, 1, 2 or 3+
     df_hh["school-class"] = df_hh["school-age"]
