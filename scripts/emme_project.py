@@ -29,14 +29,14 @@ from settings.data_wrangling import text_to_dictionary, json_to_dictionary
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
 # from input_configuration import *
-from EmmeProject import *
+#from EmmeProject import *
 import toml
 
 #config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 
 class EmmeProject:
-    def __init__(self, filepath, state):
+    def __init__(self, filepath, model_input_dir):
         self.desktop = app.start_dedicated(True, "cth", filepath)
         self.m = _m.Modeller(self.desktop)
         for t in self.m.toolboxes:
@@ -52,8 +52,7 @@ class EmmeProject:
         self.tod = self.bank.title
         self.current_scenario = list(self.bank.scenarios())[0]
         self.data_explorer = self.desktop.data_explorer()
-        self.state = state
-
+        self.model_input_dir = model_input_dir
     def network_counts_by_element(self, element):
         network = self.current_scenario.get_network()
         d = network.element_totals
@@ -181,7 +180,7 @@ class EmmeProject:
         )
 
     def matrix_calculator(self, **kwargs):
-        spec = json_to_dictionary("matrix_calc_spec", self.state.model_input_dir, "templates")
+        spec = json_to_dictionary("matrix_calc_spec", self.model_input_dir, "templates")
         for name, value in kwargs.items():
             if name == "aggregation_origins":
                 spec["aggregation"]["origins"] = value
@@ -245,7 +244,7 @@ class EmmeProject:
 
     def network_calculator(self, type, **kwargs):
         #spec = json_to_dictionary(os.path.join("lookup", type))
-        spec = json_to_dictionary(type, self.state.model_input_dir, "lookup")
+        spec = json_to_dictionary(type, self.model_input_dir, "lookup")
         for name, value in kwargs.items():
             if name == "selections_by_link":
                 spec["selections"]["link"] = value
@@ -262,7 +261,7 @@ class EmmeProject:
 
     def matrix_balancing(self, **kwargs):
         #spec = json_to_dictionary("templates/matrix_balancing_spec")
-        spec = json_to_dictionary("matrix_balancing_spec", self.state.model_input_dir, "templates")
+        spec = json_to_dictionary("matrix_balancing_spec", self.model_input_dir, "templates")
         for name, value in kwargs.items():
             if name == "results_od_balanced_values":
                 spec["results"]["od_balanced_values"] = value
@@ -301,7 +300,7 @@ class EmmeProject:
 
     def transit_line_calculator(self, **kwargs):
         #spec = json_to_dictionary("templates/transit_line_calculation")
-        spec = json_to_dictionary("transit_line_calculation", self.state.model_input_dir, "templates")
+        spec = json_to_dictionary("transit_line_calculation", self.model_input_dir, "templates")
         for name, value in kwargs.items():
             spec[name] = value
 
@@ -311,7 +310,7 @@ class EmmeProject:
 
     def transit_segment_calculator(self, **kwargs):
         #spec = json_to_dictionary("templates/transit_segment_calculation")
-        spec = json_to_dictionary("transit_segment_calculation", self.state.model_input_dir, "templates")
+        spec = json_to_dictionary("transit_segment_calculation", self.model_input_dir, "templates")
         for name, value in kwargs.items():
             spec[name] = value
 
