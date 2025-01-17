@@ -3,6 +3,10 @@ import toml
 import pandas as pd
 import numpy as np
 import plotly.express as px
+from shapely import wkt
+from sqlalchemy import create_engine, text
+import urllib
+import pyodbc
 
 config = toml.load(
     os.path.join(
@@ -89,5 +93,22 @@ def get_data(df_name, col_list=None, source=None, max_rows=None):
         survey_update = pd.DataFrame()
 
     df = pd.concat([model, survey, survey_update, survey_2017])
+
+    return df
+
+def load_elmer_table(table_name, sql=None):
+    conn_string = "DRIVER={ODBC Driver 17 for SQL Server}; SERVER=SQLserver; DATABASE=Elmer; trusted_connection=yes"
+    sql_conn = pyodbc.connect(conn_string)
+    params = urllib.parse.quote_plus(conn_string)
+    engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+
+    if sql is None:
+        sql = "SELECT * FROM " + table_name
+
+    # df = pd.DataFrame(engine.connect().execute(text(sql)))
+    with engine.begin() as connection:
+        result = connection.execute(sql)
+        df = pd.DataFrame(result.fetchall())
+        df.columns = result.keys()
 
     return df
