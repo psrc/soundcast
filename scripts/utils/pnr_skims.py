@@ -32,7 +32,7 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
-from EmmeProject import *
+from scripts.emme_project import *
 from data_wrangling import text_to_dictionary, json_to_dictionary
 from pathlib import Path
 

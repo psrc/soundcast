@@ -27,7 +27,7 @@ from pyproj import Proj, transform
 import nbformat
 from sqlalchemy import create_engine
 from nbconvert.preprocessors import ExecutePreprocessor
-from EmmeProject import EmmeProject
+from scripts.emme_project import EmmeProject
 from standard_summary_configuration import *
 # from input_configuration import *
 # from emme_configuration import *
@@ -499,7 +499,9 @@ def main():
             os.remove(_path )
 
     ## Access Emme project with all time-of-day banks available
-    my_project = EmmeProject(state.network_settings.network_summary_project, state)
+    #my_project = EmmeProject(state.network_settings.network_summary_project, state)
+    state.create_main_project()
+    my_project = state.main_project
     network = my_project.current_scenario.get_network()
     zones = my_project.current_scenario.zone_numbers
     dictZoneLookup = dict((index,value) for index,value in enumerate(zones))

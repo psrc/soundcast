@@ -46,18 +46,20 @@ from supplemental import distribute_non_work_ixxi
 from supplemental import mode_choice_supplemental
 from supplemental import create_airport_trips
 from trucks import truck_model
+#from summarize.standard import network_summary
+
 from pathlib import Path
 
 state = state.generate_state(run_args.args.configs_dir)
 
 
 def accessibility_calcs():
-    data_wrangling.copy_accessibility_files()
+    data_wrangling.copy_accessibility_files(state)
     print('adding military jobs to regular jobs')
     print('adding JBLM workers to external workers')
     print('adjusting non-work externals')
     print('creating ixxi file for Daysim')
-    create_ixxi_work_trips.main()
+    create_ixxi_work_trips.main(state)
     
     print('military jobs loaded')
 
@@ -71,7 +73,7 @@ def accessibility_calcs():
         print('Finished updating parking data on parcel file')
 
     print('Beginning Accessibility Calculations')
-    accessibility.run()
+    accessibility.run(state)
     # returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
     # if returncode != 0:
     #     print('Accessibility Calculations Failed For Some Reason :(')
@@ -158,17 +160,20 @@ def run_truck_supplemental(iteration, statwe):
         # create_airport_trips.main()
         # truck_model.main()
         if iteration == 0:
-            returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-            if returncode != 0:
-                sys.exit(1)
+            # returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
+            # if returncode != 0:
+            #     sys.exit(1)
+            generation.main(state)
         
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
-        if returncode != 0:
-                sys.exit(1)
+        # returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
+        # if returncode != 0:
+        #         sys.exit(1)
+        distribute_non_work_ixxi.main(state)
 
-        returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips.py'])
-        if returncode != 0:
-                sys.exit(1)   
+        # returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips.py'])
+        # if returncode != 0:
+        #         sys.exit(1)
+        create_airport_trips.main(state)   
 
         # base_path = 'scripts/supplemental'
         # for script in ['distribute_non_work_ixxi', 'create_airport_trips']:
@@ -177,9 +182,10 @@ def run_truck_supplemental(iteration, statwe):
         #         sys.exit(1)
 
     if state.input_settings.run_truck_model:
-        returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-        if returncode != 0:
-            sys.exit(1)
+        # returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
+        # if returncode != 0:
+        #     sys.exit(1)
+        truck_model.main(state)
 
 @data_wrangling.timed
 def daysim_assignment(iteration):
@@ -255,23 +261,29 @@ def main():
     logger.info("Using Git hash %s ", str(hash))
 
     data_wrangling.build_output_dirs()
-    data_wrangling.update_daysim_modes()
-    data_wrangling.update_skim_parameters()
+    data_wrangling.update_daysim_modes(state)
+    data_wrangling.update_skim_parameters(state)
     
     # this import statement needs to happen here, after update_skim_parameters:
     
 
     if state.input_settings.run_setup_emme_bank_folders:
-        data_wrangling.setup_emme_bank_folders()
+        data_wrangling.setup_emme_bank_folders(state)
 
     if state.input_settings.run_setup_emme_project_folders:
-        data_wrangling.setup_emme_project_folders()
+        data_wrangling.setup_emme_project_folders(state)
 
     if state.input_settings.run_copy_scenario_inputs:
-        data_wrangling.copy_scenario_inputs()
+        data_wrangling.copy_scenario_inputs(state)
 
     if state.input_settings.run_integrated:
-        data_wrangling.import_integrated_inputs()
+        data_wrangling.import_integrated_inputs(state)
+
+    # If debugging SkimsAndPaths, cannot have another instance of Emme Modeller running
+    # if not state.input_settings.debug_skims_and_paths:
+    #     # This is the main project/modeller instance that will stay open for the entire run. 
+    #     # Used for all single process EMME workflows.  
+    #     state.create_main_project()
 
     if state.input_settings.run_accessibility_calcs:
         accessibility_calcs()
@@ -302,7 +314,7 @@ def main():
     # Main Loop
     ########################################
 
-    if (state.input_settings.run_daysim or state.input_settings.run_skims_and_paths):
+    if (state.input_settings.run_daysim or state.input_settings.run_skims_and_paths or state.input_settings.run_supplemental_trips):
         for iteration in range(len(state.emme_settings.pop_sample)):
 
             print("We're on iteration %d" % (iteration))
@@ -372,5 +384,5 @@ if __name__ == "__main__":
     logger.info('--------------------RUN ENDING--------------------')
     logger.info('TOTAL RUN TIME %s'  % str(elapsed_total))
 
-    if state.emme_settings.delete_banks:
+    if state.input_settings.delete_banks:
         shutil.rmtree('/Banks', ignore_errors=True)

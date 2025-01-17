@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.getcwd(),"scripts"))
 sys.path.append(os.path.join(os.getcwd(),"scripts/trucks"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
-from EmmeProject import *
+from scripts.emme_project import *
 import toml
 
 emme_config = toml.load(os.path.join(os.getcwd(), 'configuration/emme_configuration.toml'))

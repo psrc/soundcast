@@ -9,7 +9,7 @@ from settings import run_args
 from scripts.settings import state
 from pathlib import Path
 
-state = state.generate_state(run_args.args.configs_dir)
+#state = state.generate_state(run_args.args.configs_dir)
 
 
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
@@ -17,18 +17,18 @@ sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
 # from input_configuration import *
-from EmmeProject import *
+from scripts.emme_project import *
 
 # from truck_configuration import *
 import toml
 
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-)
+# config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
+# emme_config = toml.load(
+#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+# )
+# network_config = toml.load(
+#     os.path.join(os.getcwd(), "configuration/network_configuration.toml")
+# )
 
 output_dir = r"outputs/supplemental/"
 
@@ -71,7 +71,7 @@ parcel_emp_cols = parcel_attributes = [
 ]
 
 
-def network_importer(EmmeProject):
+def network_importer(EmmeProject, state):
     for scenario in list(EmmeProject.bank.scenarios()):
         EmmeProject.bank.delete_scenario(scenario)
     # create scenario
@@ -81,7 +81,7 @@ def network_importer(EmmeProject):
     EmmeProject.delete_nodes()
     EmmeProject.process_modes("inputs/scenario/networks/modes.txt")
     EmmeProject.process_base_network(
-        "inputs/scenario/networks/roadway/" + network_config["truck_base_net_name"]
+        "inputs/scenario/networks/roadway/" + state.network_settings.truck_base_net_name
     )
 
 
@@ -100,7 +100,7 @@ def remove_employment_by_taz(df, taz_list, col_list):
     return df
 
 
-def main():
+def main(state):
     """
     Add internal-external (ix) and external-internal (xi) distribution for work purpose.
     Spatial distribution of work trips is based off observed LEHD LODES commute flows from/to PSRC region to/from surrounding counties.
@@ -108,13 +108,14 @@ def main():
     """
 
     # Load network for supplemental trip calculations
-    my_project = EmmeProject(emme_config["supplemental_project"], state)
-    network_importer(my_project)
+    my_project = state.main_project
+    my_project.change_active_database("Supplementals")
+    network_importer(my_project, state)
 
     # Load input data from DB and CSVs
-    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
+    conn = create_engine('sqlite:///inputs/db/'+state.input_settings.db_name)
 
-    parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+config['model_year'], con=conn)
+    parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+state.input_settings.model_year, con=conn)
     parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
     parcels_urbansim.index = parcels_urbansim['parcelid']
     
@@ -180,7 +181,7 @@ def main():
 
     # Base year employment
     base_year_totemp = base_year_scaling[
-        (base_year_scaling["year"] == int(config["base_year"]))
+        (base_year_scaling["year"] == int(state.input_settings.base_year))
         & (base_year_scaling["field"] == "emptot_p")
     ]["value"].values[0]
     model_year_totemp = parcels_urbansim["emptot_p"].sum()
@@ -189,8 +190,8 @@ def main():
     # externals_dont_grow=[3733]
     for col in work[ixxi_cols]:
         work[col] = np.where(
-            (work["PSRC_TAZ"].isin(emme_config["EXTERNALS_DONT_GROW"]))
-            | (work["External_Station"].isin(emme_config["EXTERNALS_DONT_GROW"])),
+            (work["PSRC_TAZ"].isin(state.emme_settings.EXTERNALS_DONT_GROW))
+            | (work["External_Station"].isin(state.emme_settings.EXTERNALS_DONT_GROW)),
             work[col],
             work[col] * emp_scaling,
         )
@@ -317,7 +318,7 @@ def main():
         r"outputs/landuse/parcels_urbansim.txt", sep=" ", index=False
     )
     
-    my_project.close()
+    #my_project.close()
 
 if __name__ == "__main__":
     main()

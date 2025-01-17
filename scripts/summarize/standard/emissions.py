@@ -295,7 +295,7 @@ def main():
     df_summer = df_summer[df_summer['monthID'] == 7]
     df_winter = df_running_rates[~df_running_rates['pollutantID'].isin(sum_config['summer_list'])]
     df_winter = df_winter[df_winter['monthID'] == 1]
-    df_running_rates = df_winter.append(df_summer)
+    df_running_rates = t(df_summer)
 
     # Group interzonal trips and calculate interzonal emissions
     df_interzonal_vmt = calculate_interzonal_vmt()

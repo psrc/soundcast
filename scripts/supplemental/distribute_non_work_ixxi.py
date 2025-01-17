@@ -12,17 +12,17 @@ sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
-from EmmeProject import *
+from scripts.emme_project import *
 import toml
 from settings import run_args
-from scripts.settings import state
+#rom scripts.settings import state
 from pathlib import Path
 
-state = state.generate_state(run_args.args.configs_dir)
+#state = state.generate_state(run_args.args.configs_dir)
 
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
+# emme_config = toml.load(
+#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+# )
 
 config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
@@ -37,14 +37,14 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
         return skim_file
 
 
-def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup):
+def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup, state):
     """Calculate friction factors for all trip purposes"""
     friction_fac_dic = {}
     for index, row in _coeff_df.iterrows():
-        MIN_EXTERNAL_INDEX = zone_lookup[emme_config["MIN_EXTERNAL"]]
+        MIN_EXTERNAL_INDEX = zone_lookup[state.emme_settings.MIN_EXTERNAL]
         friction_fac_dic[row["purpose"]] = np.exp(
             (row["coefficient_value"])
-            * (cost_skim + (dist_skim * emme_config["autoop"] * emme_config["avotda"]))
+            * (cost_skim + (dist_skim * state.emme_settings.autoop * state.emme_settings.avotda))
         )
         ## Set external zones to zero to prevent external-external trips
         friction_fac_dic[row["purpose"]][MIN_EXTERNAL_INDEX:, MIN_EXTERNAL_INDEX:] = 0
@@ -123,29 +123,29 @@ def load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project):
         )
 
 
-def balance_matrices(trip_purps, my_project):
+def balance_matrices(trip_purps, state):
     """Balances productions and attractions by purpose for all internal zones"""
 
     for purpose in trip_purps:
         # For friction factors, make sure 0s in Externals are actually 0 and not fractional to avoid intrazonal trips
-        my_project.matrix_calculator(
+        state.main_project.matrix_calculator(
             result="mf" + purpose + "fri",
             expression="0",
-            constraint_by_zone_destinations=str(emme_config["MIN_EXTERNAL"])
+            constraint_by_zone_destinations=str(state.emme_settings.MIN_EXTERNAL)
             + "-"
-            + str(emme_config["MAX_EXTERNAL"]),
-            constraint_by_zone_origins=str(emme_config["MIN_EXTERNAL"])
+            + str(state.emme_settings.MAX_EXTERNAL),
+            constraint_by_zone_origins=str(state.emme_settings.MIN_EXTERNAL)
             + "-"
-            + str(emme_config["MAX_EXTERNAL"]),
+            + str(state.emme_settings.MAX_EXTERNAL),
         )
         print("Balancing non-work external trips, for purpose: " + str(purpose))
-        my_project.matrix_balancing(
+        state.main_project.matrix_balancing(
             results_od_balanced_values="mf" + purpose + "dis",
             od_values_to_balance="mf" + purpose + "fri",
             origin_totals="mo" + purpose + "pro",
             destination_totals="md" + purpose + "att",
-            constraint_by_zone_destinations="1-" + str(emme_config["MAX_EXTERNAL"]),
-            constraint_by_zone_origins="1-" + str(emme_config["MAX_EXTERNAL"]),
+            constraint_by_zone_destinations="1-" + str(state.emme_settings.MAX_EXTERNAL),
+            constraint_by_zone_origins="1-" + str(state.emme_settings.MAX_EXTERNAL),
         )
 
 
@@ -159,49 +159,49 @@ def calculate_daily_trips_externals(trip_purps, my_project):
         )
 
 
-def distribute_trips_externals(trip_table_in, trip_purps, fric_facs, my_project):
+def distribute_trips_externals(trip_table_in, trip_purps, fric_facs, state):
     """Load data in Emme, balance trips by purpose, and produce O-D trip tables"""
 
     # Clear all existing matrices
-    delete_matrices(my_project, "ORIGIN")
-    delete_matrices(my_project, "DESTINATION")
-    delete_matrices(my_project, "FULL")
+    delete_matrices(state.main_project, "ORIGIN")
+    delete_matrices(state.main_project, "DESTINATION")
+    delete_matrices(state.main_project, "FULL")
 
     # Load data into fresh Emme matrices
-    load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, my_project)
+    load_matrices_to_emme(trip_table_in, trip_purps, fric_facs, state.main_project)
 
     # Balance matrices
-    balance_matrices(trip_purps, my_project)
+    balance_matrices(trip_purps, state)
 
     # Calculate daily trips
-    calculate_daily_trips_externals(trip_purps, my_project)
+    calculate_daily_trips_externals(trip_purps, state.main_project)
 
 
-def emme_matrix_to_np(trip_purp_list, my_project):
+def emme_matrix_to_np(trip_purp_list, state):
     """Export results from emme to numpy, for external zones only.
     Returns dictionary of arrays with keys as trip purpose."""
 
     trips_by_purpose = {}
     for purpose in trip_purp_list:
         # Load Emme O-D total trip data by purpose
-        matrix_id = my_project.bank.matrix(purpose + "od").id
-        emme_matrix = my_project.bank.matrix(matrix_id)
+        matrix_id = state.main_project.bank.matrix(purpose + "od").id
+        emme_matrix = state.main_project.bank.matrix(matrix_id)
         emme_data = emme_matrix.get_data()  # Access emme data as numpy matrix
         emme_data = np.array(emme_data.raw_data, dtype="float64")
         filtered = np.zeros_like(emme_data)
 
         # Add only external rows and columns from emme data
-        filtered[emme_config["HIGH_TAZ"] :, :] = emme_data[emme_config["HIGH_TAZ"] :, :]
-        filtered[:, emme_config["HIGH_TAZ"] :] = emme_data[:, emme_config["HIGH_TAZ"] :]
+        filtered[state.emme_settings.HIGH_TAZ :, :] = emme_data[state.emme_settings.HIGH_TAZ :, :]
+        filtered[:, state.emme_settings.HIGH_TAZ :] = emme_data[:, state.emme_settings.HIGH_TAZ :]
         trips_by_purpose[purpose] = filtered
 
     return trips_by_purpose
 
 
-def main():
+def main(state):
     # Load the trip productions and attractions
     trip_table = pd.read_csv(
-        emme_config["trip_table_loc"], index_col="taz"
+        state.emme_settings.trip_table_loc, index_col="taz"
     )  # total 4K Ps and As by trip purpose
 
     # Import gravity model coefficients by trip purpose from db
@@ -213,12 +213,15 @@ def main():
 
     output_dir = os.path.join(os.getcwd(), r"outputs\supplemental")
 
-    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
+    #my_project = state.main_project
+    if state.main_project.data_explorer.active_database().title() != "Supplementals":
+        state.main_project.change_active_database("Supplementals")
+    #EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
 
     #global dictZoneLookup
     dictZoneLookup = dict(
         (value, index)
-        for index, value in enumerate(my_project.current_scenario.zone_numbers)
+        for index, value in enumerate(state.main_project.current_scenario.zone_numbers)
     )
 
     # Load skim data
@@ -235,13 +238,13 @@ def main():
     dist_skim = (am_dist_skim + pm_dist_skim) * 0.5
 
     # Compute friction factors by trip purpose
-    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df, dictZoneLookup)
+    fric_facs = calc_fric_fac(cost_skim, dist_skim, coeff_df, dictZoneLookup, state)
 
     # Create trip table for externals
-    distribute_trips_externals(trip_table, trip_purpose_list, fric_facs, my_project)
+    distribute_trips_externals(trip_table, trip_purpose_list, fric_facs, state)
 
     # Export results as array to write to h5 file
-    ixxi_trips = emme_matrix_to_np(trip_purpose_list, my_project)
+    ixxi_trips = emme_matrix_to_np(trip_purpose_list, state)
 
     # Distribute trips by auto mode, taken from observed splits
     # All ixxi trips are HSP purpose
@@ -259,7 +262,7 @@ def main():
         ixxi_h5.create_dataset(mode, data=ixxi_data)
 
     ixxi_h5.close()
-    my_project.close()
+    #my_project.close()
 
 
 if __name__ == "__main__":

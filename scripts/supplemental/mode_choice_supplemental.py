@@ -7,17 +7,17 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
-from EmmeProject import *
+from scripts.emme_project import *
 import toml
 from settings import run_args
 from scripts.settings import state
 from pathlib import Path
 
-state = state.generate_state(run_args.args.configs_dir)
+#state = state.generate_state(run_args.args.configs_dir)
 
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
+# emme_config = toml.load(
+#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+# )
 
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
@@ -345,6 +345,7 @@ def calculate_mode_utilties(
     transit_skim_dict,
     auto_cost_dict,
     params_df,
+    state
 ):
     utility_matrices = {}
 
@@ -357,7 +358,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "autcos") * auto_cost_dict["dabct"]
     )
     utility_matrices["euda"] = clip_matrix(
-        utility_matrices["euda"], 0, zone_lookup_dict[emme_config["LOW_PNR"]]
+        utility_matrices["euda"], 0, zone_lookup_dict[state.emme_settings.LOW_PNR]
     )
 
     # Calculate Shared Ride 2 utility
@@ -367,7 +368,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "autcos") * auto_cost_dict["s2bct"]
     )
     utility_matrices["eus2"] = clip_matrix(
-        utility_matrices["eus2"], 0, zone_lookup_dict[emme_config["LOW_PNR"]]
+        utility_matrices["eus2"], 0, zone_lookup_dict[state.emme_settings.LOW_PNR]
     )
 
     # Calculate Shared Ride 3+ Utility
@@ -377,7 +378,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "autcos") * auto_cost_dict["s3bct"]
     )
     utility_matrices["eus3"] = clip_matrix(
-        utility_matrices["eus3"], 0, zone_lookup_dict[emme_config["LOW_PNR"]]
+        utility_matrices["eus3"], 0, zone_lookup_dict[state.emme_setttings.LOW_PNR]
     )
 
     # Calculate Walk to Transit Utility
@@ -396,7 +397,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "trwcos") * transit_skim_dict["farwa"]
     )
     utility_matrices["eutw"] = clip_matrix(
-        utility_matrices["eutw"], 0, zone_lookup_dict[emme_config["MIN_EXTERNAL"]]
+        utility_matrices["eutw"], 0, zone_lookup_dict[state.emme_settings.MIN_EXTERNAL]
     )
 
     # Calculate Walk to Light Rail Utility
@@ -415,7 +416,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "trwcos") * transit_skim_dict["farwa"]
     )
     utility_matrices["eurw"] = clip_matrix(
-        utility_matrices["eurw"], 0, zone_lookup_dict[emme_config["MIN_EXTERNAL"]]
+        utility_matrices["eurw"], 0, zone_lookup_dict[state.emme_settings.MIN_EXTERNAL]
     )
 
     # keep best utility between regular transit and light rail. Give to light rail if there is a tie.
@@ -428,7 +429,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "walktm") * walk_bike_skim_dict["walkt"]
     )
     utility_matrices["euwk"] = clip_matrix(
-        utility_matrices["euwk"], 0, zone_lookup_dict[emme_config["MIN_EXTERNAL"]]
+        utility_matrices["euwk"], 0, zone_lookup_dict[state.emme_settings.MIN_EXTERNAL]
     )
 
     # Calculate Bike Utility
@@ -437,7 +438,7 @@ def calculate_mode_utilties(
         + get_param(params_df, "biketm") * walk_bike_skim_dict["biket"]
     )
     utility_matrices["eubk"] = clip_matrix(
-        utility_matrices["eubk"], 0, zone_lookup_dict[emme_config["MIN_EXTERNAL"]]
+        utility_matrices["eubk"], 0, zone_lookup_dict[state.emme_settings.MIN_EXTERNAL]
     )
 
     return utility_matrices
@@ -508,11 +509,11 @@ def mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir):
     my_store.close()
 
 
-def main():
+def main(state):
     output_dir = r"outputs/supplemental/"
 
-    my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
-    zones = my_project.current_scenario.zone_numbers
+    #my_project = EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
+    zones = state.main_project.current_scenario.zone_numbers
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
     global zone_lookup_dict
     zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))

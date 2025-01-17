@@ -6,14 +6,14 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
-from EmmeProject import *
+#from scripts.emme_project import *
 import toml
 
 from settings import run_args
-from scripts.settings import state
+#from scripts.settings import state
 from pathlib import Path
 
-state = state.generate_state(run_args.args.configs_dir)
+#state = state.generate_state(run_args.args.configs_dir)
 
 emme_config = toml.load(
     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -35,7 +35,7 @@ def load_skims(skim_file_loc, table, divide_by_100=False):
         return skim_file
 
 
-def load_skim_data():
+def load_skim_data(state):
     """Load cost, time, and distance skim data required for mode choice models."""
     skim_dict = {}
 
@@ -147,7 +147,7 @@ def clip_matrix(matrix, min_index, max_index):
 
 
 def calculate_mode_utilties(
-    trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict
+    trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict, state
 ):
     utility_matrices = {}
 
@@ -190,7 +190,7 @@ def calculate_mode_utilties(
                 asc + get_param(params_df, mode + "tm") * skim_dict["time"][mode]
             )
         utility_matrices[mode] = clip_matrix(
-            util, 0, zone_lookup_dict[emme_config["LOW_PNR"]]
+            util, 0, zone_lookup_dict[state.emme_settings.LOW_PNR]
         )
 
     # Calculate Walk to Transit Utility for all submodes
@@ -240,7 +240,7 @@ def build_df(h5file, h5table, cols):
     return pd.DataFrame(data)
 
 
-def calculate_trips(daysim, parcel, control_total):
+def calculate_trips(daysim, parcel, control_total, state):
     """Calculate total daily trips to Sea-Tac based on houeshold size and employment.
            Trips to the airport are estimated using the following formula, based on surveys
            from New Jersey and North Carolina, and as applied in Minneapolis
@@ -274,7 +274,7 @@ def calculate_trips(daysim, parcel, control_total):
     adj_factor = control_total / trips["airport_trips"].sum()
     trips["adj_trips"] = trips["airport_trips"] * adj_factor
     trips = trips[["TAZ", "adj_trips"]]
-    trips["SeaTac_Taz"] = emme_config["SEATAC"]
+    trips["SeaTac_Taz"] = state.emme_settings.SEATAC
 
     return trips
 
@@ -413,12 +413,12 @@ def summarize(
     df.to_csv(os.path.join(output_dir, "airport_veh_trips_by_tod.csv"))
 
 
-def main():
+def main(state):
     output_dir = r"outputs/supplemental/"
 
-    my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp", state)
-    zones = my_project.current_scenario.zone_numbers
-    zonesDim = len(my_project.current_scenario.zone_numbers)
+    #my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp", state)
+    zones = state.main_project.current_scenario.zone_numbers
+    zonesDim = len(state.main_project.current_scenario.zone_numbers)
 
     parcel = pd.read_csv(
         "outputs/landuse/parcels_urbansim.txt", delim_whitespace=True
@@ -436,7 +436,7 @@ def main():
     # Work trips from externals are grown from observed data
     trip_purpose = "hbo"
 
-    skim_dict = load_skim_data()
+    skim_dict = load_skim_data(state)
     # Calculate average TAZ parking costs for utility calculations
     parking_costs = destination_parking_costs(parcel, zone_lookup_dict)
 
@@ -445,7 +445,7 @@ def main():
         trip_purpose, skim_dict, parking_costs, parameters_df
     )
     mode_utilities_dict = calculate_mode_utilties(
-        trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict
+        trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict, state
     )
     mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
     mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir)
@@ -457,7 +457,7 @@ def main():
     airport_control_total = pd.read_sql(
         "SELECT * FROM seatac WHERE year==" + str(config["model_year"]), con=conn
     )["enplanements"].values[0]
-    airport_trips = calculate_trips(daysim, parcel, airport_control_total)
+    airport_trips = calculate_trips(daysim, parcel, airport_control_total, state)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips["TAZ"].values]
     destination_index = zone_lookup_dict[emme_config["SEATAC"]]
@@ -506,7 +506,7 @@ def main():
     # Output final trip tables, by time of the day and trip mode.
     output_trips(output_dir, airport_matrix_dict)
 
-    my_project.close()
+    #my_project.close()
 
 if __name__ == "__main__":
     main()

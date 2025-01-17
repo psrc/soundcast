@@ -171,7 +171,7 @@ def clean_up(parcels):
     return parcels_final
 
 
-def run():
+def run(state):
     # read in data
     parcels = pd.read_csv(accessibility_configuration.parcels_file_name, sep=" ", index_col=None)
 
