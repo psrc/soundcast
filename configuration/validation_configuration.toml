@@ -11,12 +11,12 @@ model_dir = '../../../..'
 
 # ---- survey results
 # 2023
-survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
-tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
+survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_30_24_unscaled/cleaned/skims_attached/uncloned"
+tour_survey_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_30_24_unscaled/cleaned/skims_attached"
 ## updated 2023
 include_update = true
-survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_10_24/cleaned/skims_attached/uncloned"
-tour_survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_10_24/cleaned/skims_attached"
+survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached/uncloned"
+tour_survey_update_dir = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
 # 2017/2019
 include_2017_2019 = false
 survey_2017_dir = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached/uncloned"
@@ -37,34 +37,34 @@ network_summary_list = ['transit_validation',
                         'bike_validation'
                         ]
 #network_summary_list = ['traffic_validation']
-summary_list = ['all_tour_mode',
-                'all_trip_mode',
-                'auto_ownership',
-                'day_pattern',
-                'escort_tour_mode',
-                'escort_trip_mode',
-                'households',
-                'intermediate_stop_generation',
-                'other_home_based_tour_mode',
-                'other_home_based_trip_mode',
-                'persons',
-                'school_location',
-                'school_tour_mode',
-                'school_trip_mode',
-                'telecommute_analysis',
-                'telecommute',
-                'time_choice',
-                'tour_destination',
-                'tours',
-                'transit_pass_ownership',
-                'trip_destination',
-                'work_location',
-                'work_tour_mode',
-                'work_trip_mode',
-                'workbased_subtour_mode',
-                ]
-# summary_list = ['work_tour_mode','school_tour_mode','school_tour_mode',
-#     'escort_tour_mode','other_home_based_tour_mode','workbased_subtour_mode']
+#summary_list = ['all_tour_mode',
+#                'all_trip_mode',
+#                'auto_ownership',
+#                'day_pattern',
+#                'escort_tour_mode',
+#                'escort_trip_mode',
+#                'households',
+#                'intermediate_stop_generation',
+#                'other_home_based_tour_mode',
+#                'other_home_based_trip_mode',
+#                'persons',
+#                'school_location',
+#                'school_tour_mode',
+#                'school_trip_mode',
+#                'telecommute_analysis',
+#                'telecommute',
+#                'time_choice',
+#                'tour_destination',
+#                'tours',
+#                'transit_pass_ownership',
+#                'trip_destination',
+#                'work_location',
+#                'work_tour_mode',
+#                'work_trip_mode',
+#                'workbased_subtour_mode',
+#                ]
+summary_list = ['day_pattern','all_tour_mode','escort_tour_mode','other_home_based_tour_mode',
+        'school_tour_mode','work_tour_mode']
 
 # color palatte for plots
 psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]
