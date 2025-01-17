@@ -1,12 +1,18 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict
 from typing import List, Optional
 import typing
 from pathlib import Path
 import toml
 import typing
 import settings.run_args
+import sys
+import os
+sys.path.append(os.path.join(os.getcwd(), "inputs"))
+sys.path.append(os.path.join(os.getcwd(), "scripts"))
+sys.path.append(os.getcwd())
+from emme_project import EmmeProject
 #from typing_extensions import Literal
-   
+
 class InputSettings(BaseModel):
     # toml input notes:
     # dictionary keys are always interpreted as strings
@@ -15,6 +21,8 @@ class InputSettings(BaseModel):
     ##############################
     # Input paths and model years
     ##############################
+    model_config  = ConfigDict(protected_namespaces=())
+    debug_skims_and_paths: bool
     model_year: str
     base_year: str
     landuse_inputs: str
@@ -68,7 +76,7 @@ class InputSettings(BaseModel):
     distance_rate_dict: dict
 
 class EmmeSettings(BaseModel):
-    log_file_name: str 
+    log_file_name: str
     STOP_THRESHOLD: float    # Global convergence criteria
     parallel_instances: int
     relative_gap: float      # Assignment Convergence Criteria
@@ -100,7 +108,7 @@ class EmmeSettings(BaseModel):
     #################################
 
     trip_table_loc: str
-    supplemental_project: str 
+    supplemental_project: str
     supplemental_output_dir: str
 
     # Define gravity model coefficients
@@ -128,8 +136,8 @@ class NetworkSettings(BaseModel):
     #####################################
     # Network Import Settings
     ####################################
-    master_project: str
-    network_summary_project: str
+    main_project: str
+    #network_summary_project: str
     transit_tod_list: list
 
     unit_of_length: str    # units of miles in Emme
@@ -222,23 +230,23 @@ class NetworkSettings(BaseModel):
     sound_cast_net_dict: dict
 
     extra_attributes_dict: dict
-    
+
 
     # TNC fraction to assign
     # Based on survey data from SANDAG for now
     tnc_occupancy: dict
-    
+
 
 
     gc_skims: dict
     transit_node_attributes: dict
     transit_tod: dict
 
-    
+
 
     # Intrazonals
     intrazonal_dict: dict
-    
+
     #################################
     # Bike Model Settings
     #################################
@@ -253,30 +261,51 @@ class NetworkSettings(BaseModel):
     # "Premium" represents trails and fully separated bike facilities
     # "Standard" represents painted bike lanes only
     bike_facility_crosswalk: dict
-    
+
     # Perception factor values corresponding to these tiers, from Broch et al., 2012
     facility_dict: dict
-   
+
 
     # Perception factor values for 3-tiered measure of elevation gain per link
     slope_dict: dict
-    
+
     #################################
     # Truck Model Settings
     #################################
     #TOD to create Bi-Dir skims (AM/EV Peak)
     truck_generalized_cost_tod: dict
-    
+
     #GC & Distance skims that get read in from Soundcast
 
     truck_adjustment_factor: dict
 
-class State(BaseModel):
-    input_settings: InputSettings
-    emme_settings: EmmeSettings
-    network_settings: NetworkSettings
-    configs_dir: typing.Any
-    model_input_dir: typing.Any
+# class State(BaseModel):
+#     input_settings: InputSettings
+#     emme_settings: EmmeSettings
+#     network_settings: NetworkSettings
+#     configs_dir: typing.Any
+#     model_input_dir: typing.Any
+
+class State:
+    def __init__(self, input_settings, emme_settings, network_settings, configs_dir, model_input_dir):
+        self.input_settings = input_settings
+        self.emme_settings = emme_settings
+        self.network_settings = network_settings
+        self.conifgs_dir = configs_dir
+        self.model_input_dir = model_input_dir
+        self.main_project_path = network_settings.main_project 
+        self.main_project_name = self.name_from_main_project_path()
+        self.main_project = None
+
+    def create_main_project(self):
+        self.main_project = EmmeProject(self.main_project_path, self.model_input_dir)
+    
+    def name_from_main_project_path(self):
+        delimiter = '/'
+        index = self.main_project_path.rfind(delimiter)
+        res = self.main_project_path[index+len(delimiter):]
+        res = res.split('.')[0]
+        return res
 
 def generate_state(configs_dir):
     # set up configs/settings:
@@ -289,13 +318,14 @@ def generate_state(configs_dir):
         config = toml.load(configs_dir/'input_configuration.toml')
         emme_config = toml.load(configs_dir/'emme_configuration.toml')
         network_config = toml.load(configs_dir/'network_configuration.toml')
-    
+
 
     input_settings = InputSettings(**config)
     emme_settings = EmmeSettings(**emme_config)
     network_settings = NetworkSettings(**network_config)
     model_input_dir = Path(Path.cwd()/f'inputs/model/{input_settings.abm_model}/')
     
+
     return State(input_settings=input_settings,
                     emme_settings=emme_settings,
                     network_settings= network_settings,
@@ -318,16 +348,16 @@ def generate_state(configs_dir):
 #     input_settings = InputSettings(**config)
 #     emme_settings = EmmeSettings(**emme_config)
 #     network_settings = NetworkSettings(**network_config)
-    
+
 #     return Settings(input_settings=input_settings,
 #                     emme_settings=emme_settings,
 #                     network_settings= network_settings,
 #                     configs_dir= configs_dir)
-    
+
 # if __name__ == "__main__":
 #     generate_settings()
 
 
 
-    
+
 

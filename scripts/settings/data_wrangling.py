@@ -30,12 +30,12 @@ from logcontroller import *
 
 # from emme_configuration import *
 from skimming.skim_templates import *
-from settings import state
+#from settings import state
 # import input_configuration
 import glob
 import toml
 
-state = state.generate_state(run_args.args.configs_dir)
+#state = state.generate_state(run_args.args.configs_dir)
 
 # config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 # emme_config = toml.load(
@@ -67,7 +67,7 @@ def copy_daysim_code():
 
 
 @timed
-def copy_seed_skims():
+def copy_seed_skims(state):
     print(
         "You have decided to start your run by copying seed skims that Daysim will use on the first iteration. Interesting choice! This will probably take around 15 minutes because the files are big. Starting now..."
     )
@@ -111,7 +111,7 @@ def json_to_dictionary(dict_name, model_inputs_dir, subdir=""):
 
 
 @timed
-def setup_emme_bank_folders():
+def setup_emme_bank_folders(state):
     """Generate folder and empty emmebanks for each time of day period."""
 
     #tod_dict = text_to_dictionary("time_of_day", "lookup")
@@ -144,7 +144,7 @@ def setup_emme_bank_folders():
 
 
 @timed
-def setup_emme_project_folders():
+def setup_emme_project_folders(state):
     """Create Emme project folders for all time of day periods."""
 
     emme_toolbox_path = os.path.join(os.environ["EMMEPATH"], "toolboxes")
@@ -153,26 +153,9 @@ def setup_emme_project_folders():
     
     if os.path.exists(os.path.join("projects")):
         shutil.rmtree("projects")
-
-    # Create master project, associate with all emmebanks by time of day
-    project = app.create_project("projects", state.network_settings.master_project)
-    desktop = app.start_dedicated(False, "psrc", project)
-    data_explorer = desktop.data_explorer()
-    for tod in tod_list:
-        database = data_explorer.add_database("Banks/" + tod + "/emmebank")
-
-    # Open the last database added so that there is an active one
-    database.open()
-    desktop.project.save()
-    desktop.close()
-    shcopy(
-        emme_toolbox_path + "/standard.mtbx",
-        os.path.join("projects", state.network_settings.master_project),
-    )
-
+    
     # Create time of day projects, associate with emmebank
-    tod_list.append("TruckModel")
-    tod_list.append("Supplementals")
+    
 
     for tod in tod_list:
         project = app.create_project("projects", tod)
@@ -184,9 +167,28 @@ def setup_emme_project_folders():
         desktop.close()
         shcopy(emme_toolbox_path + "/standard.mtbx", os.path.join("projects", tod))
 
+    # Create master project, associate with all emmebanks by time of day
+    project = app.create_project("projects", state.main_project_name)
+    desktop = app.start_dedicated(False, "psrc", project)
+    data_explorer = desktop.data_explorer()
+    tod_list.append("TruckModel")
+    tod_list.append("Supplementals")
+
+    for tod in tod_list:
+        database = data_explorer.add_database("Banks/" + tod + "/emmebank")
+
+    # Open the last database added so that there is an active one
+    database.open()
+    desktop.project.save()
+    desktop.close()
+    shcopy(
+        emme_toolbox_path + "/standard.mtbx",
+        os.path.join("projects", state.main_project_name),
+    )
+
 
 @timed
-def copy_scenario_inputs():
+def copy_scenario_inputs(state):
     # Clear existing base_year and scenario folders
     for path in ["inputs/base_year", "inputs/scenario", "inputs/db"]:
         if os.path.exists(os.path.join(os.getcwd(), path)):
@@ -238,7 +240,7 @@ def clean_up():
 
 
 @timed
-def copy_accessibility_files():
+def copy_accessibility_files(state):
     if state.input_settings.run_integrated:
         import_integrated_inputs()
     else:
@@ -279,7 +281,7 @@ def build_output_dirs():
             os.makedirs(path)
 
 
-def import_integrated_inputs():
+def import_integrated_inputs(state):
     """
     Convert Urbansim input file into separate files:
     - parcels_urbansim.txt
@@ -309,7 +311,7 @@ def import_integrated_inputs():
     del h5_inputs["parcels"]
 
 
-def update_skim_parameters():
+def update_skim_parameters(state):
     """
     Generate skim parameter spec files from templates.
     """
@@ -405,7 +407,7 @@ def update_skim_parameters():
         file.write(json.dumps(generalized_cost_spec, indent=4, sort_keys=True))
 
 
-def update_daysim_modes():
+def update_daysim_modes(state):
     """
     Apply settings in input_configuration to daysim_configuration and roster files:
 

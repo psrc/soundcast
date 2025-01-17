@@ -20,7 +20,7 @@ import traceback
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
-from EmmeProject import *
+from scripts.emme_project import *
 from skimming.tod_parameters import *
 from skimming.user_classes import *
 from settings.data_wrangling import text_to_dictionary, json_to_dictionary
@@ -31,7 +31,7 @@ from scripts.settings import state
 from pathlib import Path
 
 skims_logger = logcontroller.create_skims_and_paths_logger()
-state = state.generate_state(run_args.args.configs_dir)
+state = state.generate_state(run_args.args.configs_dir) 
 #logging.basicConfig(filename=r'C:\Stefan\sc_refactor\soundcast\outputs\logs\test.txt', level=logging.DEBUG)
 # emme_config = toml.load(
 # os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
@@ -1145,7 +1145,7 @@ def run_bike_wrapped(project_name):
 def run_bike(project_name):
 
     start_of_run = time.time()
-    my_project = EmmeProject(project_name, state)
+    my_project = EmmeProject(project_name, state.model_input_dir)
 
     # Bicycle Assignment
     calc_bike_weight(my_project, global_daily_link_df)
@@ -1157,7 +1157,7 @@ def run_bike(project_name):
 def run_bike_test(project_name, daily_link_df):
 
     start_of_run = time.time()
-    my_project = EmmeProject(project_name)
+    my_project = EmmeProject(project_name, state.model_input_dir)
 
     # Bicycle Assignment
     calc_bike_weight(my_project, daily_link_df)
@@ -1168,7 +1168,7 @@ def run_bike_test(project_name, daily_link_df):
 def run_transit(project_name):
     start_of_run = time.time()
 
-    my_project = EmmeProject(project_name, state)
+    my_project = EmmeProject(project_name, state.model_input_dir)
 
     # Assign transit submodes, adding volumes to existing after first submode:
     counter = 0
@@ -1234,7 +1234,7 @@ def export_to_hdf5_pool(project_list, free_flow_skims):
 
 def start_export_to_hdf5(test, free_flow_skims):
 
-    my_project = EmmeProject(test, state)
+    my_project = EmmeProject(test, state.model_input_dir)
     # do not average skims if using seed_trips because we are starting the first iteration
     if free_flow_skims:
         average_skims_to_hdf5_concurrent(my_project, False)
@@ -1669,7 +1669,7 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
 
     start_of_run = time.time()
 
-    my_project = EmmeProject(project_name, state)
+    my_project = EmmeProject(project_name, state.model_input_dir)
     tod_parameters = TOD_Parameters(state.network_settings, my_project.tod)
 
     # Delete and create new demand and skim matrices:
@@ -1788,7 +1788,8 @@ def run(free_flow_skims=False, num_iterations=100):
     # Create a logging file to report model progress
     #logging.basicConfig(filename=settings.emme_settings.log_file_name, level=logging.DEBUG)
 
-
+    #global state
+    #state = my_state 
     # Report model starting
     current_time = str(time.strftime("%H:%M:%S"))
     skims_logger.info("----Began SkimsAndPaths script at " + current_time)

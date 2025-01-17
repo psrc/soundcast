@@ -20,7 +20,7 @@ import traceback
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
-from EmmeProject import *
+from scripts.emme_project import *
 from skimming.tod_parameters import *
 from skimming.user_classes import *
 from scripts.skimming.path_based_assignment import *
