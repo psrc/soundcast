@@ -31,6 +31,7 @@ summary_list = ["get_data", # always include get_data
                 'work_tour_mode',
                 'work_trip_mode',
                 'workbased_subtour_mode',
+                'erase_data'
                 ]
 # summary_list = ['work_tour_mode','school_tour_mode','school_tour_mode',
 #     'escort_tour_mode','other_home_based_tour_mode','workbased_subtour_mode']
