@@ -2,8 +2,8 @@
 # run validation notebooks
 ################################################################
 network_summary_list = ['transit_validation',
-                        # 'traffic_validation',
-                        # 'bike_validation'
+                         'traffic_validation',
+                         'bike_validation'
                         ]
 summary_list = ["get_data", # always include get_data
                 'all_tour_mode',
