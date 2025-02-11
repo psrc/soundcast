@@ -71,7 +71,7 @@ uncloned_folder = "uncloned"
 ## updated 2023
 "survey" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_30_24/cleaned/skims_attached"
 
-# 2023 old weights
-"survey (old weights)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 # 2017/2019
-# "survey (2017/2019)" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
+"survey (2017/2019)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
+# 2023 old weights
+# "survey (old weights)" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"
