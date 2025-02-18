@@ -1,0 +1,29 @@
+project:
+  type: book
+  output-dir: "../telecommute-analysis-notebook"
+  
+book:
+  title: "Telecommute Analysis"
+  repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize/validation
+  search: false
+  sidebar:
+    logo: ../PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - telecommute_analysis.ipynb
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, custom.scss]
+      dark: [darkly, custom.scss]
+    echo: false
+    code-tools: true
+
+toc: true
+
+
+
+
