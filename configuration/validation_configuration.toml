@@ -20,7 +20,6 @@ summary_list = ["get_data", # always include get_data
                 'school_location',
                 'school_tour_mode',
                 'school_trip_mode',
-                'telecommute_analysis',
                 'telecommute',
                 'time_choice',
                 'tour_destination',
@@ -33,6 +32,7 @@ summary_list = ["get_data", # always include get_data
                 'work_trip_mode',
                 'workbased_subtour_mode',
                 'workbased_subtour_generation',
+                '../telecommute_analysis/telecommute_analysis', # run telecommute analysis page (separate page)
                 'erase_data'
                 ]
 # summary_list = ['work_tour_mode','school_tour_mode','school_tour_mode',

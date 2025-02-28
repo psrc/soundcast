@@ -37,7 +37,7 @@ def main():
         )
 
     # render quarto book
-    # TODO: automate _quarto.yml chapter list
+    ## validation notebook
     text = "quarto render " + os.path.join(r"scripts/summarize/validation")
     os.system(text)
     print("validation notebook created")
@@ -49,6 +49,28 @@ def main():
         (os.path.join(r"scripts/summarize/validation", "validation-notebook")),
         output_dir,
     )
+
+    ## separate notebook for telecommute analysis
+    if "../telecommute_analysis/telecommute_analysis" in config["summary_list"]:
+
+        telecommute_analysis_output_dir = os.path.join(
+            os.getcwd(), config["p_output_dir"], "telecommute-analysis-notebook"
+        )
+        if os.path.exists(telecommute_analysis_output_dir):
+            shutil.rmtree(telecommute_analysis_output_dir)
+
+        text = "quarto render " + os.path.join(r"scripts/summarize/validation/telecommute_analysis")
+        os.system(text)
+        print("telecommute analysis notebook created")
+
+        # Move these files to output folder
+        if not os.path.exists(os.path.join(os.getcwd(), config["p_output_dir"])):
+            os.makedirs(os.path.join(os.getcwd(), config["p_output_dir"]))
+        shutil.move(
+            (os.path.join(r"scripts/summarize/validation", "telecommute-analysis-notebook")),
+            telecommute_analysis_output_dir,
+        )
+      
 
 
 if __name__ == "__main__":
