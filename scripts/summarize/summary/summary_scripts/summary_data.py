@@ -13,7 +13,7 @@ def _get_all_runs() -> dict:
     """
     a dictionary of soundcast runs, includes current run and any comparison runs
     """
-    runs_dict = {"current run": Path(CONFIG["sc_run_path"])}
+    runs_dict = {CONFIG["sc_run_name"]: Path(CONFIG["sc_run_path"])}
 
     dict2 = CONFIG["comparison_runs_list"]
     for comparison_run, location in dict2.items():

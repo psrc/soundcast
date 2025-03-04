@@ -17,6 +17,11 @@ p_output_dir = 'outputs/2023_summary'
 
 sc_run_path = '../../../../'
 # sc_run_path = 'C:/workspace/sc_2023_08_05_24'
+
+# current run name
+# sc_run_name = "current run"
+sc_run_name = "2023 base year"
+
 output_folder = 'outputs'
 survey_folder = 'inputs/base_year/survey'
 # output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
@@ -27,7 +32,7 @@ survey_folder = 'inputs/base_year/survey'
 # run summary notebooks
 #################################
 # run jupyter scripts
-summary_list = ['topsheet', 'vmt']
+summary_list = ['topsheet','vmt']
 
 #################################
 # NETWORK SUMMARY
@@ -152,7 +157,9 @@ max_dist = 24140.2
 
 # source names
 [comparison_runs_list]
-# 'i5 toll' = 'C:/workspace/sc_2050_i5_toll'
+'2050' = 'C:/workspace/sc_2050_base_year_2023'
+'2050 (no telecommute)' = 'C:/workspace/\sc_2050_base_year_2023_no_telecommute'
+
 
 #################################
 # Summary Comparisons
