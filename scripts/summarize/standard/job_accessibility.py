@@ -187,6 +187,8 @@ def bike_walk_jobs_access(links, nodes, parcel_df, parcel_geog, distances, geo_l
     imp = pd.DataFrame(links.Shape_Length)
     imp = imp.rename(columns={"Shape_Length": "distance"})
 
+    links = links[links['to_node_id'].isin(nodes.index) & links['from_node_id'].isin(nodes.index)]
+
     # create pandana network
     net = pdna.network.Network(
         nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp
