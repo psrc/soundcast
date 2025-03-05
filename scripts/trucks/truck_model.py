@@ -314,12 +314,12 @@ def calculate_impedance(my_project, conn):
 
     # set flag to 0 for external-external OD paris and all others equal to 1
     my_project.matrix_calculator(result="mfintflg", expression="1")
-    my_project.matrix_calculator(
-        result="mfintflg",
-        expression="0",
-        constraint_by_zone_destinations=network_config["EXTERNAL_DISTRICT"],
-        constraint_by_zone_origins=network_config["EXTERNAL_DISTRICT"],
-    )
+    # my_project.matrix_calculator(
+    #     result="mfintflg",
+    #     expression="0",
+    #     constraint_by_zone_destinations=network_config["EXTERNAL_DISTRICT"],
+    #     constraint_by_zone_origins=network_config["EXTERNAL_DISTRICT"],
+    # )
 
     # calculate medium truck impedances:
     my_project.matrix_calculator(
