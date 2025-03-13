@@ -1,4 +1,5 @@
 import pandas as pd
+import h5py
 import numpy as np
 import toml
 from pathlib import Path
@@ -37,7 +38,7 @@ def get_output_path(comparison_run: str) -> Path:
     return ALL_RUNS[comparison_run] / CONFIG["output_folder"]
 
 
-def load_agg_data(output_path: str):
+def load_agg_data(file_path: str):
     """
     get aggregated summary tables for all runs.
 
@@ -49,10 +50,16 @@ def load_agg_data(output_path: str):
 
     df = pd.DataFrame()
     for comparison_run in ALL_RUNS.keys():
-        if output_path == "network/network_results.csv":
+        
+        full_file_path = get_output_path(comparison_run) / file_path
+
+        if file_path == "network/network_results.csv":
             df_run = _process_network_summary(comparison_run)
         else:
-            df_run = pd.read_csv(get_output_path(comparison_run) / output_path)
+            if str(full_file_path).endswith('.csv'):
+                df_run = pd.read_csv(full_file_path)
+            # elif str(full_file_path).endswith('.h5'):
+            #     df_run = h5py.File(full_file_path, 'r')
 
         df_run["source"] = comparison_run
         df = pd.concat([df, df_run])
