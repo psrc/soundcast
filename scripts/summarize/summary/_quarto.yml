@@ -13,6 +13,8 @@ book:
     - index.qmd
     - summary_scripts/topsheet.ipynb
     - summary_scripts/vmt.ipynb
+    - summary_scripts/transit.ipynb
+    - summary_scripts/trucks.ipynb
         
 
 format:

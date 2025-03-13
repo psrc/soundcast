@@ -15,24 +15,11 @@ weekday_to_annual = 300
 # summary output directory
 p_output_dir = 'outputs/2023_summary'
 
-sc_run_path = '../../../../'
-# sc_run_path = 'C:/workspace/sc_2023_08_05_24'
-
-# current run name
-# sc_run_name = "current run"
-sc_run_name = "2023 base year"
-
 output_folder = 'outputs'
 survey_folder = 'inputs/base_year/survey'
 # output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
 # survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
 
-
-#################################
-# run summary notebooks
-#################################
-# run jupyter scripts
-summary_list = ['topsheet','vmt']
 
 #################################
 # NETWORK SUMMARY
@@ -144,6 +131,29 @@ links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
 # transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
 max_dist = 24140.2
 
+##################################################################
+# Summary Comparisons: current run and comparison run directories
+##################################################################
+
+
+#################################
+# run summary notebooks
+#################################
+
+# run jupyter scripts
+summary_list = ['topsheet','vmt', 'transit']
+
+# current run name and directory
+sc_run_name = "current run"
+sc_run_path = '../../../../'
+# sc_run_name = "2023 base year"
+# sc_run_path = '//modelstation2/c$/Workspace/sc_23_02_17_25'
+
+# Summary Comparisons: add comparison run directories
+[comparison_runs_list]
+'2050' = 'C:/workspace/sc_2050_base_year_2023'
+'2050 (no telecommute)' = 'C:/workspace/sc_2050_base_year_2023_no_telecommute'
+
 
 # dictionaries
 
@@ -155,15 +165,6 @@ max_dist = 24140.2
 # [comparison_runs]
 # compare_survey = true    # compare daysim results in Tableau and topsheet outputs
 
-# source names
-[comparison_runs_list]
-'2050' = 'C:/workspace/sc_2050_base_year_2023'
-'2050 (no telecommute)' = 'C:/workspace/\sc_2050_base_year_2023_no_telecommute'
-
-
-#################################
-# Summary Comparisons
-#################################
 [comparison_dict]
 2018 = "C:\\Workspace\\sc_2018_rtp\\soundcast"
 2050 = "C:\\Workspace\\sc_2050_rtp\\soundcast"
