@@ -1,6 +1,8 @@
+import os
 import pandas as pd
 import numpy as np
 import toml
+import sqlite3
 from pathlib import Path
 
 # from typing import Any
@@ -100,5 +102,36 @@ def _process_network_summary(comparison_run: str):
     df["total_delay"] = (
         (df["auto_time"] - df["freeflow_time"]) * df["@tveh"]
     ) / 60  # sum of (volume)*(travtime diff from freeflow)
+
+    return df
+
+def load_landuse(output_path: str, usecols: list = None):
+    """
+    get land use data for all runs.
+
+    key argument:
+        output_path: file location relative to output folder
+    """
+
+    df = pd.DataFrame()
+    for comparison_run in ALL_RUNS.keys():
+        df_run = pd.read_csv(get_output_path(comparison_run) / output_path, sep=' ', usecols=usecols)
+
+        # Ensure lower case column names
+        df_run.columns = df_run.columns.str.lower()
+
+        df_run["source"] = comparison_run
+        df = pd.concat([df, df_run])
+
+    return df
+
+def load_sqlite(sql_query):
+    df = pd.DataFrame()
+    for comparison_run in ALL_RUNS.keys():
+
+        con = sqlite3.connect(os.path.join(get_output_path(comparison_run), r'../inputs/db/soundcast_inputs_2023.db'))
+        df_run = pd.read_sql_query(sql_query, con)
+        df_run["source"] = comparison_run        
+        df = pd.concat([df, df_run])
 
     return df
