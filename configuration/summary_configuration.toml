@@ -151,8 +151,9 @@ sc_run_path = '../../../../'
 
 # Summary Comparisons: add comparison run directories
 [comparison_runs_list]
-'2050 (lower WFH and no telecommute)' = '\\modelstation1\c$\workspace\sc_2050_base_year_2023_no_telecommute_half_wfh'
-'2050 (lower WFH,  no telecommute, new LU)' = '\\modelstation1\c$\workspace\sc_2050_base_year_2023_no_telecommute_half_wfh_new_lu'
+'2050 (lower WFH and no telecommute, new LU FRESH RUN)' = '\\modelstation1\c$\workspace\sc_2050_base_year_no_telecommute_half_wfh_new_lu_03_14_25'
+'2050 (lower WFH,  no telecommute, OLD LU)' = '\\modelstation1\c$\workspace\sc_2050_base_year_2023_no_telecommute_half_wfh_new_lu'
+'2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
 
 
 
