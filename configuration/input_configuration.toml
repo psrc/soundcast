@@ -8,7 +8,7 @@
 model_year = '2023'
 base_year = '2023'
 landuse_inputs = '23_on_23_v3'
-network_inputs = 'network_2023_v5'
+network_inputs = 'network_2023_v6'
 db_name = 'soundcast_inputs_2023.db'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
 

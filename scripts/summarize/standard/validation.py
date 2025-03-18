@@ -110,14 +110,15 @@ def main():
     # Load observed data for given base year
     df_obs = pd.read_sql(
         text(
-            "SELECT * FROM observed_transit_boardings WHERE year="
-            + str(config["base_year"])
+            "SELECT * FROM observed_transit_boardings WHERE year IN (2023, 2024)"
         ),
         con=conn.connect(),
     )
     df_obs["route_id"] = df_obs["route_id"].astype("int")
+    df_obs_pivot = df_obs.pivot_table(index='route_id', columns='year', values='observed_daily', aggfunc='sum').reset_index()
+    df_obs = df_obs_pivot.merge(df_obs[['route_id','agency']].drop_duplicates(), on='route_id', how='left')
     df_line_obs = df_obs.copy()
-
+    
     # Load model results and calculate modeled daily boarding by line
     df_transit_line = pd.read_csv(r"outputs\transit\transit_line_results.csv")
     df_model = df_transit_line.copy()
@@ -139,12 +140,6 @@ def main():
         },
         inplace=True,
     )
-    df["diff"] = df["model_boardings"] - df["observed_boardings"]
-    df["perc_diff"] = df["diff"] / df["observed_boardings"]
-    df[["model_boardings", "observed_boardings"]] = df[
-        ["model_boardings", "observed_boardings"]
-    ].fillna(-1)
-
     # Write to file
     df.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_by_line.csv"), index=False
@@ -152,28 +147,23 @@ def main():
 
     # Boardings by agency
     df_agency = df.groupby(["agency"]).sum().reset_index()
-    df_agency["diff"] = df_agency["model_boardings"] - df_agency["observed_boardings"]
-    df_agency["perc_diff"] = df_agency["diff"] / df_agency["observed_boardings"]
     df_agency.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_by_agency.csv"),
         index=False,
         columns=[
             "agency",
-            "observed_boardings",
             "model_boardings",
-            "diff",
-            "perc_diff",
+            2023,
+            2024
         ],
     )
 
     # Boardings by mode
     df_mode = df.groupby(["mode"]).sum().reset_index()
-    df_mode["diff"] = df_mode["model_boardings"] - df_mode["observed_boardings"]
-    df_mode["perc_diff"] = df_mode["diff"] / df_mode["observed_boardings"]
     df_mode.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_by_mode.csv"),
         index=False,
-        columns=["mode", "observed_boardings", "model_boardings", "diff", "perc_diff"],
+        columns=["mode", "model_boardings", 2023, 2024],
     )
 
     # Boardings for special lines
@@ -189,10 +179,9 @@ def main():
             "description",
             "route_code",
             "agency",
-            "observed_boardings",
             "model_boardings",
-            "diff",
-            "perc_diff",
+            2023,
+            2024
         ],
     )
 
@@ -449,8 +438,8 @@ def main():
     # Average  6 and 7 pm observed data
     df_obs["6pm_spd_7pm_spd_avg"] = (df_obs["6pm_spd"] + df_obs["7pm_spd"]) / 2.0
 
-    df_obs[["Flag1", "Flag2", "Flag3", "Flag4", "Flag5", "Flag6"]] = (
-        df_obs[["Flag1", "Flag2", "Flag3", "Flag4", "Flag5", "Flag6"]]
+    df_obs[["Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"]] = (
+        df_obs[["Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"]]
         .fillna(-1)
         .astype("int")
     )
@@ -498,10 +487,10 @@ def main():
     # Get the corridor number from the flag file
     flag_lookup_df = pd.melt(
         df_obs[
-            ["Corridor_Number", "Flag1", "Flag2", "Flag3", "Flag4", "Flag5", "Flag6"]
+            ["Corridor_Number", "Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"]
         ],
         id_vars="Corridor_Number",
-        value_vars=["Flag1", "Flag2", "Flag3", "Flag4", "Flag5", "Flag6"],
+        value_vars=["Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"],
         var_name="flag_number",
         value_name="flag_value",
     )
