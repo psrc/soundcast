@@ -203,7 +203,7 @@ def check_convergence(iteration, recipr_sample):
 def run_all_summaries():
 
     base_path = 'scripts/summarize/standard'
-    for script in ['daily_bank','network_summary','emissions','agg','validation','job_accessibility']:
+    for script in ['daily_bank','network_summary','transit_summary','emissions','agg','validation','job_accessibility']:
         print(script)
         subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
     subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py', shell=True)

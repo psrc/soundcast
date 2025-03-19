@@ -19,16 +19,12 @@ sys.path.append(os.path.dirname(CURRENT_DIR))
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-import inro.emme.database.emmebank as _eb
 import pandas as pd
 import numpy as np
 import json
 import h5py
 from sqlalchemy import create_engine
 from EmmeProject import EmmeProject
-
-# from standard_summary_configuration import *
-# pd.options.mode.chained_assignment = None  # mute chained assignment warnings
 import toml
 
 config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
@@ -169,67 +165,6 @@ def freeflow_skims(my_project, dictZoneLookup):
         skim_df = skim_df.reset_index(drop=True)
         df = pd.merge(df, skim_df[["od", "sov_ff_time"]], on="od", how="left")
         df.to_csv(output_dir, sep="\t", index=False)
-
-
-def jobs_transit(output_path):
-    buf = pd.read_csv(r"outputs/landuse/buffered_parcels.txt", sep=" ")
-
-    # distance to any transit stop
-    df = buf[
-        [
-            "parcelid",
-            "dist_lbus",
-            "dist_crt",
-            "dist_fry",
-            "dist_lrt",
-            "hh_p",
-            "stugrd_p",
-            "stuhgh_p",
-            "stuuni_p",
-            "empedu_p",
-            "empfoo_p",
-            "empgov_p",
-            "empind_p",
-            "empmed_p",
-            "empofc_p",
-            "empret_p",
-            "empsvc_p",
-            "empoth_p",
-            "emptot_p",
-        ]
-    ]
-    df.index = df["parcelid"]
-
-    # Use minimum distance to any transit stop
-    newdf = pd.DataFrame(
-        df[["dist_lbus", "dist_crt", "dist_fry", "dist_lrt"]].min(axis=1)
-    )
-    newdf = newdf.reset_index()
-    df = df.reset_index(drop=True)
-    newdf.rename(columns={0: "nearest_transit"}, inplace=True)
-    df = pd.merge(df, newdf[["parcelid", "nearest_transit"]], on="parcelid")
-
-    # only sum for parcels closer than quarter mile to stop
-    quarter_mile_jobs = pd.DataFrame(df[df["nearest_transit"] <= 0.25].sum())
-    quarter_mile_jobs.rename(columns={0: "quarter_mile_transit"}, inplace=True)
-    all_jobs = pd.DataFrame(df.sum())
-    all_jobs.rename(columns={0: "total"}, inplace=True)
-
-    df = pd.merge(all_jobs, quarter_mile_jobs, left_index=True, right_index=True)
-    df.drop(
-        [
-            "parcelid",
-            "dist_lbus",
-            "dist_crt",
-            "dist_fry",
-            "dist_lrt",
-            "nearest_transit",
-        ],
-        inplace=True,
-    )
-
-    df.to_csv(output_path)
-
 
 def export_network_attributes(network):
     """Calculate link-level results by time-of-day, append to csv"""
@@ -568,117 +503,14 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
 
     return _df_transit_line, _df_transit_node, _df_transit_segment
 
-
-def summarize_transit_detail(
-    df_transit_line, df_transit_node, df_transit_segment, conn
-):
-    """Sumarize various transit measures."""
-
-    df_transit_line["agency_code"] = df_transit_line["agency_code"].astype("int")
-    df_transit_line["route_code"] = df_transit_line["route_code"].astype("int")
-
-    # Daily trip totals by submode
-    bank = _eb.Emmebank(os.path.join(os.getcwd(), r"Banks/daily/emmebank"))
-
-    df = pd.DataFrame()
-    for mode in ["commuter_rail", "litrat", "ferry", "passenger_ferry", "trnst"]:
-        df.loc[mode, "total_trips"] = bank.matrix(mode).get_numpy_data().sum()
-    df.to_csv(r"outputs\transit\total_transit_trips.csv")
-
-    # Boardings by agency
-    df_transit_line["agency_name"] = df_transit_line["agency_code"].map(
-        {int(k): v for k, v in sum_config["agency_lookup"].items()}
-    )
-    df_daily = (
-        df_transit_line.groupby("agency_name")
-        .sum()[["boardings"]]
-        .reset_index()
-        .sort_values("boardings", ascending=False)
-    )
-    df_daily.to_csv(sum_config["boardings_by_agency_path"], index=False)
-
-    # Boardings for special routes
-    df_special = (
-        df_transit_line[
-            df_transit_line["route_code"].isin(
-                {int(k) for k in sum_config["special_route_lookup"].keys()}
-            )
-        ]
-        .groupby("route_code")
-        .sum()[["boardings"]]
-        .sort_values("boardings", ascending=False)
-    )
-    df_special = df_special.reset_index()
-    df_special["description"] = df_special["route_code"].map(
-        {int(k): v for k, v in sum_config["special_route_lookup"].items()}
-    )
-    df_special[["route_code", "description", "boardings"]].to_csv(
-        sum_config["special_routes_path"], index=False
-    )
-
-    # Boardings by Time of Day
-    df_tod_agency = df_transit_line.pivot_table(
-        columns="tod", index="agency_name", values="boardings", aggfunc="sum"
-    )
-    df_tod_agency = df_tod_agency[network_config["transit_tod_list"]]
-    df_tod_agency = df_tod_agency.sort_values("7to8", ascending=False).reset_index()
-    df_tod_agency.to_csv(sum_config["boardings_by_tod_agency_path"], index=False)
-
-    # Daily Boardings by Stop
-    df_transit_segment = pd.read_csv(r"outputs\transit\transit_segment_results.csv")
-    df_transit_node = pd.read_csv(r"outputs\transit\transit_node_results.csv")
-    df_transit_segment = df_transit_segment.groupby("i_node").sum().reset_index()
-    df_transit_node = df_transit_node.groupby("node_id").sum().reset_index()
-    df = pd.merge(
-        df_transit_node, df_transit_segment, left_on="node_id", right_on="i_node"
-    )
-    df.rename(columns={"segment_boarding": "total_boardings"}, inplace=True)
-    df["transfers"] = df["total_boardings"] - df["initial_boardings"]
-    df.to_csv(sum_config["boardings_by_stop_path"])
-
-    # Light rail station boardings
-    df = pd.read_csv(sum_config["boardings_by_stop_path"])
-    df_obs = pd.read_sql("SELECT * FROM light_rail_station_boardings", con=conn)
-    df_obs["year"] = df_obs["year"].fillna(0).astype("int")
-    df_obs = df_obs[
-        (df_obs["year"] == int(config["base_year"])) | (df_obs["year"] == 0)
-    ]
-
-    # Translate daily boardings to 5 to 20
-    df_line_obs = pd.read_sql(
-        "SELECT * FROM observed_transit_boardings WHERE year="
-        + str(config["base_year"]),
-        con=conn,
-    )
-    df_line_obs["route_id"] = df_line_obs["route_id"].astype("int")
-    light_rail_list = [6996]
-    daily_factor = df_line_obs[df_line_obs["route_id"].isin(light_rail_list)][
-        "daily_factor"
-    ].values[0]
-    df_obs["observed_5to20"] = df_obs["boardings"] / daily_factor
-
-    df = df[df["i_node"].isin(df_obs["emme_node"])]
-    df.rename(columns={"total_boardings": "modeled_5to20"}, inplace=True)
-
-    if len(df_obs) > 0:
-        df = df.merge(df_obs, left_on="i_node", right_on="emme_node")
-        cols = ["observed_5to20", "modeled_5to20"]
-    else:
-        cols = ["modeled_5to20"]
-
-    df_total = df.copy()[cols]
-    df_total.loc["Total", cols] = df[cols].sum().values
-    df_total.to_csv(sum_config["light_rail_boardings_path"])
-
-
 def main():
     conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
 
     # Delete any existing files
     for _path in [
-        sum_config["transit_line_path"],
-        sum_config["transit_node_path"],
-        sum_config["transit_segment_path"],
+        "outputs/transit/transit_line_results.csv",
+        "outputs/transit/transit_node_results.csv",
+        "outputs/transit/transit_segment_results.csv",
         sum_config["network_results_path"],
     ]:
         if os.path.exists(_path):
@@ -807,9 +639,9 @@ def main():
     output_dict = {
         sum_config["network_results_path"]: network_df,
         sum_config["iz_vol_path"]: df_iz_vol,
-        sum_config["transit_line_path"]: df_transit_line,
-        sum_config["transit_node_path"]: df_transit_node,
-        sum_config["transit_segment_path"]: df_transit_segment,
+        "outputs/transit/transit_line_results.csv": df_transit_line,
+        "outputs/transit/transit_node_results.csv": df_transit_node,
+        "outputs/transit/transit_segment_results.csv": df_transit_segment,
     }
 
     # Append hourly results to file output
@@ -819,9 +651,6 @@ def main():
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
     freeflow_skims(my_project, dictZoneLookup)
 
-    # Export number of jobs near transit stops
-    jobs_transit("outputs/transit/transit_access.csv")
-
     # Export transit transfers
     df_transit_transfers.to_csv("outputs/transit/transit_transfers.csv")
 
@@ -830,13 +659,6 @@ def main():
         r"outputs/network/network_summary.xlsx", engine="xlsxwriter"
     )
     summarize_network(network_df, writer)
-
-    # create detailed transit summaries
-    df_transit_line = pd.read_csv(sum_config["transit_line_path"])
-    df_transit_node = pd.read_csv(sum_config["transit_node_path"])
-    df_transit_segment = pd.read_csv(sum_config["transit_segment_path"])
-    summarize_transit_detail(df_transit_line, df_transit_node, df_transit_segment, conn)
-
 
 if __name__ == "__main__":
     main()
