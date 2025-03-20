@@ -279,11 +279,11 @@ def main():
     if state.input_settings.run_integrated:
         data_wrangling.import_integrated_inputs(state)
 
-    # If debugging SkimsAndPaths, cannot have another instance of Emme Modeller running
-    # if not state.input_settings.debug_skims_and_paths:
-    #     # This is the main project/modeller instance that will stay open for the entire run. 
-    #     # Used for all single process EMME workflows.  
-    #     state.create_main_project()
+    #If debugging SkimsAndPaths, cannot have another instance of Emme Modeller running
+    if not state.input_settings.debug_skims_and_paths:
+        # This is the main project/modeller instance that will stay open for the entire run. 
+        # Used for all single process EMME workflows.  
+        state.create_main_project()
 
     if state.input_settings.run_accessibility_calcs:
         accessibility_calcs()
