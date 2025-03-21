@@ -197,35 +197,23 @@ def calculate_intrazonal_vmt():
 
     # Sum up SOV, HOV2, and HOV3 volumes across user classes 1, 2, and 3 by time of day
     # Calcualte VMT for these trips too; rename truck volumes for clarity
+    new_columns = []
     for tod in sum_config["tod_lookup"].keys():
-        df_iz["sov_" + tod + "_vol"] = (
-            df_iz["sov_inc1_" + tod]
-            + df_iz["sov_inc2_" + tod]
-            + df_iz["sov_inc3_" + tod]
+        new_columns.append(
+            pd.DataFrame({
+                "sov_" + tod + "_vol": df_iz["sov_inc1_" + tod] + df_iz["sov_inc2_" + tod] + df_iz["sov_inc3_" + tod],
+                "hov2_" + tod + "_vol": df_iz["hov2_inc1_" + tod] + df_iz["hov2_inc2_" + tod] + df_iz["hov2_inc3_" + tod],
+                "hov3_" + tod + "_vol": df_iz["hov3_inc1_" + tod] + df_iz["hov3_inc2_" + tod] + df_iz["hov3_inc3_" + tod],
+                "mediumtruck_" + tod + "_vol": df_iz["medium_truck_" + tod],
+                "heavytruck_" + tod + "_vol": df_iz["heavy_truck_" + tod],
+                "sov_" + tod + "_vmt": (df_iz["sov_inc1_" + tod] + df_iz["sov_inc2_" + tod] + df_iz["sov_inc3_" + tod]) * df_iz["izdist"],
+                "hov2_" + tod + "_vmt": (df_iz["hov2_inc1_" + tod] + df_iz["hov2_inc2_" + tod] + df_iz["hov2_inc3_" + tod]) * df_iz["izdist"],
+                "hov3_" + tod + "_vmt": (df_iz["hov3_inc1_" + tod] + df_iz["hov3_inc2_" + tod] + df_iz["hov3_inc3_" + tod]) * df_iz["izdist"],
+                "mediumtruck_" + tod + "_vmt": df_iz["medium_truck_" + tod] * df_iz["izdist"],
+                "heavytruck_" + tod + "_vmt": df_iz["heavy_truck_" + tod] * df_iz["izdist"]
+            })
         )
-        df_iz["hov2_" + tod + "_vol"] = (
-            df_iz["hov2_inc1_" + tod]
-            + df_iz["hov2_inc2_" + tod]
-            + df_iz["hov2_inc3_" + tod]
-        )
-        df_iz["hov3_" + tod + "_vol"] = (
-            df_iz["hov3_inc1_" + tod]
-            + df_iz["hov3_inc2_" + tod]
-            + df_iz["hov3_inc3_" + tod]
-        )
-        df_iz["mediumtruck_" + tod + "_vol"] = df_iz["medium_truck_" + tod]
-        df_iz["heavytruck_" + tod + "_vol"] = df_iz["heavy_truck_" + tod]
-
-        # Calculate VMT as intrazonal distance times volumes
-        df_iz["sov_" + tod + "_vmt"] = df_iz["sov_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["hov2_" + tod + "_vmt"] = df_iz["hov2_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["hov3_" + tod + "_vmt"] = df_iz["hov3_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["mediumtruck_" + tod + "_vmt"] = (
-            df_iz["mediumtruck_" + tod + "_vol"] * df_iz["izdist"]
-        )
-        df_iz["heavytruck_" + tod + "_vmt"] = (
-            df_iz["heavytruck_" + tod + "_vol"] * df_iz["izdist"]
-        )
+    df_iz = pd.concat([df_iz] + new_columns, axis=1)
 
     # Group totals by vehicle type, time-of-day, and county
     df = df_iz.groupby("geog_name").sum().T

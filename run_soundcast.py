@@ -70,6 +70,7 @@ def accessibility_calcs():
         print('Accessibility Calculations Failed For Some Reason :(')
         sys.exit(1)
     print('Done with accessibility calculations')
+    returncode = subprocess.call([sys.executable, 'scripts/summarize/standard/parcel_summary.py'])
 
 @timed    
 def build_seed_skims(max_iterations):

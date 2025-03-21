@@ -1,25 +1,5 @@
-# values
-
-#################################
-# Summary Comparisons
-#################################
-run_rtp = true
-run_comparison = false
-
 # annualization factor; continuing with value used from Vision 2050
 weekday_to_annual = 300
-
-#################################
-# RELATIVE PATHS between notebooks and output/survey directories
-#################################
-# summary output directory
-p_output_dir = 'outputs/2023_summary'
-
-output_folder = 'outputs'
-survey_folder = 'inputs/base_year/survey'
-# output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
-# survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
-
 
 #################################
 # NETWORK SUMMARY
@@ -31,57 +11,6 @@ iz_vol_path = 'outputs/network/iz_vol.csv'
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
 
-
-################################################
-# Emissions calculations
-################################################
-
-# Base year distribution of vehicles by type (2014)
-# Note that the totals by county above (for 2014) 
-# include buses, so the totals below do not match up
-# The difference is buses
-
-# For GHG Analysis see:
-# X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
-
-# Total vehicles predicted from Auto Ownership model for base year 2018 
-# tot_veh_model_base_year = 3007232
-
-
-
-# List of pollutants to be summarized for summer
-# All other are to be summarized for winter season
-# using wintertime rates for all start emission rates except for VOCs
-# per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
-summer_list = [87]
-
-speed_bins = [-999999.0, 2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 999999.0] 
-# speed_bins_labels = range(1, len(speed_bins))
-
-################################################################
-# Summary input files and output directory names
-################################################################
-
-# Input Files
-###
-### FIXME: put in db
-###
-# counts_file = 'inputs/base_year/observed/TrafficCounts_Mid.txt'
-# aadt_counts_file = 'inputs/base_year/observed/observed_aadt.csv'
-# tptt_counts_file = 'inputs/base_year/observed/observed_tptt.csv'
-# loop_counts_file = 'inputs/base_year/observed/observed_loop_counts.csv'
-# screenlines_file = 'inputs/base_year/observed/observed_screenline_volumes.csv'
-# truck_counts_file = 'inputs/base_year/observed/observed_truck_counts.csv' 
-# observed_boardings_file = 'inputs/base_year/observed/observed_transit_boardings.csv'
-# light_rail_boardings = 'inputs/base_year/observed/observed_light_rail_boardings.csv'
-# screenline_counts_file = 'inputs/base_year/observed/observed_screenline_counts.txt'
-# daily_counts_file = 'inputs/base_year/observed/observed_daily_counts.csv'
-
-# Output Files 
-# network_summary_dir = 'outputs/network/network_summary.xlsx'
-# validation_summary_dir = 'outputs/network/validation.xlsx'
-# transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
-
 uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
             '@hov2_inc1','@hov2_inc2','@hov2_inc3',
             '@hov3_inc1','@hov3_inc2','@hov3_inc3',
@@ -90,41 +19,49 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
             '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
             '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
 
-######## Observed Transit Boardings############################################
-
-
-
-#### Transit Groupings ###############################################################
-# transit_time_group_file= 'inputs/model/lookup/transit_time_groups.csv'
-# route_group_file = 'inputs/model/lookup/transit_route_groups.csv'
-# special_routes_file = 'inputs/model/lookup/transit_special_routes.csv'
-
-# Bikes
-# bike_link_vol = 'outputs/bike/bike_volumes.csv'
-# bike_count_data = 'inputs/base_year/observed/bike_count_links.csv'
-# edges_file = 'inputs/scenario/bike/edges_0.txt'
-
-# Parcel Summary
-# parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
-# parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
 parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
 output_parcels = 'outputs/landuse/buffered_parcels.txt'
 nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
 links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
-# transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
 max_dist = 24140.2
 
-##################################################################
-# Summary Comparisons: current run and comparison run directories
-##################################################################
+#################################
+# Emissions
+#################################
+summer_list = [87]
 
+speed_bins = [
+    -999999.0,
+    2.5,
+    7.5,
+    12.5,
+    17.5,
+    22.5,
+    27.5,
+    32.5,
+    37.5,
+    42.5,
+    47.5,
+    52.5,
+    57.5,
+    62.5,
+    67.5,
+    72.5,
+    999999.0,
+]
 
 #################################
 # run summary notebooks
 #################################
 
+# summary output directory
+p_output_dir = 'outputs/2023_summary'
+
+output_folder = 'outputs'
+survey_folder = 'inputs/base_year/survey'
+
 # run jupyter scripts
-summary_list = ['topsheet','vmt', 'transit']
+summary_list = ['topsheet','vmt', 'hh_person_lu', 'transit']
 
 # current run name and directory
 sc_run_name = "current run"
@@ -134,27 +71,10 @@ sc_run_path = '../../../../'
 
 # Summary Comparisons: add comparison run directories
 [comparison_runs_list]
-'2050 update (lower WFH and no telecommute)' = '\\modelstation1\c$\workspace\sc_2050_base_year_no_telecommute_half_wfh_new_lu_03_14_25'
-'2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'
+'2050 new LU' = '\\modelstation1\c$\workspace\sc_2050-with_2023_telecommute_and_wfh_03_20_25'
+'2050 new LU, less WFH, no telecommute' = '\\modelstation1\c$\workspace\sc_2050_base_year_no_telecommute_half_wfh_new_lu_03_14_25'
+'2050 old LU' = '\\modelstation1\c$\workspace\sc_2050_23baseyear_RTPlanduse_031925'
 '2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
-
-
-
-
-# dictionaries
-
-# Grouped outputs
-
-# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
-# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
-#                          'soundcast_2040': 'C:/user/soundcast_2040'}
-# [comparison_runs]
-# compare_survey = true    # compare daysim results in Tableau and topsheet outputs
-
-[comparison_dict]
-2018 = "C:\\Workspace\\sc_2018_rtp\\soundcast"
-2050 = "C:\\Workspace\\sc_2050_rtp\\soundcast"
-
 
 #################################
 # NETWORK SUMMARY
@@ -264,50 +184,6 @@ sc_run_path = '../../../../'
 6 = 'Transit'
 8 = 'School Bus'
 
-################################################
-# Emissions calculations
-################################################
-# [county_id]
-# 1 = "King"
-# 2 = "Snohomish"
-# 3 = "Pierce"
-# 4 = "Kitsap"
-
-# [veh_totals]
-# 2014 = 3176086
-# 2018 = 3300162
-# 2040 = 3982578.1
-# 2050 = 4437371
-
-# Base year distribution of vehicle ownership by county
-# [vehs_by_county]
-# King = 1625471
-# Kitsap = 231231
-# Pierce = 675660
-# Snohomish = 643724
-
-###
-### FIXME: put in db
-###
-# [vehs_by_type]
-# [vehs_by_type.king]
-# light = 1433538
-# medium = 174597
-# heavy = 10574
-# [vehs_by_type.kitsap]
-# light = 199872
-# medium = 28830
-# heavy = 1342
-# [vehs_by_type.pierce]
-# light = 585681
-# medium = 82607
-# heavy = 4305
-# [vehs_by_type.snohomish]
-# light = 559557
-# medium = 77685
-# heavy = 3884
-
-
 [fac_type_lookup]
 0 = 0
 1 = 4
@@ -346,4 +222,3 @@ PM25 = "PM25 Total"
 117 = "PM25 Tirewear"
 118 = "Composite NonECPM"
 119 = "H20 Aerosol"
-

@@ -59,26 +59,25 @@ def write_nb(sheet_name, nb_path, output_path):
 
 
 def main():
-    if sum_config["run_rtp"]:
-        dirname = r"outputs/RTP"
+    dirname = r"outputs/RTP"
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    # for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
+    for sheet in [
+        "costs",
+        "mode_share",
+        "person",
+        "access",
+        "standard",
+        "emissions",
+        "freight",
+        "travel_time",
+        "transit",
+    ]:
+        dirname = os.path.join(r"outputs/compare/RTP", sheet)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        # for sheet in ['costs','transit','mode_share','person','access','standard','congestion','emissions','freight','travel_time','conformity_analysis']:
-        for sheet in [
-            "costs",
-            "mode_share",
-            "person",
-            "access",
-            "standard",
-            "emissions",
-            "freight",
-            "travel_time",
-            "transit",
-        ]:
-            dirname = os.path.join(r"outputs/compare/RTP", sheet)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            write_nb("RTP_" + sheet, "scripts/summarize/notebooks", r"outputs/RTP")
+        write_nb("RTP_" + sheet, "scripts/summarize/notebooks", r"outputs/RTP")
 
     # Create HTML sheets from jupyter notebooks
     # Run all RTP summaries and generate comparison notebook inputs
@@ -87,12 +86,6 @@ def main():
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         write_nb(geog + "_summary", "scripts/summarize/notebooks", r"outputs")
-        if sum_config["run_comparison"]:
-            write_nb(
-                "compare_results_" + geog,
-                "scripts/summarize/notebooks",
-                r"outputs/compare",
-            )
     for geog in ["county", "rg", "rgc", "city"]:
         write_nb(geog + "_network_summary", "scripts/summarize/notebooks", r"outputs")
 
@@ -112,7 +105,7 @@ def main():
         "tour_mode",
         "trip_destination",
         "trip_mode",
-        "validation",
+        # "validation",
         "work_at_home",
         "work_location",
     ]:

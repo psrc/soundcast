@@ -293,7 +293,7 @@ def main():
         "region",
         "GrowthCenterName",
         "rg_proposed",
-        "Census2010Tract",
+        "Census2020Tract",
         "rgc_binary",
     ]
     equity_geogs = ["youth", "elderly", "english", "racial", "poverty", "disability"]
@@ -323,7 +323,6 @@ def main():
         "parcel_" + config["base_year"] + "_geography",
         "sqlite:///inputs/db/" + config["db_name"],
     )
-    parcel_geog.drop("taz_p", axis=1, inplace=True)  # avoid duplicating existing fields
     parcel_geog["region"] = 1
 
     # Create a field that identifies whether parcel is inside or outside of an RGC
