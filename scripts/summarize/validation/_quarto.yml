@@ -3,8 +3,8 @@ project:
   output-dir: "validation-notebook"
   
 book:
-  title: "<br>Dayim Estimation Results"
-  repo-url: https://github.com/psrc/travel-modeling/tree/master/estimation
+  title: "Dayim Estimation Results"
+  repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize/validation
   search: false
   sidebar:
     logo: PSRClogo2016path.png
@@ -16,6 +16,7 @@ book:
     - validation_scripts/transit_pass_ownership.ipynb
     - validation_scripts/day_pattern.ipynb
     - validation_scripts/intermediate_stop_generation.ipynb
+    - validation_scripts/workbased_subtour_generation.ipynb
     - validation_scripts/time_choice.ipynb
     - part: "<b>LOCATION CHOICE</b>"
       chapters:
@@ -45,6 +46,7 @@ book:
         - validation_scripts/persons.ipynb
         - validation_scripts/households.ipynb
         - validation_scripts/tours.ipynb
+        - validation_scripts/trips.ipynb
 
 format:
   html:

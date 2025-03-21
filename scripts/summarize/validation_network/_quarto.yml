@@ -13,6 +13,8 @@ book:
     - index.qmd
     - validation_scripts/traffic_validation.ipynb
     - validation_scripts/transit_validation.ipynb
+    - validation_scripts/bike_validation.ipynb
+    - validation_scripts/link_analysis.ipynb
 
 format:
   html:

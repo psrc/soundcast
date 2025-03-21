@@ -4,7 +4,8 @@ import toml
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-config = toml.load(Path.cwd()/'configuration/summary_configuration.toml')
+config = toml.load(Path.cwd() / "configuration/summary_configuration.toml")
+
 
 def run_ipynb(sheet_name, nb_path):
     print("creating " + sheet_name + " summary")
@@ -22,14 +23,13 @@ def run_ipynb(sheet_name, nb_path):
 
 
 def main():
-
     # Try to remove existing data first
-    output_dir = Path.cwd() / config['p_output_dir'] / 'summary-notebook'
+    output_dir = Path.cwd() / config["p_output_dir"] / "summary-notebook"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
     for sheet_name in config["summary_list"]:
-        run_ipynb(sheet_name, 'scripts/summarize/summary/summary_scripts')
+        run_ipynb(sheet_name, "scripts/summarize/summary/summary_scripts")
 
     # render quarto book
     # TODO: automate _quarto.yml chapter list
@@ -38,9 +38,9 @@ def main():
     print("summary notebook created")
 
     # Move these files to output folder
-    if not os.path.exists(Path.cwd() / config['p_output_dir']):
-        os.makedirs(Path.cwd() / config['p_output_dir'])
-    shutil.move(Path.cwd() / 'scripts/summarize/summary/summary-notebook', output_dir)
+    if not os.path.exists(Path.cwd() / config["p_output_dir"]):
+        os.makedirs(Path.cwd() / config["p_output_dir"])
+    shutil.move(Path.cwd() / "scripts/summarize/summary/summary-notebook", output_dir)
 
 
 if __name__ == "__main__":
