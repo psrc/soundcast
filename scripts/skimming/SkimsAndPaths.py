@@ -1482,14 +1482,14 @@ def calc_bike_weight(my_project, link_df):
         vol_df = volume_weight(my_project, bike_fac_df, state.network_settings)
 
         # Calculate weight from elevation gain (for all links)
-        df = process_slope_weight(df=vol_df, my_project=my_project)
+        df = process_slope_weight(state.network_settings, df=vol_df, my_project=my_project)
 
         # Calculate total weights
         # add inverse of premium bike coeffient to set baseline as a premium bike facility with no slope (removes all negative weights)
         # add 1 so this weight can be multiplied by original link travel time to produced "perceived travel time"
         df["total_wt"] = (
             1
-            - np.float64(state.network_settings.facility_dict["facility_dict"]["facility_wt"]["premium"])
+            - np.float64(state.network_settings.facility_dict["facility_wt"]["premium"])
             + df["facility_wt"].astype(float)
             + df["slope_wt"].astype(float)
             + df["volume_wt"].astype(float)

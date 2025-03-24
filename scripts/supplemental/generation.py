@@ -10,20 +10,19 @@ import logging
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
-# from emme_configuration import *
 from scripts.emme_project import *
 import toml
 from settings import run_args
 #from scripts.settings import state
 from pathlib import Path
 
-# state = state.generate_state(run_args.args.configs_dir)
+# state = state.generate_state(run_args.args.input_settings.input_settings.s_dir)
 
-# emme_config = toml.load(
-#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
+# emme_input_settings.input_settings. = toml.load(
+#     os.path.join(os.getcwd(), "input_settings.input_settings.uration/emme_input_settings.input_settings.uration.toml")
 # )
 
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
+#input_settings.input_settings. = toml.load(os.path.join(os.getcwd(), "input_settings.input_settings.uration/input_input_settings.input_settings.uration.toml"))
 
 def balance_trips(df, trip_purposes, balanced_to):
     """Balance trips to productions or attractions."""
@@ -85,14 +84,14 @@ def main(state):
 
     # Create a logging file to report model progress
     logging.basicConfig(
-        filename=emme_config["supplemental_log_file"], level=logging.DEBUG
+        filename=state.emme_settings.supplemental_log_file, level=logging.DEBUG
     )
 
     # Report model starting
     current_time = str(time.strftime("%H:%M:%S"))
     logging.debug("----Began generation.py script at " + current_time)
 
-    # Store these in a config:
+    # Store these in a input_settings.input_settings.:
     trip_productions = [
         "hbw1pro",
         "hbw2pro",
@@ -135,7 +134,7 @@ def main(state):
     ]
     balance_to_attractions = ["col", "sch"]
 
-    i5_station = emme_config["EXTERNALS_DONT_GROW"][0]
+    i5_station = state.emme_settings.EXTERNALS_DONT_GROW[0]
 
     # Lists for HH and Person Files
     hh_variables = ["hhno", "hhsize", "hhparcel", "hhincome"]
@@ -162,11 +161,11 @@ def main(state):
 
     output_directory = "outputs/supplemental"
 
-    #my_project = EmmeProject(emme_config["supplemental_project"], state)
+    #my_project = EmmeProject(emme_input_settings.input_settings.["supplemental_project"], state)
     #my_project = state.main_project
     
 
-    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
+    conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
 
     ###########################################################
     # PSRC Zone System for TAZ joining
@@ -180,7 +179,7 @@ def main(state):
     ###########################################################
 
     df_external = pd.read_sql(
-        "SELECT * FROM auto_externals where year=" + str(config["base_year"]), con=conn
+        "SELECT * FROM auto_externals where year=" + str(state.input_settings.base_year), con=conn
     )
     df_external["taz"] = df_external["taz"].astype(int)
     df_external = df_external.loc[
@@ -198,9 +197,9 @@ def main(state):
     df_external = df_external.astype(float)
 
     # Calculate the Inputs for the Year of the model
-    if int(config["model_year"]) > data_year:
+    if int(state.input_settings.model_year) > data_year:
         growth_rate = 1 + (
-            emme_config["external_rate"] * (int(config["model_year"]) - data_year)
+            state.emme_settings.external_rate * (int(state.input_settings.model_year) - data_year)
         )
         df_external = df_external * growth_rate
 
@@ -213,7 +212,7 @@ def main(state):
     df_enlisted["taz"] = df_enlisted["Zone"].copy()
 
     # Select data for model year only
-    df_enlisted = df_enlisted[df_enlisted["year"] == int(config["model_year"])][
+    df_enlisted = df_enlisted[df_enlisted["year"] == int(state.input_settings.model_year)][
         ["taz", "military_jobs"]
     ]
 
@@ -250,8 +249,8 @@ def main(state):
     # Calculate the Inputs for the Year of the model
     max_input_year = total_gq_df["year"].max()
 
-    if int(config["model_year"]) <= max_input_year:
-        total_gq_df = total_gq_df[total_gq_df["year"] == int(config["model_year"])]
+    if int(state.input_settings.model_year) <= max_input_year:
+        total_gq_df = total_gq_df[total_gq_df["year"] == int(state.input_settings.model_year)]
 
     else:
         # Factor group quarters at an annual rate
@@ -259,8 +258,8 @@ def main(state):
         total_gq_df["group_quarters"] = total_gq_df["group_quarters"] * (
             1
             + (
-                emme_config["group_quarters_rate"]
-                * (int(config["model_year"]) - max_input_year)
+                state.emme_settings.group_quarters_rate
+                * (int(state.input_settings.model_year) - max_input_year)
             )
         )
 
@@ -319,7 +318,7 @@ def main(state):
 
     # Create JBLM Input File for use in Emme
     working_file = open(output_directory + "/jblm.in", "w")
-    working_file.write("c " + str(config["model_year"]) + " Trip Generation" + "\n")
+    working_file.write("c " + str(state.input_settings.model_year) + " Trip Generation" + "\n")
     working_file.write(
         "c JBLM trips are based on gate counts, blue tooth and zipcode survey data"
         + "\n"
@@ -352,11 +351,11 @@ def main(state):
     jblm_df["origin_zone"] = jblm_df["origin_zone"].apply(int)
     jblm_df["destination_zone"] = jblm_df["destination_zone"].apply(int)
 
-    jblm_external = jblm_df[(jblm_df["origin_zone"] >= emme_config["MIN_EXTERNAL"])]
+    jblm_external = jblm_df[(jblm_df["origin_zone"] >= state.emme_settings.MIN_EXTERNAL)]
     jblm_ext_productions = sum(jblm_external["trips"])
 
     jblm_external = jblm_df[
-        (jblm_df["destination_zone"] >= emme_config["MIN_EXTERNAL"])
+        (jblm_df["destination_zone"] >= state.emme_settings.MIN_EXTERNAL)
     ]
     jblm_ext_attractions = sum(jblm_external["trips"])
 
@@ -394,9 +393,9 @@ def main(state):
     heavy_trucks["htkpro"] = heavy_trucks["htkpro"].apply(float)
     heavy_trucks["htkatt"] = heavy_trucks["htkatt"].apply(float)
 
-    if int(config["model_year"]) > data_year:
+    if int(state.input_settings.model_year) > data_year:
         growth_rate = 1 + (
-            emme_config["truck_rate"] * (int(config["model_year"]) - data_year)
+            state.emme_settings.truck_rate * (int(state.input_settings.model_year) - data_year)
         )
         heavy_trucks["htkpro"] = heavy_trucks["htkpro"] * growth_rate
         heavy_trucks["htkatt"] = heavy_trucks["htkatt"] * growth_rate
@@ -426,10 +425,10 @@ def main(state):
     # SeaTac Airport
     ###########################################################
     df_seatac = pd.read_sql_query("SELECT * FROM seatac", con=conn)
-    seatac_zone = df_seatac[df_seatac["year"] == int(config["model_year"])][
+    seatac_zone = df_seatac[df_seatac["year"] == int(state.input_settings.model_year)][
         "taz"
     ].values[0]
-    seatac_enplanements = df_seatac[df_seatac["year"] == int(config["model_year"])][
+    seatac_enplanements = df_seatac[df_seatac["year"] == int(state.input_settings.model_year)][
         "enplanements"
     ].values[0]
 
@@ -443,8 +442,8 @@ def main(state):
     # Calculate the Inputs for the Year of the model
     max_input_year = df_special["year"].max()
 
-    if int(config["model_year"]) <= max_input_year:
-        df_special = df_special[df_special["year"] == config["model_year"]]
+    if int(state.input_settings.model_year) <= max_input_year:
+        df_special = df_special[df_special["year"] == state.input_settings.model_year]
         df_special["hboatt"] = df_special["trips"].astype("float")
 
     else:
@@ -454,7 +453,7 @@ def main(state):
         ].astype("float")
 
         df_special["hboatt"] = df_special["hboatt"] * (
-            1 + (emme_config["special_generator_rate"] * (int(config["model_year"]) - max_input_year))
+            1 + (state.emme_settings.special_generator_rate * (int(state.input_settings.model_year) - max_input_year))
         )
 
     df_special = df_special[["taz", "hboatt"]]
@@ -549,16 +548,16 @@ def main(state):
 
     # Create a Column for Income 1, 2 ,3 or 4
     df_hh["income-class"] = 0
-    df_hh.loc[df_hh["hhincome"] <= emme_config["low_income"], "income-class"] = 1
+    df_hh.loc[df_hh["hhincome"] <= state.emme_settings.low_income, "income-class"] = 1
     df_hh.loc[
-        (df_hh["hhincome"] > emme_config["low_income"]) & (df_hh["hhincome"] <= emme_config["medium_income"]),
+        (df_hh["hhincome"] > state.emme_settings.low_income) & (df_hh["hhincome"] <= state.emme_settings.medium_income),
         "income-class",
     ] = 2
     df_hh.loc[
-        (df_hh["hhincome"] > emme_config["medium_income"]) & (df_hh["hhincome"] <= emme_config["high_income"]),
+        (df_hh["hhincome"] > state.emme_settings.medium_income) & (df_hh["hhincome"] <= state.emme_settings.high_income),
         "income-class",
     ] = 3
-    df_hh.loc[df_hh["hhincome"] > emme_config["high_income"], "income-class"] = 4
+    df_hh.loc[df_hh["hhincome"] > state.emme_settings.high_income, "income-class"] = 4
 
     # Create a Column for school age children 0, 1, 2 or 3+
     df_hh["school-class"] = df_hh["school-age"]
@@ -685,8 +684,8 @@ def main(state):
     ###########################################################
     # SeaTac Airport trip generation
     ###########################################################
-    df_parcels["airport"] = (df_parcels["total-jobs"] * emme_config["air_jobs"]) + (
-        df_parcels["total-people"] * emme_config["air_people"]
+    df_parcels["airport"] = (df_parcels["total-jobs"] * state.emme_settings.air_jobs) + (
+        df_parcels["total-people"] * state.emme_settings.air_people
     )
     aiport_balancing = seatac_enplanements / sum(df_parcels["airport"])
     df_parcels["airport"] = df_parcels["airport"] * aiport_balancing
@@ -746,7 +745,7 @@ def main(state):
 
     # Soundcast uses pre-determined HSP trips to meet external counts. Need to adjust these here for non-work-ixxi:
     external_trip_table = pd.read_sql(
-        "SELECT * FROM externals_unadjusted where year=" + str(config["base_year"]),
+        "SELECT * FROM externals_unadjusted where year=" + str(state.input_settings.base_year),
         con=conn,
     )
     external_trip_table.set_index("taz", inplace=True)
