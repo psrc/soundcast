@@ -6,7 +6,7 @@ import os
 import sqlite3
 from sqlalchemy import create_engine
 from settings import run_args
-from scripts.settings import state
+#from scripts.settings import state
 from pathlib import Path
 
 #state = state.generate_state(run_args.args.configs_dir)
@@ -67,7 +67,7 @@ parcel_emp_cols = parcel_attributes = [
     "empsvc_p",
     "empoth_p",
     "emptot_p",
-"empret_p",
+    "empret_p",
 ]
 
 

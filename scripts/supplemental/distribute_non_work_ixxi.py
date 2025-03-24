@@ -205,9 +205,9 @@ def main(state):
     )  # total 4K Ps and As by trip purpose
 
     # Import gravity model coefficients by trip purpose from db
-    conn = create_engine('sqlite:///inputs/db/'+config['db_name'])
-    coeff_df = pd.read_sql('SELECT * FROM gravity_model_coefficients', con=conn)
-                               
+    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
+    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=conn)
+
     # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)
     trip_purpose_list = ["hsp"]
 
@@ -218,7 +218,7 @@ def main(state):
         state.main_project.change_active_database("Supplementals")
     #EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
 
-    #global dictZoneLookup
+    # global dictZoneLookup
     dictZoneLookup = dict(
         (value, index)
         for index, value in enumerate(state.main_project.current_scenario.zone_numbers)

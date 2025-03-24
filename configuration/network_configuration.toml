@@ -17,8 +17,8 @@ transit_line_extra_attributes = ['@transittype']
 
 
 # VOT ranges for assignment classes
-vot_1_max = 14.32    # VOT for User Class 1 < vot_1_max
-vot_2_max = 26.64    # vot_1_max < VOT for User Class 2 < vot_2_max
+vot_1_max = 18.11    # VOT for User Class 1 < vot_1_max
+vot_2_max = 36.22    # vot_1_max < VOT for User Class 2 < vot_2_max
 
 feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
 

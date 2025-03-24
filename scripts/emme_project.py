@@ -321,6 +321,9 @@ class EmmeProject:
     def close(self):
         self.desktop.close()
 
+    def close(self):
+        self.desktop.close()
+
 
     def close(self):
         self.desktop.close()

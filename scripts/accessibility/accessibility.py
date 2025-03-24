@@ -175,19 +175,6 @@ def run(state):
     # read in data
     parcels = pd.read_csv(accessibility_configuration.parcels_file_name, sep=" ", index_col=None)
 
-    ## Move SeaTac Parcel so that it is on the terminal.
-    # parcels.loc[parcels.PARCELID==902588, 'XCOORD_P'] = 1277335
-    # parcels.loc[parcels.PARCELID==902588, 'YCOORD_P'] = 165468
-
-    ## Update UW Emp parcel with parking costs
-    # parcels.loc[parcels.PARCELID==751794, 'parkdy_P'] = 1144
-    # parcels.loc[parcels.PARCELID==751794, 'PARKHR_P'] = 1144
-    # parcels.loc[parcels.PARCELID==751794, 'ppricdyp'] = 1500
-    # parcels.loc[parcels.PARCELID==751794, 'pprichrp'] = 300
-
-    ## This UW parcel is in the wrong zone.
-    # parcels.loc[parcels.PARCELID==751794, 'TAZ_P'] = 303
-
     # check for missing data!
     for col_name in parcels.columns:
         # daysim does not use emprsc_p
@@ -227,13 +214,16 @@ def run(state):
 
     # intersections:
     # combine from and to columns
-    all_nodes = pd.DataFrame(pd.concat([net.edges_df["from"], net.edges_df['to']], axis=0), columns=["node_ids"])
+    all_nodes = pd.DataFrame(
+        pd.concat([net.edges_df["from"], net.edges_df["to"]], axis=0),
+        columns=["node_ids"],
+    )
 
     # get the frequency of each node, which is the number of intersecting ways
-    intersections_df = pd.DataFrame(all_nodes['node_ids'].value_counts())
+    intersections_df = pd.DataFrame(all_nodes["node_ids"].value_counts())
     intersections_df = intersections_df.rename(columns={"count": "edge_count"})
     intersections_df.reset_index(0, inplace=True)
-    #intersections_df = intersections_df.rename(columns={"index": "node_ids"})
+    # intersections_df = intersections_df.rename(columns={"index": "node_ids"})
 
     # add a column for each way count
     intersections_df["nodes1"] = np.where(intersections_df["edge_count"] == 1, 1, 0)
@@ -251,8 +241,12 @@ def run(state):
 
     # Report a raw distance to HCT and all transit before calibration
 
-    parcels['raw_dist_hct'] = parcels[[ 'dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
-    parcels['raw_dist_transit'] = parcels[['dist_lbus','dist_ebus', 'dist_crt', 'dist_fry', 'dist_lrt', 'dist_brt']].min(axis=1)
+    parcels["raw_dist_hct"] = parcels[
+        ["dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
+    ].min(axis=1)
+    parcels["raw_dist_transit"] = parcels[
+        ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
+    ].min(axis=1)
 
     # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
     parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * accessibility_configuration.light_rail_walk_factor
