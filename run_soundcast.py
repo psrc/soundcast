@@ -19,21 +19,14 @@
 import os
 import sys
 import datetime
-import re
 import subprocess
-import inro.emme.desktop.app as app
 import json
 import shutil
-from shutil import copy2 as shcopy
 import re
-import logging
 sys.path.append(os.path.join(os.getcwd(),"inputs"))
 sys.path.append(os.path.join(os.getcwd(),"scripts"))
 import logcontroller
-import inro.emme.database.emmebank as _eb
 import random
-import pandas as pd
-import toml
 from settings import run_args
 from settings import state
 from settings import data_wrangling
@@ -43,12 +36,9 @@ from accessibility import accessibility
 from supplemental import create_ixxi_work_trips
 from supplemental import generation
 from supplemental import distribute_non_work_ixxi
-from supplemental import mode_choice_supplemental
 from supplemental import create_airport_trips
 from trucks import truck_model
-#from summarize.standard import network_summary
-
-from pathlib import Path
+from summarize.standard import daily_bank, network_summary, transit_summary, emissions, agg, validation, job_accessibility
 
 state = state.generate_state(run_args.args.configs_dir)
 
@@ -74,10 +64,6 @@ def accessibility_calcs():
 
     print('Beginning Accessibility Calculations')
     accessibility.run(state)
-    # returncode = subprocess.call([sys.executable, 'scripts/accessibility/accessibility.py'])
-    # if returncode != 0:
-    #     print('Accessibility Calculations Failed For Some Reason :(')
-    #     sys.exit(1)
     print('Done with accessibility calculations')
 
 @data_wrangling.timed    
@@ -154,37 +140,12 @@ def build_shadow_only():
 def run_truck_supplemental(iteration, statwe):
 
     if state.input_settings.run_supplemental_trips:
-        # Only run generation script once - does not change with feedback
-        # generation.main()
-        # distribute_non_work_ixxi.main()
-        # create_airport_trips.main()
-        # truck_model.main()
         if iteration == 0:
-            # returncode = subprocess.call([sys.executable,'scripts/supplemental/generation.py'])
-            # if returncode != 0:
-            #     sys.exit(1)
             generation.main(state)
-        
-        # returncode = subprocess.call([sys.executable,'scripts/supplemental/distribute_non_work_ixxi.py'])
-        # if returncode != 0:
-        #         sys.exit(1)
         distribute_non_work_ixxi.main(state)
-
-        # returncode = subprocess.call([sys.executable,'scripts/supplemental/create_airport_trips.py'])
-        # if returncode != 0:
-        #         sys.exit(1)
         create_airport_trips.main(state)   
 
-        # base_path = 'scripts/supplemental'
-        # for script in ['distribute_non_work_ixxi', 'create_airport_trips']:
-        #     returncode = subprocess.call([sys.executable, os.path.join(base_path,script+'.py')])
-        #     if returncode != 0:
-        #         sys.exit(1)
-
     if state.input_settings.run_truck_model:
-        # returncode = subprocess.call([sys.executable,'scripts/trucks/truck_model.py'])
-        # if returncode != 0:
-        #     sys.exit(1)
         truck_model.main(state)
 
 @data_wrangling.timed
@@ -227,10 +188,17 @@ def check_convergence(iteration):
 @data_wrangling.timed
 def run_all_summaries():
 
-    base_path = 'scripts/summarize/standard'
-    for script in ['daily_bank','network_summary','transit_summary','emissions','agg','validation','job_accessibility']:
-        print(script)
-        subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
+    daily_bank.main(state)
+    network_summary.main(state)
+    transit_summary.main(state)
+    emissions.main(state)
+    agg.main(state)
+    validation.main(state)
+    job_accessibility.main(state)
+    # base_path = 'scripts/summarize/standard'
+    # for script in ['daily_bank','network_summary','transit_summary','emissions','agg','validation','job_accessibility']:
+    #     print(script)
+    #     subprocess.call([sys.executable, os.path.join(base_path, script+'.py')])
     subprocess.run('conda activate summary && python scripts/summarize/standard/write_html.py', shell=True)
     subprocess.run('conda activate summary && python scripts/summarize/validation_network/create_network_validation.py', shell=True)
     subprocess.run('conda activate summary && python scripts/summarize/validation/create_validation_pages.py && conda deactivate', shell=True)

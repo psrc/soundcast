@@ -7,6 +7,7 @@ import typing
 import settings.run_args
 import sys
 import os
+from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
@@ -106,10 +107,25 @@ class EmmeSettings(BaseModel):
     #################################
     # Supplementals Settings
     #################################
-
+    supplemental_log_file: str
     trip_table_loc: str
     supplemental_project: str
     supplemental_output_dir: str
+
+    # Aiport Trip Rates
+    air_people: float
+    air_jobs: float
+
+    # Growth rates for supplemental trip generation
+    special_generator_rate: float
+    external_rate: float
+    truck_rate: float
+    group_quarters_rate: float
+
+    # Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
+    low_income: int
+    medium_income: int
+    high_income: int
 
     # Define gravity model coefficients
     autoop: float    # Auto operation costs (in hundreds of cents per mile?)
@@ -188,6 +204,14 @@ class NetworkSettings(BaseModel):
     taz_area_file: str
     origin_tt_file: str
     destination_tt_file: str
+
+    #################################
+    # Accessibility Settings
+    #################################
+    max_dist: float
+    accessibility_distances: dict
+    light_rail_walk_factor: float
+    ferry_walk_factor: float
 
     #################################
     # Bike Model Settings
@@ -286,16 +310,30 @@ class NetworkSettings(BaseModel):
 #     configs_dir: typing.Any
 #     model_input_dir: typing.Any
 
+class SummarySettings(BaseModel):
+
+    county_map: dict
+    uc_list: list
+    agency_lookup: dict
+    speed_bins: list
+    fac_type_lookup: dict
+    tod_lookup: dict
+    summer_list: list
+    pollutant_map: dict
+    special_route_lookup: dict
+
 class State:
-    def __init__(self, input_settings, emme_settings, network_settings, configs_dir, model_input_dir):
+    def __init__(self, input_settings, emme_settings, network_settings, summary_settings, configs_dir, model_input_dir):
         self.input_settings = input_settings
         self.emme_settings = emme_settings
         self.network_settings = network_settings
+        self.summary_settings = summary_settings
         self.conifgs_dir = configs_dir
         self.model_input_dir = model_input_dir
         self.main_project_path = network_settings.main_project 
         self.main_project_name = self.name_from_main_project_path()
         self.main_project = None
+        self.conn = self.sqlite_connect()
 
     def create_main_project(self):
         self.main_project = EmmeProject(self.main_project_path, self.model_input_dir)
@@ -306,6 +344,10 @@ class State:
         res = self.main_project_path[index+len(delimiter):]
         res = res.split('.')[0]
         return res
+    
+    def sqlite_connect(self):
+        conn = create_engine("sqlite:///inputs/db/" + self.input_settings.db_name)
+        return conn
 
 def generate_state(configs_dir):
     # set up configs/settings:
@@ -313,22 +355,26 @@ def generate_state(configs_dir):
         config = toml.load(Path.cwd()/'configuration/input_configuration.toml')
         emme_config = toml.load(Path.cwd()/'configuration/emme_configuration.toml')
         network_config = toml.load(Path.cwd()/'configuration/network_configuration.toml')
+        summary_config = toml.load(Path.cwd()/'configuration/summary_configuration.toml')
     else :
         configs_dir = Path(configs_dir)
         config = toml.load(configs_dir/'input_configuration.toml')
         emme_config = toml.load(configs_dir/'emme_configuration.toml')
         network_config = toml.load(configs_dir/'network_configuration.toml')
+        summary_config = toml.load(Path.cwd()/'configuration/summary_configuration.toml')
 
 
     input_settings = InputSettings(**config)
     emme_settings = EmmeSettings(**emme_config)
     network_settings = NetworkSettings(**network_config)
+    summary_settings = SummarySettings(**summary_config)
     model_input_dir = Path(Path.cwd()/f'inputs/model/{input_settings.abm_model}/')
     
 
     return State(input_settings=input_settings,
                     emme_settings=emme_settings,
-                    network_settings= network_settings,
+                    network_settings=network_settings,
+                    summary_settings=summary_settings,
                     configs_dir= configs_dir,
                     model_input_dir= model_input_dir)
 

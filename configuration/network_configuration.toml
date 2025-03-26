@@ -58,6 +58,16 @@ origin_tt_file = 'inputs/model/daysim/intrazonals/origin_tt.in'
 destination_tt_file = 'inputs/model/daysim/intrazonals/destination_tt.in'
 
 #################################
+# Accessibility Settings
+#################################
+max_dist = 15840.0 # 3 miles in feet
+
+light_rail_walk_factor = 0.5
+ferry_walk_factor = 0.5
+
+
+
+#################################
 # Bike Model Settings
 #################################
 # AADT segmentation breaks to apply volume penalties
@@ -260,3 +270,8 @@ htpro = 0.53
 ltatt = 0.749
 mtatt = 0.75
 htatt = 1.0
+
+# Distances for parcel accessibility calculations in feet
+[accessibility_distances]
+1 = 2640  # 0.5 mile
+2 = 5280  # 1 mile

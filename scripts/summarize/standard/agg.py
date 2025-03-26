@@ -1,22 +1,10 @@
 import numpy as np
 import pandas as pd
 import h5py
-import os, sys, shutil
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
+import os, shutil
 import re
-import math
-from collections import OrderedDict
-
-# from input_configuration import base_year
 import time
-import toml
 
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 # Define relationships between daysim files
 daysim_merge_fields = {
@@ -189,21 +177,21 @@ def h5_df(h5file, table, col_list):
     return df
 
 
-def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
+def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
     # Load the expression file
     expr_df = pd.read_csv(
-        os.path.join(os.getcwd(), r"inputs/model/summaries/agg_expressions.csv")
+        os.path.join(os.getcwd(), f"{state.model_input_dir}/summaries/agg_expressions.csv")
     )
     # expr_df = expr_df.fillna('__remove__')    # Fill NA with string signifying data to be ignored
     geography_lookup = pd.read_csv(
-        os.path.join(os.getcwd(), r"inputs/model/summaries/geography_lookup.csv")
+        os.path.join(os.getcwd(), f"{state.model_input_dir}/summaries/geography_lookup.csv")
     )
     variables_df = pd.read_csv(
-        os.path.join(os.getcwd(), r"inputs/model/summaries/variables.csv")
+        os.path.join(os.getcwd(), f"{state.model_input_dir}/summaries/variables.csv")
     )
     global labels_df
     labels_df = pd.read_csv(
-        os.path.join(os.getcwd(), "inputs/model/lookup/variable_labels.csv")
+        os.path.join(os.getcwd(), f"{state.model_input_dir}/lookup/variable_labels.csv")
     )
 
     geog_cols = list(
@@ -219,8 +207,8 @@ def create_agg_outputs(path_dir_base, base_output_dir, survey=False):
     geog_cols = [col for col in geog_cols if col != "place_name"]
     #################
     parcel_geog = pd.read_sql_table(
-        "parcel_" + config["base_year"] + "_geography",
-        "sqlite:///inputs/db/" + config["db_name"],
+        "parcel_" + state.input_settings.base_year + "_geography",
+        state.conn,
         columns=geog_cols,
     )
     buffered_parcels_cols = list(
@@ -697,15 +685,15 @@ def copy_dash_tables(dash_table_list):
         )
 
 
-def main():
+def main(state):
     output_dir_base = os.path.join(os.getcwd(), "outputs/agg")
     create_dir(output_dir_base)
 
     input_dir = os.path.join(os.getcwd(), r"outputs/daysim")
-    create_agg_outputs(input_dir, output_dir_base, survey=False)
+    create_agg_outputs(state, input_dir, output_dir_base, survey=False)
 
     survey_input_dir = os.path.join(os.getcwd(), r"inputs/base_year/survey")
-    create_agg_outputs(survey_input_dir, output_dir_base, survey=True)
+    create_agg_outputs(state, survey_input_dir, output_dir_base, survey=True)
 
     copy_dash_tables(dash_table_list)
 

@@ -12,20 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import pandas as pd
-import toml
-import inro.emme.database.emmebank as _eb
+import inro.emme.database.emmebank as _emmebank
 
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-)
-sum_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/summary_configuration.toml")
-)
 
-def summarize_transit_detail():
+def summarize_transit_detail(state):
     """Sumarize various transit measures."""
 
     df_transit_line = pd.read_csv(r"outputs/transit/transit_line_results.csv")
@@ -37,7 +28,7 @@ def summarize_transit_detail():
 
     # Daily Boardings by Agency
     df_transit_line["agency_name"] = df_transit_line["agency_code"].map(
-        {int(k): v for k, v in sum_config["agency_lookup"].items()}
+        {int(k): v for k, v in state.summary_settings.agency_lookup.items()}
     )
     df_daily = (
         df_transit_line.groupby("agency_name")
@@ -51,7 +42,7 @@ def summarize_transit_detail():
     df_tod_agency = df_transit_line.pivot_table(
         columns="tod", index="agency_name", values="boardings", aggfunc="sum"
     )
-    df_tod_agency = df_tod_agency[network_config["transit_tod_list"]]
+    df_tod_agency = df_tod_agency[state.network_settings.transit_tod_list]
     df_tod_agency = df_tod_agency.sort_values("7to8", ascending=False).reset_index()
     df_tod_agency.to_csv('outputs/transit/boardings_by_tod_agency.csv', index=False)
 
@@ -126,7 +117,11 @@ def jobs_transit():
 
     return df
 
-def daily_transit_trips(bank):
+def daily_transit_trips():
+
+    # Use daily bank
+    
+    bank = _emmebank.Emmebank(r"Banks/Daily/emmebank")
 
     # Export total daily transit trips by mode
     df = pd.DataFrame()
@@ -134,13 +129,16 @@ def daily_transit_trips(bank):
         df.loc[mode, "total_trips"] = bank.matrix(mode).get_numpy_data().sum()
     df.to_csv(r"outputs\transit\total_transit_trips.csv")
 
+def main(state):
 
-# Daily trip totals by submode
-bank = _eb.Emmebank(os.path.join(os.getcwd(), r"Banks/daily/emmebank"))
-daily_transit_trips(bank)
+    daily_transit_trips()
 
-# Produce transit summaries
-summarize_transit_detail()
+    # Produce transit summaries
+    summarize_transit_detail(state)
 
-# Export number of jobs near transit stops
-df = jobs_transit().to_csv("outputs/transit/transit_access.csv")
+    # Export number of jobs near transit stops
+    jobs_transit().to_csv("outputs/transit/transit_access.csv")
+
+if __name__=='__main__':
+    main()
+   

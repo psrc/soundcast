@@ -1,24 +1,10 @@
 import os, sys
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
-import collections
 import h5py
 import re
-import time
 import pandas as pd
 import numpy as np
 import pandana as pdna
 import inro.emme.database.emmebank as _eb
-from pyproj import Proj, transform
-
-# from input_configuration import base_year
-import toml
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
@@ -280,7 +266,7 @@ def get_parcel_data_max_travel_time(
     # transit_hh_emp = origin_dest_emp.merge(parcel_geog[geo_list+['ParcelID']], left_on='PARCELID', right_on='ParcelID', how='left')
 
 
-def main():
+def main(state):
     output_dir = r"outputs/access"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -293,7 +279,7 @@ def main():
         "region",
         "GrowthCenterName",
         "rg_proposed",
-        "Census2010Tract",
+        "Census2020Tract",
         "rgc_binary",
     ]
     equity_geogs = ["youth", "elderly", "english", "racial", "poverty", "disability"]
@@ -320,10 +306,10 @@ def main():
 
     # Load geography lookups and join to parcel data
     parcel_geog = pd.read_sql_table(
-        "parcel_" + config["base_year"] + "_geography",
-        "sqlite:///inputs/db/" + config["db_name"],
+        "parcel_" + state.input_settings.base_year + "_geography",
+        state.conn,
     )
-    parcel_geog.drop("taz_p", axis=1, inplace=True)  # avoid duplicating existing fields
+
     parcel_geog["region"] = 1
 
     # Create a field that identifies whether parcel is inside or outside of an RGC

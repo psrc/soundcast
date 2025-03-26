@@ -13,85 +13,15 @@
 # limitations under the License.
 
 import inro.emme.database.emmebank as _emmebank
-import os, sys
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
-import numpy as np
-from shutil import copy2 as shcopy
-import json
+import os
+from settings.data_wrangling import text_to_dictionary
 import shutil
-from distutils import dir_util
-
-sys.path.append(os.getcwd())
-# from input_configuration import *
-# from emme_configuration import *
-from scripts.EmmeProject import *
-import toml
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-)
-
-daily_network_fname = "outputs/network/daily_network_results.csv"
-keep_atts = ["@type"]
-
-
-def json_to_dictionary(dict_name):
-    skim_params_loc = os.path.abspath(
-        os.path.join(os.getcwd(), "inputs/model/skim_parameters")
-    )
-    input_filename = os.path.join(skim_params_loc, dict_name + ".json").replace(
-        "\\", "/"
-    )
-    my_dictionary = json.load(open(input_filename))
-
-    return my_dictionary
-
-
-def text_to_dictionary(dict_name):
-    input_filename = os.path.join(
-        "inputs/model/skim_parameters/", dict_name + ".txt"
-    ).replace("\\", "/")
-    my_file = open(input_filename)
-    my_dictionary = {}
-
-    for line in my_file:
-        k, v = line.split(":")
-        my_dictionary[eval(k)] = v.strip()
-
-    return my_dictionary
-
-
-def create_emmebank(dir_name):
-    emmebank_dimensions_dict = json_to_dictionary("emme_bank_dimensions")
-
-    path = os.path.join("Banks", dir_name)
-    if os.path.exists(path):
-        shutil.rmtree(path)
-
-    os.makedirs(path)
-    path = os.path.join(path, "emmebank")
-    emmebank = _emmebank.create(path, emmebank_dimensions_dict)
-    emmebank.title = dir_name
-    scenario = emmebank.create_scenario(1002)
-    network = scenario.get_network()
-    # need to have at least one mode defined in scenario. Real modes are imported in network_importer.py
-    network.create_mode("AUTO", "a")
-    scenario.publish_network(network)
-    emmebank.dispose()
-
+import pandas as pd
 
 def copy_emmebank(from_dir, to_dir):
     if os.path.exists(to_dir):
         shutil.rmtree(to_dir)
-    # os.makedirs(to_dir)
     shutil.copytree(from_dir, to_dir)
-
 
 def merge_networks(master_network, merge_network):
     for node in merge_network.nodes():
@@ -107,10 +37,10 @@ def merge_networks(master_network, merge_network):
     return master_network
 
 
-def export_link_values(my_project):
+def export_link_values(project):
     """Extract link attribute values for a given scenario and emmebank (i.e., time period)"""
 
-    network = my_project.current_scenario.get_network()
+    network = project.current_scenario.get_network()
     link_type = "LINK"
 
     # list of all link attributes
@@ -119,7 +49,7 @@ def export_link_values(my_project):
     # Initialize a dataframe to store results
     df = pd.DataFrame()
     for attr in link_attr:
-        print("processing: " + str(attr))
+        # print("processing: " + str(attr))
         # store values and node id for a single attr in a temp df
         df_attr = pd.DataFrame(
             [
@@ -134,28 +64,23 @@ def export_link_values(my_project):
 
     # Lengthen tablewise
     df = df.pivot(index="nodes", columns="measure", values="value").reset_index()
-    df.to_csv(daily_network_fname)
+    df.to_csv("outputs/network/daily_network_results.csv")
 
     # Export shapefile
     shapefile_dir = r"outputs/network/shapefile"
     if not os.path.exists(shapefile_dir):
         os.makedirs(shapefile_dir)
-    network_to_shapefile = my_project.m.tool(
+    network_to_shapefile = project.m.tool(
         "inro.emme.data.network.export_network_as_shapefile"
     )
     network_to_shapefile(
-        export_path=shapefile_dir, scenario=my_project.current_scenario
+        export_path=shapefile_dir, scenario=project.current_scenario
     )
 
 
-def main():
-    # Create a project to hold daily bank
-    if os.path.exists("projects/daily"):
-        shutil.rmtree("projects/daily")
+def main(state):
 
-    project = app.create_project("projects", "Daily")
-    desktop = app.start_dedicated(False, "cth", project)
-    data_explorer = desktop.data_explorer()
+    project = state.main_project
 
     # Use a copy of an existing bank for the daily bank and rename
     copy_emmebank("Banks/7to8", "Banks/Daily")
@@ -164,14 +89,10 @@ def main():
     daily_scenario = daily_emmebank.scenario(1002)
     daily_network = daily_scenario.get_network()
 
-    database = data_explorer.add_database("Banks/Daily/emmebank")
+    database = project.data_explorer.add_database("Banks/Daily/emmebank")
     database.open()
-    desktop.project.save()
-    desktop.close()
-    emme_toolbox_path = os.path.join(os.environ["EMMEPATH"], "toolboxes")
-    shcopy(emme_toolbox_path + "/standard.mtbx", "projects/daily")
 
-    matrix_dict = text_to_dictionary("demand_matrix_dictionary")
+    matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir)
     uniqueMatrices = set(matrix_dict.values())
 
     # delete and create new matrices since this is a full copy of another time period
@@ -191,7 +112,7 @@ def main():
 
     time_period_list = []
 
-    for tod, time_period in network_config["sound_cast_net_dict"].items():
+    for tod, time_period in state.network_settings.sound_cast_net_dict.items():
         path = os.path.join("Banks", tod, "emmebank")
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
@@ -220,12 +141,12 @@ def main():
         matrix.set_numpy_data(daily_matrix_dict[matrix.name])
 
     for extra_attribute in daily_scenario.extra_attributes():
-        if extra_attribute not in keep_atts:
+        if extra_attribute not in ["@type"]:
             daily_scenario.delete_extra_attribute(extra_attribute)
     daily_volume_attr = daily_scenario.create_extra_attribute("LINK", "@tveh")
     daily_network = daily_scenario.get_network()
 
-    for tod, time_period in network_config["sound_cast_net_dict"].items():
+    for tod, time_period in state.network_settings.sound_cast_net_dict.items():
         path = os.path.join("Banks", tod, "emmebank")
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
@@ -237,20 +158,15 @@ def main():
         daily_scenario.set_attribute_values("LINK", [attr], values)
 
     daily_network = daily_scenario.get_network()
-    attr_list = ["@tv" + x for x in network_config["tods"]]
+    attr_list = ["@tv" + x for x in state.network_settings.tods]
 
     for link in daily_network.links():
-        for item in network_config["tods"]:
+        for item in state.network_settings.tods:
             link["@tveh"] = link["@tveh"] + link["@v" + item]
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     # Write daily link-level results
-    ###
-    ### FIXME: not currently working with Python3, issue with GDAL lib
-    ###
-    # my_project = EmmeProject('projects/daily/daily.emp')
-    # my_project.change_active_database('daily')
-    # export_link_values(my_project)
+    export_link_values(project)
 
 
 if __name__ == "__main__":

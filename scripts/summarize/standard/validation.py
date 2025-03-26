@@ -1,27 +1,8 @@
 # Validation for observed data
 
 import os, sys, shutil
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
 import pandas as pd
-from shutil import copy2 as shcopy
 from sqlalchemy import create_engine, text
-import toml
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
-network_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-)
-summary_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/summary_configuration.toml")
-)
 
 # output directory
 validation_output_dir = "outputs/validation"
@@ -100,8 +81,7 @@ tod_lookup = {
 }
 
 
-def main():
-    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
+def main(state):
 
     ########################################
     # Transit Boardings by Line
@@ -112,7 +92,7 @@ def main():
         text(
             "SELECT * FROM observed_transit_boardings WHERE year IN (2023, 2024)"
         ),
-        con=conn.connect(),
+        con=state.conn.connect(),
     )
     df_obs["route_id"] = df_obs["route_id"].astype("int")
     df_obs_pivot = df_obs.pivot_table(index='route_id', columns='year', values='observed_daily', aggfunc='sum').reset_index()
@@ -170,7 +150,7 @@ def main():
     df_special = df[
         df["route_code"]
         .astype("str")
-        .isin(summary_config["special_route_lookup"].keys())
+        .isin(state.summary_settings.special_route_lookup.keys())
     ]
     df_special.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_key_routes.csv"),
@@ -192,8 +172,8 @@ def main():
     # Light Rail
     df_obs = pd.read_sql(
         "SELECT * FROM light_rail_station_boardings WHERE year="
-        + str(config["base_year"]),
-        con=conn,
+        + str(state.input_settings.base_year),
+        con=state.conn,
     )
     df_obs.rename(columns={"boardings": "observed_boardings"}, inplace=True)
 
@@ -244,7 +224,7 @@ def main():
     # Get daily and model volumes
     # daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
     daily_counts = pd.read_sql(
-        "SELECT * FROM daily_counts WHERE year=" + str(config["base_year"]), con=conn
+        "SELECT * FROM daily_counts WHERE year=" + str(state.input_settings.base_year), con=state.conn
     )
     df_daily = (
         model_vol_df.groupby(["@countid"])
@@ -289,7 +269,7 @@ def main():
     # hourly counts
     # Create Time of Day (TOD) column based on start hour, group by TOD
     hr_counts = pd.read_sql(
-        "SELECT * FROM hourly_counts WHERE year=" + str(config["base_year"]), con=conn
+        "SELECT * FROM hourly_counts WHERE year=" + str(state.input_settings.base_year), con=state.conn
     )
     hr_counts["tod"] = hr_counts["start_hour"].map(tod_lookup)
     counts_tod = hr_counts.groupby(["tod", "flag"]).sum()[["vehicles"]].reset_index()
@@ -320,7 +300,7 @@ def main():
     df.to_csv(os.path.join(validation_output_dir, "hourly_volume.csv"), index=False)
 
     # Roll up results to assignment periods
-    df["time_period"] = df["tod"].map(network_config["sound_cast_net_dict"])
+    df["time_period"] = df["tod"].map(state.network_settings.sound_cast_net_dict )
 
     ########################################
     # Ferry Boardings by Bike
@@ -363,8 +343,8 @@ def main():
     # Observed screenline data
     df_obs = pd.read_sql(
         "SELECT * FROM observed_screenline_volumes WHERE year="
-        + str(config["base_year"]),
-        con=conn,
+        + str(state.input_settings.base_year),
+        con=state.conn,
     )
     df_obs["observed"] = df_obs["observed"].astype("float")
 
@@ -395,7 +375,7 @@ def main():
 
     # External stations
     external_stations = range(
-        emme_config["MIN_EXTERNAL"], emme_config["MAX_EXTERNAL"] + 1
+        state.emme_settings.MIN_EXTERNAL, state.emme_settings.MAX_EXTERNAL + 1
     )
     df_model = model_vol_df.copy()
     _df = df_model[
@@ -413,8 +393,8 @@ def main():
     # Join to observed
     df_obs = pd.read_sql(
         "SELECT * FROM observed_external_volumes WHERE year="
-        + str(config["base_year"]),
-        con=conn,
+        + str(state.input_settings.base_year),
+        con=state.conn,
     )
     newdf = _df.merge(df_obs, on="external_station")
     newdf.rename(columns={"@tveh": "modeled", "AWDT": "observed"}, inplace=True)
@@ -433,7 +413,7 @@ def main():
     df_model = model_vol_df.copy()
     df_model["@corridorid"] = df_model["@corridorid"].astype("int")
 
-    df_obs = pd.read_sql_table("observed_corridor_speed", conn)
+    df_obs = pd.read_sql_table("observed_corridor_speed", state.conn)
 
     # Average  6 and 7 pm observed data
     df_obs["6pm_spd_7pm_spd_avg"] = (df_obs["6pm_spd"] + df_obs["7pm_spd"]) / 2.0
@@ -525,10 +505,10 @@ def main():
     # Auto Ownership
     df_obs = pd.read_sql(
         "SELECT * FROM observed_auto_ownership_acs_block_group WHERE year="
-        + str(config["model_year"]),
-        con=conn,
+        + str(state.input_settings.model_year),
+        con=state.conn,
     )
-    if int(config["base_year"]) < 2020:
+    if int(state.input_settings.base_year) < 2020:
         geocol = "GEOID10"
     else:
         geocol = "GEOID20"
@@ -615,8 +595,8 @@ def main():
     # Observed Data
     df = pd.read_sql(
         "SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year="
-        + str(config["base_year"]),
-        con=conn,
+        + str(state.input_settings.base_year),
+        con=state.conn,
     )
     df = df[df["geography"] == "place"]
     df = df[df["mode"] != "worked_at_home"]
@@ -668,8 +648,8 @@ def main():
     # Load the census data
     df_acs = pd.read_sql(
         "SELECT * FROM acs_commute_mode_home_tract WHERE year="
-        + str(config["base_year"]),
-        con=conn,
+        + str(state.input_settings.base_year),
+        con=state.conn,
     )
 
     # Select only tract records
@@ -699,7 +679,7 @@ def main():
 
     # Add geography columns based on tract
     parcel_geog = pd.read_sql(
-        "SELECT * FROM parcel_" + str(config["base_year"]) + "_geography", con=conn
+        "SELECT * FROM parcel_" + str(state.input_settings.base_year) + "_geography", con=state.conn
     )
 
     tract_geog = (

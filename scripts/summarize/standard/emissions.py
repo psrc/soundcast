@@ -1,26 +1,7 @@
 import os, sys, shutil
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
-import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
-
-# from input_configuration import *
-# from emme_configuration import *
-from standard_summary_configuration import *
-
 pd.options.mode.chained_assignment = None
-import toml
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-sum_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/summary_configuration.toml")
-)
-
 
 def grams_to_tons(value):
     """Convert grams to tons."""
@@ -31,7 +12,7 @@ def grams_to_tons(value):
     return value
 
 
-def calculate_interzonal_vmt():
+def calculate_interzonal_vmt(state):
     """Calcualte inter-zonal running emission rates from network outputs"""
 
     # List of vehicle types to include in results; note that bus is included here but not for intrazonals
@@ -42,7 +23,6 @@ def calculate_interzonal_vmt():
 
     # Apply county names
     county_id_lookup = {33: "king", 35: "kitsap", 53: "pierce", 61: "snohomish"}
-
     df["geog_name"] = df["@countyid"].map(county_id_lookup)
 
     # Remove links with facility type = 0 from the calculation
@@ -56,7 +36,7 @@ def calculate_interzonal_vmt():
     df["hov2_vmt"] = df["hov2_vol"] * df["length"]
     df["hov3_vol"] = df["@hov3_inc1"] + df["@hov3_inc2"] + df["@hov3_inc3"]
     df["hov3_vmt"] = df["hov3_vol"] * df["length"]
-    if config["include_tnc_emissions"]:
+    if state.input_settings.include_tnc_emissions:
         df["tnc_vmt"] = df["@tnc_inc1"] + df["@tnc_inc2"] + df["@tnc_inc3"]
     else:
         df["tnc_vmt"] = 0
@@ -65,20 +45,20 @@ def calculate_interzonal_vmt():
     df["heavy_truck_vmt"] = df["@hveh"] * df["length"]
 
     # Convert TOD periods into hours used in emission rate files
-    df["hourId"] = df["tod"].map(sum_config["tod_lookup"]).astype("int")
+    df["hourId"] = df["tod"].map(state.summary_settings.tod_lookup).astype("int")
 
     # Calculate congested speed to separate time-of-day link results into speed bins
     df["congested_speed"] = (df["length"] / df["auto_time"]) * 60
     df["avgspeedbinId"] = pd.cut(
         df["congested_speed"],
-        sum_config["speed_bins"],
-        labels=range(1, len(sum_config["speed_bins"])),
+        state.summary_settings.speed_bins,
+        labels=range(1, len(state.summary_settings.speed_bins)),
     ).astype("int")
 
     # Relate soundcast facility types to emission rate definitions (e.g., minor arterial, freeway)
     df["roadtypeId"] = (
         df["facility_type"]
-        .map({int(k): v for k, v in sum_config["fac_type_lookup"].items()})
+        .map({int(k): v for k, v in state.summary_settings.fac_type_lookup.items()})
         .astype("int")
     )
 
@@ -188,16 +168,16 @@ def calculate_interzonal_emissions(df, df_rates):
     return df
 
 
-def calculate_intrazonal_vmt():
+def calculate_intrazonal_vmt(state):
     df_iz = pd.read_csv(r"outputs/network/iz_vol.csv")
 
     # Map each zone to county
-    county_df = pd.read_sql("SELECT * FROM taz_geography", con=conn)
+    county_df = pd.read_sql("SELECT * FROM taz_geography", con=state.conn)
     df_iz = pd.merge(df_iz, county_df, how="left", on="taz")
 
     # Sum up SOV, HOV2, and HOV3 volumes across user classes 1, 2, and 3 by time of day
     # Calcualte VMT for these trips too; rename truck volumes for clarity
-    for tod in sum_config["tod_lookup"].keys():
+    for tod in state.summary_settings.tod_lookup.keys():
         df_iz["sov_" + tod + "_vol"] = (
             df_iz["sov_inc1_" + tod]
             + df_iz["sov_inc2_" + tod]
@@ -247,7 +227,7 @@ def calculate_intrazonal_vmt():
     df.columns = ["geog_name", "VMT", "tod", "vehicle_type"]
 
     # Use hourly periods from emission rate files
-    df["hourId"] = df["tod"].map(sum_config["tod_lookup"]).astype("int")
+    df["hourId"] = df["tod"].map(state.summary_settings.tod_lookup).astype("int")
 
     # Export this file for use with other rate calculations
     # Includes total VMT for each group for which rates are available
@@ -313,11 +293,11 @@ def calculate_intrazonal_emissions(df_running_rates, output_dir):
     return df_intra
 
 
-def calculate_start_emissions():
+def calculate_start_emissions(state):
     """Calculate start emissions based on vehicle population by county and year."""
 
     df_veh = pd.read_sql(
-        "SELECT * FROM vehicle_population WHERE year==" + config["base_year"], con=conn
+        "SELECT * FROM vehicle_population WHERE year==" + state.input_settings.base_year, con=state.conn
     )
 
     # Scale all vehicles by difference between base year and model total vehicles owned from auto onwership model
@@ -332,17 +312,17 @@ def calculate_start_emissions():
     # Join with rates to calculate total emissions
     start_rates_df = pd.read_sql(
         "SELECT * FROM start_emission_rates_by_veh_type WHERE year=="
-        + config["model_year"],
-        con=conn,
+        + state.input_settings.model_year,
+        con=state.conn,
     )
 
     # Select winter rates for pollutants other than those listed in summer_list
     df_summer = start_rates_df[
-        start_rates_df["pollutantID"].isin(sum_config["summer_list"])
+        start_rates_df["pollutantID"].isin(state.summary_settings.summer_list)
     ]
     df_summer = df_summer[df_summer["monthID"] == 7]
     df_winter = start_rates_df[
-        ~start_rates_df["pollutantID"].isin(sum_config["summer_list"])
+        ~start_rates_df["pollutantID"].isin(state.summary_settings.summer_list)
     ]
     df_winter = df_winter[df_winter["monthID"] == 1]
     start_rates_df = pd.concat([df_winter, df_summer])
@@ -367,7 +347,7 @@ def calculate_start_emissions():
     # Calculate bus start emissions
     # Load data taken from NTD that reports number of bus vehicles "operated in maximum service"
     df_bus_veh = pd.read_sql(
-        "SELECT * FROM bus_vehicles WHERE year==" + config["base_year"], con=conn
+        "SELECT * FROM bus_vehicles WHERE year==" + state.input_settings.base_year, con=state.conn
     )
     tot_buses = df_bus_veh["bus_vehicles_in_service"].sum()
 
@@ -384,7 +364,7 @@ def calculate_start_emissions():
     return df
 
 
-def main():
+def main(state):
     """
     Calculate emissions totals for start, intrazonal, and interzonal running emissions.
     Uses different average rates for light, medium, and heavy vehicles.
@@ -400,14 +380,11 @@ def main():
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
 
-    global conn
-    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
-
     # Load running emission rates by vehicle type, for the model year
     df_running_rates = pd.read_sql(
         "SELECT * FROM running_emission_rates_by_veh_type WHERE year=="
-        + config["model_year"],
-        con=conn,
+        + state.input_settings.model_year,
+        con=state.conn,
     )
     df_running_rates.rename(columns={"ratePerDistance": "grams_per_mile"}, inplace=True)
     df_running_rates["year"] = df_running_rates["year"].astype("str")
@@ -415,25 +392,25 @@ def main():
     # Select the month to use for each pollutant; some rates are used for winter or summer depending
     # on when the impacts are at a maximum due to temperature.
     df_summer = df_running_rates[
-        df_running_rates["pollutantID"].isin(sum_config["summer_list"])
+        df_running_rates["pollutantID"].isin(state.summary_settings.summer_list)
     ]
     df_summer = df_summer[df_summer["monthID"] == 7]
     df_winter = df_running_rates[
-        ~df_running_rates["pollutantID"].isin(sum_config["summer_list"])
+        ~df_running_rates["pollutantID"].isin(state.summary_settings.summer_list)
     ]
     df_winter = df_winter[df_winter["monthID"] == 1]
     df_running_rates = pd.concat([df_winter, df_summer])
 
     # Group interzonal trips and calculate interzonal emissions
-    df_interzonal_vmt = calculate_interzonal_vmt()
+    df_interzonal_vmt = calculate_interzonal_vmt(state)
     df_interzonal = calculate_interzonal_emissions(df_interzonal_vmt, df_running_rates)
 
     # Group intrazonal trips and calculate intrazonal emissions
-    df_intrazonal_vmt = calculate_intrazonal_vmt()
+    df_intrazonal_vmt = calculate_intrazonal_vmt(state)
     df_intrazonal = calculate_intrazonal_emissions(df_running_rates, output_dir)
 
     # Calculate start emissions by vehicle type
-    start_emissions_df = calculate_start_emissions()
+    start_emissions_df = calculate_start_emissions(state)
 
     # Combine all rates and export as CSV
     df_inter_group = (
@@ -468,7 +445,7 @@ def main():
         summary_df["pollutantID"]
         .astype("int", errors="ignore")
         .astype("str")
-        .map(sum_config["pollutant_map"])
+        .map(state.summary_settings.pollutant_map)
     )
     summary_df["total_daily_tons"] = (
         summary_df["start_tons"]

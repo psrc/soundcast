@@ -5,12 +5,6 @@ import os
 import re
 import sys
 from pyproj import Proj, transform
-#sys.path.append(os.path.join(os.getcwd(), "scripts/accessibility"))
-sys.path.append(os.getcwd())
-import accessibility.accessibility_configuration as accessibility_configuration
-
-# from emme_configuration import *
-# from input_configuration import *
 
 
 def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
@@ -20,29 +14,9 @@ def assign_nodes_to_dataset(dataset, network, column_name, x_name, y_name):
     )
 
 
-def reproject_to_wgs84(
-    longitude, latitude, ESPG="+init=EPSG:2926", conversion=0.3048006096012192
-):
-    """
-    Converts the passed in coordinates from their native projection (default is state plane WA North-EPSG:2926)
-    to wgs84. Returns a two item tuple containing the longitude (x) and latitude (y) in wgs84. Coordinates
-    must be in meters hence the default conversion factor- PSRC's are in state plane feet.
-    """  # print longitude, latitude
-    # Remember long is x and lat is y!
-    prj_wgs = Proj(init="epsg:4326")
-    prj_sp = Proj(ESPG)
-
-    # Need to convert feet to meters:
-    longitude = longitude * conversion
-    latitude = latitude * conversion
-    x, y = transform(prj_sp, prj_wgs, longitude, latitude)
-
-    return x, y
-
-
-def process_net_attribute(network, attr, fun):
+def process_net_attribute(state, network, attr, fun):
     newdf = None
-    for dist_index, dist in accessibility_configuration.distances.items():
+    for dist_index, dist in state.network_settings.accessibility_distances.items():
         res_name = "%s_%s" % (
             re.sub("_?p$", "", attr),
             dist_index,
@@ -55,43 +29,78 @@ def process_net_attribute(network, attr, fun):
     return newdf
 
 
-def process_dist_attribute(parcels, network, name, x, y):
+def process_dist_attribute(state, parcels, network, name, x, y):
     network.set_pois(name, x, y)
-    res = network.nearest_pois(accessibility_configuration.max_dist, name, num_pois=1, max_distance=999)
+    res = network.nearest_pois(state.network_settings.max_dist, name, num_pois=1, max_distance=999)
     res[res != 999] = (res[res != 999] / 5280.0).astype(res.dtypes)  # convert to miles
     res_name = "dist_%s" % name
     parcels[res_name] = res.loc[parcels.node_ids].values
     return parcels
 
 
-def process_parcels(parcels, transit_df, net, intersections_df):
+def process_parcels(state, parcels, transit_df, net, intersections_df):
     # Add a field so you can compute the weighted average number of spaces later
     parcels["daily_weighted_spaces"] = parcels["parkdy_p"] * parcels["ppricdyp"]
     parcels["hourly_weighted_spaces"] = parcels["parkhr_p"] * parcels["pprichrp"]
 
+    parcel_attributes = {
+    "sum": [
+        "hh_p",
+        "stugrd_p",
+        "stuhgh_p",
+        "stuuni_p",
+        "empmed_p",
+        "empofc_p",
+        "empedu_p",
+        "empfoo_p",
+        "empgov_p",
+        "empind_p",
+        "empsvc_p",
+        "empoth_p",
+        "emptot_p",
+        "empret_p",
+        "parkdy_p",
+        "parkhr_p",
+        "nparks",
+        "aparks",
+        "daily_weighted_spaces",
+        "hourly_weighted_spaces",
+        ],
+        "ave": ["ppricdyp", "pprichrp"],
+    }
+
+    transit_modes = {
+        "lbus": "bus",
+        "ebus": "express",
+        "fry": "ferry",
+        "crt": "commuter_rail",
+        "lrt": "light_rail",
+        "brt": "brt",
+    }
+
     # Start processing attributes
     newdf = None
-    for fun, attrs in accessibility_configuration.parcel_attributes.items():
+    for fun, attrs in parcel_attributes.items():
         for attr in attrs:
             net.set(parcels.node_ids, variable=parcels[attr], name=attr)
-            res = process_net_attribute(net, attr, fun)
+            res = process_net_attribute(state, net, attr, fun)
             if newdf is None:
                 newdf = res
             else:
                 newdf = pd.merge(newdf, res, on="node_ids", copy=False)
 
     # sum of bus stops in buffer
-    for name in accessibility_configuration.transit_attributes:
+    for name in ["tstops"]:
         net.set(transit_df["node_ids"].values, transit_df[name], name=name)
         newdf = pd.merge(
-            newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False
+            newdf, process_net_attribute(state, net, name, "sum"), on="node_ids", copy=False
         )
 
     # sum of intersections in buffer
-    for name in accessibility_configuration.intersections:
+    for name in ["nodes1", "nodes3", "nodes4"]:
         net.set(intersections_df["node_ids"].values, intersections_df[name], name=name)
         newdf = pd.merge(
-            newdf, process_net_attribute(net, name, "sum"), on="node_ids", copy=False
+            newdf, process_net_attribute(state, net, name, "sum"), on="node_ids", copy=False
         )
 
     # Parking prices are weighted average, weighted by the number of spaces in the buffer, divided by the total spaces
@@ -104,15 +113,15 @@ def process_parcels(parcels, transit_df, net, intersections_df):
     parcels = pd.merge(parcels, newdf, on="node_ids", copy=False)
 
     # set the number of pois on the network for the distance variables (transit + 1 for parks)
-    net.init_pois(len(accessibility_configuration.transit_modes) + 1, accessibility_configuration.max_dist, 1)
+    net.init_pois(len(transit_modes) + 1, state.network_settings.max_dist, 1)
 
     # calc the distance from each parcel to nearest transit stop by type
-    for new_name, attr in accessibility_configuration.transit_modes.items():
+    for new_name, attr in transit_modes.items():
         # get the records/locations that have this type of transit:
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         if transit_type_df[attr].sum() > 0:
             parcels = process_dist_attribute(
-                parcels, net, new_name, transit_type_df["x"], transit_type_df["y"]
+                state, parcels, net, new_name, transit_type_df["x"], transit_type_df["y"]
             )
         else:
             parcels[
@@ -121,30 +130,108 @@ def process_parcels(parcels, transit_df, net, intersections_df):
         # Some parcels share the same network node and therefore have 0 distance. Recode this to .01.
         field_name = "dist_%s" % new_name
         parcels.loc[parcels[field_name] == 0, field_name] = 0.01
-    # distance to park
-    # parcel_idx_park = np.where(parcels.NPARKS > 0)[0]
-    # parcels=process_dist_attribute(parcels, net, "park", parcels.XCOORD_P[parcel_idx_park], parcels.YCOORD_P[parcel_idx_park])
+    # distance to park: set to 999 and do not use because parcels data is unreliable
     parcels["dist_park"] = 999.0
 
     return parcels
 
 
 def clean_up(parcels):
-    # we just had these columns to get the weighted average, now drop them
-    del parcels["daily_weighted_spaces"]
-    del parcels["hourly_weighted_spaces"]
-    del parcels["daily_weighted_spaces_1"]
-    del parcels["daily_weighted_spaces_2"]
-    del parcels["hourly_weighted_spaces_1"]
-    del parcels["hourly_weighted_spaces_2"]
 
-    # stupidly the naming convention suddenly changes for Daysim, so we have to be consistent
-    rename = {}
-    for column in parcels.columns:
-        if "_P_" in column:
-            new_col = re.sub("_P", "", column)
-            rename[column] = new_col
-    parcels = parcels.rename(columns=rename)
+    # Daysim requires a specific order of columns
+    col_list = [
+        "parcelid",
+        "xcoord_p",
+        "ycoord_p",
+        "sqft_p",
+        "taz_p",
+        "lutype_p",
+        "hh_p",
+        "stugrd_p",
+        "stuhgh_p",
+        "stuuni_p",
+        "empedu_p",
+        "empfoo_p",
+        "empgov_p",
+        "empind_p",
+        "empmed_p",
+        "empofc_p",
+        "empret_p",
+        "empsvc_p",
+        "empoth_p",
+        "emptot_p",
+        "parkdy_p",
+        "parkhr_p",
+        "ppricdyp",
+        "pprichrp",
+        "hh_1",
+        "stugrd_1",
+        "stuhgh_1",
+        "stuuni_1",
+        "empedu_1",
+        "empfoo_1",
+        "empgov_1",
+        "empind_1",
+        "empmed_1",
+        "empofc_1",
+        "empret_1",
+        "empsvc_1",
+        "empoth_1",
+        "emptot_1",
+        "parkdy_1",
+        "parkhr_1",
+        "ppricdy1",
+        "pprichr1",
+        "nodes1_1",
+        "nodes3_1",
+        "nodes4_1",
+        "tstops_1",
+        "nparks_1",
+        "aparks_1",
+        "hh_2",
+        "stugrd_2",
+        "stuhgh_2",
+        "stuuni_2",
+        "empedu_2",
+        "empfoo_2",
+        "empgov_2",
+        "empind_2",
+        "empmed_2",
+        "empofc_2",
+        "empret_2",
+        "empsvc_2",
+        "empoth_2",
+        "emptot_2",
+        "parkdy_2",
+        "parkhr_2",
+        "ppricdy2",
+        "pprichr2",
+        "nodes1_2",
+        "nodes3_2",
+        "nodes4_2",
+        "tstops_2",
+        "nparks_2",
+        "aparks_2",
+        "dist_lbus",
+        "dist_ebus",
+        "dist_crt",
+        "dist_fry",
+        "dist_lrt",
+        "dist_brt",
+        "raw_dist_hct",
+        "raw_dist_transit",
+    ]
+
+    # Drop columns used for weighted average calculations
+    parcels.drop(columns=[
+        "daily_weighted_spaces",
+        "hourly_weighted_spaces",
+        "daily_weighted_spaces_1",
+        "daily_weighted_spaces_2",
+        "hourly_weighted_spaces_1",
+        "hourly_weighted_spaces_2"
+    ], inplace=True)
+
     parcels = parcels.rename(
         columns={
             "ppricdyp_1": "ppricdy1",
@@ -154,26 +241,24 @@ def clean_up(parcels):
         }
     )
 
-    # daysim needs the column names to be lower case
-    parcels.columns = map(str.lower, parcels.columns)
-    parcels = parcels.fillna(0)
-    parcels_final = pd.DataFrame()
+    for col in ['ppricdy1','ppricdy2','pprichr1','pprichr2']:
+        parcels[col] = parcels[col].fillna(0)
 
-    # currently Daysim just uses dist_lbus as actually meaning the minimum distance to transit, so we will match that setup for now.
+    # Daysim uses dist_lbus as actually meaning the minimum distance to any transit submode
     parcels["dist_lbus"] = parcels[
         ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt"]
     ].min(axis=1)
 
-    for col in accessibility_configuration.col_order:
-        parcels_final[col] = parcels[col]
+    parcels = parcels[col_list]
 
-    parcels_final["xcoord_p"] = parcels_final["xcoord_p"].astype(int)
-    return parcels_final
+    parcels["xcoord_p"] = parcels["xcoord_p"].copy().astype(int)
+
+    return parcels
 
 
 def run(state):
     # read in data
-    parcels = pd.read_csv(accessibility_configuration.parcels_file_name, sep=" ", index_col=None)
+    parcels = pd.read_csv("outputs/landuse/parcels_urbansim.txt", sep=" ", index_col=None)
 
     # check for missing data!
     for col_name in parcels.columns:
@@ -183,13 +268,13 @@ def run(state):
                 print(col_name + " column sum is zero! Exiting program.")
                 sys.exit(1)
 
-    # Not using, causes bug in Daysim
-    parcels.APARKS = 0
-    parcels.NPARKS = 0
+    # Not using this field, causes bug in Daysim
+    parcels.aparks = 0
+    parcels.nparks = 0
 
     # nodes must be indexed by node_id column, which is the first column
-    nodes = pd.read_csv(accessibility_configuration.nodes_file_name, index_col="node_id")
-    links = pd.read_csv(accessibility_configuration.links_file_name, index_col=None)
+    nodes = pd.read_csv("inputs/base_year/all_streets_nodes.csv", index_col="node_id")
+    links = pd.read_csv("inputs/base_year/all_streets_links.csv", index_col=None)
 
     # get rid of circular links
     links = links.loc[(links.from_node_id != links.to_node_id)]
@@ -205,11 +290,11 @@ def run(state):
     net = pdna.network.Network(
         nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp
     )
-    for dist in accessibility_configuration.distances:
+    for dist_index, dist in state.network_settings.accessibility_distances.items():
         net.precompute(dist)
 
     # get transit stops
-    transit_df = pd.read_csv(accessibility_configuration.transit_stops_name)
+    transit_df = pd.read_csv("inputs/scenario/networks/transit_stops.csv")
     transit_df["tstops"] = 1
 
     # intersections:
@@ -237,7 +322,7 @@ def run(state):
     assign_nodes_to_dataset(transit_df, net, "node_ids", "x", "y")
 
     # run all accessibility measures
-    parcels = process_parcels(parcels, transit_df, net, intersections_df)
+    parcels = process_parcels(state, parcels, transit_df, net, intersections_df)
 
     # Report a raw distance to HCT and all transit before calibration
 
@@ -249,12 +334,8 @@ def run(state):
     ].min(axis=1)
 
     # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * accessibility_configuration.light_rail_walk_factor
-    parcels['dist_fry'] * accessibility_configuration.ferry_walk_factor
+    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * state.network_settings.light_rail_walk_factor
+    parcels['dist_fry'] * state.network_settings.ferry_walk_factor
     parcels_done = clean_up(parcels)
 
-    parcels_done.to_csv(accessibility_configuration.output_parcels, index=False, sep=" ")
-
-
-if __name__ == "__main__":
-    run()
+    parcels_done.to_csv("outputs/landuse/buffered_parcels.txt", index=False, sep=" ")
