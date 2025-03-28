@@ -15,16 +15,18 @@ sys.path.append(os.getcwd())
 from scripts.emme_project import *
 import toml
 from settings import run_args
-#rom scripts.settings import state
+
+# rom scripts.settings import state
 from pathlib import Path
 
-#state = state.generate_state(run_args.args.configs_dir)
+# state = state.generate_state(run_args.args.configs_dir)
 
 # emme_config = toml.load(
 #     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
 # )
 
 config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
+
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     """Loads H5 skim matrix for specified mode."""
@@ -44,7 +46,10 @@ def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup, state):
         MIN_EXTERNAL_INDEX = zone_lookup[state.emme_settings.MIN_EXTERNAL]
         friction_fac_dic[row["purpose"]] = np.exp(
             (row["coefficient_value"])
-            * (cost_skim + (dist_skim * state.emme_settings.autoop * state.emme_settings.avotda))
+            * (
+                cost_skim
+                + (dist_skim * state.emme_settings.autoop * state.emme_settings.avotda)
+            )
         )
         ## Set external zones to zero to prevent external-external trips
         friction_fac_dic[row["purpose"]][MIN_EXTERNAL_INDEX:, MIN_EXTERNAL_INDEX:] = 0
@@ -144,7 +149,8 @@ def balance_matrices(trip_purps, state):
             od_values_to_balance="mf" + purpose + "fri",
             origin_totals="mo" + purpose + "pro",
             destination_totals="md" + purpose + "att",
-            constraint_by_zone_destinations="1-" + str(state.emme_settings.MAX_EXTERNAL),
+            constraint_by_zone_destinations="1-"
+            + str(state.emme_settings.MAX_EXTERNAL),
             constraint_by_zone_origins="1-" + str(state.emme_settings.MAX_EXTERNAL),
         )
 
@@ -191,8 +197,12 @@ def emme_matrix_to_np(trip_purp_list, state):
         filtered = np.zeros_like(emme_data)
 
         # Add only external rows and columns from emme data
-        filtered[state.emme_settings.HIGH_TAZ :, :] = emme_data[state.emme_settings.HIGH_TAZ :, :]
-        filtered[:, state.emme_settings.HIGH_TAZ :] = emme_data[:, state.emme_settings.HIGH_TAZ :]
+        filtered[state.emme_settings.HIGH_TAZ :, :] = emme_data[
+            state.emme_settings.HIGH_TAZ :, :
+        ]
+        filtered[:, state.emme_settings.HIGH_TAZ :] = emme_data[
+            :, state.emme_settings.HIGH_TAZ :
+        ]
         trips_by_purpose[purpose] = filtered
 
     return trips_by_purpose
@@ -213,10 +223,10 @@ def main(state):
 
     output_dir = os.path.join(os.getcwd(), r"outputs\supplemental")
 
-    #my_project = state.main_project
+    # my_project = state.main_project
     if state.main_project.data_explorer.active_database().title() != "Supplementals":
         state.main_project.change_active_database("Supplementals")
-    #EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
+    # EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
 
     # global dictZoneLookup
     dictZoneLookup = dict(
@@ -225,13 +235,23 @@ def main(state):
     )
 
     # Load skim data
-    am_cost_skim = load_skims(f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc2g")
-    am_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc1d", divide_by_100=True
+    am_cost_skim = load_skims(
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+        mode_name="sov_inc2g",
     )
-    pm_cost_skim = load_skims(f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", mode_name="sov_inc2g")
+    am_dist_skim = load_skims(
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+        mode_name="sov_inc1d",
+        divide_by_100=True,
+    )
+    pm_cost_skim = load_skims(
+        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+        mode_name="sov_inc2g",
+    )
     pm_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", mode_name="sov_inc1d", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+        mode_name="sov_inc1d",
+        divide_by_100=True,
     )
     # Average skims between AM and PM periods
     cost_skim = (am_cost_skim + pm_cost_skim) * 0.5
@@ -262,7 +282,7 @@ def main(state):
         ixxi_h5.create_dataset(mode, data=ixxi_data)
 
     ixxi_h5.close()
-    #my_project.close()
+    # my_project.close()
 
 
 if __name__ == "__main__":

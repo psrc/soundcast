@@ -82,23 +82,24 @@ tod_lookup = {
 
 
 def main(state):
-
     ########################################
     # Transit Boardings by Line
     ########################################
 
     # Load observed data for given base year
     df_obs = pd.read_sql(
-        text(
-            "SELECT * FROM observed_transit_boardings WHERE year IN (2023, 2024)"
-        ),
+        text("SELECT * FROM observed_transit_boardings WHERE year IN (2023, 2024)"),
         con=state.conn.connect(),
     )
     df_obs["route_id"] = df_obs["route_id"].astype("int")
-    df_obs_pivot = df_obs.pivot_table(index='route_id', columns='year', values='observed_daily', aggfunc='sum').reset_index()
-    df_obs = df_obs_pivot.merge(df_obs[['route_id','agency']].drop_duplicates(), on='route_id', how='left')
+    df_obs_pivot = df_obs.pivot_table(
+        index="route_id", columns="year", values="observed_daily", aggfunc="sum"
+    ).reset_index()
+    df_obs = df_obs_pivot.merge(
+        df_obs[["route_id", "agency"]].drop_duplicates(), on="route_id", how="left"
+    )
     df_line_obs = df_obs.copy()
-    
+
     # Load model results and calculate modeled daily boarding by line
     df_transit_line = pd.read_csv(r"outputs\transit\transit_line_results.csv")
     df_model = df_transit_line.copy()
@@ -130,12 +131,7 @@ def main(state):
     df_agency.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_by_agency.csv"),
         index=False,
-        columns=[
-            "agency",
-            "model_boardings",
-            2023,
-            2024
-        ],
+        columns=["agency", "model_boardings", 2023, 2024],
     )
 
     # Boardings by mode
@@ -155,14 +151,7 @@ def main(state):
     df_special.to_csv(
         os.path.join(validation_output_dir, "daily_boardings_key_routes.csv"),
         index=False,
-        columns=[
-            "description",
-            "route_code",
-            "agency",
-            "model_boardings",
-            2023,
-            2024
-        ],
+        columns=["description", "route_code", "agency", "model_boardings", 2023, 2024],
     )
 
     ########################################
@@ -224,7 +213,8 @@ def main(state):
     # Get daily and model volumes
     # daily_counts = counts.groupby('flag').sum()[['vehicles']].reset_index()
     daily_counts = pd.read_sql(
-        "SELECT * FROM daily_counts WHERE year=" + str(state.input_settings.base_year), con=state.conn
+        "SELECT * FROM daily_counts WHERE year=" + str(state.input_settings.base_year),
+        con=state.conn,
     )
     df_daily = (
         model_vol_df.groupby(["@countid"])
@@ -269,7 +259,8 @@ def main(state):
     # hourly counts
     # Create Time of Day (TOD) column based on start hour, group by TOD
     hr_counts = pd.read_sql(
-        "SELECT * FROM hourly_counts WHERE year=" + str(state.input_settings.base_year), con=state.conn
+        "SELECT * FROM hourly_counts WHERE year=" + str(state.input_settings.base_year),
+        con=state.conn,
     )
     hr_counts["tod"] = hr_counts["start_hour"].map(tod_lookup)
     counts_tod = hr_counts.groupby(["tod", "flag"]).sum()[["vehicles"]].reset_index()
@@ -300,7 +291,7 @@ def main(state):
     df.to_csv(os.path.join(validation_output_dir, "hourly_volume.csv"), index=False)
 
     # Roll up results to assignment periods
-    df["time_period"] = df["tod"].map(state.network_settings.sound_cast_net_dict )
+    df["time_period"] = df["tod"].map(state.network_settings.sound_cast_net_dict)
 
     ########################################
     # Ferry Boardings by Bike
@@ -467,7 +458,15 @@ def main(state):
     # Get the corridor number from the flag file
     flag_lookup_df = pd.melt(
         df_obs[
-            ["Corridor_Number", "Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"]
+            [
+                "Corridor_Number",
+                "Flag 1",
+                "Flag 2",
+                "Flag 3",
+                "Flag 4",
+                "Flag 5",
+                "Flag 6",
+            ]
         ],
         id_vars="Corridor_Number",
         value_vars=["Flag 1", "Flag 2", "Flag 3", "Flag 4", "Flag 5", "Flag 6"],
@@ -642,6 +641,7 @@ def main(state):
     df_model.loc[df_model["tmodetp"] == "HOV3+", "mode"] = "HOV"
     df_model = df_model.groupby(["to_tract", "mode"]).sum().reset_index()
 
+    df_model = df_model[df_model["to_tract"] != "nan"]
     df_model["to_tract"] = df_model["to_tract"].astype("int64")
     df_model["modeled"] = df_model["toexpfac"]
 
@@ -679,7 +679,8 @@ def main(state):
 
     # Add geography columns based on tract
     parcel_geog = pd.read_sql(
-        "SELECT * FROM parcel_" + str(state.input_settings.base_year) + "_geography", con=state.conn
+        "SELECT * FROM parcel_" + str(state.input_settings.base_year) + "_geography",
+        con=state.conn,
     )
 
     tract_geog = (

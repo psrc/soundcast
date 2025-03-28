@@ -31,7 +31,9 @@ def process_net_attribute(state, network, attr, fun):
 
 def process_dist_attribute(state, parcels, network, name, x, y):
     network.set_pois(name, x, y)
-    res = network.nearest_pois(state.network_settings.max_dist, name, num_pois=1, max_distance=999)
+    res = network.nearest_pois(
+        state.network_settings.max_dist, name, num_pois=1, max_distance=999
+    )
     res[res != 999] = (res[res != 999] / 5280.0).astype(res.dtypes)  # convert to miles
     res_name = "dist_%s" % name
     parcels[res_name] = res.loc[parcels.node_ids].values
@@ -44,27 +46,27 @@ def process_parcels(state, parcels, transit_df, net, intersections_df):
     parcels["hourly_weighted_spaces"] = parcels["parkhr_p"] * parcels["pprichrp"]
 
     parcel_attributes = {
-    "sum": [
-        "hh_p",
-        "stugrd_p",
-        "stuhgh_p",
-        "stuuni_p",
-        "empmed_p",
-        "empofc_p",
-        "empedu_p",
-        "empfoo_p",
-        "empgov_p",
-        "empind_p",
-        "empsvc_p",
-        "empoth_p",
-        "emptot_p",
-        "empret_p",
-        "parkdy_p",
-        "parkhr_p",
-        "nparks",
-        "aparks",
-        "daily_weighted_spaces",
-        "hourly_weighted_spaces",
+        "sum": [
+            "hh_p",
+            "stugrd_p",
+            "stuhgh_p",
+            "stuuni_p",
+            "empmed_p",
+            "empofc_p",
+            "empedu_p",
+            "empfoo_p",
+            "empgov_p",
+            "empind_p",
+            "empsvc_p",
+            "empoth_p",
+            "emptot_p",
+            "empret_p",
+            "parkdy_p",
+            "parkhr_p",
+            "nparks",
+            "aparks",
+            "daily_weighted_spaces",
+            "hourly_weighted_spaces",
         ],
         "ave": ["ppricdyp", "pprichrp"],
     }
@@ -93,14 +95,20 @@ def process_parcels(state, parcels, transit_df, net, intersections_df):
     for name in ["tstops"]:
         net.set(transit_df["node_ids"].values, transit_df[name], name=name)
         newdf = pd.merge(
-            newdf, process_net_attribute(state, net, name, "sum"), on="node_ids", copy=False
+            newdf,
+            process_net_attribute(state, net, name, "sum"),
+            on="node_ids",
+            copy=False,
         )
 
     # sum of intersections in buffer
     for name in ["nodes1", "nodes3", "nodes4"]:
         net.set(intersections_df["node_ids"].values, intersections_df[name], name=name)
         newdf = pd.merge(
-            newdf, process_net_attribute(state, net, name, "sum"), on="node_ids", copy=False
+            newdf,
+            process_net_attribute(state, net, name, "sum"),
+            on="node_ids",
+            copy=False,
         )
 
     # Parking prices are weighted average, weighted by the number of spaces in the buffer, divided by the total spaces
@@ -121,7 +129,12 @@ def process_parcels(state, parcels, transit_df, net, intersections_df):
         transit_type_df = transit_df.loc[(transit_df[attr] == 1)]
         if transit_type_df[attr].sum() > 0:
             parcels = process_dist_attribute(
-                state, parcels, net, new_name, transit_type_df["x"], transit_type_df["y"]
+                state,
+                parcels,
+                net,
+                new_name,
+                transit_type_df["x"],
+                transit_type_df["y"],
             )
         else:
             parcels[
@@ -137,7 +150,6 @@ def process_parcels(state, parcels, transit_df, net, intersections_df):
 
 
 def clean_up(parcels):
-
     # Daysim requires a specific order of columns
     col_list = [
         "parcelid",
@@ -223,14 +235,17 @@ def clean_up(parcels):
     ]
 
     # Drop columns used for weighted average calculations
-    parcels.drop(columns=[
-        "daily_weighted_spaces",
-        "hourly_weighted_spaces",
-        "daily_weighted_spaces_1",
-        "daily_weighted_spaces_2",
-        "hourly_weighted_spaces_1",
-        "hourly_weighted_spaces_2"
-    ], inplace=True)
+    parcels.drop(
+        columns=[
+            "daily_weighted_spaces",
+            "hourly_weighted_spaces",
+            "daily_weighted_spaces_1",
+            "daily_weighted_spaces_2",
+            "hourly_weighted_spaces_1",
+            "hourly_weighted_spaces_2",
+        ],
+        inplace=True,
+    )
 
     parcels = parcels.rename(
         columns={
@@ -241,7 +256,7 @@ def clean_up(parcels):
         }
     )
 
-    for col in ['ppricdy1','ppricdy2','pprichr1','pprichr2']:
+    for col in ["ppricdy1", "ppricdy2", "pprichr1", "pprichr2"]:
         parcels[col] = parcels[col].fillna(0)
 
     # Daysim uses dist_lbus as actually meaning the minimum distance to any transit submode
@@ -258,7 +273,9 @@ def clean_up(parcels):
 
 def run(state):
     # read in data
-    parcels = pd.read_csv("outputs/landuse/parcels_urbansim.txt", sep=" ", index_col=None)
+    parcels = pd.read_csv(
+        "outputs/landuse/parcels_urbansim.txt", sep=" ", index_col=None
+    )
 
     # check for missing data!
     for col_name in parcels.columns:
@@ -333,9 +350,11 @@ def run(state):
         ["dist_lbus", "dist_ebus", "dist_crt", "dist_fry", "dist_lrt", "dist_brt"]
     ].min(axis=1)
 
-    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates. 
-    parcels.loc[parcels.dist_lrt<=1, 'dist_lrt'] = parcels['dist_lrt'] * state.network_settings.light_rail_walk_factor
-    parcels['dist_fry'] * state.network_settings.ferry_walk_factor
+    # reduce percieved walk distance for light rail and ferry. This is used to calibrate to 2014 boardings & transfer rates.
+    parcels.loc[parcels.dist_lrt <= 1, "dist_lrt"] = (
+        parcels["dist_lrt"] * state.network_settings.light_rail_walk_factor
+    )
+    parcels["dist_fry"] * state.network_settings.ferry_walk_factor
     parcels_done = clean_up(parcels)
 
     parcels_done.to_csv("outputs/landuse/buffered_parcels.txt", index=False, sep=" ")

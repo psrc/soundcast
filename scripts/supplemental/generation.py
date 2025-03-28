@@ -13,7 +13,8 @@ sys.path.append(os.getcwd())
 from scripts.emme_project import *
 import toml
 from settings import run_args
-#from scripts.settings import state
+
+# from scripts.settings import state
 from pathlib import Path
 
 # state = state.generate_state(run_args.args.input_settings.input_settings.s_dir)
@@ -22,7 +23,8 @@ from pathlib import Path
 #     os.path.join(os.getcwd(), "input_settings.input_settings.uration/emme_input_settings.input_settings.uration.toml")
 # )
 
-#input_settings.input_settings. = toml.load(os.path.join(os.getcwd(), "input_settings.input_settings.uration/input_input_settings.input_settings.uration.toml"))
+# input_settings.input_settings. = toml.load(os.path.join(os.getcwd(), "input_settings.input_settings.uration/input_input_settings.input_settings.uration.toml"))
+
 
 def balance_trips(df, trip_purposes, balanced_to):
     """Balance trips to productions or attractions."""
@@ -55,7 +57,9 @@ def calc_heavy_truck_restrictions(state):
     #  Load land use type from parcels and a lookup for landuse type codes
     parcels = pd.read_csv(r"outputs/landuse/buffered_parcels.txt", sep="\s+")
     df = parcels.merge(
-        pd.read_csv(f"inputs/model/{state.input_settings.abm_model}/lookup/lu_type.csv"),
+        pd.read_csv(
+            f"inputs/model/{state.input_settings.abm_model}/lookup/lu_type.csv"
+        ),
         left_on="lutype_p",
         right_on="land_use_type_id",
     )
@@ -161,9 +165,8 @@ def main(state):
 
     output_directory = "outputs/supplemental"
 
-    #my_project = EmmeProject(emme_input_settings.input_settings.["supplemental_project"], state)
-    #my_project = state.main_project
-    
+    # my_project = EmmeProject(emme_input_settings.input_settings.["supplemental_project"], state)
+    # my_project = state.main_project
 
     conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
 
@@ -179,7 +182,9 @@ def main(state):
     ###########################################################
 
     df_external = pd.read_sql(
-        "SELECT * FROM auto_externals where year=" + str(state.input_settings.base_year), con=conn
+        "SELECT * FROM auto_externals where year="
+        + str(state.input_settings.base_year),
+        con=conn,
     )
     df_external["taz"] = df_external["taz"].astype(int)
     df_external = df_external.loc[
@@ -199,7 +204,8 @@ def main(state):
     # Calculate the Inputs for the Year of the model
     if int(state.input_settings.model_year) > data_year:
         growth_rate = 1 + (
-            state.emme_settings.external_rate * (int(state.input_settings.model_year) - data_year)
+            state.emme_settings.external_rate
+            * (int(state.input_settings.model_year) - data_year)
         )
         df_external = df_external * growth_rate
 
@@ -212,9 +218,9 @@ def main(state):
     df_enlisted["taz"] = df_enlisted["Zone"].copy()
 
     # Select data for model year only
-    df_enlisted = df_enlisted[df_enlisted["year"] == int(state.input_settings.model_year)][
-        ["taz", "military_jobs"]
-    ]
+    df_enlisted = df_enlisted[
+        df_enlisted["year"] == int(state.input_settings.model_year)
+    ][["taz", "military_jobs"]]
 
     # Aggregate enlisted personnel by TAZ
     enlisted_taz = df_enlisted.groupby("taz").sum().reset_index()
@@ -250,7 +256,9 @@ def main(state):
     max_input_year = total_gq_df["year"].max()
 
     if int(state.input_settings.model_year) <= max_input_year:
-        total_gq_df = total_gq_df[total_gq_df["year"] == int(state.input_settings.model_year)]
+        total_gq_df = total_gq_df[
+            total_gq_df["year"] == int(state.input_settings.model_year)
+        ]
 
     else:
         # Factor group quarters at an annual rate
@@ -318,7 +326,9 @@ def main(state):
 
     # Create JBLM Input File for use in Emme
     working_file = open(output_directory + "/jblm.in", "w")
-    working_file.write("c " + str(state.input_settings.model_year) + " Trip Generation" + "\n")
+    working_file.write(
+        "c " + str(state.input_settings.model_year) + " Trip Generation" + "\n"
+    )
     working_file.write(
         "c JBLM trips are based on gate counts, blue tooth and zipcode survey data"
         + "\n"
@@ -351,7 +361,9 @@ def main(state):
     jblm_df["origin_zone"] = jblm_df["origin_zone"].apply(int)
     jblm_df["destination_zone"] = jblm_df["destination_zone"].apply(int)
 
-    jblm_external = jblm_df[(jblm_df["origin_zone"] >= state.emme_settings.MIN_EXTERNAL)]
+    jblm_external = jblm_df[
+        (jblm_df["origin_zone"] >= state.emme_settings.MIN_EXTERNAL)
+    ]
     jblm_ext_productions = sum(jblm_external["trips"])
 
     jblm_external = jblm_df[
@@ -395,7 +407,8 @@ def main(state):
 
     if int(state.input_settings.model_year) > data_year:
         growth_rate = 1 + (
-            state.emme_settings.truck_rate * (int(state.input_settings.model_year) - data_year)
+            state.emme_settings.truck_rate
+            * (int(state.input_settings.model_year) - data_year)
         )
         heavy_trucks["htkpro"] = heavy_trucks["htkpro"] * growth_rate
         heavy_trucks["htkatt"] = heavy_trucks["htkatt"] * growth_rate
@@ -428,9 +441,9 @@ def main(state):
     seatac_zone = df_seatac[df_seatac["year"] == int(state.input_settings.model_year)][
         "taz"
     ].values[0]
-    seatac_enplanements = df_seatac[df_seatac["year"] == int(state.input_settings.model_year)][
-        "enplanements"
-    ].values[0]
+    seatac_enplanements = df_seatac[
+        df_seatac["year"] == int(state.input_settings.model_year)
+    ]["enplanements"].values[0]
 
     ###########################################################
     ## Special Generators
@@ -453,7 +466,11 @@ def main(state):
         ].astype("float")
 
         df_special["hboatt"] = df_special["hboatt"] * (
-            1 + (state.emme_settings.special_generator_rate * (int(state.input_settings.model_year) - max_input_year))
+            1
+            + (
+                state.emme_settings.special_generator_rate
+                * (int(state.input_settings.model_year) - max_input_year)
+            )
         )
 
     df_special = df_special[["taz", "hboatt"]]
@@ -550,11 +567,13 @@ def main(state):
     df_hh["income-class"] = 0
     df_hh.loc[df_hh["hhincome"] <= state.emme_settings.low_income, "income-class"] = 1
     df_hh.loc[
-        (df_hh["hhincome"] > state.emme_settings.low_income) & (df_hh["hhincome"] <= state.emme_settings.medium_income),
+        (df_hh["hhincome"] > state.emme_settings.low_income)
+        & (df_hh["hhincome"] <= state.emme_settings.medium_income),
         "income-class",
     ] = 2
     df_hh.loc[
-        (df_hh["hhincome"] > state.emme_settings.medium_income) & (df_hh["hhincome"] <= state.emme_settings.high_income),
+        (df_hh["hhincome"] > state.emme_settings.medium_income)
+        & (df_hh["hhincome"] <= state.emme_settings.high_income),
         "income-class",
     ] = 3
     df_hh.loc[df_hh["hhincome"] > state.emme_settings.high_income, "income-class"] = 4
@@ -684,9 +703,9 @@ def main(state):
     ###########################################################
     # SeaTac Airport trip generation
     ###########################################################
-    df_parcels["airport"] = (df_parcels["total-jobs"] * state.emme_settings.air_jobs) + (
-        df_parcels["total-people"] * state.emme_settings.air_people
-    )
+    df_parcels["airport"] = (
+        df_parcels["total-jobs"] * state.emme_settings.air_jobs
+    ) + (df_parcels["total-people"] * state.emme_settings.air_people)
     aiport_balancing = seatac_enplanements / sum(df_parcels["airport"])
     df_parcels["airport"] = df_parcels["airport"] * aiport_balancing
 
@@ -745,7 +764,8 @@ def main(state):
 
     # Soundcast uses pre-determined HSP trips to meet external counts. Need to adjust these here for non-work-ixxi:
     external_trip_table = pd.read_sql(
-        "SELECT * FROM externals_unadjusted where year=" + str(state.input_settings.base_year),
+        "SELECT * FROM externals_unadjusted where year="
+        + str(state.input_settings.base_year),
         con=conn,
     )
     external_trip_table.set_index("taz", inplace=True)
@@ -806,7 +826,7 @@ def main(state):
     balanced_df = balance_trips(df_taz, balance_to_attractions, "att")
     balanced_df.to_csv(output_directory + "/7_balance_trip_ends.csv", index=True)
 
-    #my_project.close()
+    # my_project.close()
 
 
 if __name__ == "__main__":

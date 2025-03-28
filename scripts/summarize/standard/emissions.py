@@ -1,7 +1,9 @@
 import os, sys, shutil
 import pandas as pd
 from sqlalchemy import create_engine
+
 pd.options.mode.chained_assignment = None
+
 
 def grams_to_tons(value):
     """Convert grams to tons."""
@@ -297,7 +299,9 @@ def calculate_start_emissions(state):
     """Calculate start emissions based on vehicle population by county and year."""
 
     df_veh = pd.read_sql(
-        "SELECT * FROM vehicle_population WHERE year==" + state.input_settings.base_year, con=state.conn
+        "SELECT * FROM vehicle_population WHERE year=="
+        + state.input_settings.base_year,
+        con=state.conn,
     )
 
     # Scale all vehicles by difference between base year and model total vehicles owned from auto onwership model
@@ -347,7 +351,8 @@ def calculate_start_emissions(state):
     # Calculate bus start emissions
     # Load data taken from NTD that reports number of bus vehicles "operated in maximum service"
     df_bus_veh = pd.read_sql(
-        "SELECT * FROM bus_vehicles WHERE year==" + state.input_settings.base_year, con=state.conn
+        "SELECT * FROM bus_vehicles WHERE year==" + state.input_settings.base_year,
+        con=state.conn,
     )
     tot_buses = df_bus_veh["bus_vehicles_in_service"].sum()
 

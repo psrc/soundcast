@@ -6,10 +6,11 @@ import os
 import sqlite3
 from sqlalchemy import create_engine
 from settings import run_args
-#from scripts.settings import state
+
+# from scripts.settings import state
 from pathlib import Path
 
-#state = state.generate_state(run_args.args.configs_dir)
+# state = state.generate_state(run_args.args.configs_dir)
 
 
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
@@ -113,12 +114,18 @@ def main(state):
     network_importer(my_project, state)
 
     # Load input data from DB and CSVs
-    conn = create_engine('sqlite:///inputs/db/'+state.input_settings.db_name)
+    conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
 
-    parcels_military = pd.read_sql('SELECT * FROM enlisted_personnel WHERE year=='+state.input_settings.model_year, con=conn)
-    parcels_urbansim = pd.read_csv('inputs/scenario/landuse/parcels_urbansim.txt', sep=" ")
-    parcels_urbansim.index = parcels_urbansim['parcelid']
-    
+    parcels_military = pd.read_sql(
+        "SELECT * FROM enlisted_personnel WHERE year=="
+        + state.input_settings.model_year,
+        con=conn,
+    )
+    parcels_urbansim = pd.read_csv(
+        "inputs/scenario/landuse/parcels_urbansim.txt", sep=" "
+    )
+    parcels_urbansim.index = parcels_urbansim["parcelid"]
+
     # FIXME: uniform upper/lower
     # Convert columns to upper case for now
     # parcels_urbansim.columns = [i.upper() for i in parcels_urbansim.columns]
@@ -317,8 +324,9 @@ def main(state):
     parcels_urbansim.to_csv(
         r"outputs/landuse/parcels_urbansim.txt", sep=" ", index=False
     )
-    
-    #my_project.close()
+
+    # my_project.close()
+
 
 if __name__ == "__main__":
     main()

@@ -30,12 +30,13 @@ from logcontroller import *
 
 # from emme_configuration import *
 from skimming.skim_templates import *
-#from settings import state
+
+# from settings import state
 # import input_configuration
 import glob
 import toml
 
-#state = state.generate_state(run_args.args.configs_dir)
+# state = state.generate_state(run_args.args.configs_dir)
 
 # config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 # emme_config = toml.load(
@@ -88,7 +89,7 @@ def text_to_dictionary(dict_name, model_inputs_dir, subdir=""):
     e.g., key: value
     """
 
-    input_filename = model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.txt"
+    input_filename = model_inputs_dir / f"skim_parameters/{subdir}/{dict_name}.txt"
     my_file = open(input_filename)
     my_dictionary = {}
 
@@ -104,7 +105,7 @@ def json_to_dictionary(dict_name, model_inputs_dir, subdir=""):
     Import JSON-formatted input as dictionary. Expects file extension .json.
     """
 
-    input_filename = model_inputs_dir/f"skim_parameters/{subdir}/{dict_name}.json"
+    input_filename = model_inputs_dir / f"skim_parameters/{subdir}/{dict_name}.json"
     my_dictionary = json.load(open(input_filename))
 
     return my_dictionary
@@ -114,8 +115,10 @@ def json_to_dictionary(dict_name, model_inputs_dir, subdir=""):
 def setup_emme_bank_folders(state):
     """Generate folder and empty emmebanks for each time of day period."""
 
-    #tod_dict = text_to_dictionary("time_of_day", "lookup")
-    emmebank_dimensions_dict = json_to_dictionary("emme_bank_dimensions", state.model_input_dir)
+    # tod_dict = text_to_dictionary("time_of_day", "lookup")
+    emmebank_dimensions_dict = json_to_dictionary(
+        "emme_bank_dimensions", state.model_input_dir
+    )
 
     # Remove and existing banks
     if not os.path.exists("Banks"):
@@ -140,7 +143,6 @@ def setup_emme_bank_folders(state):
         network.create_mode("AUTO", "a")
         scenario.publish_network(network)
         emmebank.dispose()
-        
 
 
 @timed
@@ -148,14 +150,13 @@ def setup_emme_project_folders(state):
     """Create Emme project folders for all time of day periods."""
 
     emme_toolbox_path = os.path.join(os.environ["EMMEPATH"], "toolboxes")
-    #tod_dict = text_to_dictionary("time_of_day", "lookup")
+    # tod_dict = text_to_dictionary("time_of_day", "lookup")
     tod_list = state.network_settings.tods.copy()
-    
+
     if os.path.exists(os.path.join("projects")):
         shutil.rmtree("projects")
-    
+
     # Create time of day projects, associate with emmebank
-    
 
     for tod in tod_list:
         project = app.create_project("projects", tod)
@@ -195,15 +196,28 @@ def copy_scenario_inputs(state):
             shutil.rmtree(os.path.join(os.getcwd(), path), ignore_errors=True)
 
     # Copy base_year folder from inputs directory
-    copyanything(Path(state.input_settings.soundcast_inputs_dir) / "base_year" / state.input_settings.base_year,"inputs/base_year"
+    copyanything(
+        Path(state.input_settings.soundcast_inputs_dir)
+        / "base_year"
+        / state.input_settings.base_year,
+        "inputs/base_year",
     )
 
     # Copy network, landuse, and general (year-based) inputs
     copyanything(Path(state.input_settings.soundcast_inputs_dir) / "db", "inputs/db")
     copyanything(
-        Path(state.input_settings.soundcast_inputs_dir) / "landuse" / state.input_settings.model_year / state.input_settings.landuse_inputs, "inputs/scenario/landuse"
+        Path(state.input_settings.soundcast_inputs_dir)
+        / "landuse"
+        / state.input_settings.model_year
+        / state.input_settings.landuse_inputs,
+        "inputs/scenario/landuse",
     )
-    copyanything(Path(state.input_settings.soundcast_inputs_dir) / "networks" / state.input_settings.model_year / state.input_settings.network_inputs, "inputs/scenario/networks"
+    copyanything(
+        Path(state.input_settings.soundcast_inputs_dir)
+        / "networks"
+        / state.input_settings.model_year
+        / state.input_settings.network_inputs,
+        "inputs/scenario/networks",
     )
 
 
@@ -292,7 +306,9 @@ def import_integrated_inputs(state):
 
     # Copy soundcast inputs and separate input files
     h5_inputs_dir = os.path.join(
-        state.emme_settings.urbansim_outputs_dir, state.input_settings.model_year, "soundcast_inputs.h5"
+        state.emme_settings.urbansim_outputs_dir,
+        state.input_settings.model_year,
+        "soundcast_inputs.h5",
     )
     shcopy(h5_inputs_dir, r"inputs/scenario/landuse/hh_and_persons.h5")
 
@@ -327,7 +343,9 @@ def update_skim_parameters(state):
     if not state.input_settings.include_delivery:
         keywords.append("delivery_")
 
-    root_path = os.path.join(os.getcwd(), f"inputs/model/{state.input_settings.abm_model}/skim_parameters")
+    root_path = os.path.join(
+        os.getcwd(), f"inputs/model/{state.input_settings.abm_model}/skim_parameters"
+    )
 
     # Remove unused modes from user_classes and demand_matrix_dictionary
     for filename, ext in {
@@ -459,10 +477,14 @@ def update_daysim_modes(state):
     # Write Daysim roster and roster-combination files from template
     # Exclude AV alternatives if not included in scenario
 
-    df = pd.read_csv(f"inputs/model/{state.input_settings.abm_model}/roster/templates/psrc_roster_template.csv")
+    df = pd.read_csv(
+        f"inputs/model/{state.input_settings.abm_model}/roster/templates/psrc_roster_template.csv"
+    )
     if not state.input_settings.include_av:  # Remove TNC from mode list
         df = df[-df["mode"].isin(["av1", "av2", "av3"])]
-    if not state.input_settings.include_tnc_to_transit:  # remove TNC-to-transit from potential path types
+    if (
+        not state.input_settings.include_tnc_to_transit
+    ):  # remove TNC-to-transit from potential path types
         df = df[
             -df["path-type"].isin(
                 filter(lambda x: "tnc" in x, df["path-type"].unique())
@@ -474,7 +496,10 @@ def update_daysim_modes(state):
                 filter(lambda x: "knr" in x, df["path-type"].unique())
             )
         ]
-    df.fillna("null").to_csv(f"inputs/model/{state.input_settings.abm_model}/roster/psrc_roster.csv", index=False)
+    df.fillna("null").to_csv(
+        f"inputs/model/{state.input_settings.abm_model}/roster/psrc_roster.csv",
+        index=False,
+    )
 
     df = pd.read_csv(
         f"inputs/model/{state.input_settings.abm_model}/roster/templates/psrc-roster.combinations_template.csv",
@@ -489,7 +514,9 @@ def update_daysim_modes(state):
         df.loc[["ferry-knr"], "transit"] = "FALSE"
     if not state.input_settings.include_tnc_to_transit:
         df.loc[["local-bus-tnc", "light-rail-tnc"], "transit"] = "FALSE"
-    df.to_csv(f"inputs/model/{state.input_settings.abm_model}/roster/psrc-roster.combinations.csv")
+    df.to_csv(
+        f"inputs/model/{state.input_settings.abm_model}/roster/psrc-roster.combinations.csv"
+    )
 
 
 def copyanything(src, dst):

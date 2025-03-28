@@ -1,5 +1,6 @@
 import argparse
 
+
 def add_run_args(parser, multiprocess=True):
     """
     Run command args

@@ -29,7 +29,7 @@ class TOD_Parameters(object):
 
     def _run_transit(self):
         return self.tod in self.network_settings.transit_tod_list
-    
+
     def _skim_transit_fares(self):
         return self.tod in self.network_settings.fare_matrices_tod
 

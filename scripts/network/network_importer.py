@@ -12,6 +12,7 @@ sys.path.append(os.getcwd())
 from scripts.emme_project import *
 import toml
 
+
 def json_to_dictionary(dict_name):
     # Determine the Path to the input files and load them
     input_filename = os.path.join(
@@ -203,9 +204,9 @@ def arterial_delay(emmeProject, factor):
 
 
 def run_importer(state):
-    #my_project = EmmeProject(state.network_settings.network_summary_project, state)
+    # my_project = EmmeProject(state.network_settings.network_summary_project, state)
     my_project = state.main_project
-    if state.input_settings.abm_model=='activitysim':
+    if state.input_settings.abm_model == "activitysim":
         headway_df = pd.read_csv("inputs/scenario/networks/headways_asim.csv")
     else:
         headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
@@ -272,7 +273,8 @@ def run_importer(state):
 
         arterial_delay(my_project, state.network_settings.rdly_factor)
         if state.input_settings.add_distance_pricing:
-            distance_pricing(state.distance_rate_dict[value], my_project, state.input_settings)
+            distance_pricing(
+                state.distance_rate_dict[value], my_project, state.input_settings
+            )
         my_project.bank.dispose()
-    #my_project.close()
-        
+    # my_project.close()

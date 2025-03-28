@@ -52,13 +52,12 @@ def load_agg_data(file_path: str):
 
     df = pd.DataFrame()
     for comparison_run in ALL_RUNS.keys():
-        
         full_file_path = get_output_path(comparison_run) / file_path
 
         if file_path == "network/network_results.csv":
             df_run = _process_network_summary(comparison_run)
         else:
-            if str(full_file_path).endswith('.csv'):
+            if str(full_file_path).endswith(".csv"):
                 df_run = pd.read_csv(full_file_path)
             # elif str(full_file_path).endswith('.h5'):
             #     df_run = h5py.File(full_file_path, 'r')
@@ -112,6 +111,7 @@ def _process_network_summary(comparison_run: str):
 
     return df
 
+
 def load_landuse(output_path: str, usecols: list = None):
     """
     get land use data for all runs.
@@ -122,7 +122,9 @@ def load_landuse(output_path: str, usecols: list = None):
 
     df = pd.DataFrame()
     for comparison_run in ALL_RUNS.keys():
-        df_run = pd.read_csv(get_output_path(comparison_run) / output_path, sep=' ', usecols=usecols)
+        df_run = pd.read_csv(
+            get_output_path(comparison_run) / output_path, sep=" ", usecols=usecols
+        )
 
         # Ensure lower case column names
         df_run.columns = df_run.columns.str.lower()
@@ -132,13 +134,18 @@ def load_landuse(output_path: str, usecols: list = None):
 
     return df
 
+
 def load_sqlite(sql_query):
     df = pd.DataFrame()
     for comparison_run in ALL_RUNS.keys():
-
-        con = sqlite3.connect(os.path.join(get_output_path(comparison_run), r'../inputs/db/soundcast_inputs_2023.db'))
+        con = sqlite3.connect(
+            os.path.join(
+                get_output_path(comparison_run),
+                r"../inputs/db/soundcast_inputs_2023.db",
+            )
+        )
         df_run = pd.read_sql_query(sql_query, con)
-        df_run["source"] = comparison_run        
+        df_run["source"] = comparison_run
         df = pd.concat([df, df_run])
 
     return df

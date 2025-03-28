@@ -36,7 +36,7 @@ def summarize_transit_detail(state):
         .reset_index()
         .sort_values("boardings", ascending=False)
     )
-    df_daily.to_csv('outputs/transit/daily_boardings_by_agency.csv', index=False)
+    df_daily.to_csv("outputs/transit/daily_boardings_by_agency.csv", index=False)
 
     # Boardings by Time of Day and Agency
     df_tod_agency = df_transit_line.pivot_table(
@@ -44,7 +44,7 @@ def summarize_transit_detail(state):
     )
     df_tod_agency = df_tod_agency[state.network_settings.transit_tod_list]
     df_tod_agency = df_tod_agency.sort_values("7to8", ascending=False).reset_index()
-    df_tod_agency.to_csv('outputs/transit/boardings_by_tod_agency.csv', index=False)
+    df_tod_agency.to_csv("outputs/transit/boardings_by_tod_agency.csv", index=False)
 
     # Daily Boardings by Stop
     df_transit_segment = pd.read_csv(r"outputs\transit\transit_segment_results.csv")
@@ -56,7 +56,8 @@ def summarize_transit_detail(state):
     )
     df.rename(columns={"segment_boarding": "total_boardings"}, inplace=True)
     df["transfers"] = df["total_boardings"] - df["initial_boardings"]
-    df.to_csv('outputs/transit/boardings_by_stop.csv')
+    df.to_csv("outputs/transit/boardings_by_stop.csv")
+
 
 def jobs_transit():
     buf = pd.read_csv(r"outputs/landuse/buffered_parcels.txt", sep=" ")
@@ -117,10 +118,10 @@ def jobs_transit():
 
     return df
 
-def daily_transit_trips():
 
+def daily_transit_trips():
     # Use daily bank
-    
+
     bank = _emmebank.Emmebank(r"Banks/Daily/emmebank")
 
     # Export total daily transit trips by mode
@@ -129,8 +130,8 @@ def daily_transit_trips():
         df.loc[mode, "total_trips"] = bank.matrix(mode).get_numpy_data().sum()
     df.to_csv(r"outputs\transit\total_transit_trips.csv")
 
-def main(state):
 
+def main(state):
     daily_transit_trips()
 
     # Produce transit summaries
@@ -139,6 +140,6 @@ def main(state):
     # Export number of jobs near transit stops
     jobs_transit().to_csv("outputs/transit/transit_access.csv")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()
-   

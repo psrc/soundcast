@@ -52,14 +52,15 @@ def main():
 
     ## separate notebook for telecommute analysis
     if "../telecommute_analysis/telecommute_analysis" in config["summary_list"]:
-
         telecommute_analysis_output_dir = os.path.join(
             os.getcwd(), config["p_output_dir"], "telecommute-analysis-notebook"
         )
         if os.path.exists(telecommute_analysis_output_dir):
             shutil.rmtree(telecommute_analysis_output_dir)
 
-        text = "quarto render " + os.path.join(r"scripts/summarize/validation/telecommute_analysis")
+        text = "quarto render " + os.path.join(
+            r"scripts/summarize/validation/telecommute_analysis"
+        )
         os.system(text)
         print("telecommute analysis notebook created")
 
@@ -67,10 +68,13 @@ def main():
         if not os.path.exists(os.path.join(os.getcwd(), config["p_output_dir"])):
             os.makedirs(os.path.join(os.getcwd(), config["p_output_dir"]))
         shutil.move(
-            (os.path.join(r"scripts/summarize/validation", "telecommute-analysis-notebook")),
+            (
+                os.path.join(
+                    r"scripts/summarize/validation", "telecommute-analysis-notebook"
+                )
+            ),
             telecommute_analysis_output_dir,
         )
-      
 
 
 if __name__ == "__main__":

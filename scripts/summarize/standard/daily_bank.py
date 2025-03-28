@@ -18,10 +18,12 @@ from settings.data_wrangling import text_to_dictionary
 import shutil
 import pandas as pd
 
+
 def copy_emmebank(from_dir, to_dir):
     if os.path.exists(to_dir):
         shutil.rmtree(to_dir)
     shutil.copytree(from_dir, to_dir)
+
 
 def merge_networks(master_network, merge_network):
     for node in merge_network.nodes():
@@ -73,13 +75,10 @@ def export_link_values(project):
     network_to_shapefile = project.m.tool(
         "inro.emme.data.network.export_network_as_shapefile"
     )
-    network_to_shapefile(
-        export_path=shapefile_dir, scenario=project.current_scenario
-    )
+    network_to_shapefile(export_path=shapefile_dir, scenario=project.current_scenario)
 
 
 def main(state):
-
     project = state.main_project
 
     # Use a copy of an existing bank for the daily bank and rename

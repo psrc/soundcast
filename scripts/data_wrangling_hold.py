@@ -115,7 +115,7 @@ def json_to_dictionary(dict_name, subdir=""):
 def setup_emme_bank_folders(settings):
     """Generate folder and empty emmebanks for each time of day period."""
 
-    #tod_dict = text_to_dictionary("time_of_day", "lookup")
+    # tod_dict = text_to_dictionary("time_of_day", "lookup")
     emmebank_dimensions_dict = json_to_dictionary("emme_bank_dimensions")
 
     # Remove and existing banks

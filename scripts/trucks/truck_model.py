@@ -23,8 +23,8 @@ from scripts.emme_project import *
 # from input_configuration import *
 import toml
 
-#from settings import run_args
-#from scripts.settings import state
+# from settings import run_args
+# from scripts.settings import state
 from pathlib import Path
 
 # state = state.generate_state(run_args.args.configs_dir)
@@ -52,9 +52,9 @@ def network_importer(state):
 
 def json_to_dictionary(dict_name, state):
     # Determine the Path to the input files and load them
-    input_filename = os.path.join(f"inputs/model/{state.input_settings.abm_model}/trucks/", dict_name + ".txt").replace(
-        "\\", "/"
-    )
+    input_filename = os.path.join(
+        f"inputs/model/{state.input_settings.abm_model}/trucks/", dict_name + ".txt"
+    ).replace("\\", "/")
     my_dictionary = json.load(open(input_filename))
     return my_dictionary
 
@@ -166,7 +166,9 @@ def import_skims(my_project, input_skims, zones, zonesDim, state):
     np_gc_skims = {}
     np_bidir_gc_skims = {}
     for tod in state.network_settings.truck_generalized_cost_tod.keys():
-        hdf_file = h5py.File(f"inputs/model/{state.input_settings.abm_model}/roster/" + tod + ".h5", "r")
+        hdf_file = h5py.File(
+            f"inputs/model/{state.input_settings.abm_model}/roster/" + tod + ".h5", "r"
+        )
         for item in input_skims.values():
             # gc
             skim_name = item["gc_name"]
@@ -466,18 +468,19 @@ def write_summary(my_project):
 
 
 def main(state):
-    #my_project = EmmeProject(network_config["truck_model_project"], state)
+    # my_project = EmmeProject(network_config["truck_model_project"], state)
     # zones = my_project.current_scenario.zone_numbers
     if state.main_project.data_explorer.active_database().title() != "Supplementals":
         state.main_projet.change_active_database("Supplmentals")
-    state.main_project.change_active_database('TruckModel')
+    state.main_project.change_active_database("TruckModel")
 
+    input_skims = json_to_dictionary("input_skims", state)
+    truck_matrix_list = pd.read_csv(
+        f"inputs/model/{state.input_settings.abm_model}/trucks/truck_matrices.csv"
+    )
 
-    input_skims = json_to_dictionary('input_skims', state)
-    truck_matrix_list = pd.read_csv(f'inputs/model/{state.input_settings.abm_model}/trucks/truck_matrices.csv')
-    
-    conn = create_engine('sqlite:///inputs/db/'+ state.input_settings.db_name)
-    balanced_prod_att = pd.read_csv('outputs/supplemental/7_balance_trip_ends.csv')
+    conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
+    balanced_prod_att = pd.read_csv("outputs/supplemental/7_balance_trip_ends.csv")
 
     network_importer(state)
     zones = state.main_project.current_scenario.zone_numbers
@@ -486,7 +489,8 @@ def main(state):
     # Load zone partitions (used to identify external zones)
     state.main_project.initialize_zone_partition("ga")
     state.main_project.process_zone_partition(
-        f"inputs/model/{state.input_settings.abm_model}/trucks/" + state.network_settings.districts_file
+        f"inputs/model/{state.input_settings.abm_model}/trucks/"
+        + state.network_settings.districts_file
     )
 
     state.main_project.delete_matrices("ALL")
@@ -499,7 +503,7 @@ def main(state):
     calculate_daily_trips(state.main_project, conn)
     write_truck_trips(state.main_project, state)
     write_summary(state.main_project)
-    #my_project.close()
+    # my_project.close()
 
 
 if __name__ == "__main__":

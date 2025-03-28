@@ -91,7 +91,9 @@ def freeflow_skims(state, project, dictZoneLookup):
         df[field] = daysim["Trip"][field][:]
     df["od"] = df["otaz"].astype("str") + "-" + df["dtaz"].astype("str")
 
-    skim_vals = h5py.File(f"{state.model_input_dir}/roster/20to5.h5", "r")["Skims"]["sov_inc3t"][:]
+    skim_vals = h5py.File(f"{state.model_input_dir}/roster/20to5.h5", "r")["Skims"][
+        "sov_inc3t"
+    ][:]
 
     skim_df = pd.DataFrame(skim_vals)
     # Reset index and column headers to match zone ID
@@ -117,7 +119,7 @@ def freeflow_skims(state, project, dictZoneLookup):
     daysim.close()
 
     # Write to TSV files
-    for df_dir in ["outputs/daysim/_trip.tsv","inputs/base_year/survey/_trip.tsv"]:
+    for df_dir in ["outputs/daysim/_trip.tsv", "inputs/base_year/survey/_trip.tsv"]:
         df = pd.read_csv(df_dir, sep="\t")
         df["od"] = df["otaz"].astype("str") + "-" + df["dtaz"].astype("str")
         skim_df["sov_ff_time"] = skim_df["ff_travtime"]
@@ -127,6 +129,7 @@ def freeflow_skims(state, project, dictZoneLookup):
         skim_df = skim_df.reset_index(drop=True)
         df = pd.merge(df, skim_df[["od", "sov_ff_time"]], on="od", how="left")
         df.to_csv(df_dir, sep="\t", index=False)
+
 
 def export_network_attributes(network):
     """Calculate link-level results by time-of-day, append to csv"""
@@ -209,8 +212,8 @@ def summarize_network(state, df, writer):
     # Add time-of-day group (AM, PM, etc.)
     tod_df = pd.read_json(
         f"{state.model_input_dir}/skim_parameters/lookup/time_of_day_crosswalk_ab_4k_dictionary.json",
-        orient="index"
-        )
+        orient="index",
+    )
     tod_df = tod_df[["TripBasedTime"]].reset_index()
     tod_df.columns = ["tod", "period"]
     df = pd.merge(df, tod_df, on="tod", how="left")
@@ -337,7 +340,9 @@ def line_to_line_transfers(state, emme_project, tod):
     emme_project.network_calculator(
         "transit_line_calculation", result="@ln2ln", expression="index1"
     )
-    with open(f"{state.model_input_dir}/skim_parameters/transit/transit_traversal.json") as f:
+    with open(
+        f"{state.model_input_dir}/skim_parameters/transit/transit_traversal.json"
+    ) as f:
         spec = json.load(f)
     NAMESPACE = "inro.emme.transit_assignment.extended.traversal_analysis"
     process = emme_project.m.tool(NAMESPACE)
@@ -465,8 +470,8 @@ def transit_summary(emme_project, df_transit_line, df_transit_node, df_transit_s
 
     return _df_transit_line, _df_transit_node, _df_transit_segment
 
-def main(state):
 
+def main(state):
     # Delete any existing files
     for _path in [
         "outputs/transit/transit_line_results.csv",
@@ -518,9 +523,9 @@ def main(state):
         # Calculate transit results for time periods with transit assignment:
         if project.tod in state.network_settings.transit_tod.keys():
             for name, desc in {
-                '@board': "total boardings",
-                '@timtr': "transit line time"
-                }.items():
+                "@board": "total boardings",
+                "@timtr": "transit line time",
+            }.items():
                 project.create_extra_attribute("TRANSIT_LINE", name, desc, "True")
                 project.transit_line_calculator(result=name, expression=name[1:])
             _df_transit_line, _df_transit_node, _df_transit_segment = transit_summary(
@@ -576,6 +581,7 @@ def main(state):
         r"outputs/network/network_summary.xlsx", engine="xlsxwriter"
     )
     summarize_network(state, network_df, writer)
+
 
 if __name__ == "__main__":
     main()
