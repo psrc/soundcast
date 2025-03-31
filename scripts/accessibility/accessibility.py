@@ -307,8 +307,6 @@ def run(state):
     net = pdna.network.Network(
         nodes.x, nodes.y, links.from_node_id, links.to_node_id, imp
     )
-    for dist_index, dist in state.network_settings.accessibility_distances.items():
-        net.precompute(dist)
 
     # get transit stops
     transit_df = pd.read_csv("inputs/scenario/networks/transit_stops.csv")
