@@ -10,7 +10,7 @@ validation_output_dir = "outputs/validation"
 # Create a clean output directory
 if os.path.exists(validation_output_dir):
     shutil.rmtree(validation_output_dir)
-os.makedirs(validation_output_dir)
+    os.makedirs(validation_output_dir)
 
 ### FIXME: move to a config file
 agency_lookup = {
