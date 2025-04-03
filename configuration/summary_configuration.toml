@@ -61,13 +61,22 @@ summer_list = [87]
 #################################
 
 # run jupyter scripts
-summary_list = ['topsheet','vmt', 'transit']
+summary_list = ['topsheet',
+                'vmt', 
+                'transit']
+
+RTP_summary_list = ['RTP_person',
+                    'RTP_access',
+                    'RTP_costs',
+                    'RTP_emissions',
+                    'RTP_mode_share'
+                    ]
 
 # current run name and directory
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/Workspace/sc_23_02_17_25'
+# sc_run_path = '//modelstation2/c$/Workspace/sc_03_17_25'
 
 # Summary Comparisons: add comparison run directories
 [comparison_runs_list]
