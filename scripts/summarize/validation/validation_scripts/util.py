@@ -1,12 +1,6 @@
-import os
-import toml
-import pandas as pd
 import numpy as np
-import plotly.express as px
-from shapely import wkt
 from sqlalchemy import create_engine, text
-import urllib
-import pyodbc
+import polars as pl
 from pathlib import Path
 
 
@@ -18,25 +12,35 @@ class ValidationData:
         self.hh = self._get_hh_data()
         # get uncloned person data
         self.person = self._get_person_data()
-        self.person_day = self._get_person_day_data(False)
+        # self.person_day = self._get_person_day_data(False)
         self.tour = self._get_tour_data(False)
         self.trip = self._get_trip_data(False)
         self.land_use = self._get_parcel_landuse_data()
-        self.parcel_geog = self._get_parcel_geog()
-        # self.hh_elmer = self._get_elmer_data("v_households_labels")
-        # self.person_elmer = self._get_elmer_data("v_persons_labels")
+        # self.parcel_geog = self._get_parcel_geog()
+
 
     # Read data for model and survey data
     def _get_data(self, df_name, uncloned=True):
         # model data
-        model = pd.read_csv(
+        model = pl.read_csv(
             Path(self.config["model_dir"], "outputs/daysim", "_" + df_name + ".tsv"),
-            sep="\t",
+            # Path("outputs/daysim", "_" + df_name + ".tsv"),
+            separator="\t",
         )
-        model["source"] = "model"
+
+        # Apply expected data types to data when read in
+
+        # model["source"] = "model"
+        # model.drop_in_place('fraction_with_jobs_outside')
+        wt_col = model.select(pl.col("^.*expfac.*$")).columns[0]
+        model = model.with_columns(
+            source = pl.lit("model"),
+            **{wt_col: pl.col(wt_col).cast(pl.Float64)}
+        )
 
         # survey data
-        survey = pd.DataFrame()
+        # survey = pd.DataFrame()
+        survey_list = []
 
         # read survey data in all sources
         for source_name in self.config["survey_directories"].keys():
@@ -50,12 +54,24 @@ class ValidationData:
                 # get cloned data
                 survey_path = self.config["survey_directories"][source_name]
 
-            df = pd.read_csv(Path(survey_path, "_" + df_name + ".tsv"), sep="\t")
-            df["source"] = source_name
+            df = pl.read_csv(Path(survey_path, "_" + df_name + ".tsv"), separator="\t")
+            # df["source"] = source_name
+            df = df.with_columns(
+                source = pl.lit(source_name)
+            )
+            # df = df[model.columns]
+            col_list = np.intersect1d(df.columns, model.columns)
+            df = df[col_list]
+            # model_schema = model[col_list].collect_schema()
+            model_schema = model[col_list].schema
+            # Apply the new schema
+            df = df.with_columns([
+                pl.col(col_name).cast(new_type) for col_name, new_type in model_schema.items()
+            ])
+            # survey = pl.concat([survey, df])
+            survey_list.append(df)
 
-            survey = pd.concat([survey, df])
-
-        data = pd.concat([model, survey])
+        data = pl.concat(survey_list+[model[col_list]])
 
         return data
 
@@ -86,30 +102,24 @@ class ValidationData:
 
     def _get_parcel_landuse_data(self):
         # parcel land use data
-        df_parcel = pd.read_csv(
+        df_parcel = pl.read_csv(
             Path(self.config["model_dir"], "outputs/landuse/buffered_parcels.txt"),
-            delim_whitespace=True,
-            # usecols=['parcelid','emptot_1','hh_1']
+            separator=" ",
         )
 
         return df_parcel
 
     def _get_parcel_geog(self):
-        # Load parcel geography lookups
-        conn = create_engine(
-            "sqlite:///"
-            + self.config["model_dir"]
-            + "/inputs/db/"
-            + self.input_config["db_name"]
-        )
-        parcel_geog = pd.read_sql(
-            text(
+
+        parcel_geog = pl.read_database(
+            query=
                 "SELECT * FROM "
                 + "parcel_"
                 + self.input_config["base_year"]
                 + "_geography"
-            ),
-            con=conn.connect(),
+            ,
+            # connection=conn.connect(),
+            connection_uri="sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"]
         )
 
         return parcel_geog

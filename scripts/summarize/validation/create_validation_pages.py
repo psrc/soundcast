@@ -1,4 +1,4 @@
-import os, sys, shutil
+import os, sys, shutil, time
 import toml
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
@@ -9,6 +9,7 @@ config = toml.load(
 
 
 def run_ipynb(sheet_name, nb_path):
+    start_time = time.time()
     print("creating " + sheet_name + " summary")
     with open(nb_path + r"/" + sheet_name + ".ipynb") as f:
         nb = nbformat.read(f, as_version=4)
@@ -20,7 +21,8 @@ def run_ipynb(sheet_name, nb_path):
         ep.preprocess(nb, {"metadata": {"path": nb_path + r"/"}})
         with open(nb_path + r"/" + sheet_name + ".ipynb", "wt") as f:
             nbformat.write(nb, f)
-    print("done")
+    end_time = time.time()
+    print("Time taken to create " + sheet_name + " summary: " + str(end_time - start_time) + " seconds")
 
 
 def main():
