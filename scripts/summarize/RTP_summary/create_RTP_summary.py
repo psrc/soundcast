@@ -40,7 +40,7 @@ def main():
     # Move these files to output folder
     if not os.path.exists(Path.cwd() / config["p_output_dir"]):
         os.makedirs(Path.cwd() / config["p_output_dir"])
-    shutil.move(Path.cwd() / "scripts/summarize/summary/RTP-summary-notebook", output_dir)
+    shutil.move(Path.cwd() / "scripts/summarize/RTP_summary/RTP-summary-notebook", output_dir)
 
 
 if __name__ == "__main__":

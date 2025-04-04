@@ -66,7 +66,7 @@ def apply_labels(tablename, df, labels_df):
         label_df = labels_df.filter(pl.col("field") == field)[["value", "text"]]
         # pl_df = pl.DataFrame(label_df)
         df = df.with_columns(pl.col(field).cast(pl.String))
-        df = df.join(label_df, left_on=field, right_on="value")
+        df = df.join(label_df, left_on=field, right_on="value", how="left")
         df = df.drop(field)
         df = df.rename({"text": field})
 
@@ -237,7 +237,7 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
     # Merge tour columns to trips
     tour_cols = ["hhno", "pno", "tour", "tmodetp", "pdpurp"]
 
-    # When we add geogrpahy we can drop the parcel level on which is was joined
+    # When we add geography we can drop the parcel level on which is was joined
     person_hh_df = person_df.join(hh_df, on="hhno", how="left")
     # Join tour to trip
     trip_df = trip_df.join(tour_df[tour_cols], on=["hhno", "pno", "tour"], how="left")
