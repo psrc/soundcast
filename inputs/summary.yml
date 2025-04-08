@@ -215,6 +215,7 @@ dependencies:
       - certifi==2025.1.31
       - click==8.0.0
       - colorama==0.4.6
+      - connectorx==0.3.1
       - geopandas==0.10.0
       - importlib-metadata==6.7.0
       - jellyfish==0.11.2
@@ -231,6 +232,9 @@ dependencies:
       - plotly==5.18.0
       - plumbum==1.8.3
       - ply==3.11
+      - polars==0.18.4
+      - psrcelmerpy==0.1.0
+      - pyarrow==12.0.1
       - pydantic==2.5.3
       - pydantic-core==2.14.6
       - pygeos==0.14
@@ -244,6 +248,7 @@ dependencies:
       - tenacity==8.2.3
       - tomli==2.0.1
       - traitlets==5.9.0
+      - transit-service-analyst==0.1.4
       - typed-ast==1.5.5
       - typeguard==4.1.2
       - typing-extensions==4.7.1
