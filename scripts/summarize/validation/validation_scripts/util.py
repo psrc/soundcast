@@ -5,18 +5,19 @@ from pathlib import Path
 
 
 class ValidationData:
-    def __init__(self, config, input_config) -> None:
+    def __init__(self, config, input_config, get_data: list =['hh','person','person_day','tour','trip','land_use','parcel_geog']) -> None:
         self.config = config
         self.input_config = input_config
+        self.get_data = get_data
         # get uncloned hh data
         self.hh = self._get_hh_data()
         # get uncloned person data
         self.person = self._get_person_data()
-        # self.person_day = self._get_person_day_data(False)
+        self.person_day = self._get_person_day_data(False)
         self.tour = self._get_tour_data(False)
         self.trip = self._get_trip_data(False)
         self.land_use = self._get_parcel_landuse_data()
-        # self.parcel_geog = self._get_parcel_geog()
+        self.parcel_geog = self._get_parcel_geog()
 
 
     # Read data for model and survey data
@@ -76,53 +77,62 @@ class ValidationData:
         return data
 
     def _get_hh_data(self, uncloned=True):
-        hh_data = self._get_data("household", uncloned)
-
-        return hh_data
+        
+        if 'hh' in self.get_data:
+            hh_data = self._get_data("household", uncloned)
+            return hh_data
 
     def _get_person_data(self, uncloned=True):
-        per_data = self._get_data("person", uncloned)
-
-        return per_data
+        
+        if 'person' in self.get_data:
+            per_data = self._get_data("person", uncloned)
+            return per_data
 
     def _get_person_day_data(self, uncloned=True):
-        per_day_data = self._get_data("person_day", uncloned)
-
-        return per_day_data
+        
+        if 'person_day' in self.get_data:
+            per_day_data = self._get_data("person_day", uncloned)
+            return per_day_data
 
     def _get_tour_data(self, uncloned=True):
-        tour_data = self._get_data("tour", uncloned)
-
-        return tour_data
+            
+        if 'tour' in self.get_data:
+            tour_data = self._get_data("tour", uncloned)
+            return tour_data
 
     def _get_trip_data(self, uncloned=True):
-        trip_data = self._get_data("trip", uncloned)
-
-        return trip_data
+        
+        if 'trip' in self.get_data:
+            trip_data = self._get_data("trip", uncloned)
+            return trip_data
 
     def _get_parcel_landuse_data(self):
-        # parcel land use data
-        df_parcel = pl.read_csv(
-            Path(self.config["model_dir"], "outputs/landuse/buffered_parcels.txt"),
-            separator=" ",
-        )
+        
+        if 'land_use' in self.get_data:
+            # parcel land use data
+            df_parcel = pl.read_csv(
+                Path(self.config["model_dir"], "outputs/landuse/buffered_parcels.txt"),
+                separator=" ",
+            )
 
-        return df_parcel
+            return df_parcel
 
     def _get_parcel_geog(self):
 
-        parcel_geog = pl.read_database(
-            query=
-                "SELECT * FROM "
-                + "parcel_"
-                + self.input_config["base_year"]
-                + "_geography"
-            ,
-            # connection=conn.connect(),
-            connection_uri="sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"]
-        )
+        if 'parcel_geog' in self.get_data:
+            
+            conn = create_engine("sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"])
+            parcel_geog = pl.read_database(
+                query=
+                    "SELECT * FROM "
+                    + "parcel_"
+                    + self.input_config["base_year"]
+                    + "_geography"
+                ,
+                connection=conn.connect()
+            )
 
-        return parcel_geog
+            return parcel_geog
 
     # def _get_elmer_data(self, table_name):
 

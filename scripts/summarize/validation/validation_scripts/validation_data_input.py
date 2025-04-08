@@ -1,5 +1,5 @@
 import pandas as pd
-from shapely import wkt
+# from shapely import wkt
 from sqlalchemy import create_engine, text
 import urllib
 import pyodbc
