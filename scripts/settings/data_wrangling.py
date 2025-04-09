@@ -504,6 +504,7 @@ def update_daysim_modes(state):
     df = pd.read_csv(
         f"inputs/model/{state.input_settings.abm_model}/roster/templates/psrc-roster.combinations_template.csv",
         index_col="#",
+        dtype=str
     )
     if not state.input_settings.include_av:
         df[["av1", "av2", "av3"]] = "FALSE"
