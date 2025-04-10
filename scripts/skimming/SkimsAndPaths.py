@@ -1,6 +1,4 @@
-import array as _array
 import inro.emme.desktop.app as app
-import inro.modeller as _m
 import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
@@ -10,12 +8,7 @@ import time
 import os, sys
 import h5py
 import shutil
-import multiprocessing as mp
-import subprocess
 from multiprocessing import Pool
-import logging
-import datetime
-import argparse
 import traceback
 
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
@@ -25,7 +18,6 @@ from scripts.emme_project import *
 from skimming.tod_parameters import *
 from skimming.user_classes import *
 from settings.data_wrangling import text_to_dictionary, json_to_dictionary
-import toml
 import logcontroller
 from settings import run_args
 from scripts.settings import state
@@ -33,16 +25,6 @@ from pathlib import Path
 
 skims_logger = logcontroller.create_skims_and_paths_logger()
 state = state.generate_state(run_args.args.configs_dir)
-# logging.basicConfig(filename=r'C:\Stefan\sc_refactor\soundcast\outputs\logs\test.txt', level=logging.DEBUG)
-# emme_config = toml.load(
-# os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-# )
-# network_config = toml.load(
-# os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-# )
-
-hdf5_file_path = "outputs/daysim/daysim_outputs.h5"
-
 
 def create_hdf5_skim_container(hdf5_name):
     # create containers for TOD skims
@@ -310,11 +292,6 @@ def traffic_assignment(my_project, max_num_iterations):
 
     end_traffic_assignment = time.time()
 
-    print(
-        "It took",
-        round((end_traffic_assignment - start_traffic_assignment) / 60, 2),
-        "minutes to run traffic assignment for " + str(my_project.tod),
-    )
     text = (
         "It took "
         + str(round((end_traffic_assignment - start_traffic_assignment) / 60, 2))
@@ -354,11 +331,6 @@ def transit_assignment(my_project, spec, keep_exisiting_volumes, class_name=None
         class_name = ""
 
     end_transit_assignment = time.time()
-    print(
-        "It took",
-        round((end_transit_assignment - start_transit_assignment) / 60, 2),
-        "mins to run " + class_name + " assignment for " + str(my_project.tod),
-    )
 
 
 def transit_skims(my_project, spec, class_name=None):
@@ -503,11 +475,6 @@ def attribute_based_skims(my_project, my_skim_attribute):
 
     end_time_skim = time.time()
 
-    print(
-        "It took",
-        round((end_time_skim - start_time_skim) / 60, 2),
-        "minutes to calculate the " + skim_type + ".",
-    )
     text = (
         "It took "
         + str(round((end_time_skim - start_time_skim) / 60, 2))
@@ -574,11 +541,6 @@ def class_specific_volumes(my_project):
 
     end_vol_skim = time.time()
 
-    print(
-        "It took",
-        round((end_vol_skim - start_vol_skim), 2),
-        "seconds to generate class specific volumes.",
-    )
     text = (
         "It took "
         + str(round((end_vol_skim - start_vol_skim), 2))
@@ -704,7 +666,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 my_store["Skims"].create_dataset(
                     matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
                 )
-                print(matrix_name + " was transferred to the HDF5 container.")
 
     # Transit Skims
     if my_project.tod in state.network_settings.transit_skim_tod:
@@ -718,7 +679,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 my_store["Skims"].create_dataset(
                     matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
                 )
-                print(matrix_name + " was transferred to the HDF5 container.")
 
         dct_aggregate_transit_skim_names = json_to_dictionary(
             "transit_skim_aggregate_matrix_names", state.model_input_dir, "transit"
@@ -731,7 +691,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(
                 matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
             )
-            print(matrix_name + " was transferred to the HDF5 container.")
 
         # Perceived and actual bike skims
         for matrix_name in ["mfbkpt", "mfbkat"]:
@@ -746,7 +705,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(
                 matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
             )
-            print(matrix_name + " was transferred to the HDF5 container.")
 
     # Basic Bike and walk time for single TOD
     if my_project.tod in state.network_settings.bike_walk_skim_tod:
@@ -763,7 +721,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(
                 matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
             )
-            print(matrix_name + " was transferred to the HDF5 container.")
 
     # Transit Fare
     fare_dict = json_to_dictionary(
@@ -783,7 +740,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(
                 matrix_name, data=matrix_value.astype("uint16"), compression="gzip"
             )
-            print(matrix_name + " was transferred to the HDF5 container.")
 
     if my_project.tod in state.network_settings.generalized_cost_tod:
         for value in state.network_settings.gc_skims.values():
@@ -799,15 +755,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store["Skims"].create_dataset(
                 matrix_name, data=matrix_value.astype("float32"), compression="gzip"
             )
-            print(matrix_name + " was transferred to the HDF5 container.")
 
     my_store.close()
     end_export_hdf5 = time.time()
-    print(
-        "It took",
-        round((end_export_hdf5 - start_export_hdf5) / 60, 2),
-        " minutes to export all skims to the HDF5 File.",
-    )
     text = (
         "It took "
         + str(round((end_export_hdf5 - start_export_hdf5) / 60, 2))
@@ -982,11 +932,6 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
 
     end_time = time.time()
 
-    print(
-        "It took",
-        round((end_time - start_time) / 60, 2),
-        " minutes to import trip tables to emme.",
-    )
     text = (
         "It took "
         + str(round((end_time - start_time) / 60, 2))
@@ -1066,7 +1011,7 @@ def create_trip_tod_indices(tod):
         todIDListdict.setdefault(v, []).append(k)
 
     # For the given TOD, get the index of all the trips for that Time Period
-    my_store = h5py.File(hdf5_file_path, "r")
+    my_store = h5py.File("outputs/daysim/daysim_outputs.h5", "r")
     daysim_set = my_store["Trip"]
     # open departure time array
     deptm = np.asarray(daysim_set["deptm"])
@@ -1320,11 +1265,6 @@ def bike_walk_assignment(my_project, assign_for_all_tods):
             assign_transit(mod_assign)
 
     end_transit_assignment = time.time()
-    print(
-        "It took",
-        round((end_transit_assignment - start_transit_assignment) / 60, 2),
-        " minutes to run the bike/walk assignment.",
-    )
     text = (
         "It took "
         + str(round((end_transit_assignment - start_transit_assignment) / 60, 2))
@@ -1721,7 +1661,7 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
     define_matrices(my_project, user_classes, tod_parameters)
 
     if not free_flow_skims:
-        hdf5_trips_to_Emme(my_project, hdf5_file_path)
+        hdf5_trips_to_Emme(my_project, "outputs/daysim/daysim_outputs.h5")
         matrix_controlled_rounding(my_project)
 
     populate_intrazonals(my_project)
@@ -1903,8 +1843,3 @@ def run(free_flow_skims=False, num_iterations=100):
     )
     print(text)
     skims_logger.info(text)
-
-
-# if __name__ == "__main__":
-#     skims_logger = logcontroller.setup_custom_logger('skims_logger', r'C:\Stefan\sc_refactor\soundcast\outputs\logs\test.txt')
-#     run()

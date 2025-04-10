@@ -22,24 +22,23 @@ import datetime
 import subprocess
 import json
 import shutil
-import re
+import random
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
-import logcontroller
-import random
-from settings import run_args
-from settings import state
-from settings import data_wrangling
-from skimming import SkimsAndPaths
-from network import network_importer
-from accessibility import accessibility
-from supplemental import create_ixxi_work_trips
-from supplemental import generation
-from supplemental import distribute_non_work_ixxi
-from supplemental import create_airport_trips
-from trucks import truck_model
-from summarize.standard import (
+from scripts import logcontroller
+from scripts.settings import run_args
+from scripts.settings import state
+from scripts.settings import data_wrangling
+from scripts.skimming import SkimsAndPaths
+from scripts.network import network_importer
+from scripts.accessibility import accessibility
+from scripts.supplemental import create_ixxi_work_trips
+from scripts.supplemental import generation
+from scripts.supplemental import distribute_non_work_ixxi
+from scripts.supplemental import create_airport_trips
+from scripts.trucks import truck_model
+from scripts.summarize.standard import (
     daily_bank,
     network_summary,
     transit_summary,
@@ -54,27 +53,18 @@ state = state.generate_state(run_args.args.configs_dir)
 
 def accessibility_calcs():
     data_wrangling.copy_accessibility_files(state)
-    print("adding military jobs to regular jobs")
-    print("adding JBLM workers to external workers")
-    print("adjusting non-work externals")
-    print("creating ixxi file for Daysim")
     create_ixxi_work_trips.main(state)
 
-    print("military jobs loaded")
-
     if state.input_settings.base_year != state.input_settings.model_year:
-        print("Starting to update UrbanSim parcel data with 4k parking data file")
+        print("Update parcels with parking zone data")
         returncode = subprocess.call(
             [sys.executable, "scripts/utils/update_parking.py"]
         )
         if returncode != 0:
             print("Update Parking failed")
             sys.exit(1)
-        print("Finished updating parking data on parcel file")
 
-    print("Beginning Accessibility Calculations")
     accessibility.run(state)
-    print("Done with accessibility calculations")
 
 
 @data_wrangling.timed
@@ -94,7 +84,7 @@ def build_seed_skims(max_iterations):
         sys.exit(1)
 
     time_skims = datetime.datetime.now()
-    print("###### Finished skimbuilding:", str(time_skims - time_copy))
+    print("###### Finished skim building:", str(time_skims - time_copy))
 
 
 def build_free_flow_skims(max_iterations):
@@ -103,7 +93,7 @@ def build_free_flow_skims(max_iterations):
     SkimsAndPaths.run(True, max_iterations)
 
     time_skims = datetime.datetime.now()
-    print("###### Finished skimbuilding:", str(time_skims - time_copy))
+    print("###### Finished skim building:", str(time_skims - time_copy))
 
 
 @data_wrangling.timed
@@ -410,8 +400,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # settings = config_settings.generate_settings(run_args.args.configs_dir)
-    # logger = logcontroller.setup_custom_logger('main_logger', settings.network_settings.main_log_file)
+    # Set up logging
     logger = logcontroller.setup_custom_logger("main_logger", r"soundcast_log.txt")
 
     logger.info("--------------------NEW RUN STARTING--------------------")

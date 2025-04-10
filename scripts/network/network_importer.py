@@ -1,16 +1,12 @@
 import pandas as pd
 import os, sys
 import re
-import multiprocessing as mp
-import subprocess
 import json
-from multiprocessing import Pool, pool
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
 from scripts.emme_project import *
-import toml
 
 
 def json_to_dictionary(dict_name):
@@ -37,8 +33,8 @@ def update_headways(emmeProject, headways_df):
     network = emmeProject.current_scenario.get_network()
     for transit_line in network.transit_lines():
         row = headways_df.loc[(headways_df.id == int(transit_line.id))]
-        if int(row["hdw_" + emmeProject.tod]) > 0:
-            transit_line.headway = int(row["hdw_" + emmeProject.tod])
+        if int(row["hdw_" + emmeProject.tod].iloc[0]) > 0:
+            transit_line.headway = int(row["hdw_" + emmeProject.tod].iloc[0])
         else:
             network.delete_transit_line(transit_line.id)
     emmeProject.current_scenario.publish_network(network)
@@ -251,7 +247,7 @@ def run_importer(state):
             )
             update_headways(my_project, headway_df)
 
-        print(value)
+        print(f"Loading {key} network")
         for att in state.network_settings.link_extra_attributes:
             my_project.create_extra_attribute("LINK", att)
         for att in state.network_settings.node_extra_attributes:
@@ -277,4 +273,3 @@ def run_importer(state):
                 state.distance_rate_dict[value], my_project, state.input_settings
             )
         my_project.bank.dispose()
-    # my_project.close()
