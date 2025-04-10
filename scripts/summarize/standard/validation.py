@@ -4,30 +4,6 @@ import os, sys, shutil
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-# output directory
-validation_output_dir = "outputs/validation"
-
-# Create a clean output directory
-if os.path.exists(validation_output_dir):
-    shutil.rmtree(validation_output_dir)
-os.makedirs(validation_output_dir)
-
-### FIXME: move to a config file
-agency_lookup = {
-    1: "King County Metro",
-    2: "Pierce Transit",
-    3: "Community Transit",
-    4: "Kitsap Transit",
-    5: "Washington Ferries",
-    6: "Sound Transit",
-    7: "Everett Transit",
-}
-# List of route IDs to separate for analysis
-# special_route_list = [6998,6999,1997,1998,6995,6996,1973,1975,
-#                         4200,4201,4202,4203,4204,1671,1672,1673,1674,1675,1676,1040,1007,6550,
-#                         5001,5002,5003,5004,5005,5006,5007]
-
-
 facility_type_lookup = {
     1: "Freeway",  # Interstate
     2: "Freeway",  # Ohter Freeway
@@ -49,8 +25,6 @@ facility_type_lookup = {
     19: "HOV",  # HOV Only Freeway
     20: "HOV",  # HOV Flag
 }
-
-county_lookup = {33: "King", 35: "Kitsap", 53: "Pierce", 61: "Snohomish"}
 
 tod_lookup = {
     0: "20to5",
@@ -82,6 +56,15 @@ tod_lookup = {
 
 
 def main(state):
+    
+    # output directory
+    validation_output_dir = "outputs/validation"
+
+    # Create a clean output directory
+    if os.path.exists(validation_output_dir):
+        shutil.rmtree(validation_output_dir)
+    os.makedirs(validation_output_dir)
+
     ########################################
     # Transit Boardings by Line
     ########################################
@@ -230,7 +213,7 @@ def main(state):
     df_daily["diff"] = df_daily["modeled"] - df_daily["observed"]
     df_daily["perc_diff"] = df_daily["diff"] / df_daily["observed"]
     df_daily[["modeled", "observed"]] = df_daily[["modeled", "observed"]].astype("int")
-    df_daily["county"] = df_daily["countyid"].map(county_lookup)
+    df_daily["county"] = df_daily["countyid"].astype('str').map(state.summary_settings.county_map)
     df_daily.to_csv(
         os.path.join(validation_output_dir, "daily_volume.csv"),
         index=False,
@@ -287,7 +270,7 @@ def main(state):
         hr_model, counts_tod, left_on=["@countid", "tod"], right_on=["flag", "tod"]
     )
     df.rename(columns={"@tveh": "modeled", "vehicles": "observed"}, inplace=True)
-    df["county"] = df["@countyid"].map(county_lookup)
+    df["county"] = df["@countyid"].astype("str").map(state.summary_settings.county_map)
     df.to_csv(os.path.join(validation_output_dir, "hourly_volume.csv"), index=False)
 
     # Roll up results to assignment periods

@@ -1,5 +1,6 @@
-import os, sys, shutil
+import os, shutil
 import pandas as pd
+import polars as pl
 from sqlalchemy import create_engine
 
 pd.options.mode.chained_assignment = None
@@ -113,6 +114,32 @@ def finalize_emissions(df, col_suffix=""):
     return df
 
 
+def finalize_emissions(df, col_suffix=""):
+    """
+    Compute PM10 and PM2.5 totals, sort index by pollutant value, and pollutant name.
+    For total columns add col_suffix (e.g., col_suffix='intrazonal_tons')
+    """
+
+    pm10 = (
+        df[df["pollutantID"].isin([100, 106, 107])]
+        .groupby("veh_type")
+        .sum()
+        .reset_index()
+    )
+    pm10["pollutantID"] = "PM10"
+    pm25 = (
+        df[df["pollutantID"].isin([110, 116, 117])]
+        .groupby("veh_type")
+        .sum()
+        .reset_index()
+    )
+    pm25["pollutantID"] = "PM25"
+    df = pd.concat([df, pm10])
+    df = pd.concat([df, pm25])
+
+    return df
+
+
 def calculate_interzonal_emissions(df, df_rates):
     """Calculate link emissions using rates unique to speed, road type, hour, county, and vehicle type."""
 
@@ -169,6 +196,13 @@ def calculate_interzonal_emissions(df, df_rates):
 
     return df
 
+def process_df_col(df_iz, new_col_name, pd_series):
+
+    df = pd.DataFrame(pd_series, columns=[new_col_name])
+    df = pd.concat([df_iz,df], axis=1)
+
+    return df
+
 
 def calculate_intrazonal_vmt(state):
     df_iz = pd.read_csv(r"outputs/network/iz_vol.csv")
@@ -180,34 +214,18 @@ def calculate_intrazonal_vmt(state):
     # Sum up SOV, HOV2, and HOV3 volumes across user classes 1, 2, and 3 by time of day
     # Calcualte VMT for these trips too; rename truck volumes for clarity
     for tod in state.summary_settings.tod_lookup.keys():
-        df_iz["sov_" + tod + "_vol"] = (
-            df_iz["sov_inc1_" + tod]
-            + df_iz["sov_inc2_" + tod]
-            + df_iz["sov_inc3_" + tod]
-        )
-        df_iz["hov2_" + tod + "_vol"] = (
-            df_iz["hov2_inc1_" + tod]
-            + df_iz["hov2_inc2_" + tod]
-            + df_iz["hov2_inc3_" + tod]
-        )
-        df_iz["hov3_" + tod + "_vol"] = (
-            df_iz["hov3_inc1_" + tod]
-            + df_iz["hov3_inc2_" + tod]
-            + df_iz["hov3_inc3_" + tod]
-        )
-        df_iz["mediumtruck_" + tod + "_vol"] = df_iz["medium_truck_" + tod]
-        df_iz["heavytruck_" + tod + "_vol"] = df_iz["heavy_truck_" + tod]
+        df_iz = process_df_col(df_iz, "sov_" + tod + "_vol", df_iz[["sov_inc1_" + tod,"sov_inc2_" + tod,"sov_inc3_" + tod]].sum(axis=1))
+        df_iz = process_df_col(df_iz, "hov2_" + tod + "_vol", df_iz[["hov2_inc1_" + tod,"hov2_inc2_" + tod,"hov2_inc3_" + tod]].sum(axis=1))
+        df_iz = process_df_col(df_iz, "hov3_" + tod + "_vol", df_iz[["hov3_inc1_" + tod,"hov3_inc2_" + tod,"hov3_inc3_" + tod]].sum(axis=1))
+        df_iz = process_df_col(df_iz, "mediumtruck_" + tod + "_vol",df_iz["medium_truck_" + tod])
+        df_iz = process_df_col(df_iz, "heavytruck_" + tod + "_vol", df_iz["heavy_truck_" + tod])
 
         # Calculate VMT as intrazonal distance times volumes
-        df_iz["sov_" + tod + "_vmt"] = df_iz["sov_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["hov2_" + tod + "_vmt"] = df_iz["hov2_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["hov3_" + tod + "_vmt"] = df_iz["hov3_" + tod + "_vol"] * df_iz["izdist"]
-        df_iz["mediumtruck_" + tod + "_vmt"] = (
-            df_iz["mediumtruck_" + tod + "_vol"] * df_iz["izdist"]
-        )
-        df_iz["heavytruck_" + tod + "_vmt"] = (
-            df_iz["heavytruck_" + tod + "_vol"] * df_iz["izdist"]
-        )
+        df_iz = process_df_col(df_iz, "sov_" + tod + "_vmt", df_iz["sov_" + tod + "_vol"] * df_iz["izdist"])
+        df_iz = process_df_col(df_iz, "hov2_" + tod + "_vmt", df_iz["hov2_" + tod + "_vol"] * df_iz["izdist"])
+        df_iz = process_df_col(df_iz, "hov3_" + tod + "_vmt", df_iz["hov3_" + tod + "_vol"] * df_iz["izdist"])
+        df_iz = process_df_col(df_iz, "mediumtruck_" + tod + "_vmt", df_iz["mediumtruck_" + tod + "_vol"] * df_iz["izdist"])
+        df_iz = process_df_col(df_iz, "heavytruck_" + tod + "_vmt", df_iz["heavytruck_" + tod + "_vol"] * df_iz["izdist"])
 
     # Group totals by vehicle type, time-of-day, and county
     df = df_iz.groupby("geog_name").sum().T
@@ -305,10 +323,11 @@ def calculate_start_emissions(state):
     )
 
     # Scale all vehicles by difference between base year and model total vehicles owned from auto onwership model
-    df_hh = pd.read_csv(r"outputs/daysim/_household.tsv", sep="\t", usecols=["hhvehs"])
+    df_hh = pl.read_csv(r"outputs/daysim/_household.tsv", separator="\t",)
     tot_veh = df_hh["hhvehs"].sum()
 
     # Scale county vehicles by total change
+    # FIXME: Move this to a settings file
     tot_veh_model_base_year = 3007056
     veh_scale = 1.0 + (tot_veh - tot_veh_model_base_year) / tot_veh_model_base_year
     df_veh["vehicles"] = df_veh["vehicles"] * veh_scale

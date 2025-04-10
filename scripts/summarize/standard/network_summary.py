@@ -325,9 +325,9 @@ def summarize_network(state, df, writer):
     # Results by County
 
     df["county_name"] = (
-        df["@countyid"].astype(int).astype(str).map(state.summary_settings.county_map)
+        df["@countyid"].astype(int).astype(str).map(state.summary_settings.county_map).fillna("Outside Region")
     )
-    df["county_name"].fillna("Outside Region", inplace=True)
+    # df["county_name"].fillna("Outside Region", inplace=True)
     _df = df.groupby("county_name")[["VMT", "VHT", "delay"]].sum().reset_index()
     _df.to_excel(excel_writer=writer, sheet_name="County Results")
     _df.to_csv(r"outputs/network/county_network.csv", index=False)
@@ -388,7 +388,7 @@ def line_to_line_transfers(state, emme_project, tod):
         traversal_df.drop(columns=["lindex"], inplace=True)
         df_list.append(traversal_df)
         os.remove("outputs/transit/traversal_results.txt")
-    df = pd.concat(df_list)
+    df = pd.concat(df_list.dropna(axis=1, how='all'))
     df = df.groupby(["from_line", "to_line"]).agg(
         {
             "from_line_id": "min",
