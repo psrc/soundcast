@@ -1,5 +1,6 @@
 import numpy as np
 from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine
 import polars as pl
 from pathlib import Path
 
@@ -121,7 +122,8 @@ class ValidationData:
 
         if 'parcel_geog' in self.get_data:
             
-            conn = create_engine("sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"])
+            # conn = create_engine("sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"])
+            async_engine = create_engine("sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"])
             parcel_geog = pl.read_database(
                 query=
                     "SELECT * FROM "
@@ -129,7 +131,7 @@ class ValidationData:
                     + self.input_config["base_year"]
                     + "_geography"
                 ,
-                connection=conn.connect()
+                connection_uri=async_engine.connect()
             )
 
             return parcel_geog
