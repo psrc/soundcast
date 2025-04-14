@@ -30,10 +30,26 @@ EXTERNALS_DONT_GROW=[3733]
 #################################
 # Supplementals Settings
 #################################
-
+supplemental_log_file = 'outputs/logs/supplemental_trips.txt'
 trip_table_loc = 'outputs/supplemental/7_balance_trip_ends.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
 supplemental_output_dir = 'outputs/supplemental'
+
+# Aiport Trip Rates
+air_people = 0.02112
+air_jobs = 0.01486
+
+# Growth rates for supplemental trip generation
+special_generator_rate = 0.0135
+external_rate = 0.0096
+truck_rate = 0.0135
+group_quarters_rate = 0.0034
+
+# Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
+low_income = 51250
+medium_income = 102500
+high_income = 152350
+
 
 # Define gravity model coefficients
 autoop = 16.75    # Auto operation costs (in hundreds of cents per mile?)
@@ -55,3 +71,6 @@ urbansim_skims_dir = 'E:\soundcast_root'
 
 # Urbansim outputs dir
 urbansim_outputs_dir = 'E:\opusgit\urbansim_data\data\psrc_parcel\2014SoundCastData\urbansim_outputs'
+
+# Delete Banks:
+delete_banks = false
