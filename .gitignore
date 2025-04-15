@@ -1,4 +1,12 @@
-
+/inputs/model/daysim/roster/psrc-roster.combinations.csv
 /scripts/summarize/validation/validation-notebook
 /scripts/summarize/RTP_summary/RTP-summary-notebook
 /outputs/2023_validation/validation-notebook
+/outputs/
+/Banks/
+/projects/
+scripts/__pycache__/*
+scripts/*/__pycache__/*
+scripts/*/*/__pycache__/*
+soundcast_log.txt
+inputs/base_year
