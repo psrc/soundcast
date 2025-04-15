@@ -6,7 +6,6 @@ network_summary_list = ['transit_validation',
                          'bike_validation'
                         ]
 summary_list = [
-                # "get_data", # always include get_data
                 'all_tour_mode',
                 'all_trip_mode',
                 'auto_ownership',
@@ -33,7 +32,6 @@ summary_list = [
                 'work_trip_mode',
                 'workbased_subtour_mode',
                 'workbased_subtour_generation',
-                # 'erase_data'
                 ]
 # summary_list = ['work_tour_mode','school_tour_mode','school_tour_mode',
 #     'escort_tour_mode','other_home_based_tour_mode','workbased_subtour_mode']
@@ -69,9 +67,9 @@ uncloned_folder = "uncloned"
 # list all survey sources to be indluded in validation
 [survey_directories]
 ## updated 2023
-"survey" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_12_30_24/cleaned/skims_attached"
+"survey" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/updated_weights_03_17_25/cleaned/skims_attached"
 
 # 2017/2019
-"survey (2017/2019)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
+#"survey (2017/2019)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 # 2023 old weights
 # "survey (old weights)" = "R:/e2projects_two/2023_base_year/2023_survey/daysim_format/cleaned/skims_attached"

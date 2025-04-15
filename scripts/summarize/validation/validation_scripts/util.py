@@ -40,6 +40,13 @@ class ValidationData:
             **{wt_col: pl.col(wt_col).cast(pl.Float64)}
         )
 
+        # Generate a placeholder column for worker type
+        # model["worker_type"] = "commuter"
+        if df_name == "person":
+            model = model.with_columns(
+                worker_type = pl.lit("null")
+            )
+
         # survey data
         # survey = pd.DataFrame()
         survey_list = []
