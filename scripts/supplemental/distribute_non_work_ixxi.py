@@ -1,32 +1,12 @@
 ﻿import array as _array
-import os
-import shutil
-import csv
+import os, sys
 import pandas as pd
 import h5py
 import numpy as np
-import sys
-from sqlalchemy import create_engine
-
+import inro.emme.matrix as ematrix
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
-# from emme_configuration import *
-from scripts.emme_project import *
-import toml
-from settings import run_args
-
-# rom scripts.settings import state
-from pathlib import Path
-
-# state = state.generate_state(run_args.args.configs_dir)
-
-# emme_config = toml.load(
-#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-# )
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-
 
 def load_skims(skim_file_loc, mode_name, divide_by_100=False):
     """Loads H5 skim matrix for specified mode."""
@@ -215,8 +195,7 @@ def main(state):
     )  # total 4K Ps and As by trip purpose
 
     # Import gravity model coefficients by trip purpose from db
-    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
-    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=conn)
+    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=state.conn)
 
     # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)
     trip_purpose_list = ["hsp"]
@@ -226,7 +205,6 @@ def main(state):
     # my_project = state.main_project
     if state.main_project.data_explorer.active_database().title() != "Supplementals":
         state.main_project.change_active_database("Supplementals")
-    # EmmeProject(r"projects\Supplementals\Supplementals.emp", state)
 
     # global dictZoneLookup
     dictZoneLookup = dict(
@@ -271,8 +249,8 @@ def main(state):
     # Export to h5 container
     ixxi_trips = ixxi_trips["hsp"]
 
-    ixxi_mode_share_df = pd.read_sql("SELECT * FROM ixxi_mode_share", con=conn)
-    ixxi_h5 = h5py.File(output_dir + "/" + "external_non_work" + ".h5", "w")
+    ixxi_mode_share_df = pd.read_sql("SELECT * FROM ixxi_mode_share", con=state.conn)
+    ixxi_h5 = h5py.File(os.path.join(output_dir, "external_non_work.h5"), "w")
 
     for mode in ["sov", "hov2", "hov3"]:
         mode_share = ixxi_mode_share_df.loc[
@@ -282,8 +260,6 @@ def main(state):
         ixxi_h5.create_dataset(mode, data=ixxi_data)
 
     ixxi_h5.close()
-    # my_project.close()
-
 
 if __name__ == "__main__":
     main()

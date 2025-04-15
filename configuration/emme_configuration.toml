@@ -23,7 +23,6 @@ MIN_EXTERNAL = 3733      #zone of externals (subtract 1 because numpy is zero-ba
 MAX_EXTERNAL = 3750      #zone of externals (subtract 1 because numpy is zero-based)
 HIGH_TAZ = 3700
 LOW_PNR = 3751
-#HIGH_PNR = 4000
 SEATAC = 983
 EXTERNALS_DONT_GROW=[3733]
 
@@ -45,6 +44,7 @@ special_generator_rate = 0.0135
 external_rate = 0.0096
 truck_rate = 0.0135
 group_quarters_rate = 0.0034
+jblm_taz_list = [3061, 3070, 3346, 3348, 3349, 3350, 3351, 3352, 3353, 3354, 3355, 3356]
 
 # Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
 low_income = 51250

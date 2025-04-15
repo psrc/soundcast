@@ -102,7 +102,6 @@ class EmmeSettings(BaseModel):
     MAX_EXTERNAL: int  # zone of externals (subtract 1 because numpy is zero-based)
     HIGH_TAZ: int
     LOW_PNR: int
-    # HIGH_PNR = 4000
     SEATAC: int
     EXTERNALS_DONT_GROW: list
 
@@ -123,6 +122,7 @@ class EmmeSettings(BaseModel):
     external_rate: float
     truck_rate: float
     group_quarters_rate: float
+    jblm_taz_list: list
 
     # Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
     low_income: int
@@ -239,6 +239,7 @@ class NetworkSettings(BaseModel):
     truck_model_project: str
     districts_file: str
     truck_base_net_name: str
+    truck_operating_cost_rate: float
 
     # 4k time of day
     tod_list: list

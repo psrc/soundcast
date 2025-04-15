@@ -93,7 +93,7 @@ def create_matrices(my_project, truck_matrix_df):
             )
 
 
-def load_data_to_emme(balanced_prod_att, my_project, zones, conn, state):
+def load_data_to_emme(balanced_prod_att, my_project, zones, state):
     """Populate Emme matrices with medium and heavy truck productions and attractions."""
 
     for truck_type in ["m", "h", "d"]:  # Loop through medium (m) and heavy (h) trucks
@@ -114,28 +114,16 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, conn, state):
                     expression="mo" + truck_type + "tatt" + "'",
                 )
 
-    ###
-    ### FIXME: add this back in later, confirm it's not already applied in generation
-    ###
-    ## Apply land use restriction for heavy trucks to zones w/ no industrial parcels
-    # my_project.matrix_calculator(result = 'mohtpro', expression = 'mohtpro * motruck')
-
-    # Need to refactor etc?
-    ### FIX ME:
-
     # Add operating costs as scalar matrices
     # Calculate operating costs for model year
     op_cost_df = pd.read_sql(
-        "SELECT * FROM truck_inputs WHERE data_type='operating_costs'", con=conn
+        "SELECT * FROM truck_inputs WHERE data_type='operating_costs'", con=state.conn
     )
-
-    #### FIXME: move this to the config
-    operating_cost_rate = 0.015  # Grow with inflation (?)
 
     data_year = int(op_cost_df["year"][0])
     if data_year < int(state.input_settings.model_year):
         growth_rate = 1 + (
-            operating_cost_rate * (int(state.input_settings.model_year) - data_year)
+            state.network_settings.truck_operating_cost_rate * (int(state.input_settings.model_year) - data_year)
         )
         op_cost_df["cents_per_mile"] = op_cost_df["value"] * growth_rate
 
@@ -145,9 +133,6 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, conn, state):
         "mshvyop": "heavy",
         "msdelop": "medium",
     }.items():
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(truck_type)
-        print(mat_name)
         op_cost = (
             op_cost_df[op_cost_df["truck_type"] == truck_type]["cents_per_mile"]
             .astype("float")
@@ -291,9 +276,9 @@ def float_to_string(val):
     return "{:.6f}".format(val)
 
 
-def calculate_impedance(my_project, conn, state):
+def calculate_impedance(my_project, state):
     coeff_df = pd.read_sql(
-        "SELECT * FROM truck_inputs WHERE data_type='distribution_coeff'", con=conn
+        "SELECT * FROM truck_inputs WHERE data_type='distribution_coeff'", con=state.conn
     )
     med_coeff = float_to_string(
         coeff_df[coeff_df["truck_type"] == "medium"]["value"].values[0]
@@ -306,7 +291,7 @@ def calculate_impedance(my_project, conn, state):
         coeff_df[coeff_df["truck_type"] == "medium"]["value"].values[0]
     )
 
-    vot_df = pd.read_sql("SELECT * FROM truck_inputs WHERE data_type='vot'", con=conn)
+    vot_df = pd.read_sql("SELECT * FROM truck_inputs WHERE data_type='vot'", con=state.conn)
     med_vot = float_to_string(
         vot_df[vot_df["truck_type"] == "medium"]["value"].values[0]
     )
@@ -397,7 +382,7 @@ def balance_matrices(my_project, state):
     )
 
 
-def calculate_daily_trips(my_project, conn):
+def calculate_daily_trips(my_project, state):
     # Calculate Daily OD trips:
     # The distribution matrices (e.g. 'mfmeddis') are in PA format. Need to convert to OD format by transposing
     my_project.matrix_calculator(
@@ -431,10 +416,7 @@ def calculate_daily_trips(my_project, conn):
     my_project.matrix_calculator(result="mfdelod", expression="mfdelod * 1.5")
 
     # apply time of day factors:
-
-    ### FIXME: calculate these on the fly or add to the db
-
-    df_tod_factors = pd.read_sql("SELECT * FROM truck_time_of_day_factors", con=conn)
+    df_tod_factors = pd.read_sql("SELECT * FROM truck_time_of_day_factors", con=state.conn)
 
     for tod in df_tod_factors["time_period"].unique():
         for truck_type, matrix_name in {
@@ -479,7 +461,6 @@ def main(state):
         f"inputs/model/{state.input_settings.abm_model}/trucks/truck_matrices.csv"
     )
 
-    conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
     balanced_prod_att = pd.read_csv("outputs/supplemental/7_balance_trip_ends.csv")
 
     network_importer(state)
@@ -495,16 +476,14 @@ def main(state):
 
     state.main_project.delete_matrices("ALL")
     create_matrices(state.main_project, truck_matrix_list)
-    load_data_to_emme(balanced_prod_att, state.main_project, zones, conn, state)
+    load_data_to_emme(balanced_prod_att, state.main_project, zones, state)
     import_skims(state.main_project, input_skims, zones, zonesDim, state)
     balance_attractions(state.main_project, state)
-    calculate_impedance(state.main_project, conn, state)
+    calculate_impedance(state.main_project, state)
     balance_matrices(state.main_project, state)
-    calculate_daily_trips(state.main_project, conn)
+    calculate_daily_trips(state.main_project, state)
     write_truck_trips(state.main_project, state)
     write_summary(state.main_project)
-    # my_project.close()
-
 
 if __name__ == "__main__":
     main()

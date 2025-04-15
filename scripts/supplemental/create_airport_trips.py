@@ -3,25 +3,8 @@ import numpy as np
 import os, sys
 import h5py
 from sqlalchemy import create_engine
-
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-# from emme_configuration import *
-# from scripts.emme_project import *
-import toml
-
-from settings import run_args
-
-# from scripts.settings import state
-from pathlib import Path
-
-# state = state.generate_state(run_args.args.configs_dir)
-
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
-
-config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
 
 
 def load_skims(skim_file_loc, table, divide_by_100=False):
@@ -439,10 +422,9 @@ def main(state):
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
     zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))
 
-    conn = create_engine("sqlite:///inputs/db/" + config["db_name"])
-    parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=conn)
+    parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=state.conn)
     # FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
-    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=conn)
+    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=state.conn)
 
     # Calculate mode shares for Home-Based Other purposes
     # Work trips from externals are grown from observed data
@@ -467,12 +449,12 @@ def main(state):
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql(
-        "SELECT * FROM seatac WHERE year==" + str(config["model_year"]), con=conn
+        "SELECT * FROM seatac WHERE year==" + str(state.input_settings.model_year), con=state.conn
     )["enplanements"].values[0]
     airport_trips = calculate_trips(daysim, parcel, airport_control_total, state)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips["TAZ"].values]
-    destination_index = zone_lookup_dict[emme_config["SEATAC"]]
+    destination_index = zone_lookup_dict[state.emme_settings.SEATAC]
     demand_matrix[origin_index, destination_index] = airport_trips["adj_trips"].values
     # Account for both directions of travel (from/to airport) by transposing the productions matrix
     trips_to_airport = demand_matrix / 2
@@ -517,8 +499,6 @@ def main(state):
 
     # Output final trip tables, by time of the day and trip mode.
     output_trips(output_dir, airport_matrix_dict)
-
-    # my_project.close()
 
 
 if __name__ == "__main__":

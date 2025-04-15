@@ -1,29 +1,11 @@
-import json
-import numpy as np
 import pandas as pd
 import os, sys, time
 import h5py
-import sqlite3
 from sqlalchemy import create_engine
 import logging
-
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
-from scripts.emme_project import *
-import toml
-from settings import run_args
-
-# from scripts.settings import state
-from pathlib import Path
-
-# state = state.generate_state(run_args.args.input_settings.input_settings.s_dir)
-
-# emme_input_settings.input_settings. = toml.load(
-#     os.path.join(os.getcwd(), "input_settings.input_settings.uration/emme_input_settings.input_settings.uration.toml")
-# )
-
-# input_settings.input_settings. = toml.load(os.path.join(os.getcwd(), "input_settings.input_settings.uration/input_input_settings.input_settings.uration.toml"))
 
 
 def balance_trips(df, trip_purposes, balanced_to):
@@ -95,31 +77,10 @@ def main(state):
     current_time = str(time.strftime("%H:%M:%S"))
     logging.debug("----Began generation.py script at " + current_time)
 
-    # Store these in a input_settings.input_settings.:
-    trip_productions = [
-        "hbw1pro",
-        "hbw2pro",
-        "hbw3pro",
-        "hbw4pro",
-        "colpro",
-        "hsppro",
-        "hbopro",
-        "schpro",
-        "otopro",
-        "wtopro",
-    ]
-    trip_attractions = [
-        "hbw1att",
-        "hbw2att",
-        "hbw3att",
-        "hbw4att",
-        "colatt",
-        "hspatt",
-        "hboatt",
-        "schatt",
-        "otoatt",
-        "wtoatt",
-    ]
+    # Trip production and attraction lists
+    trip_purpose_list = ['hbw1', 'hbw2', 'hbw3', 'hbw4', 'col', 'hsp', 'hbo', 'sch', 'oto', 'wto']
+    trip_productions = [trip_purpose + "pro" for trip_purpose in trip_purpose_list]
+    trip_attractions = [trip_purpose + "att" for trip_purpose in trip_purpose_list]
 
     # List of columns that should be balanced to productions or attractions
     balance_to_productions = [
@@ -165,15 +126,11 @@ def main(state):
 
     output_directory = "outputs/supplemental"
 
-    # my_project = EmmeProject(emme_input_settings.input_settings.["supplemental_project"], state)
-    # my_project = state.main_project
-
-    conn = create_engine("sqlite:///inputs/db/" + state.input_settings.db_name)
 
     ###########################################################
     # PSRC Zone System for TAZ joining
     ###########################################################
-    df_psrc = pd.read_sql("SELECT * FROM psrc_zones", con=conn)
+    df_psrc = pd.read_sql("SELECT * FROM psrc_zones", con=state.conn)
     df_psrc["taz"] = df_psrc["taz"].astype(int)
     df_psrc = df_psrc.loc[:, ["taz", "county", "jblm", "external"]]
 
@@ -184,7 +141,7 @@ def main(state):
     df_external = pd.read_sql(
         "SELECT * FROM auto_externals where year="
         + str(state.input_settings.base_year),
-        con=conn,
+        con=state.conn,
     )
     df_external["taz"] = df_external["taz"].astype(int)
     df_external = df_external.loc[
@@ -214,7 +171,7 @@ def main(state):
     ###########################################################
     # Enlisted Personnel
     ###########################################################
-    df_enlisted = pd.read_sql_query("SELECT * FROM enlisted_personnel", con=conn)
+    df_enlisted = pd.read_sql_query("SELECT * FROM enlisted_personnel", con=state.conn)
     df_enlisted["taz"] = df_enlisted["Zone"].copy()
 
     # Select data for model year only
@@ -227,7 +184,7 @@ def main(state):
     enlisted_taz["taz"] = enlisted_taz["taz"].astype("int")
 
     # Read in rates and calculate Enlisted Personnel related trips by Purpose
-    df_rates = pd.read_sql_query("SELECT * FROM trip_rates", con=conn)
+    df_rates = pd.read_sql_query("SELECT * FROM trip_rates", con=state.conn)
 
     df_enlisted_rates = df_rates[df_rates["group"] == "enlisted"]
 
@@ -247,7 +204,7 @@ def main(state):
     ###########################################################
     # Group Quarters
     ###########################################################
-    total_gq_df = pd.read_sql_query("SELECT * FROM group_quarters", con=conn)
+    total_gq_df = pd.read_sql_query("SELECT * FROM group_quarters", con=state.conn)
     total_gq_df[["dorm_share", "military_share", "other_share"]] = total_gq_df[
         ["dorm_share", "military_share", "other_share"]
     ].astype("float")
@@ -310,7 +267,7 @@ def main(state):
     ###########################################################
     ### Joint Base Lewis McChord
     ###########################################################
-    jblm_df = pd.read_sql_query("SELECT * FROM jblm_trips", con=conn)
+    jblm_df = pd.read_sql_query("SELECT * FROM jblm_trips", con=state.conn)
     jblm_matrix = int(jblm_df["matrix_id"][0])
     data_year = int(jblm_df["year"][0])
 
@@ -396,7 +353,7 @@ def main(state):
     ###########################################################
     # Heavy Truck Productions, grown from ATRI data
     ###########################################################
-    heavy_trucks = pd.read_sql_query("SELECT * FROM heavy_trucks", con=conn)
+    heavy_trucks = pd.read_sql_query("SELECT * FROM heavy_trucks", con=state.conn)
     heavy_trucks = heavy_trucks[["taz", "year", "htkpro", "htkatt"]]
 
     # Calculate the Inputs for the Year of the model
@@ -437,7 +394,7 @@ def main(state):
     ###########################################################
     # SeaTac Airport
     ###########################################################
-    df_seatac = pd.read_sql_query("SELECT * FROM seatac", con=conn)
+    df_seatac = pd.read_sql_query("SELECT * FROM seatac", con=state.conn)
     seatac_zone = df_seatac[df_seatac["year"] == int(state.input_settings.model_year)][
         "taz"
     ].values[0]
@@ -450,7 +407,7 @@ def main(state):
     ###########################################################
 
     # Special generator trips are assumed of type HBO
-    df_special = pd.read_sql_query("SELECT * FROM special_generators", con=conn)
+    df_special = pd.read_sql_query("SELECT * FROM special_generators", con=state.conn)
 
     # Calculate the Inputs for the Year of the model
     max_input_year = df_special["year"].max()
@@ -492,7 +449,6 @@ def main(state):
     # Load Household, Person and Parcel files
     ###########################################################
 
-    #### FIXME, fix this
     # Parcel Columns to use and what to rename them
     parcel_col_map = {
         "parcelid": "parcel-id",
@@ -671,7 +627,7 @@ def main(state):
 
     # Trip Attractions based on employment categories
     df_job_attraction_rates = pd.read_sql_query(
-        "SELECT * FROM job_attractions", con=conn
+        "SELECT * FROM job_attractions", con=state.conn
     )
     df_job_attraction_rates.set_index("employment-type", inplace=True)
     attraction_purposes = trip_attractions + ["cvhatt", "mtkatt", "dtkatt"]
@@ -684,7 +640,7 @@ def main(state):
 
     # Trip Productions based on employment categories
     df_job_production_rates = pd.read_sql_query(
-        "SELECT * FROM job_productions", con=conn
+        "SELECT * FROM job_productions", con=state.conn
     )
     df_job_production_rates.set_index("employment-type", inplace=True)
     productions_purposes = trip_productions + ["cvhpro", "mtkpro", "dtkpro"]
@@ -766,7 +722,7 @@ def main(state):
     external_trip_table = pd.read_sql(
         "SELECT * FROM externals_unadjusted where year="
         + str(state.input_settings.base_year),
-        con=conn,
+        con=state.conn,
     )
     external_trip_table.set_index("taz", inplace=True)
     external_trip_table = external_trip_table[["hsppro", "hspatt"]]
@@ -799,7 +755,7 @@ def main(state):
         df_taz.loc[df_taz["jblm"] == 1, purposes] = 0
 
     # Adjust the taz level data based on trip rate adjustments
-    df_rate_adjustments = pd.read_sql_query("SELECT * FROM rate_adjustments", con=conn)
+    df_rate_adjustments = pd.read_sql_query("SELECT * FROM rate_adjustments", con=state.conn)
     df_rate_adjustments.set_index("trip-purpose", inplace=True)
     all_purposes = (
         trip_productions

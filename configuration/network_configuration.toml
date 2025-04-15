@@ -93,6 +93,7 @@ ferry_bike_factor = 1
 truck_model_project = 'Projects/TruckModel/TruckModel.emp'
 districts_file = 'truck_districts.ens'
 truck_base_net_name = 'am_roadway.in'
+truck_operating_cost_rate = 0.015
 
 # 4k time of day
 tod_list = ['am','md', 'pm', 'ev', 'ni']
