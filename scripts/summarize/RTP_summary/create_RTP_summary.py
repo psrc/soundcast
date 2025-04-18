@@ -28,6 +28,13 @@ def main():
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
+    # Ensure output directory for CSV outputs exists
+    if not os.path.exists(Path.cwd() / "outputs" / "RTP"):
+        os.makedirs(Path.cwd() / "outputs" / "RTP")
+    for dir_name in ['person','mode_share']:
+        if not os.path.exists(Path.cwd() / "outputs" / "RTP"/ dir_name):
+            os.makedirs(Path.cwd() / "outputs" / "RTP" / dir_name)
+
     for sheet_name in config["RTP_summary_list"]:
         run_ipynb(sheet_name, "scripts/summarize/RTP_summary/RTP_summary_scripts")
 
