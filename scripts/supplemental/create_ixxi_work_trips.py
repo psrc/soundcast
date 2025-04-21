@@ -64,7 +64,7 @@ def main(state):
     parcels_urbansim.index = parcels_urbansim["parcelid"]
 
     # Load time of day factors from inputs database
-    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=state.conn)
+    tod_factors_df = pd.read_sql(f"SELECT * FROM time_of_day_factors WHERE model=='{state.input_settings.abm_model}'", con=state.conn)
     tod_factors_df = tod_factors_df.loc[tod_factors_df["mode"]=="sov"].copy()
 
     ########################################

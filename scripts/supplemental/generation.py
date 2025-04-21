@@ -341,14 +341,14 @@ def main(state):
     i5_revised_productions = i5_ext_productions - jblm_ext_productions
     i5_revised_attractions = i5_ext_attractions - jblm_ext_attractions
 
-    revised_external_taz = external_taz
+    revised_external_taz = external_taz.copy()
     for purposes in trip_productions:
-        ratio = revised_external_taz[purposes][i5_station] / i5_ext_productions
-        revised_external_taz[purposes][i5_station] = i5_revised_productions * ratio
+        ratio = revised_external_taz.loc[i5_station, purposes] / i5_ext_productions
+        revised_external_taz.loc[i5_station, purposes] = i5_revised_productions * ratio
 
     for purposes in trip_attractions:
-        ratio = revised_external_taz[purposes][i5_station] / i5_ext_attractions
-        revised_external_taz[purposes][i5_station] = i5_revised_attractions * ratio
+        ratio = revised_external_taz.loc[i5_station, purposes] / i5_ext_attractions
+        revised_external_taz.loc[i5_station, purposes] = i5_revised_attractions * ratio
 
     ###########################################################
     # Heavy Truck Productions, grown from ATRI data

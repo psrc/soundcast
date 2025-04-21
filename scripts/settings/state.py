@@ -108,6 +108,10 @@ class EmmeSettings(BaseModel):
     #################################
     # Supplementals Settings
     #################################
+    am_skim_name: str
+    pm_skim_name: str
+    walk_skim_name: str
+    fare_skim_name: str
     supplemental_log_file: str
     trip_table_loc: str
     supplemental_project: str

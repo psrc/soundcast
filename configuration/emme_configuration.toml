@@ -30,6 +30,10 @@ EXTERNALS_DONT_GROW=[3733]
 #################################
 # Supplementals Settings
 #################################
+am_skim_name = "7to8"
+pm_skim_name = "17to18"
+walk_skim_name = "5to6"
+fare_skim_name = "6to7"
 supplemental_log_file = 'outputs/logs/supplemental_trips.txt'
 trip_table_loc = 'outputs/supplemental/7_balance_trip_ends.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'

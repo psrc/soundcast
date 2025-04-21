@@ -214,20 +214,20 @@ def main(state):
 
     # Load skim data
     am_cost_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
         mode_name="sov_inc2g",
     )
     am_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
         mode_name="sov_inc1d",
         divide_by_100=True,
     )
     pm_cost_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
         mode_name="sov_inc2g",
     )
     pm_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
         mode_name="sov_inc1d",
         divide_by_100=True,
     )

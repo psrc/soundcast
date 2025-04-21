@@ -31,12 +31,12 @@ def load_skim_data(state):
             # For auto skims, use the average of AM and PM peak periods
             skim_name = mode + "_inc2" + skim_type[0]
             am_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
                 table=skim_name,
                 divide_by_100=True,
             )
             pm_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
                 table=skim_name,
                 divide_by_100=True,
             )
@@ -46,34 +46,32 @@ def load_skim_data(state):
         if skim_type == "time":
             for mode in ["walk", "bike"]:
                 skim_dict["time"][mode] = load_skims(
-                    f"inputs/model/{state.input_settings.abm_model}/roster/5to6.h5",
+                    f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.walk_skim_name}.h5",
                     table=mode + "t",
                     divide_by_100=True,
                 )
 
     # Skim for transit
-    skim_list = ["ivtw", "iwtw", "ndbw", "xfrw", "auxw"]
-    fare_list = ["mfafarps"]
-    submode_list = ["a", "r", "c", "p", "f"]
     skim_dict["transit"] = {}
 
-    for skim in skim_list:
-        for submode in submode_list:
+    for skim in ["ivtw", "iwtw", "ndbw", "xfrw", "auxw"]:
+        for submode in ["a", "r", "c", "p", "f"]:
             skim_name = skim + submode
             am_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
                 table=skim_name,
                 divide_by_100=True,
             )
             pm_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
                 table=skim_name,
                 divide_by_100=True,
             )
             skim_dict["transit"][skim_name] = (am_skim + pm_skim) * 0.5
-    for skim in fare_list:
+    # Get transit fare skim
+    for skim in ["mfafarps"]:
         skim_dict["transit"][skim] = load_skims(
-            f"inputs/model/{state.input_settings.abm_model}/roster/6to7.h5",
+            f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.fare_skim_name}.h5",
             table=skim,
             divide_by_100=True,
         )
@@ -424,7 +422,7 @@ def main(state):
 
     parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=state.conn)
     # FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
-    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=state.conn)
+    tod_factors_df = pd.read_sql(f"SELECT * FROM time_of_day_factors WHERE model=='{state.input_settings.abm_model}'", con=state.conn)
 
     # Calculate mode shares for Home-Based Other purposes
     # Work trips from externals are grown from observed data
