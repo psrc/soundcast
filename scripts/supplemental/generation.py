@@ -205,41 +205,7 @@ def main(state):
     # Group Quarters
     ###########################################################
     total_gq_df = pd.read_sql_query("SELECT * FROM group_quarters", con=state.conn)
-    total_gq_df[["dorm_share", "military_share", "other_share"]] = total_gq_df[
-        ["dorm_share", "military_share", "other_share"]
-    ].astype("float")
-
-    # Calculate the Inputs for the Year of the model
-    max_input_year = total_gq_df["year"].max()
-
-    if int(state.input_settings.model_year) <= max_input_year:
-        total_gq_df = total_gq_df[
-            total_gq_df["year"] == int(state.input_settings.model_year)
-        ]
-
-    else:
-        # Factor group quarters at an annual rate
-        total_gq_df = total_gq_df[total_gq_df["year"] == int(max_input_year)]
-        total_gq_df["group_quarters"] = total_gq_df["group_quarters"] * (
-            1
-            + (
-                state.emme_settings.group_quarters_rate
-                * (int(state.input_settings.model_year) - max_input_year)
-            )
-        )
-
-    total_gq_df = total_gq_df[
-        ["taz", "dorm_share", "military_share", "other_share", "group_quarters"]
-    ]
-
-    total_gq_df["dorms"] = total_gq_df["group_quarters"] * total_gq_df["dorm_share"]
-    total_gq_df["military"] = (
-        total_gq_df["group_quarters"] * total_gq_df["military_share"]
-    )
-    total_gq_df["other"] = total_gq_df["group_quarters"] * total_gq_df["other_share"]
-
-    # Merge with the Block/Taz dataframe and trim down the columns
-    total_gq_df = total_gq_df[["taz", "dorms", "military", "other"]]
+    total_gq_df[['dorms', 'military', 'other']] = total_gq_df[['dorms', 'military', 'other']].astype("float")
 
     # Read in rates and calculate total Group Quarters related trips
     df_gq_rates = df_rates[df_rates["group"] == "group_quarters"]
