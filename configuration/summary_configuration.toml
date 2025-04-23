@@ -1,355 +1,278 @@
-# values
+#####################################
+# Network Import Settings
+####################################
+protected_namespaces = '()'
+main_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+
+transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
+
+unit_of_length = 'mi'    # units of miles in Emme
+rdly_factor = 0.25
+coord_unit_length = 0.0001894    # network links measured in feet, converted to miles (1/5280)
+main_log_file = 'soundcast_log.txt'
+
+link_extra_attributes = ['@psrcedgeid', '@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed','@bkfac','@upslp', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3', '@fgts', '@ttf']
+node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
+transit_line_extra_attributes = ['@transittype']
+
+
+# VOT ranges for assignment classes
+vot_1_max = 18.11    # VOT for User Class 1 < vot_1_max
+vot_2_max = 36.22    # vot_1_max < VOT for User Class 2 < vot_2_max
+
+feedback_list = ['Banks/7to8/emmebank','Banks/17to18/emmebank']
+
+
+# Time of day periods
+tods = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20', '20to5']
+tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
+#project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
+
+emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
+
+# Skim for time, cost
+skim_matrix_designation_all_tods = ['t','c']  # Time (t) and direct cost (c) skims
+skim_matrix_designation_limited = ['d']    # Distance skim
+
+# Skim for distance for only these time periods
+distance_skim_tod = ['7to8', '17to18']
+generalized_cost_tod = ['7to8', '17to18']
+
+
+truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
+
+# Bike/Walk Skims
+bike_walk_skim_tod = ['5to6']
+
+# Transit Inputs:
+transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
+
+# Transit Fare:
+zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
+fare_matrices_tod = ['6to7', '9to10']
+
+
+taz_area_file = 'inputs/model/daysim/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/model/daysim/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/model/daysim/intrazonals/destination_tt.in'
 
 #################################
-# Summary Comparisons
+# Accessibility Settings
 #################################
-run_rtp = true
-run_comparison = false
+max_dist = 15840.0 # 3 miles in feet
 
-# annualization factor; continuing with value used from Vision 2050
-weekday_to_annual = 300
+light_rail_walk_factor = 0.5
+ferry_walk_factor = 0.5
 
-#################################
-# RELATIVE PATHS between notebooks and output/survey directories
-#################################
-# summary output directory
-p_output_dir = 'outputs/2023_summary'
-
-sc_run_path = '../../../../'
-# sc_run_path = 'C:/workspace/sc_2023_08_05_24'
-output_folder = 'outputs'
-survey_folder = 'inputs/base_year/survey'
-# output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
-# survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
-
-
-#################################
-# run summary notebooks
-#################################
-# run jupyter scripts
-summary_list = ['topsheet', 'vmt']
-
-#################################
-# NETWORK SUMMARY
-#################################
-
-network_results_path = 'outputs/network/network_results.csv'
-iz_vol_path = 'outputs/network/iz_vol.csv'
-transit_line_path = 'outputs/transit/transit_line_results.csv'
-transit_node_path = 'outputs/transit/transit_node_results.csv'
-transit_segment_path = 'outputs/transit/transit_segment_results.csv'
-boardings_by_agency_path = 'outputs/transit/daily_boardings_by_agency.csv'
-special_routes_path = 'outputs/transit/daily_boardings_special_routes.csv'
-boardings_by_tod_agency_path = 'outputs/transit/boardings_by_tod_agency.csv'
-boardings_by_stop_path = 'outputs/transit/boardings_by_stop.csv'
-light_rail_boardings_path = 'outputs/transit/light_rail_boardings.csv'
-
-# attribute_list = ['auto_volume','data1','data2','data3','type',
-# 'num_lanes','length','auto_time','@medium_truck','@heavy_truck','@tveh',
-# '@sov_inc1','@sov_inc2','@sov_inc3',
-# '@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
-# '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
-# '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-# '@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@mveh','@hveh','@bveh',
-# 'type','num_lanes','volume_delay_func','@countyid']
-
-income_bins = [-9999,25000,100000,9999999999]
-income_bin_labels = ['low','medium','high']
-
-
-################################################
-# Emissions calculations
-################################################
-
-# Base year distribution of vehicles by type (2014)
-# Note that the totals by county above (for 2014) 
-# include buses, so the totals below do not match up
-# The difference is buses
-
-# For GHG Analysis see:
-# X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
-
-# Total vehicles predicted from Auto Ownership model for base year 2018 
-# tot_veh_model_base_year = 3007232
-
-
-
-# List of pollutants to be summarized for summer
-# All other are to be summarized for winter season
-# using wintertime rates for all start emission rates except for VOCs
-# per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
-summer_list = [87]
-
-speed_bins = [-999999.0, 2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 999999.0] 
-# speed_bins_labels = range(1, len(speed_bins))
-
-################################################################
-# Summary input files and output directory names
-################################################################
-
-# Input Files
-###
-### FIXME: put in db
-###
-# counts_file = 'inputs/base_year/observed/TrafficCounts_Mid.txt'
-# aadt_counts_file = 'inputs/base_year/observed/observed_aadt.csv'
-# tptt_counts_file = 'inputs/base_year/observed/observed_tptt.csv'
-# loop_counts_file = 'inputs/base_year/observed/observed_loop_counts.csv'
-# screenlines_file = 'inputs/base_year/observed/observed_screenline_volumes.csv'
-# truck_counts_file = 'inputs/base_year/observed/observed_truck_counts.csv' 
-# observed_boardings_file = 'inputs/base_year/observed/observed_transit_boardings.csv'
-# light_rail_boardings = 'inputs/base_year/observed/observed_light_rail_boardings.csv'
-# screenline_counts_file = 'inputs/base_year/observed/observed_screenline_counts.txt'
-# daily_counts_file = 'inputs/base_year/observed/observed_daily_counts.csv'
-
-# Output Files 
-# network_summary_dir = 'outputs/network/network_summary.xlsx'
-# validation_summary_dir = 'outputs/network/validation.xlsx'
-# transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
-
-uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
-            '@hov2_inc1','@hov2_inc2','@hov2_inc3',
-            '@hov3_inc1','@hov3_inc2','@hov3_inc3',
-            '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
-            '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3',
-            '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
-            '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
-
-######## Observed Transit Boardings############################################
-
-
-
-#### Transit Groupings ###############################################################
-# transit_time_group_file= 'inputs/model/lookup/transit_time_groups.csv'
-# route_group_file = 'inputs/model/lookup/transit_route_groups.csv'
-# special_routes_file = 'inputs/model/lookup/transit_special_routes.csv'
-
-# Bikes
-# bike_link_vol = 'outputs/bike/bike_volumes.csv'
-# bike_count_data = 'inputs/base_year/observed/bike_count_links.csv'
-# edges_file = 'inputs/scenario/bike/edges_0.txt'
-
-# Parcel Summary
-# parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
-# parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
-parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
-output_parcels = 'outputs/landuse/buffered_parcels.txt'
-nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
-links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
-# transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
-max_dist = 24140.2
-
-
-# dictionaries
-
-# Grouped outputs
-
-# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
-# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
-#                          'soundcast_2040': 'C:/user/soundcast_2040'}
-# [comparison_runs]
-# compare_survey = true    # compare daysim results in Tableau and topsheet outputs
-
-# source names
-[comparison_runs_list]
-'i5 toll' = 'C:/workspace/sc_2050_i5_toll'
-
-#################################
-# Summary Comparisons
-#################################
-[comparison_dict]
-2018 = "C:\\Workspace\\sc_2018_rtp\\soundcast"
-2050 = "C:\\Workspace\\sc_2050_rtp\\soundcast"
 
 
 #################################
-# NETWORK SUMMARY
+# Bike Model Settings
+#################################
+# AADT segmentation breaks to apply volume penalties
+aadt_bins = [0,10000,20000,30000,9999999]
+aadt_labels = [0,1,2,3] # Corresponding "bucket" labels for AADT segmentation for aadt_dict
+
+# Bin definition of total elevation gain (per link)
+slope_bins = [-1.0,0.02,0.04,0.06,1.0]
+slope_labels = [0,1,2,3]
+
+#avg_bike_speed = 10 # miles per hour
+
+# Multiplier for storing skim results
+#bike_skim_mult = 100    # divide by 100 to store as int
+
+# Calibration factor for bike weights on ferry links
+ferry_bike_factor = 1
+
+#################################
+# Truck Model Settings
 #################################
 
-[transit_extra_attributes_dict]
-@board = "total boardings"
-@timtr = "transit line time"
+truck_model_project = 'Projects/TruckModel/TruckModel.emp'
+districts_file = 'truck_districts.ens'
+truck_base_net_name = 'am_roadway.in'
+truck_operating_cost_rate = 0.015
 
-[tod_lookup]
-5to6 = 5
-6to7 = 6
-7to8 = 7
-8to9 = 8
-9to10 = 9
-10to14 = 10
-14to15 = 14
-15to16 = 15
-16to17 = 16
-17to18 = 17
-18to20 = 18
-20to5 = 20
-
-[tod_dict]
-5to6 = 'AM'
-6to7 = 'AM'
-7to8 = 'AM'
-8to9 = 'AM'
-9to10 = 'Mid-Day'
-10to14 = 'Mid-Day'
-14to15 = 'Mid-Day'
-15to16 = 'PM'
-16to17 = 'PM'
-17to18 = 'PM'
-18to20 = 'Evening'
-20to5 = 'Night'
-
-[agency_lookup]
-1 = "King County Metro"
-2 = "Pierce Transit"
-3 = "Community Transit"
-4 = "Kitsap Transit"
-5 = "Washington Ferries"
-6 = "Sound Transit"
-7 = "Everett Transit"
-
-[county_map]
-33 = "King"
-35 = "Kitsap"
-53 = "Pierce"
-61 = "Snohomish"
-
-[special_route_lookup]
-1671 = "A-Line Rapid Ride"
-1672 = "B-Line Rapid Ride"
-1673 = "C-Line Rapid Ride"
-1674 = "D-Line Rapid Ride"
-1675 = "E-Line Rapid Ride"
-1677 = "H-Line Rapid Ride"
-4950 = "Central Link"
-6995 = "Tacoma Link"
-6998 = "Sounder South"
-6999 = "Sounder North"
-3701 = "Swift Blue Line"
-3702 = "Swift Green Line"
-
-# Transit Line OD Table list 
-[transit_line_dict]
-118331 = "E Line SB"
-119150 = "Link NB"
-119166 = "Sounder NB"
-118355 = "Metro 40 SB"
-118332 = "WSF Bainbridge to Seattle"
-118342 = "WSF Bremerton to Seattle"
-118363 = "Passenger Ferry Bremerton to Seattle"
-118585 = "Passenger Ferry Vashon Island to Seattle"
-118225 = "Passenger Ferry West Seattle to Seattle"
-118337 = "C Line to Downtown Seattle"
-
-[facility_type_dict]
-1 = 'Highway'
-2 = 'Highway'
-3 = 'Arterial'
-4 = 'Arterial'
-5 = 'Connector'
-6 = 'Arterial'
-
-[purp_dict]
-0 = 'Home'
-1 = 'Work'
-2 = 'School'
-3 = 'Escort'
-4 = 'Personal Business'
-5 = 'Shopping'
-6 = 'Meal'
-7 = 'Social'
-8 = 'Recreational'
-9 = 'Medical'
-10 = 'Change Mode'
-
-[mode_dict]
-1 = 'Walk'
-2 = 'Bike'
-3 = 'SOV'
-4 = 'HOV2'
-5 = 'HOV3+'
-6 = 'Transit'
-8 = 'School Bus'
-
-################################################
-# Emissions calculations
-################################################
-# [county_id]
-# 1 = "King"
-# 2 = "Snohomish"
-# 3 = "Pierce"
-# 4 = "Kitsap"
-
-# [veh_totals]
-# 2014 = 3176086
-# 2018 = 3300162
-# 2040 = 3982578.1
-# 2050 = 4437371
-
-# Base year distribution of vehicle ownership by county
-# [vehs_by_county]
-# King = 1625471
-# Kitsap = 231231
-# Pierce = 675660
-# Snohomish = 643724
-
-###
-### FIXME: put in db
-###
-# [vehs_by_type]
-# [vehs_by_type.king]
-# light = 1433538
-# medium = 174597
-# heavy = 10574
-# [vehs_by_type.kitsap]
-# light = 199872
-# medium = 28830
-# heavy = 1342
-# [vehs_by_type.pierce]
-# light = 585681
-# medium = 82607
-# heavy = 4305
-# [vehs_by_type.snohomish]
-# light = 559557
-# medium = 77685
-# heavy = 3884
+# 4k time of day
+tod_list = ['am','md', 'pm', 'ev', 'ni']
+# External Magic Numbers
+LOW_STATION = 3733
+HIGH_STATION = 3750
+EXTERNAL_DISTRICT = 'ga20'
 
 
-[fac_type_lookup]
-0 = 0
-1 = 4
-2 = 4
-3 = 5
-4 = 5
-5 = 5
-6 = 3
-7 = 5
-8 = 0
+#####################################
+# Network Import Settings
+####################################
+[sound_cast_net_dict]
+'5to6' = 'am'
+'6to7' = 'am' 
+'7to8' = 'am' 
+'8to9' = 'am' 
+'9to10' = 'md' 
+'10to14' = 'md' 
+'14to15' = 'md' 
+'15to16' = 'pm' 
+'16to17' = 'pm' 
+'17to18' = 'pm' 
+'18to20' = 'ev' 
+'20to5' = 'ni'
 
-# Map pollutant name and ID
-###
-### FIXME: put in db
-###
-[pollutant_map]
-1 = "Total Gaseous HCs"
-2 = "CO"
-3 = "NOx"
-5 = "Methane"
-6 = "N20"
-79 = "Non-methane HCs"
-87 = "VOCs"
-90 = "Atmospheric CO2"
-91 = "Total Energy"
-98 = "CO2 Equivalent"
-PM10 = "PM10 Total"
-PM25 = "PM25 Total"
-100 = "PM10 Exhaust"
-106 = "PM10 Brakewear"
-107 = "PM10 Tirewear"
-110 = "PM25 Exhaust"
-112 = "Elemental Carbon"
-115 = "Sulfate Particulate"
-116 = "PM25 Brakewear"
-117 = "PM25 Tirewear"
-118 = "Composite NonECPM"
-119 = "H20 Aerosol"
+[extra_attributes_dict]
+"@tveh" = "total vehicles"
+"@mveh" = "medium trucks"
+"@hveh" = "heavy trucks"
+"@dveh" = "delivery trucks"
+"@vmt" = "vmt"
+"@vht" = "vht"
+"@trnv" = "buses in auto equivalents"
+"@ovol" = "observed volume"
+"@bveh" = "number of buses"
 
+# TNC fraction to assign
+# Based on survey data from SANDAG for now
+[tnc_occupancy]
+11 = 1.0   # non-AV, 1 passenger (+ driver)
+12 = 0.5 # non-AV, 2 passengers
+13 = 0.3 # non-AV 3.33 passengers on average
+21 = 1.0   # AV, 1 passenger
+22 = 0.5 # AV, 2 passenger
+23 = 0.4 # AV, 3+ passengers
+
+
+[gc_skims]
+medium_trucks = "metrk"
+heavy_trucks = "hvtrk"
+sov = "sov_inc2"
+delivery_trucks = "deltrk"
+
+
+[transit_node_attributes]
+
+[transit_node_attributes.headway_fraction]
+name = "@hdwfr"
+init_value = 0.5
+[transit_node_attributes.wait_time_perception]
+name = "@wait"
+init_value = 2
+[transit_node_attributes.in_vehicle_time]
+name = "@invt"
+init_value = 1
+
+
+[transit_tod]
+
+[transit_tod.5to6]
+4k_tp = "am"
+num_of_hours = 1
+[transit_tod.6to7]
+4k_tp = "am"
+num_of_hours = 1
+[transit_tod.7to8]
+4k_tp = "am"
+num_of_hours = 1
+[transit_tod.8to9]
+4k_tp = "am"
+num_of_hours = 1
+[transit_tod.9to10]
+4k_tp = "md"
+num_of_hours = 1
+[transit_tod.10to14]
+4k_tp = "md"
+num_of_hours = 4
+[transit_tod.14to15]
+4k_tp = "md"
+num_of_hours = 1
+[transit_tod.15to16]
+4k_tp = "pm"
+num_of_hours = 1
+[transit_tod.16to17]
+4k_tp = "pm"
+num_of_hours = 1
+[transit_tod.17to18]
+4k_tp = "pm"
+num_of_hours = 1
+[transit_tod.18to20]
+4k_tp = "ev"
+num_of_hours = 2
+[transit_tod.20to5]
+4k_tp = "ni"
+num_of_hours = 9
+
+# Intrazonals
+[intrazonal_dict]
+"distance" = "izdist"
+"time auto" = "izatim"
+"time bike" = "izbtim"
+"time walk" = "izwtim"
+
+#################################
+# Bike Model Settings
+#################################
+
+# Distance perception penalties for link AADT from Broach et al., 2012
+# 1 is AADT 10k-20k, 2 is 20k-30k, 3 is 30k+
+# No penalty applied for AADT < 10k
+[aadt_dict]
+
+[aadt_dict.volume_wt]
+1 = 0.368
+2 = 1.4
+3 = 7.157
+
+# Crosswalk of bicycle facilities from geodatabase to a 2-tier typology - premium, standard (and none)
+# Associated with IJBikeFacility from modeAttributes table
+# "Premium" represents trails and fully separated bike facilities
+# "Standard" represents painted bike lanes only
+[bike_facility_crosswalk]
+[bike_facility_crosswalk."@bkfac"]
+0 = "none"      # No bike lane
+1 = "standard"  # Striped bike lane
+2 = "premium"   # Protected bike lane
+3 = "none"      # Paved/striped shoulder
+4 = "none"      # Marked shared lane
+5 = "none"      # Bike provision undefined
+6 = "none"      # Defined bike route no provisions
+8 = "premium"   # Shared use path
+9 = "standard"  # Buffered bike lane (minimally coded as of 2018 BY)
+10 = "standard" # neighborhood greenway (minimally coded as of 2018 BY)
+
+# Perception factor values corresponding to these tiers, from Broch et al., 2012
+[facility_dict]
+[facility_dict.facility_wt]
+premium = -0.16
+standard = -0.108
+none = 0
+
+# Perception factor values for 3-tiered measure of elevation gain per link
+[slope_dict]
+[slope_dict.slope_wt]
+1 = 0.371 # between 2-4% grade
+2 = 1.203 # between 4-6% grade
+3 = 3.239 # greater than 6% grade
+
+
+
+#################################
+# Truck Model Settings
+#################################
+#TOD to create Bi-Dir skims (AM/EV Peak)
+[truck_generalized_cost_tod]
+7to8 = "am"
+17to18 = "pm"
+#GC & Distance skims that get read in from Soundcast
+
+[truck_adjustment_factor]
+ltpro = 0.544
+mtpro = 0.545
+htpro = 0.53
+ltatt = 0.749
+mtatt = 0.75
+htatt = 1.0
+
+# Distances for parcel accessibility calculations in feet
+[accessibility_distances]
+1 = 2640  # 0.5 mile
+2 = 5280  # 1 mile

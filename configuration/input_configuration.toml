@@ -5,13 +5,15 @@
 ##############################
 # Input paths and model years
 ##############################
+protected_namespaces = '()'
+debug_skims_and_paths = false
 model_year = '2050'
 base_year = '2023'
 landuse_inputs = 'base_year_2023_2050'
 network_inputs = '2050_constrained_final_revised'
 db_name = 'soundcast_inputs_2023.db'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
-
+abm_model = 'daysim'
 ##############################
 # Initial Setup
 ##############################
