@@ -3,7 +3,6 @@
 #################################
 # Summary Comparisons
 #################################
-protected_namespaces = '()'
 run_rtp = true
 run_comparison = false
 
@@ -16,15 +15,97 @@ weekday_to_annual = 300
 # summary output directory
 p_output_dir = 'outputs/2023_summary'
 
+sc_run_path = '../../../../'
+# sc_run_path = 'C:/workspace/sc_2023_08_05_24'
 output_folder = 'outputs'
 survey_folder = 'inputs/base_year/survey'
+# output_path = 'C:/workspace/sc_2023_08_05_24/outputs'
+# survey_path = 'C:/workspace/sc_2023_08_05_24/inputs/base_year/survey'
+
+
+#################################
+# run summary notebooks
+#################################
+# run jupyter scripts
+summary_list = ['topsheet', 'vmt']
 
 #################################
 # NETWORK SUMMARY
 #################################
+
+network_results_path = 'outputs/network/network_results.csv'
+iz_vol_path = 'outputs/network/iz_vol.csv'
+transit_line_path = 'outputs/transit/transit_line_results.csv'
+transit_node_path = 'outputs/transit/transit_node_results.csv'
+transit_segment_path = 'outputs/transit/transit_segment_results.csv'
+boardings_by_agency_path = 'outputs/transit/daily_boardings_by_agency.csv'
+special_routes_path = 'outputs/transit/daily_boardings_special_routes.csv'
+boardings_by_tod_agency_path = 'outputs/transit/boardings_by_tod_agency.csv'
+boardings_by_stop_path = 'outputs/transit/boardings_by_stop.csv'
+light_rail_boardings_path = 'outputs/transit/light_rail_boardings.csv'
+
+# attribute_list = ['auto_volume','data1','data2','data3','type',
+# 'num_lanes','length','auto_time','@medium_truck','@heavy_truck','@tveh',
+# '@sov_inc1','@sov_inc2','@sov_inc3',
+# '@hov2_inc1','@hov2_inc2','@hov2_inc3','@hov3_inc1','@hov3_inc2','@hov3_inc3',
+# '@av_sov_inc1','@av_sov_inc2','@av_sov_inc3',
+# '@av_hov2_inc1','@av_hov2_inc2','@av_hov2_inc3','@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
+# '@tnc_inc1','@tnc_inc2','@tnc_inc3','@bvol','@mveh','@hveh','@bveh',
+# 'type','num_lanes','volume_delay_func','@countyid']
+
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
 
+
+################################################
+# Emissions calculations
+################################################
+
+# Base year distribution of vehicles by type (2014)
+# Note that the totals by county above (for 2014) 
+# include buses, so the totals below do not match up
+# The difference is buses
+
+# For GHG Analysis see:
+# X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040_GHG.xlsx
+
+# Total vehicles predicted from Auto Ownership model for base year 2018 
+# tot_veh_model_base_year = 3007232
+
+
+
+# List of pollutants to be summarized for summer
+# All other are to be summarized for winter season
+# using wintertime rates for all start emission rates except for VOCs
+# per X:\Trans\AIRQUAL\T2040 2018 Update\EmissionCalcs\Start Emissions\Starts_2040.xls
+summer_list = [87]
+
+speed_bins = [-999999.0, 2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 999999.0] 
+# speed_bins_labels = range(1, len(speed_bins))
+
+################################################################
+# Summary input files and output directory names
+################################################################
+
+# Input Files
+###
+### FIXME: put in db
+###
+# counts_file = 'inputs/base_year/observed/TrafficCounts_Mid.txt'
+# aadt_counts_file = 'inputs/base_year/observed/observed_aadt.csv'
+# tptt_counts_file = 'inputs/base_year/observed/observed_tptt.csv'
+# loop_counts_file = 'inputs/base_year/observed/observed_loop_counts.csv'
+# screenlines_file = 'inputs/base_year/observed/observed_screenline_volumes.csv'
+# truck_counts_file = 'inputs/base_year/observed/observed_truck_counts.csv' 
+# observed_boardings_file = 'inputs/base_year/observed/observed_transit_boardings.csv'
+# light_rail_boardings = 'inputs/base_year/observed/observed_light_rail_boardings.csv'
+# screenline_counts_file = 'inputs/base_year/observed/observed_screenline_counts.txt'
+# daily_counts_file = 'inputs/base_year/observed/observed_daily_counts.csv'
+
+# Output Files 
+# network_summary_dir = 'outputs/network/network_summary.xlsx'
+# validation_summary_dir = 'outputs/network/validation.xlsx'
+# transit_summary_dir = 'outputs/transit/transit_summary.xlsx'
 
 uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
             '@hov2_inc1','@hov2_inc2','@hov2_inc3',
@@ -34,59 +115,60 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
             '@av_hov3_inc1','@av_hov3_inc2','@av_hov3_inc3',
             '@tnc_inc1','@tnc_inc2','@tnc_inc3','@mveh','@hveh','@bveh']
 
-# Speed bins for emissions
-speed_bins = [
-    -999999.0,
-    2.5,
-    7.5,
-    12.5,
-    17.5,
-    22.5,
-    27.5,
-    32.5,
-    37.5,
-    42.5,
-    47.5,
-    52.5,
-    57.5,
-    62.5,
-    67.5,
-    72.5,
-    999999.0,
-]
-summer_list = [87]
+######## Observed Transit Boardings############################################
 
-#################################
-# run summary notebooks
-#################################
 
-# run jupyter scripts
-summary_list = ['topsheet',
-                'vmt', 
-                'transit']
 
-RTP_summary_list = ['RTP_person',
-                    'RTP_access',
-                    'RTP_costs',
-                    'RTP_emissions',
-                    'RTP_mode_share'
-                    ]
+#### Transit Groupings ###############################################################
+# transit_time_group_file= 'inputs/model/lookup/transit_time_groups.csv'
+# route_group_file = 'inputs/model/lookup/transit_route_groups.csv'
+# special_routes_file = 'inputs/model/lookup/transit_special_routes.csv'
 
-# current run name and directory
-sc_run_name = "current run"
-sc_run_path = '../../../../'
-# sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/Workspace/sc_03_17_25'
+# Bikes
+# bike_link_vol = 'outputs/bike/bike_volumes.csv'
+# bike_count_data = 'inputs/base_year/observed/bike_count_links.csv'
+# edges_file = 'inputs/scenario/bike/edges_0.txt'
 
-# Summary Comparisons: add comparison run directories
+# Parcel Summary
+# parcel_urbcen_map = 'parcels_in_urbcens.csv'    # lookup for parcel to RGC
+# parcel_file_out = 'landuse/parcel_summary.xlsx'    # summary output file name
+parcels_file_name = 'inputs/scenario/landuse/parcels_urbansim.txt'
+output_parcels = 'outputs/landuse/buffered_parcels.txt'
+nodes_file_name = 'inputs/accessibility/all_streets_nodes_2014.csv'
+links_file_name = 'inputs/accessibility/all_streets_links_2014.csv'
+# transit_access_outfile = 'outputs/transit/freq_transit_access.csv'
+max_dist = 24140.2
+
+
+# dictionaries
+
+# Grouped outputs
+
+# To compare with 1 or more runs, add key as run name, value as location to main soundcast directory
+# e.g., comparison_runs = {'soundcast_base': 'C:/user/soundcast_base_run', 
+#                          'soundcast_2040': 'C:/user/soundcast_2040'}
+# [comparison_runs]
+# compare_survey = true    # compare daysim results in Tableau and topsheet outputs
+
+# source names
 [comparison_runs_list]
-'2050 update (lower WFH and no telecommute)' = '\\modelstation1\c$\workspace\sc_2050_base_year_no_telecommute_half_wfh_new_lu_03_14_25'
-'2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'
-'2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
+'i5 toll' = 'C:/workspace/sc_2050_i5_toll'
+
+#################################
+# Summary Comparisons
+#################################
+[comparison_dict]
+2018 = "C:\\Workspace\\sc_2018_rtp\\soundcast"
+2050 = "C:\\Workspace\\sc_2050_rtp\\soundcast"
+
 
 #################################
 # NETWORK SUMMARY
 #################################
+
+[transit_extra_attributes_dict]
+@board = "total boardings"
+@timtr = "transit line time"
 
 [tod_lookup]
 5to6 = 5
@@ -187,6 +269,50 @@ sc_run_path = '../../../../'
 5 = 'HOV3+'
 6 = 'Transit'
 8 = 'School Bus'
+
+################################################
+# Emissions calculations
+################################################
+# [county_id]
+# 1 = "King"
+# 2 = "Snohomish"
+# 3 = "Pierce"
+# 4 = "Kitsap"
+
+# [veh_totals]
+# 2014 = 3176086
+# 2018 = 3300162
+# 2040 = 3982578.1
+# 2050 = 4437371
+
+# Base year distribution of vehicle ownership by county
+# [vehs_by_county]
+# King = 1625471
+# Kitsap = 231231
+# Pierce = 675660
+# Snohomish = 643724
+
+###
+### FIXME: put in db
+###
+# [vehs_by_type]
+# [vehs_by_type.king]
+# light = 1433538
+# medium = 174597
+# heavy = 10574
+# [vehs_by_type.kitsap]
+# light = 199872
+# medium = 28830
+# heavy = 1342
+# [vehs_by_type.pierce]
+# light = 585681
+# medium = 82607
+# heavy = 4305
+# [vehs_by_type.snohomish]
+# light = 559557
+# medium = 77685
+# heavy = 3884
+
 
 [fac_type_lookup]
 0 = 0

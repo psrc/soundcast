@@ -1,10 +1,9 @@
 #####################################
 # Network Import Settings
 ####################################
-protected_namespaces = '()'
-main_project = 'Projects/LoadTripTables/LoadTripTables.emp'
-
-transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
+master_project = 'LoadTripTables'
+network_summary_project = 'Projects/LoadTripTables/LoadTripTables.emp'
+transit_tod_list = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 
 unit_of_length = 'mi'    # units of miles in Emme
 rdly_factor = 0.25
@@ -45,7 +44,7 @@ truck_trips_h5_filename = 'outputs/trucks/truck_trips.h5'
 bike_walk_skim_tod = ['5to6']
 
 # Transit Inputs:
-transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20','20to5']
+transit_skim_tod = ['5to6', '6to7', '7to8', '8to9', '9to10', '10to14', '14to15', '15to16', '16to17', '17to18', '18to20']
 transit_submodes = ['b', 'c', 'f', 'p', 'r']
 
 # Transit Fare:
@@ -53,19 +52,9 @@ zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
 fare_matrices_tod = ['6to7', '9to10']
 
 
-taz_area_file = 'inputs/model/daysim/intrazonals/taz_acres.in'
-origin_tt_file = 'inputs/model/daysim/intrazonals/origin_tt.in'
-destination_tt_file = 'inputs/model/daysim/intrazonals/destination_tt.in'
-
-#################################
-# Accessibility Settings
-#################################
-max_dist = 15840.0 # 3 miles in feet
-
-light_rail_walk_factor = 0.5
-ferry_walk_factor = 0.5
-
-
+taz_area_file = 'inputs/model/intrazonals/taz_acres.in'
+origin_tt_file = 'inputs/model/intrazonals/origin_tt.in'
+destination_tt_file = 'inputs/model/intrazonals/destination_tt.in'
 
 #################################
 # Bike Model Settings
@@ -93,7 +82,6 @@ ferry_bike_factor = 1
 truck_model_project = 'Projects/TruckModel/TruckModel.emp'
 districts_file = 'truck_districts.ens'
 truck_base_net_name = 'am_roadway.in'
-truck_operating_cost_rate = 0.015
 
 # 4k time of day
 tod_list = ['am','md', 'pm', 'ev', 'ni']
@@ -197,9 +185,7 @@ num_of_hours = 1
 [transit_tod.18to20]
 4k_tp = "ev"
 num_of_hours = 2
-[transit_tod.20to5]
-4k_tp = "ni"
-num_of_hours = 9
+
 
 # Intrazonals
 [intrazonal_dict]
@@ -271,8 +257,3 @@ htpro = 0.53
 ltatt = 0.749
 mtatt = 0.75
 htatt = 1.0
-
-# Distances for parcel accessibility calculations in feet
-[accessibility_distances]
-1 = 2640  # 0.5 mile
-2 = 5280  # 1 mile
