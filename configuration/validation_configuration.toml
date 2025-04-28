@@ -3,7 +3,8 @@
 ################################################################
 network_summary_list = ['transit_validation',
                          'traffic_validation',
-                         'bike_validation'
+                         'bike_validation',
+                         'link_analysis'
                         ]
 summary_list = [
                 'all_tour_mode',
