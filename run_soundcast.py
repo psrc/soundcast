@@ -38,6 +38,7 @@ from scripts.supplemental import generation
 from scripts.supplemental import distribute_non_work_ixxi
 from scripts.supplemental import create_airport_trips
 from scripts.trucks import truck_model
+from scripts.utils import update_parking
 from scripts.summarize.standard import (
     daily_bank,
     network_summary,
@@ -54,15 +55,10 @@ state = state.generate_state(run_args.args.configs_dir)
 def accessibility_calcs():
     data_wrangling.copy_accessibility_files(state)
     create_ixxi_work_trips.main(state)
-
+    
     if state.input_settings.base_year != state.input_settings.model_year:
         print("Update parcels with parking zone data")
-        returncode = subprocess.call(
-            [sys.executable, "scripts/utils/update_parking.py"]
-        )
-        if returncode != 0:
-            print("Update Parking failed")
-            sys.exit(1)
+        update_parking.main(state)
 
     accessibility.run(state)
 
