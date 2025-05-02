@@ -62,6 +62,8 @@ summer_list = [87]
 
 # run jupyter scripts
 summary_list = ['topsheet',
+                'population',
+                'parking',
                 'vmt', 
                 'transit']
 
@@ -76,13 +78,13 @@ RTP_summary_list = ['RTP_person',
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/Workspace/sc_03_17_25'
+# sc_run_path = '//modelstation2/c$/Workspace/sc_2023_04_23_25'
 
 # Summary Comparisons: add comparison run directories
 [comparison_runs_list]
-'2050 update (lower WFH and no telecommute)' = '\\modelstation1\c$\workspace\sc_2050_base_year_no_telecommute_half_wfh_new_lu_03_14_25'
-'2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'
-'2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
+# '2050 new parking' = '\\modelstation1\c$\workspace\sc_2050_new_parking_zones_04_23_25'
+# '2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'
+# '2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
 
 #################################
 # NETWORK SUMMARY
@@ -226,4 +228,3 @@ PM25 = "PM25 Total"
 117 = "PM25 Tirewear"
 118 = "Composite NonECPM"
 119 = "H20 Aerosol"
-
