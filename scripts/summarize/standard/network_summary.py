@@ -210,13 +210,8 @@ def summarize_network(state, df, writer):
     ) / 60  # sum of (volume)*(travtime diff from freeflow)
 
     # Add time-of-day group (AM, PM, etc.)
-    tod_df = pd.read_json(
-        f"{state.model_input_dir}/skim_parameters/lookup/time_of_day_crosswalk_ab_4k_dictionary.json",
-        orient="index",
-    )
-    tod_df = tod_df[["TripBasedTime"]].reset_index()
-    tod_df.columns = ["tod", "period"]
-    df = pd.merge(df, tod_df, on="tod", how="left")
+    for tod in df['tod'].unique():
+        df.loc[df["tod"] == tod, "period"] = state.network_settings.sound_cast_net_dict[tod]
 
     # Totals by functional classification
     for metric in ["VMT", "VHT", "delay"]:
@@ -584,4 +579,4 @@ def main(state):
 
 
 if __name__ == "__main__":
-    main()
+    main(state)
