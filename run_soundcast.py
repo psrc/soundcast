@@ -315,6 +315,7 @@ def main():
         state.input_settings.run_daysim
         or state.input_settings.run_skims_and_paths
         or state.input_settings.run_supplemental_trips
+        or state.input_settings.run_truck_model
     ):
         for iteration in range(len(state.emme_settings.pop_sample)):
             print("We're on iteration %d" % (iteration))

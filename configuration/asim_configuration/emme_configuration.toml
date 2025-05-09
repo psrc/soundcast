@@ -30,6 +30,10 @@ EXTERNALS_DONT_GROW=[3733]
 #################################
 # Supplementals Settings
 #################################
+am_skim_name = "5to9"
+pm_skim_name = "15to18"
+walk_skim_name = "5to9"
+fare_skim_name = "5to9"
 supplemental_log_file = 'outputs/logs/supplemental_trips.txt'
 trip_table_loc = 'outputs/supplemental/7_balance_trip_ends.csv'
 supplemental_project = 'projects/supplementals/supplementals.emp'
@@ -44,6 +48,7 @@ special_generator_rate = 0.0135
 external_rate = 0.0096
 truck_rate = 0.0135
 group_quarters_rate = 0.0034
+jblm_taz_list = [3061, 3070, 3346, 3348, 3349, 3350, 3351, 3352, 3353, 3354, 3355, 3356]
 
 # Income in 2023 $'s (scaled up from 2014 numbers using CPI average for Seattle metro)
 low_income = 51250

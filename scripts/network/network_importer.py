@@ -202,10 +202,7 @@ def arterial_delay(emmeProject, factor):
 def run_importer(state):
     # my_project = EmmeProject(state.network_settings.network_summary_project, state)
     my_project = state.main_project
-    if state.input_settings.abm_model == "activitysim":
-        headway_df = pd.read_csv("inputs/scenario/networks/headways_asim.csv")
-    else:
-        headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
+    headway_df = pd.read_csv("inputs/scenario/networks/headways.csv")
     tod_index = pd.Series(
         range(1, len(state.network_settings.tod_networks) + 1),
         index=state.network_settings.tod_networks,

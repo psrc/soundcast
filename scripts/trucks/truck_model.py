@@ -69,7 +69,7 @@ def write_truck_trips(EmmeProject, state):
         pass
 
     my_store = h5py.File(state.network_settings.truck_trips_h5_filename, "w")
-    for tod in state.network_settings.tod_list:
+    for tod in state.network_settings.tods:
         my_store.create_group(tod)
         for name in truck_od_matrices:
             matrix_name = "mf" + tod + "_" + name + "_trips"
@@ -416,7 +416,7 @@ def calculate_daily_trips(my_project, state):
     my_project.matrix_calculator(result="mfdelod", expression="mfdelod * 1.5")
 
     # apply time of day factors:
-    df_tod_factors = pd.read_sql("SELECT * FROM truck_time_of_day_factors", con=state.conn)
+    df_tod_factors = pd.read_sql(f"SELECT * FROM truck_time_of_day_factors WHERE model=='{state.input_settings.abm_model}'", con=state.conn)
 
     for tod in df_tod_factors["time_period"].unique():
         for truck_type, matrix_name in {
@@ -453,7 +453,7 @@ def main(state):
     # my_project = EmmeProject(network_config["truck_model_project"], state)
     # zones = my_project.current_scenario.zone_numbers
     if state.main_project.data_explorer.active_database().title() != "Supplementals":
-        state.main_projet.change_active_database("Supplmentals")
+        state.main_project.change_active_database("Supplmentals")
     state.main_project.change_active_database("TruckModel")
 
     input_skims = json_to_dictionary("input_skims", state)

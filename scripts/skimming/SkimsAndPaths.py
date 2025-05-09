@@ -953,23 +953,16 @@ def load_trucks(my_project, matrix_name, zonesDim):
         "delivery_truck": "deltrk_trips",
     }
 
-    time_dictionary = json_to_dictionary(
-        "time_of_day_crosswalk_ab_4k_dictionary", state.model_input_dir, "lookup"
-    )
-
-    # Prepend an aggregate time period (e.g., AM, PM, NI) to the truck demand matrix to import from h5
-    aggregate_time_period = time_dictionary[tod]["TripBasedTime"]
     truck_demand_matrix_name = (
-        "mf" + aggregate_time_period + "_" + truck_matrix_name_dict[matrix_name]
+        f"mf{tod}_{truck_matrix_name_dict[matrix_name]}"
     )
 
     np_matrix = np.matrix(
-        hdf_file[aggregate_time_period][truck_demand_matrix_name]
+        hdf_file[tod][truck_demand_matrix_name]
     ).astype(float)
 
     # Apply time of day factor to convert from aggregate time periods to 12 soundcast periods
-    sub_demand_matrix = np_matrix[0:zonesDim, 0:zonesDim]
-    demand_matrix = sub_demand_matrix * time_dictionary[tod]["TimeFactor"]
+    demand_matrix = np_matrix[0:zonesDim, 0:zonesDim]
     demand_matrix = np.squeeze(np.asarray(demand_matrix))
 
     return demand_matrix
@@ -1787,11 +1780,12 @@ def run(free_flow_skims=False, num_iterations=100):
     project_list = [
         "Projects/" + tod + "/" + tod + ".emp" for tod in state.network_settings.tods
     ]
-    for i in range(0, 12, state.emme_settings.parallel_instances):
-        l = project_list[i : i + state.emme_settings.parallel_instances]
-        pool_list.append(start_pool(l, free_flow_skims, num_iterations))
-
-    # run_assignments_parallel("projects/5to6/5to6.emp", free_flow_skims, num_iterations)
+    if not state.input_settings.debug_skims_and_paths:
+        for i in range(0, 12, state.emme_settings.parallel_instances):
+            l = project_list[i : i + state.emme_settings.parallel_instances]
+            pool_list.append(start_pool(l, free_flow_skims, num_iterations))
+    else:
+        run_assignments_parallel("projects/5to9/5to9.emp", free_flow_skims, num_iterations)
 
     # ### calculate link daily volumes for use in bike model
 

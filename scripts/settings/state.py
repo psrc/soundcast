@@ -245,8 +245,6 @@ class NetworkSettings(BaseModel):
     truck_base_net_name: str
     truck_operating_cost_rate: float
 
-    # 4k time of day
-    tod_list: list
     # External Magic Numbers
     LOW_STATION: int
     HIGH_STATION: int

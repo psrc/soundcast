@@ -62,18 +62,18 @@ full,delod,delivery truck daily od trips
 full,delee,delivery truck daily ee trips
 full,delie,delivery truck daily ie trips
 full,delei,delivery truck daily ei trips
-full,am_medtrk_trips,am medium truck od trip table
-full,am_hvytrk_trips,am heavy truck od trip table
-full,am_deltrk_trips,am delivery trip od trip table
-full,md_medtrk_trips,md medium truck od trip table
-full,md_hvytrk_trips,md heavy truck od trip table
-full,md_deltrk_trips,md delivery trip od trip table
-full,pm_medtrk_trips,pm medium truck od trip table
-full,pm_hvytrk_trips,pm heavy truck od trip table
-full,pm_deltrk_trips,pm delivery trip od trip table
-full,ev_medtrk_trips,ev medium truck od trip table
-full,ev_hvytrk_trips,ev heavy truck od trip table
-full,ev_deltrk_trips,ev delivery trip od trip table
-full,ni_medtrk_trips,ni medium truck od trip table
-full,ni_hvytrk_trips,ni heavy truck od trip table
-full,ni_deltrk_trips,ni delivery trip od trip table
+full,5to9_medtrk_trips,am medium truck od trip table
+full,5to9_hvytrk_trips,am heavy truck od trip table
+full,5to9_deltrk_trips,am delivery trip od trip table
+full,9to15_medtrk_trips,md medium truck od trip table
+full,9to15_hvytrk_trips,md heavy truck od trip table
+full,9to15_deltrk_trips,md delivery trip od trip table
+full,15to18_medtrk_trips,pm medium truck od trip table
+full,15to18_hvytrk_trips,pm heavy truck od trip table
+full,15to18_deltrk_trips,pm delivery trip od trip table
+full,18to20_medtrk_trips,ev medium truck od trip table
+full,18to20_hvytrk_trips,ev heavy truck od trip table
+full,18to20_deltrk_trips,ev delivery trip od trip table
+full,20to5_medtrk_trips,ni medium truck od trip table
+full,20to5_hvytrk_trips,ni heavy truck od trip table
+full,20to5_deltrk_trips,ni delivery trip od trip table
