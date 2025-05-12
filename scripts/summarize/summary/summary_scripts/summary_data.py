@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 CONFIG = toml.load(Path("../../../../configuration") / "summary_configuration.toml")
-
+INPUT_CONFIG = toml.load(Path("../../../../configuration") / "input_configuration.toml")
 
 def _get_all_runs() -> dict:
     """
