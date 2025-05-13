@@ -333,11 +333,7 @@ def calculate_start_emissions(state):
     df_veh["vehicles"] = df_veh["vehicles"] * veh_scale
 
     # Join with rates to calculate total emissions
-    start_rates_df = pd.read_sql(
-        "SELECT * FROM start_emission_rates_by_veh_type WHERE year=="
-        + state.input_settings.model_year,
-        con=state.conn,
-    )
+    start_rates_df = load_starting_rates(state)
 
     # Select winter rates for pollutants other than those listed in summer_list
     df_summer = start_rates_df[
@@ -387,6 +383,50 @@ def calculate_start_emissions(state):
 
     return df
 
+def load_running_rates(state):
+    """Load running emission rates by vehicle type, for the model year"""
+
+    # FIXME: log which rates are used
+
+    if state.summary_settings.emissions_scenario == "standard":
+        df_running_rates = pd.read_sql(
+            "SELECT * FROM running_emission_rates_by_veh_type WHERE year=="
+            + state.input_settings.model_year,
+            con=state.conn,
+        )
+        print("Using standard running rates.")
+    else:
+        df_running_rates = pd.read_csv(os.path.join(
+            state.summary_settings.emissions_scenario,
+            "running_emission_rates_by_veh_type.csv")
+        )
+        df_running_rates = df_running_rates[df_running_rates['year'] == state.input_settings.model_year]
+        print("Using scenario running rates specified in summary_configuration.toml.")
+
+    df_running_rates.rename(columns={"ratePerDistance": "grams_per_mile"}, inplace=True)
+    df_running_rates["year"] = df_running_rates["year"].astype("str")
+
+    return df_running_rates
+
+def load_starting_rates(state):
+    """Load starting emission rates by vehicle type, for the model year"""
+
+    if state.summary_settings.emissions_scenario == "standard":
+        df_starting_rates = pd.read_sql(
+            "SELECT * FROM start_emission_rates_by_veh_type WHERE year=="
+            + state.input_settings.model_year,
+            con=state.conn,
+        )
+        print("Using standard start rates.")
+    else:
+        df_starting_rates = pd.read_csv(os.path.join(
+            state.summary_settings.emissions_scenario,
+            "start_emission_rates_by_veh_type.csv")
+        )
+        df_starting_rates = df_starting_rates[df_starting_rates['year'] == state.input_settings.model_year]
+        print("Using scenario start rates specified in summary_configuration.toml.")
+
+    return df_starting_rates
 
 def main(state):
     """
@@ -404,14 +444,7 @@ def main(state):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
 
-    # Load running emission rates by vehicle type, for the model year
-    df_running_rates = pd.read_sql(
-        "SELECT * FROM running_emission_rates_by_veh_type WHERE year=="
-        + state.input_settings.model_year,
-        con=state.conn,
-    )
-    df_running_rates.rename(columns={"ratePerDistance": "grams_per_mile"}, inplace=True)
-    df_running_rates["year"] = df_running_rates["year"].astype("str")
+    df_running_rates = load_running_rates(state)
 
     # Select the month to use for each pollutant; some rates are used for winter or summer depending
     # on when the impacts are at a maximum due to temperature.
