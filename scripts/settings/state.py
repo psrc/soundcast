@@ -312,6 +312,7 @@ class SummarySettings(BaseModel):
     county_map: dict
     uc_list: list
     agency_lookup: dict
+    emissions_scenario: str
     speed_bins: list
     fac_type_lookup: dict
     tod_lookup: dict
