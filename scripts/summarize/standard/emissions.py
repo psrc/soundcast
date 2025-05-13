@@ -114,32 +114,6 @@ def finalize_emissions(df, col_suffix=""):
     return df
 
 
-def finalize_emissions(df, col_suffix=""):
-    """
-    Compute PM10 and PM2.5 totals, sort index by pollutant value, and pollutant name.
-    For total columns add col_suffix (e.g., col_suffix='intrazonal_tons')
-    """
-
-    pm10 = (
-        df[df["pollutantID"].isin([100, 106, 107])]
-        .groupby("veh_type")
-        .sum()
-        .reset_index()
-    )
-    pm10["pollutantID"] = "PM10"
-    pm25 = (
-        df[df["pollutantID"].isin([110, 116, 117])]
-        .groupby("veh_type")
-        .sum()
-        .reset_index()
-    )
-    pm25["pollutantID"] = "PM25"
-    df = pd.concat([df, pm10])
-    df = pd.concat([df, pm25])
-
-    return df
-
-
 def calculate_interzonal_emissions(df, df_rates):
     """Calculate link emissions using rates unique to speed, road type, hour, county, and vehicle type."""
 
@@ -322,14 +296,18 @@ def calculate_start_emissions(state):
         con=state.conn,
     )
 
-    # Scale all vehicles by difference between base year and model total vehicles owned from auto onwership model
+    # Scale all vehicles by difference between base year and model total vehicles owned from auto ownership model
     df_hh = pl.read_csv(r"outputs/daysim/_household.tsv", separator="\t",)
     tot_veh = df_hh["hhvehs"].sum()
 
     # Scale county vehicles by total change
-    # FIXME: Move this to a settings file
-    tot_veh_model_base_year = 3007056
-    veh_scale = 1.0 + (tot_veh - tot_veh_model_base_year) / tot_veh_model_base_year
+    # FIXME: update this number... fix this process
+    # The actual number to be used and scaled should be registration data
+    # because there are more vehicles used than owned by households
+    # Apply scaling factor to baseline registration data from MOVES inputs
+
+    # tot_veh_model_base_year = 3007056
+    veh_scale = 1.0 + (tot_veh - state.summary_settings.tot_veh_model_base_year) / state.summary_settings.tot_veh_model_base_year
     df_veh["vehicles"] = df_veh["vehicles"] * veh_scale
 
     # Join with rates to calculate total emissions

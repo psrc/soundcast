@@ -313,6 +313,7 @@ class SummarySettings(BaseModel):
     uc_list: list
     agency_lookup: dict
     emissions_scenario: str
+    tot_veh_model_base_year: int
     speed_bins: list
     fac_type_lookup: dict
     tod_lookup: dict
