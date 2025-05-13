@@ -5,7 +5,7 @@
 ##############################
 # Input paths and model years
 ##############################
-debug_skims_and_paths = true
+debug_skims_and_paths = false
 model_year = '2023'
 base_year = '2023'
 landuse_inputs = '23_on_23_v3'
@@ -16,11 +16,11 @@ abm_model = 'activitysim'
 ##############################
 # Initial Setup
 ##############################
-run_accessibility_calcs = false
-run_setup_emme_project_folders = false
-run_setup_emme_bank_folders = false
-run_copy_scenario_inputs = false
-run_import_networks = false
+run_accessibility_calcs = true
+run_setup_emme_project_folders = true
+run_setup_emme_bank_folders = true
+run_copy_scenario_inputs = true
+run_import_networks = true
 
 ##############################
 # Model Procedures

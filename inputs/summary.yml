@@ -135,7 +135,7 @@ dependencies:
   - libjpeg-turbo=3.1.0=h2466b09_0
   - libkml=1.3.0=h538826c_1021
   - liblapack=3.9.0=31_h1aa476e_mkl
-  - liblzma=5.8.1=h2466b09_0
+  - liblzma
   - libparquet=20.0.0=ha850022_2_cpu
   - libpng=1.6.47=h7a4582a_0
   - libprotobuf=5.29.3=he9d8c4a_1
@@ -209,7 +209,7 @@ dependencies:
   - pyproj=3.7.1=py311h91919fb_1
   - pysocks=1.7.1=pyh09c184e_7
   - pytables=3.10.2=py311h510d85e_2
-  - python=3.11.0=hcf16a7b_0_cpython
+  - python=3.11
   - python-dateutil=2.9.0.post0=pyhff2d567_1
   - python-fastjsonschema=2.21.1=pyhd8ed1ab_0
   - python-gil=3.11.12=hd8ed1ab_0
@@ -277,7 +277,7 @@ dependencies:
   - xorg-libxau=1.0.12=h0e40799_0
   - xorg-libxdmcp=1.1.5=h0e40799_0
   - xyzservices=2025.4.0=pyhd8ed1ab_0
-  - xz=5.2.6=h8d14728_0
+  - xz
   - yaml=0.2.5=h8ffe710_2
   - zeromq=4.3.5=ha9f60a1_7
   - zipp=3.21.0=pyhd8ed1ab_1
