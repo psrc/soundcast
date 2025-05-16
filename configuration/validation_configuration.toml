@@ -47,10 +47,6 @@ psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", 
 # Validation input files and output directory names
 ################################################################
 
-# other validation dataset
-p_acs_auto_ownership = "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/bg_auto_ownership.csv"
-p_maz_bg_lookup =      "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv"
-
 # validation output directory
 p_output_dir = "outputs/2023_validation"
 
