@@ -109,13 +109,13 @@ def main(state):
         os.path.join(validation_output_dir, "daily_boardings_by_line.csv"), index=False
     )
 
-    # Boardings by agency
-    df_agency = df.groupby(["agency"]).sum().reset_index()
-    df_agency.to_csv(
-        os.path.join(validation_output_dir, "daily_boardings_by_agency.csv"),
-        index=False,
-        columns=["agency", "model_boardings", 2023, 2024],
-    )
+    # # Boardings by agency (summed up from line data)
+    # df_agency = df.groupby(["agency"]).sum().reset_index()
+    # df_agency.to_csv(
+    #     os.path.join(validation_output_dir, "daily_boardings_by_agency.csv"),
+    #     index=False,
+    #     columns=["agency", "model_boardings", 2023, 2024],
+    # )
 
     # Boardings by mode
     df_mode = df.groupby(["mode"]).sum().reset_index()
@@ -135,6 +135,20 @@ def main(state):
         os.path.join(validation_output_dir, "daily_boardings_key_routes.csv"),
         index=False,
         columns=["description", "route_code", "agency", "model_boardings", 2023, 2024],
+    )
+
+    # Boardings by agency (using agency-level observed data)
+    df_agency = df.groupby(["agency"]).sum().reset_index()[['agency','model_boardings']]
+    df_obs = pd.read_sql(
+        text("SELECT * FROM observed_transit_agency_boardings WHERE year IN (2023, 2024)"),
+        con=state.conn.connect(),
+    )
+    df_obs = pd.pivot_table(df_obs, index='agency', columns='year', values='boardings', aggfunc='sum').reset_index()
+    df_agency = df_obs.merge(df_agency, on='agency')
+    df_agency.to_csv(
+        os.path.join(validation_output_dir, "daily_boardings_by_agency.csv"),
+        index=False,
+        columns=["agency", "model_boardings", 2023, 2024],
     )
 
     ########################################
