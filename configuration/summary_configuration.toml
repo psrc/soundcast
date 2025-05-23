@@ -42,7 +42,9 @@ uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
 emissions_scenario = "standard"
 #emissions_scenario = "Y:/Air Quality/2026_2050_RTP/scenarios/2040_full_light_duty_EV/moves_outputs/soundcast"
 
-tot_veh_model_base_year = 3007056
+# Sum of household vehicles predicted by Daysim in base year
+# This is used to scale up the number of vehicles owned in future runs for starting emissions
+tot_veh_model_base_year = 3185281
 
 # Speed bins for emissions
 speed_bins = [
