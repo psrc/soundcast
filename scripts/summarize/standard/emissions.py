@@ -348,7 +348,7 @@ def load_running_rates(state):
             state.summary_settings.emissions_scenario,
             "running_emission_rates_by_veh_type.csv")
         )
-        df_running_rates = df_running_rates[df_running_rates['year'] == state.input_settings.model_year]
+        df_running_rates = df_running_rates[df_running_rates['year'] == int(state.input_settings.model_year)]
         print("Using scenario running rates specified in summary_configuration.toml.")
 
     df_running_rates.rename(columns={"ratePerDistance": "grams_per_mile"}, inplace=True)
