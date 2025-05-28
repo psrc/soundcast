@@ -204,7 +204,12 @@ def copy_scenario_inputs(state):
     )
 
     # Copy network, landuse, and general (year-based) inputs
-    copyanything(Path(state.input_settings.soundcast_inputs_dir) / "db", "inputs/db")
+    copyanything(
+        Path(state.input_settings.soundcast_inputs_dir) 
+        / "db" 
+        / state.input_settings.db_name, 
+        Path("inputs/db") 
+        / state.input_settings.db_name)
     copyanything(
         Path(state.input_settings.soundcast_inputs_dir)
         / "landuse"
