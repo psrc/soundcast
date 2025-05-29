@@ -191,9 +191,12 @@ def setup_emme_project_folders(state):
 @timed
 def copy_scenario_inputs(state):
     # Clear existing base_year and scenario folders
-    for path in ["inputs/base_year", "inputs/scenario", "inputs/db"]:
+    for path in ["inputs/base_year", "inputs/scenario"]:
         if os.path.exists(os.path.join(os.getcwd(), path)):
             shutil.rmtree(os.path.join(os.getcwd(), path), ignore_errors=True)
+    # Create empty directory for database file
+    if not os.path.exists("inputs/db"):
+        os.makedirs("inputs/db")
 
     # Copy base_year folder from inputs directory
     copyanything(
@@ -204,12 +207,18 @@ def copy_scenario_inputs(state):
     )
 
     # Copy network, landuse, and general (year-based) inputs
+    # copy single file 
     copyanything(
-        Path(state.input_settings.soundcast_inputs_dir) 
-        / "db" 
-        / state.input_settings.db_name, 
-        Path("inputs/db") 
-        / state.input_settings.db_name)
+        Path(state.input_settings.soundcast_inputs_dir) /
+        "db" / state.input_settings.db_name,
+        "inputs/db"
+    )
+    # copyanything(
+    #     Path(state.input_settings.soundcast_inputs_dir) 
+    #     / "db" 
+    #     / state.input_settings.db_name, 
+    #     Path("inputs/db") 
+    #     / state.input_settings.db_name)
     copyanything(
         Path(state.input_settings.soundcast_inputs_dir)
         / "landuse"
