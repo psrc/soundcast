@@ -371,7 +371,7 @@ def load_starting_rates(state):
             state.summary_settings.emissions_scenario,
             "start_emission_rates_by_veh_type.csv")
         )
-        df_starting_rates = df_starting_rates[df_starting_rates['year'] == state.input_settings.model_year]
+        df_starting_rates = df_starting_rates[df_starting_rates['year'] == int(state.input_settings.model_year)]
         print("Using scenario start rates specified in summary_configuration.toml.")
 
     return df_starting_rates
