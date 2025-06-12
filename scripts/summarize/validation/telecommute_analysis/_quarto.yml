@@ -23,6 +23,7 @@ format:
     code-tools: true
 
 toc: true
+warning: false
 
 
 

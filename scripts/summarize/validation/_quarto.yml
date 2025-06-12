@@ -58,7 +58,7 @@ format:
     code-tools: true
 
 toc: true
-
+warnings: false
 
 
 
