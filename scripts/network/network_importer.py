@@ -267,6 +267,6 @@ def run_importer(state):
         arterial_delay(my_project, state.network_settings.rdly_factor)
         if state.input_settings.add_distance_pricing:
             distance_pricing(
-                state.distance_rate_dict[value], my_project, state.input_settings
+                state.input_settings.distance_rate_dict[value], my_project, state.input_settings
             )
         my_project.bank.dispose()
