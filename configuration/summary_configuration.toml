@@ -69,6 +69,16 @@ speed_bins = [
 summer_list = [87]
 
 #################################
+# equity geographies
+#################################
+equity_geogs = ['hh_disability_reg', 'hh_elderly_reg', 'hh_english_reg', 'hh_poverty_reg', 'hh_racial_reg', 'hh_youth_reg',
+                'hh_poverty_50', 'hh_racial_50']
+equity_geogs_comb = ['youth_geog_vs_reg_total', 'elderly_geog_vs_reg_total', 'english_geog_vs_reg_total',
+                     'racial_geog_vs_reg_total', 'racial_geog_vs_50_percent', 
+                    'poverty_geog_vs_reg_total', 'poverty_geog_vs_50_percent', 
+                    'disability_geog_vs_reg_total']
+
+#################################
 # run summary notebooks
 #################################
 
@@ -90,7 +100,7 @@ RTP_summary_list = ['RTP_person',
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/Workspace/sc_2023_04_23_25'
+# sc_run_path = '//modelstation3/c$/Workspace/sc_lynwood_extension\soundcast'
 
 # Summary Comparisons: add comparison run directories
 [comparison_runs_list]
