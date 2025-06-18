@@ -1,6 +1,6 @@
 project:
   type: book
-  output-dir: "summary-notebook"
+  output-dir: "run-comparison-notebook"
   
 book:
   title: "<br>Soundcast Summary"

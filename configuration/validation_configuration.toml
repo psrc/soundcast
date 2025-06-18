@@ -34,7 +34,7 @@ summary_list = [
                 'workbased_subtour_mode',
                 'workbased_subtour_generation',
                 # uncomment the following line to run additional telecommute analysis
-                # '../telecommute_analysis/telecommute_analysis'
+                '../telecommute_analysis/telecommute_analysis'
                 ]
 
 # color palatte for plots
@@ -46,7 +46,7 @@ psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", 
 ################################################################
 
 # validation output directory
-p_output_dir = "outputs/2023_validation"
+p_output_dir = "outputs/2023_summary"
 
 # ---- model results
 # - local soundcast run

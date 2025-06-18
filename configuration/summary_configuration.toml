@@ -100,9 +100,9 @@ RTP_summary_list = ['RTP_person',
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation3/c$/Workspace/sc_lynwood_extension\soundcast'
+# sc_run_path = '//modelstation4/c$/workspace/sc_2050_old_transit/soundcast'
 
-# Summary Comparisons: add comparison run directories
+# Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]
 # '2050 new parking' = '\\modelstation1\c$\workspace\sc_2050_new_parking_zones_04_23_25'
 # '2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'

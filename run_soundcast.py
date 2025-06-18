@@ -222,11 +222,15 @@ def run_all_summaries():
     validation.main(state)
     job_accessibility.main(state)
     subprocess.run(
-        "conda activate summary && python scripts/summarize/validation_network/create_network_validation.py",
+        "conda activate summary && python scripts/summarize/RTP_summary/create_RTP_summary.py",
         shell=True,
     )
     subprocess.run(
-        "conda activate summary && python scripts/summarize/RTP_summary/create_RTP_summary.py",
+        "conda activate summary && python scripts/summarize/summary/create_summary_pages.py",
+        shell=True,
+    )
+    subprocess.run(
+        "conda activate summary && python scripts/summarize/validation_network/create_network_validation.py",
         shell=True,
     )
     subprocess.run(
