@@ -8,7 +8,7 @@ run_rtp = true
 run_comparison = false
 
 # annualization factor; continuing with value used from Vision 2050
-weekday_to_annual = 300
+weekday_to_annual = 325
 
 #################################
 # RELATIVE PATHS between notebooks and output/survey directories
