@@ -11,11 +11,11 @@ book:
 
   chapters:
     - index.qmd
-    - RTP_summary_scripts/RTP_person.ipynb
-    - RTP_summary_scripts/RTP_access.ipynb
-    - RTP_summary_scripts/RTP_costs.ipynb
-    - RTP_summary_scripts/RTP_emissions.ipynb
-    - RTP_summary_scripts/RTP_mode_share.ipynb
+    - summary_scripts/RTP_person.ipynb
+    - summary_scripts/RTP_access.ipynb
+    - summary_scripts/RTP_costs.ipynb
+    - summary_scripts/RTP_emissions.ipynb
+    - summary_scripts/RTP_mode_share.ipynb
         
 
 format:
