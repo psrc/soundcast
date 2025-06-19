@@ -17,8 +17,8 @@ format:
   html:
     mainfont: Poppins
     theme: 
-      light: [cosmo, custom.scss]
-      dark: [darkly, custom.scss]
+      light: [cosmo, ../../notebook_styling/custom.scss]
+      dark: [darkly, ../../notebook_styling/custom.scss]
     echo: false
     code-tools: true
 

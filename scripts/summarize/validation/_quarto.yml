@@ -3,7 +3,7 @@ project:
   output-dir: "validation-notebook"
   
 book:
-  title: "Dayim Estimation Results"
+  title: "Validation Summary"
   repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize/validation
   search: false
   sidebar:
@@ -52,8 +52,8 @@ format:
   html:
     mainfont: Poppins
     theme: 
-      light: [cosmo, custom.scss]
-      dark: [darkly, custom.scss]
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
     echo: false
     code-tools: true
 

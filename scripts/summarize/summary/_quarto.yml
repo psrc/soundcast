@@ -17,14 +17,16 @@ book:
     - summary_scripts/parking.ipynb
     - summary_scripts/transit.ipynb
     # - summary_scripts/trucks.ipynb
+    # - summary_scripts/JBLM.ipynb
+    # - summary_scripts/supplementals.ipynb
         
 
 format:
   html:
     mainfont: Poppins
     theme: 
-      light: [cosmo, custom.scss]
-      dark: [darkly, custom.scss]
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
     echo: false
     code-tools: true
 

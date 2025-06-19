@@ -3,7 +3,7 @@ project:
   output-dir: "network-validation-notebook"
   
 book:
-  title: "<br>Network Summary"
+  title: "Network Validation"
   repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize
   search: false
   sidebar:
@@ -20,8 +20,8 @@ format:
   html:
     mainfont: Poppins
     theme: 
-      light: [cosmo, custom.scss]
-      dark: [darkly, custom.scss]
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
     echo: false
     code-tools: true
     warning: false
