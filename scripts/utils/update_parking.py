@@ -8,7 +8,7 @@ def main(state):
     parcel_file = r"outputs/landuse/parcels_urbansim.txt"
 
     # Load data
-    df_parcels = pd.read_csv(parcel_file, delim_whitespace=True)
+    df_parcels = pd.read_csv(parcel_file, sep='\s+')
     df_parking_zones = pd.read_sql("SELECT * FROM parking_zones", con=state.conn)
     df_parking_cost = pd.read_sql(
         "SELECT * FROM parking_costs WHERE year==" + state.input_settings.model_year, con=state.conn
