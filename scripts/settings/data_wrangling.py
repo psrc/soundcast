@@ -542,3 +542,26 @@ def copyanything(src, dst):
             shutil.copy(src, dst)
         else:
             raise
+
+def store_settings(state):
+    """
+    Store the current settings in a text file for each run.
+    """
+
+    # Create a folder in outputs/logs with name as timestamp of when run was started
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_dir = os.path.join("outputs", "logs", f"settings_{timestamp}")
+    
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    for name, settings in {
+        "input_settings": state.input_settings,
+        "network_settings": state.network_settings,
+        "emme_settings": state.emme_settings,
+        "summary_settings": state.summary_settings,
+    }.items():
+        with open(os.path.join(log_dir,f"{name}.txt"), "w") as f:
+            for row in settings:
+                f.write(f"{row}\n")
+    

@@ -250,6 +250,7 @@ def main():
     hash = get_current_commit_hash()
     logger.info("Using Git hash %s ", str(hash))
 
+    data_wrangling.store_settings(state)
     data_wrangling.build_output_dirs()
     data_wrangling.update_daysim_modes(state)
     data_wrangling.update_skim_parameters(state)
