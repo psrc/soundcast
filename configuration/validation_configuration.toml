@@ -1,7 +1,8 @@
 ################################################################
 # run validation notebooks
 ################################################################
-network_summary_list = ['transit_validation',
+network_summary_list = ['JBLM',
+                        'transit_validation',
                         'traffic_validation',
                         'bike_validation',
                         'link_analysis'
@@ -46,7 +47,7 @@ psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", 
 ################################################################
 
 # validation output directory
-p_output_dir = "outputs/2023_summary"
+p_output_dir = "outputs/summary"
 
 # ---- model results
 # - local soundcast run

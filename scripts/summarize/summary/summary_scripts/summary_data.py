@@ -77,7 +77,7 @@ def _process_network_summary(comparison_run: str):
 
     # Exclude trips taken on non-designated facilities (facility_type == 0)
     # These are artificial (weave lanes to connect HOV) or for non-auto uses
-    df = df[df["data3"] != 0]  # data3 represents facility_type
+    df = df[df["data3"] != 0].copy()  # data3 represents facility_type
 
     # Define facility type
     df["facility_type"] = (

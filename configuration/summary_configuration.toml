@@ -14,7 +14,7 @@ weekday_to_annual = 325
 # RELATIVE PATHS between notebooks and output/survey directories
 #################################
 # summary output directory
-p_output_dir = 'outputs/2023_summary'
+p_output_dir = 'outputs/summary'
 
 output_folder = 'outputs'
 survey_folder = 'inputs/base_year/survey'
