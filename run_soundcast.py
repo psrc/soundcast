@@ -247,6 +247,18 @@ def main():
     # Initialize Banks, Projects, Directories
     ########################################
 
+    # Check that distance pricing has b1een applied correctly
+    if state.input_settings.model_year != state.input_settings.base_year and not state.input_settings.add_distance_pricing:
+        # get user input y/n to continue
+        print(
+            "Distance pricing is not applied to this future year run. "
+            "Do you want to continue? (y/n)"
+        )
+        user_input = input().strip().lower()
+        if user_input != "y":
+            print("Exiting the model run.")
+            sys.exit(1)
+
     hash = get_current_commit_hash()
     logger.info("Using Git hash %s ", str(hash))
 
