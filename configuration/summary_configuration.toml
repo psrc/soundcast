@@ -89,7 +89,8 @@ summary_list = ['topsheet',
                 'vmt', 
                 'transit']
 
-RTP_summary_list = ['RTP_person',
+RTP_summary_list = ['RTP_MIC',
+                    'RTP_person',
                     'RTP_access',
                     'RTP_costs',
                     'RTP_emissions',

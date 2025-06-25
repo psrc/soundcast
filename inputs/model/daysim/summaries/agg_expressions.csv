@@ -20,11 +20,11 @@ person,person_place,,"hh_place_name,pw_place_name",,psexpfac,sum,census,"work pl
 person,wfh_county,hhparcel==pwpcl,person_county,,psexpfac,sum,dash,Total WFH people by county
 person,pptyp_county,,"person_county,pptyp",,psexpfac,sum,dash,person type by county residence
 person,work_flows,,"person_county,person_work_county",,psexpfac,sum,dash,
-person,mic_workers,,"person_work_mic,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg",,psexpfac,sum,dash,
+person,mic_workers,,"person_work_mic,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg,hhincome_thousands, pwtyp, hhsize",,psexpfac,sum,dash,
 trip,trip_mode_by_tour_mode,,"tmodetp,mode,hh_rg_proposed,hh_county,hh_rgc, hh_city,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg",,trexpfac,sum,dash,
 trip,trip_rgc_dest,,"opurp,dpurp,mode,trip_d_rgc",,trexpfac,sum,dash,Trips by destination to RGCs
 tour,tour_rgc_dest,,"pdpurp,tmodetp,tour_d_rgc",,toexpfac,sum,dash,Tours by destination to RGCs
-tour,tour_rgc_dest,,"pdpurp,tmodetp,tour_d_mic",,toexpfac,sum,dash,Tours by destination to MICs
+tour,tour_mic_dest,,"pdpurp,tmodetp,tour_d_mic",,toexpfac,sum,dash,Tours by destination to MICs
 tour,trips_by_tour,,"tripsh1,tripsh2,pdpurp,tmodetp",,toexpfac,sum,dash,Trips per tour by purpose
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp",,toexpfac,sum,dash,"tours by purpose, mode, path type and person type"
 tour,tour_total,,"tlvorg_hr,tmodetp,pptyp,pdpurp","tour_o_district,tour_d_district",toexpfac,sum,dash,"tours by purpose, mode, path type, person type, and o and d districts"
@@ -36,6 +36,7 @@ tour,tour_stops_outbound,,"pdpurp,tripsh1,tripsh2",,toexpfac,sum,dash,tours by p
 tour,non_wfh_tours,hhparcel!=pwpcl,"pptyp,pdpurp",,toexpfac,sum,dash,tours for people who do not work from home
 tour,non_worker_tours,(pptyp!=1)&(pptyp!=2),"pptyp,pdpurp",,toexpfac,sum,dash,tours for non workers
 tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
+tour,tour_distance_mic,,"tmodetp, pdpurp,person_work_mic,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
 tour,tour_time,,"tmodetp, pdpurp,pptyp,tautotime_bin",,toexpfac,sum,dash,tour time bins by purpose and person type
 trip,travel_cost,,"mode,dorp,hh_rg_proposed,hh_county,hh_rgc,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg",,travcost,sum,dash,unweighted sum of travel costs
 trip,trip_sov_ff_time,"(mode in [3,4,5])&(dorp==1)","hh_rg_proposed, hh_county,hh_rgc,mode,hh_city,hh_disability_50, hh_disability_reg, hh_elderly_50, hh_elderly_reg, hh_english_50, hh_english_reg, hh_poverty_50, hh_poverty_reg, hh_racial_50, hh_racial_reg, hh_youth_50, hh_youth_reg",,sov_ff_time_wt,sum,dash,Person delay by home location
