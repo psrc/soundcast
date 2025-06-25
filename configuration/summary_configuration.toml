@@ -100,9 +100,9 @@ RTP_summary_list = ['RTP_topsheet',
 
 # current run name and directory
 sc_run_name = "current run"
-# sc_run_path = '../../../../'
+sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-sc_run_path = '//modelstation2/c$/Workspace/sc_2023_06_24_25'
+# sc_run_path = '//modelstation2/c$/Workspace/sc_2023_06_24_25'
 
 # Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]
