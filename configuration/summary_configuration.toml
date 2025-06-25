@@ -89,7 +89,8 @@ summary_list = ['topsheet',
                 'vmt', 
                 'transit']
 
-RTP_summary_list = ['RTP_MIC',
+RTP_summary_list = ['RTP_topsheet',
+                    'RTP_MIC',
                     'RTP_person',
                     'RTP_access',
                     'RTP_costs',
@@ -99,9 +100,9 @@ RTP_summary_list = ['RTP_MIC',
 
 # current run name and directory
 sc_run_name = "current run"
-sc_run_path = '../../../../'
+# sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation4/c$/workspace/sc_2050_old_transit/soundcast'
+sc_run_path = '//modelstation2/c$/Workspace/sc_2023_06_24_25'
 
 # Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]

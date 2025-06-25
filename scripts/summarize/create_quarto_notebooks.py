@@ -56,9 +56,6 @@ def main():
     # Ensure output directory for CSV outputs exists
     if not os.path.exists(Path.cwd() / "outputs/RTP"):
         os.makedirs(Path.cwd() / "outputs/RTP")
-    for dir_name in ['person','mode_share','access']:
-        if not os.path.exists(Path.cwd() / "outputs/RTP" / dir_name):
-            os.makedirs(Path.cwd() / "outputs/RTP" / dir_name)
 
     # create summary notebook
     if run_comparison:
