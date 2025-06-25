@@ -280,7 +280,7 @@ def run(state):
     # check for missing data!
     for col_name in parcels.columns:
         # daysim does not use emprsc_p
-        if col_name != "emprsc_p":
+        if col_name not in ["emprsc_p","aparks", "nparks"]:
             if parcels[col_name].sum() == 0:
                 print(col_name + " column sum is zero! Exiting program.")
                 sys.exit(1)
