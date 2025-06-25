@@ -17,6 +17,7 @@ book:
     - summary_scripts/RTP_emissions.ipynb
     - summary_scripts/RTP_MIC.ipynb
     - summary_scripts/RTP_mode_share.ipynb
+    - summary_scripts/RTP_freight.ipynb
         
 
 format:
