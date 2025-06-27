@@ -10,12 +10,15 @@ from pathlib import Path
 CONFIG = toml.load(Path("../../../../configuration") / "summary_configuration.toml")
 INPUT_CONFIG = toml.load(Path("../../../../configuration") / "input_configuration.toml")
 
+# Relative path between notebooks and goruped output directories
+output_path = Path(CONFIG['sc_run_path']) / CONFIG["output_folder"]
+
 def process_network_summary():
     """
     preprocess network-level results
     """
 
-    df = pd.read_csv("../../../../outputs/network/network_results.csv")
+    df = pd.read_csv(output_path / "network/network_results.csv")
 
     # Exclude trips taken on non-designated facilities (facility_type == 0)
     # These are artificial (weave lanes to connect HOV) or for non-auto uses
