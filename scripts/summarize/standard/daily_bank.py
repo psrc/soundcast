@@ -79,10 +79,11 @@ def export_link_values(project):
 
 
 def main(state):
+    state.main_project.change_active_database(state.network_settings.tods[0])
     project = state.main_project
 
     # Use a copy of an existing bank for the daily bank and rename
-    copy_emmebank("Banks/7to8", "Banks/Daily")
+    copy_emmebank(f"Banks/{state.network_settings.tods[1]}", "Banks/Daily")
     daily_emmebank = _emmebank.Emmebank(r"Banks/Daily/emmebank")
     daily_emmebank.title = "daily"
     daily_scenario = daily_emmebank.scenario(1002)
