@@ -1,41 +1,17 @@
-﻿import pandas as pd
-import array as _array
-import inro.emme.desktop.app as app
-import inro.modeller as _m
-import inro.emme.matrix as ematrix
+﻿import os
+import numpy as np
+import pandas as pd
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import json
-import numpy as np
-import time
-import os, sys
-import multiprocessing as mp
-import subprocess
-from multiprocessing import Pool
 import h5py
-
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
-sys.path.append(os.getcwd())
-# from emme_configuration import *
-from scripts.emme_project import *
-import toml
-
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
+# from scripts.emme_project import *
 
 
-def init_dir(directory):
-    if os.path.exists(directory):
-        shutil.rmtree(directory)
-    os.mkdir(directory)
-
-
-def json_to_dictionary(dict_name):
+def json_to_dictionary(state, dict_name):
     # Determine the Path to the input files and load them
     input_filename = os.path.join(
-        "inputs/model/skim_parameters/lookup", dict_name
+        f"inputs/model/{state.input_settings.abm_model}/skim_parameters/lookup", dict_name
     ).replace("\\", "/")
     my_dictionary = json.load(open(input_filename))
     return my_dictionary
@@ -52,15 +28,15 @@ def load_skims(skim_file_loc, mode_name, divide_by_100=False):
         return skim_file
 
 
-def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
+def load_skim_data(state, trip_purpose, np_matrix_name_input, TrueOrFalse):
     # get am and pm skim
     am_skim = load_skims(
-        r"inputs/model/roster/7to8.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5",
         mode_name=np_matrix_name_input,
         divide_by_100=TrueOrFalse,
     )
     pm_skim = load_skims(
-        r"inputs/model/roster/17to18.h5",
+        f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5",
         mode_name=np_matrix_name_input,
         divide_by_100=TrueOrFalse,
     )
@@ -69,7 +45,7 @@ def load_skim_data(trip_purpose, np_matrix_name_input, TrueOrFalse):
     return (am_skim + pm_skim) * 0.5
 
 
-def get_cost_time_distance_skim_data(trip_purpose):
+def get_cost_time_distance_skim_data(state, trip_purpose):
     skim_dict = {}
     input_skim = {
         "hbw1": {
@@ -112,22 +88,22 @@ def get_cost_time_distance_skim_data(trip_purpose):
     for skim_name in ["cost", "time", "distance"]:
         for sov_hov in ["svt", "h2v", "h3v"]:
             skim_dict[output_skim[skim_name][sov_hov]] = load_skim_data(
-                trip_purpose, input_skim[trip_purpose][skim_name][sov_hov], True
+                state, trip_purpose, input_skim[trip_purpose][skim_name][sov_hov], True
             )
 
     return skim_dict
 
 
-def get_walk_bike_skim_data():
+def get_walk_bike_skim_data(state):
     skim_dict = {}
     for skim_name in ["walkt", "biket"]:
         skim_dict[skim_name] = load_skims(
-            r"inputs/model/roster/5to6.h5", mode_name=skim_name, divide_by_100=True
+            f"inputs/model/{state.input_settings.abm_model}/roster/5to6.h5", mode_name=skim_name, divide_by_100=True
         )
     return skim_dict
 
 
-def get_transit_skim_data():
+def get_transit_skim_data(state):
     transit_skim_dict = {
         "ivtwa": "ivtwa",
         "iwtwa": "iwtwa",
@@ -147,34 +123,34 @@ def get_transit_skim_data():
     for input, output in transit_skim_dict.items():
         if input in ["farbx", "farwa"]:
             skim_dict[input] = load_skims(
-                r"inputs/model/roster/6to7.h5", mode_name=output, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/6to7.h5", mode_name=output, divide_by_100=True
             )
         else:
             am_skim = load_skims(
-                r"inputs/model/roster/7to8.h5", mode_name=output, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name=output, divide_by_100=True
             )
             pm_skim = load_skims(
-                r"inputs/model/roster/17to18.h5", mode_name=output, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/17to18.h5", mode_name=output, divide_by_100=True
             )
             skim_dict[input] = (am_skim + pm_skim) * 0.5
 
     return skim_dict
 
 
-def get_total_transit_time(tod):
+def get_total_transit_time(tod, state):
     rail_component_list = ["ivtwr", "auxwr", "iwtwr", "xfrwr"]
     bus_component_list = ["ivtwa", "auxwa", "iwtwa", "xfrwa"]
     rail_skims = {}
     bus_skims = {}
     for component in rail_component_list:
         rail_skims[component] = load_skims(
-            "inputs/model/roster/" + tod + ".h5",
+            f"inputs/model/{state.input_settings.abm_model}/roster/{tod}.h5",
             mode_name=component,
             divide_by_100=True,
         )
     for component in bus_component_list:
         bus_skims[component] = load_skims(
-            "inputs/model/roster/" + tod + ".h5",
+            f"inputs/model/{state.input_settings.abm_model}/roster/{tod}.h5",
             mode_name=component,
             divide_by_100=True,
         )
@@ -186,7 +162,7 @@ def get_total_transit_time(tod):
     return bus + rail
 
 
-def get_total_sov_trips(tod_list):
+def get_total_sov_trips(tod_list, zones):
     trip_table = np.zeros((len(zones), len(zones)))
     for tod in tod_list:
         for trip_table_name in ["sov_inc1", "sov_inc2", "sov_inc3"]:
@@ -196,7 +172,7 @@ def get_total_sov_trips(tod_list):
     return trip_table
 
 
-def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array):
+def calculate_auto_cost(trip_purpose, auto_skim_dict, parking_cost_array, parameters_dict):
     input_paramas_vot_name = {
         "hbw1": {"svt": "avot1v", "h2v": "avots2", "h3v": "avots3"},
         "hbw2": {"svt": "avot2v", "h2v": "avots2", "h3v": "avots3"},
@@ -258,26 +234,27 @@ def calculate_log_sums(trip_purpose, mode_utilities_dict):
     return name, skim
 
 
-def test(taz):
-    return zone_lookup_dict[taz]
-
-
-def get_destination_parking_costs(parcel_file):
+def get_destination_parking_costs(parcel_file, zones, zone_lookup_dict):
     parking_cost_array = np.zeros(len(zones))
     df = pd.read_csv(parcel_file, sep=" ")
-    df = df[df.PPRICDYP > 0]
-    df1 = pd.DataFrame(df.groupby("TAZ_P").mean()["PPRICDYP"])
+    df = df[df.ppricdyp > 0]
+    df1 = pd.DataFrame(df.groupby("taz_p").mean()["ppricdyp"])
     df1.reset_index(inplace=True)
-    df1["zone_index"] = df1.TAZ_P.apply(test)
+    # Get zone index for each TAZ from zone_lookup_dict
+    df_zone = pd.DataFrame(zone_lookup_dict.items(), columns=["taz_p", "zone_index"])
+    df1 = df1.merge(df_zone, on='taz_p')
+
     df1 = df1.set_index("zone_index")
-    parking = df1["PPRICDYP"]
+    parking = df1["ppricdyp"]
     parking = parking.reindex([zone_lookup_dict[x] for x in zones])
     parking.fillna(0, inplace=True)
+
     return np.array(parking)
 
 
 def calculate_mode_utilties(
-    trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict
+    trip_purpose, auto_skim_dict, walk_bike_skim_dict, transit_skim_dict, auto_cost_dict,
+    parameters_dict, zone_lookup_dict
 ):
     """
     some submatrices restrictions:
@@ -387,166 +364,77 @@ def calculate_mode_utilties(
     return utility_matrices
 
 
-# Validate, test the results
-def test_results():
-    shda = my_project.bank.matrix("mf68").get_numpy_data()
-    shs2 = my_project.bank.matrix("mf69").get_numpy_data()
-    shs3 = my_project.bank.matrix("mf70").get_numpy_data()
-    shtw = my_project.bank.matrix("mf71").get_numpy_data()
-    shtd = my_project.bank.matrix("mf72").get_numpy_data()
-    shbk = my_project.bank.matrix("mf73").get_numpy_data()
-    shwk = my_project.bank.matrix("mf74").get_numpy_data()
-
-    sum = shda + shs2 + shs3 + shtw + shtd + shbk + shwk
-    error = 0
-    for i in range(0, 3868):
-        for j in range(0, 3868):
-            if sum[i][j] > 0.1 and sum[i][j] < 0.9:
-                # every value should be very close to 1, so that means nothing would print out at this step.
-                error += 1
-
-
-def mode_choice_to_h5(trip_purpose, mode_shares_dict):
-    output_mode_share_name = {
-        "hbw1": [
-            "eusm",
-            "w1shda",
-            "w1shs2",
-            "w1shs3",
-            "w1shtw",
-            "w1shrw",
-            "w1shtd",
-            "w1shbk",
-            "w1shwk",
-        ],
-        "hbw2": [
-            "eusm",
-            "w2shda",
-            "w2shs2",
-            "w2shs3",
-            "w2shtw",
-            "w2shrw",
-            "w2shtd",
-            "w2shbk",
-            "w2shwk",
-        ],
-        "hbw3": [
-            "eusm",
-            "w3shda",
-            "w3shs2",
-            "w3shs3",
-            "w3shtw",
-            "w3shrw",
-            "w3shtd",
-            "w3shbk",
-            "w3shwk",
-        ],
-        "hbw4": [
-            "eusm",
-            "w4shda",
-            "w4shs2",
-            "w4shs3",
-            "w4shtw",
-            "w4shrw",
-            "w4shtd",
-            "w4shbk",
-            "w4shwk",
-        ],
-        "nhb": [
-            "eusm",
-            "nhshda",
-            "nhshs2",
-            "nhshs3",
-            "nhshtw",
-            "nhshrw",
-            "nhshbk",
-            "nhshwk",
-        ],
-        "hbo": [
-            "eusm",
-            "nwshda",
-            "nwshs2",
-            "nwshs3",
-            "nwshtw",
-            "nwshrw",
-            "nwshbk",
-            "nwshwk",
-        ],
-    }
-
-    my_store = h5py.File(
-        emme_config["urbansim_skims_dir"] + "/" + trip_purpose + "_ratio.h5", "w"
-    )
-    grp = my_store.create_group(trip_purpose)
-    for mode in output_mode_share_name[trip_purpose]:
-        grp.create_dataset(mode, data=mode_shares_dict[mode])
-        print(mode)
-    my_store.close()
-
-
-def urbansim_skims_to_h5(h5_name, skim_dict):
-    my_store = h5py.File(emme_config["urbansim_skims_dir"] + "/" + h5_name + ".h5", "w")
+def urbansim_skims_to_h5(state, h5_name, skim_dict):
+    my_store = h5py.File(f"{state.emme_settings.urbansim_skims_dir}/{h5_name}.h5", "w")
     grp = my_store.create_group("results")
     for name, skim in skim_dict.items():
-        skim = skim[0:max_internal_zone, 0:max_internal_zone]
+        skim = skim[0:3700, 0:3700]
         grp.create_dataset(name, data=skim.astype("float32"), compression="gzip")
         print(skim)
 
     my_store.close()
 
 
-def main():
+def main(state):
+
+    zones = state.main_project.current_scenario.zone_numbers
+    zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))
+    parameters_dict = json_to_dictionary(state, "urbansim_skims_parameters.json")
+
+    if not os.path.exists(state.emme_settings.urbansim_skims_dir):
+        os.makedirs(state.emme_settings.urbansim_skims_dir)
     trip_purpose_list = ["hbw1", "hbw2", "hbw3", "hbw4"]
 
     urbansim_skim_dict = {}
 
     # am_single_vehicle_to_work_travel_time
     urbansim_skim_dict["aau1tm"] = load_skims(
-        "inputs/model/roster/7to8.h5", mode_name="sov_inc1t", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc1t", divide_by_100=True
     )
 
     # am_single_vehicle_to_work_toll
     urbansim_skim_dict["aau1tl"] = load_skims(
-        "inputs/model/roster/7to8.h5", mode_name="sov_inc1c", divide_by_100=False
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc1c", divide_by_100=False
     )
 
     # single_vehicle_to_work_travel_distance
     urbansim_skim_dict["aau1ds"] = load_skims(
-        "inputs/model/roster/7to8.h5", mode_name="sov_inc1d", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc1d", divide_by_100=True
     )
 
     # am_walk_time_in_minutes
     urbansim_skim_dict["awlktm"] = load_skims(
-        "inputs/model/roster/5to6.h5", mode_name="walkt", divide_by_100=True
+        f"inputs/model/{state.input_settings.abm_model}/roster/5to6.h5", mode_name="walkt", divide_by_100=True
     )
 
     # am_pk_period_drive_alone_vehicle_trips
-    urbansim_skim_dict["avehda"] = get_total_sov_trips(["6to7", "7to8", "8to9"])
+    urbansim_skim_dict["avehda"] = get_total_sov_trips(["6to7", "7to8", "8to9"], zones)
 
     # am_total_transit_time_walk
-    urbansim_skim_dict["atrtwa"] = get_total_transit_time("7to8")
+    urbansim_skim_dict["atrtwa"] = get_total_transit_time("7to8", state)
 
     # single_vehicle_to_work_travel_cost
     urbansim_skim_dict["aau1cs"] = load_skims(
-        "inputs/model/roster/7to8.h5", mode_name="sov_inc2g", divide_by_100=False
+        f"inputs/model/{state.input_settings.abm_model}/roster/7to8.h5", mode_name="sov_inc2g", divide_by_100=False
     )
 
     for trip_purpose in trip_purpose_list:
         print(trip_purpose)
 
-        auto_skim_dict = get_cost_time_distance_skim_data(trip_purpose)
+        auto_skim_dict = get_cost_time_distance_skim_data(state, trip_purpose)
         print("get auto skim done")
 
-        walk_bike_skim_dict = get_walk_bike_skim_data()
+        walk_bike_skim_dict = get_walk_bike_skim_data(state)
         print("get walk bike skim done")
 
-        transit_skim_dict = get_transit_skim_data()
+        transit_skim_dict = get_transit_skim_data(state)
         print("transit skim done")
 
-        parking_costs = get_destination_parking_costs(parcels_file_name)
+        parking_costs = get_destination_parking_costs("outputs/landuse/parcels_urbansim.txt",
+                                                      zones, zone_lookup_dict)
 
         auto_cost_dict = calculate_auto_cost(
-            trip_purpose, auto_skim_dict, parking_costs
+            trip_purpose, auto_skim_dict, parking_costs, parameters_dict
         )
 
         mode_utilities_dict = calculate_mode_utilties(
@@ -555,6 +443,8 @@ def main():
             walk_bike_skim_dict,
             transit_skim_dict,
             auto_cost_dict,
+            parameters_dict,
+            zone_lookup_dict
         )
         print("calculate mode utilities done")
 
@@ -564,21 +454,4 @@ def main():
 
         # mode_choice_to_h5(trip_purpose, mode_shares_dict)
         # print trip_purpose, 'is done'
-    urbansim_skims_to_h5(config["model_year"] + "-travelmodel", urbansim_skim_dict)
-
-
-my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp")
-zones = my_project.current_scenario.zone_numbers
-max_internal_zone = 3700
-# Create a dictionary lookup where key is the taz id and value is it's numpy index.
-zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))
-# origin_destination_dict = json_to_dictionary(r'supplemental_matrices_dict.txt')
-parameters_dict = json_to_dictionary("urbansim_skims_parameters.json")
-ensembles_path = r"inputs/scenario/supplemental/generation/ensembles/ensembles_list.csv"
-parcels_file_name = "inputs/scenario/landuse/parcels_urbansim.txt"
-
-if not os.path.exists(emme_config["urbansim_skims_dir"]):
-    os.makedirs(emme_config["urbansim_skims_dir"])
-
-if __name__ == "__main__":
-    main()
+    urbansim_skims_to_h5(state, state.input_settings.model_year + "-travelmodel", urbansim_skim_dict)

@@ -39,6 +39,7 @@ from scripts.supplemental import distribute_non_work_ixxi
 from scripts.supplemental import create_airport_trips
 from scripts.trucks import truck_model
 from scripts.utils import update_parking
+from scripts.utils import urbansim_skims
 from scripts.summarize.standard import (
     daily_bank,
     network_summary,
@@ -389,7 +390,7 @@ def main():
 
     # Export skims for use in Urbansim if needed
     if state.input_settings.run_integrated:
-        subprocess.call([sys.executable, "scripts/utils/urbansim_skims.py"])
+        urbansim_skims.main(state)
 
     if state.input_settings.run_summaries:
         run_all_summaries()
