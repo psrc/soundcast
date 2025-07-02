@@ -9,9 +9,9 @@ a fd3  =put((length * 60 / ul2) * (1 + .56 * (.26 * (volau + el2) / (ul1
          * lanes)) ^ 6)) + length * (0 .max. (-.5639 + put(get(1) /
          length) * (.6398 + get(2) * (-.0712 + get(2) * (.0004 - .00009
         * get(2))))))
-a fd5  =(length * 60 / ul2) * (1 + .6 * put(1 * (volau + el2) / (ul1 *
+a fd5  =(length * 60 / ul2) * (1 + .6 * put(.26 * (volau + el2) / (ul1 *
          lanes)) ^ 5.8) + el1 / ((1 - get(1)) .max. .25)
-a fd7  =(length * 60 / ul2) * (1 + .6 * put(1 * (volau + el2) / (ul1 *
+a fd7  =(length * 60 / ul2) * (1 + .6 * put(.26 * (volau + el2) / (ul1 *
          lanes)) ^ 5.6) + el1 / ((1 - get(1)) .max. .25)
 a fd9  =(length * 60 / ul2)
 a fd10  =.01

@@ -43,7 +43,7 @@ def summarize_transit_detail(state):
         columns="tod", index="agency_name", values="boardings", aggfunc="sum"
     )
     df_tod_agency = df_tod_agency[state.network_settings.transit_tod_list]
-    df_tod_agency = df_tod_agency.sort_values("7to8", ascending=False).reset_index()
+    df_tod_agency = df_tod_agency.sort_values(state.network_settings.transit_tod_list[0], ascending=False).reset_index()
     df_tod_agency.to_csv("outputs/transit/boardings_by_tod_agency.csv", index=False)
 
     # Daily Boardings by Stop
