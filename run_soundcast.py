@@ -235,6 +235,32 @@ def get_current_commit_hash():
         commit = "0000000"
     return commit
 
+def check_settings(state):
+
+    # Check that distance pricing has b1een applied correctly
+    if state.input_settings.model_year != state.input_settings.base_year and not state.input_settings.add_distance_pricing:
+        # get user input y/n to continue
+        print(
+            "Distance pricing is not applied to this future year run. "
+            "Do you want to continue? (y/n)"
+        )
+        user_input = input().strip().lower()
+        if user_input != "y":
+            print("Exiting the model run.")
+            sys.exit(1)
+
+    # If banks exist, don't erase them without confirmation
+    if state.input_settings.run_setup_emme_bank_folders and os.path.isdir('Banks'):
+        # get user input y/n to continue
+        print(
+            "Banks will be deleted and overwritten. "
+            "Do you want to continue? (y/n)"
+        )
+        user_input = input().strip().lower()
+        if user_input != "y":
+            print("Exiting the model run.")
+            sys.exit(1)
+
 
 def main():
     os.environ["MKL_NUM_THREADS"] = "1"
@@ -248,17 +274,7 @@ def main():
     # Initialize Banks, Projects, Directories
     ########################################
 
-    # Check that distance pricing has b1een applied correctly
-    if state.input_settings.model_year != state.input_settings.base_year and not state.input_settings.add_distance_pricing:
-        # get user input y/n to continue
-        print(
-            "Distance pricing is not applied to this future year run. "
-            "Do you want to continue? (y/n)"
-        )
-        user_input = input().strip().lower()
-        if user_input != "y":
-            print("Exiting the model run.")
-            sys.exit(1)
+    check_settings(state)
 
     hash = get_current_commit_hash()
     logger.info("Using Git hash %s ", str(hash))
