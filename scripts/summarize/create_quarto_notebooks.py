@@ -8,10 +8,10 @@ config = toml.load(Path.cwd() / "configuration/summary_configuration.toml")
 valid_config = toml.load(Path.cwd() / "configuration/validation_configuration.toml")
 
 # run notebooks
-run_comparison = True
-run_RTP_summary = True
-run_network_validation = True
-run_validation = True
+run_comparison = config['run_run_comparison']
+run_RTP_summary = config['run_RTP_summary']
+run_network_validation = valid_config['run_network_validation']
+run_validation = valid_config['run_validation']
 
 
 def run_ipynb(sheet_name, nb_path):
