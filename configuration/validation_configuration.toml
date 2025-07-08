@@ -1,3 +1,7 @@
+# run Quarto validation notebooks
+run_validation = true
+run_network_validation = true
+
 ################################################################
 # run validation notebooks
 ################################################################

@@ -4,8 +4,13 @@
 # Summary Comparisons
 #################################
 protected_namespaces = '()'
+# run old RTP scripts
 run_rtp = true
 run_comparison = false
+
+# run Quarto summary notebooks
+run_run_comparison = true
+run_RTP_summary = true
 
 # annualization factor; continuing with value used from Vision 2050
 weekday_to_annual = 325
