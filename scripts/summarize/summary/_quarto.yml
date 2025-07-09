@@ -1,0 +1,38 @@
+project:
+  type: book
+  output-dir: "run-comparison-notebook"
+  
+book:
+  title: "<br>Soundcast Summary"
+  repo-url: https://github.com/psrc/soundcast
+  search: false
+  sidebar:
+    logo: PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - summary_scripts/topsheet.ipynb
+    - summary_scripts/vmt.ipynb
+    - summary_scripts/population.ipynb
+    - summary_scripts/parking.ipynb
+    - summary_scripts/transit.ipynb
+    # - summary_scripts/trucks.ipynb
+    # - summary_scripts/JBLM.ipynb
+    # - summary_scripts/supplementals.ipynb
+        
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
+    echo: false
+    code-tools: true
+
+toc: true
+warning: false
+
+
+
+

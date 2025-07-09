@@ -5,12 +5,15 @@
 ##############################
 # Input paths and model years
 ##############################
-model_year = '2018'
-base_year = '2018'
-landuse_inputs = 'v3_RTP'
-network_inputs = 'rtp_2018_final'
+protected_namespaces = '()'
+debug_skims_and_paths = false
+model_year = '2023'
+base_year = '2023'
+landuse_inputs = '23_on_23_v3'
+network_inputs = 'network_2023_v8'
+db_name = 'soundcast_inputs_2023.db'
 soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
-
+abm_model = 'daysim'
 ##############################
 # Initial Setup
 ##############################
@@ -39,7 +42,7 @@ tnc_av = false    # TNCs (if available) are AVs
 include_tnc_to_transit = false # AV to transit path type allowed
 include_knr_to_transit = false # Kiss and Ride to Transit
 include_delivery = false
-include_telecommute = false
+include_telecommute = true
 
 ##############################
 # Other Controls

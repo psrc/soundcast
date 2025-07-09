@@ -1,0 +1,39 @@
+project:
+  type: book
+  output-dir: "RTP-summary-notebook"
+  
+book:
+  title: "<br>Soundcast RTP Summary"
+  repo-url: https://github.com/psrc/soundcast
+  search: false
+  sidebar:
+    logo: ../PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - summary_scripts/RTP_topsheet.ipynb
+    - summary_scripts/RTP_person.ipynb
+    - summary_scripts/RTP_access.ipynb
+    - summary_scripts/RTP_costs.ipynb
+    - summary_scripts/RTP_emissions.ipynb
+    - summary_scripts/RTP_MIC.ipynb
+    - summary_scripts/RTP_mode_share.ipynb
+    - summary_scripts/RTP_freight.ipynb
+    - summary_scripts/RTP_transit.ipynb
+        
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
+    echo: false
+    code-tools: true
+
+toc: true
+warning: false
+
+
+
+

@@ -1,0 +1,38 @@
+{"Highway": [
+{"Name": "sov_inc1", "Description": "SOV Income Level 1","Value of Time": 1307,"Mode": "s","Toll": "@toll1","Time": "@timau","Distance": "@dist"}, 
+{"Name": "sov_inc2", "Description": "SOV Income Level 2","Value of Time": 2614,"Mode": "s","Toll": "@toll1","Time": "@timau","Distance": "@dist"}, 
+{"Name": "sov_inc3", "Description": "SOV Income Level 3","Value of Time": 4356,"Mode": "s","Toll": "@toll1","Time": "@timau","Distance": "@dist"}, 
+{"Name": "hov2_inc1", "Description": "HOV 2 Income Level 1","Value of Time": 2178,"Mode": "h","Toll": "@toll2","Time": "@timau","Distance": "@dist"}, 
+{"Name": "hov2_inc2", "Description": "HOV 2 Income Level 2","Value of Time": 3267,"Mode": "h","Toll": "@toll2","Time": "@timau","Distance": "@dist"}, 
+{"Name": "hov2_inc3", "Description": "HOV 2 Income Level 3","Value of Time": 5445,"Mode": "h","Toll": "@toll2","Time": "@timau","Distance": "@dist"},  
+{"Name": "hov3_inc1", "Description": "HOV 3 Income Level 1","Value of Time": 2614,"Mode": "i","Toll": "@toll3","Time": "@timau","Distance": "@dist"}, 
+{"Name": "hov3_inc2", "Description": "HOV 3 Income Level 2","Value of Time": 3811,"Mode": "i","Toll": "@toll3","Time": "@timau","Distance": "@dist"}, 
+{"Name": "hov3_inc3", "Description": "HOV 3 Income Level 3","Value of Time": 5989,"Mode": "i","Toll": "@toll3","Time": "@timau","Distance": "@dist"},  
+{"Name": "tnc_inc1", "Description": "TNC Level 1", "Value of Time": 2178,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "tnc_inc2", "Description": "TNC Level 2", "Value of Time": 3267,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "tnc_inc3", "Description": "TNC Level 3", "Value of Time": 5445,"Mode": "j","Toll": "@toll2","Time": "@timau","Distance": "@dist"},
+{"Name": "medium_truck", "Description": "Medium Trucks","atrr_Name": "svtl1","Value of Time": 4900,"Mode": "u","Toll": "@trkc2","Time": "@timau","Distance": "@dist"}, 
+{"Name": "heavy_truck", "Description": "Heavy Trucks","atrr_Name": "svtl1","Value of Time": 5445,"Mode": "t","Toll": "@trkc3","Time": "@timau","Distance": "@dist"}
+],
+"Walk": [
+{"Name": "walk", "Description": "Walk Trips","Mode": "w","Time": "@timau","Distance": "@dist"} 
+],
+"Bike": [
+{"Name": "bike", "Description": "Bike Trips","Mode": "l","Time": "@timau","Distance": "@dist"} 
+],
+"Transit": [
+{"Name": "trnst", "Description": "Transit Trips","Mode": "t","Time": "@timau","Distance": "@dist"} 
+],
+"LightRail": [
+{"Name": "litrat", "Description": "Light Rail Trips","Mode": "t","Time": "@timau","Distance": "@dist"} 
+],
+"Ferry": [
+{"Name": "ferry", "Description": "Ferry Trips","Mode": "t","Time": "@timau","Distance": "@dist"}
+], 
+"PassengerFerry": [
+{"Name": "passenger_ferry", "Description": "Passenger Ferry Trips","Mode": "t","Time": "@timau","Distance": "@dist"}
+], 
+"CommuterRail": [
+{"Name": "commuter_rail", "Description": "Commuter Rail Trips","Mode": "t","Time": "@timau","Distance": "@dist"}
+]
+}

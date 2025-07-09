@@ -3,16 +3,8 @@ import numpy as np
 import os, sys
 import h5py
 from sqlalchemy import create_engine
-
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-# from emme_configuration import *
-from EmmeProject import *
-import toml
-
-emme_config = toml.load(
-    os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-)
 
 
 def load_skims(skim_file_loc, table, divide_by_100=False):
@@ -28,7 +20,7 @@ def load_skims(skim_file_loc, table, divide_by_100=False):
         return skim_file
 
 
-def load_skim_data():
+def load_skim_data(state):
     """Load cost, time, and distance skim data required for mode choice models."""
     skim_dict = {}
 
@@ -39,10 +31,14 @@ def load_skim_data():
             # For auto skims, use the average of AM and PM peak periods
             skim_name = mode + "_inc2" + skim_type[0]
             am_skim = load_skims(
-                r"inputs\model\roster\7to8.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+                table=skim_name,
+                divide_by_100=True,
             )
             pm_skim = load_skims(
-                r"inputs\model\roster\17to18.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+                table=skim_name,
+                divide_by_100=True,
             )
             skim_dict[skim_type][mode] = (am_skim + pm_skim) * 0.5
 
@@ -50,28 +46,34 @@ def load_skim_data():
         if skim_type == "time":
             for mode in ["walk", "bike"]:
                 skim_dict["time"][mode] = load_skims(
-                    r"inputs\model\roster\5to6.h5", table=mode + "t", divide_by_100=True
+                    f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.walk_skim_name}.h5",
+                    table=mode + "t",
+                    divide_by_100=True,
                 )
 
     # Skim for transit
-    skim_list = ["ivtw", "iwtw", "ndbw", "xfrw", "auxw"]
-    fare_list = ["mfafarps"]
-    submode_list = ["a", "r", "c", "p", "f"]
     skim_dict["transit"] = {}
 
-    for skim in skim_list:
-        for submode in submode_list:
+    for skim in ["ivtw", "iwtw", "ndbw", "xfrw", "auxw"]:
+        for submode in ["a", "r", "c", "p", "f"]:
             skim_name = skim + submode
             am_skim = load_skims(
-                r"inputs\model\roster\7to8.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+                table=skim_name,
+                divide_by_100=True,
             )
             pm_skim = load_skims(
-                r"inputs\model\roster\17to18.h5", table=skim_name, divide_by_100=True
+                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+                table=skim_name,
+                divide_by_100=True,
             )
             skim_dict["transit"][skim_name] = (am_skim + pm_skim) * 0.5
-    for skim in fare_list:
+    # Get transit fare skim
+    for skim in ["mfafarps"]:
         skim_dict["transit"][skim] = load_skims(
-            r"inputs\model\roster\6to7.h5", table=skim, divide_by_100=True
+            f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.fare_skim_name}.h5",
+            table=skim,
+            divide_by_100=True,
         )
 
     return skim_dict
@@ -116,10 +118,10 @@ def destination_parking_costs(df, zone_lookup_dict):
     """Calculate average daily parking price per zone."""
 
     np_array = np.zeros(len(zone_lookup_dict))
-    df = df[df.PPRICDYP > 0]
-    df = df.groupby("TAZ_P").mean()[["PPRICDYP"]].reset_index()
-    df["zone_index"] = df.TAZ_P.apply(lambda x: zone_lookup_dict[x])
-    np_array[df.zone_index] = df["PPRICDYP"]
+    df = df[df.ppricdyp > 0]
+    df = df.groupby("taz_p").mean()[["ppricdyp"]].reset_index()
+    df["zone_index"] = df.taz_p.apply(lambda x: zone_lookup_dict[x])
+    np_array[df.zone_index] = df["ppricdyp"]
 
     return np_array
 
@@ -140,7 +142,7 @@ def clip_matrix(matrix, min_index, max_index):
 
 
 def calculate_mode_utilties(
-    trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict
+    trip_purpose, skim_dict, auto_cost_dict, params_df, zone_lookup_dict, state
 ):
     utility_matrices = {}
 
@@ -183,7 +185,7 @@ def calculate_mode_utilties(
                 asc + get_param(params_df, mode + "tm") * skim_dict["time"][mode]
             )
         utility_matrices[mode] = clip_matrix(
-            util, 0, zone_lookup_dict[emme_config["LOW_PNR"]]
+            util, 0, zone_lookup_dict[state.emme_settings.LOW_PNR]
         )
 
     # Calculate Walk to Transit Utility for all submodes
@@ -233,7 +235,7 @@ def build_df(h5file, h5table, cols):
     return pd.DataFrame(data)
 
 
-def calculate_trips(daysim, parcel, control_total):
+def calculate_trips(daysim, parcel, control_total, state):
     """Calculate total daily trips to Sea-Tac based on houeshold size and employment.
            Trips to the airport are estimated using the following formula, based on surveys
            from New Jersey and North Carolina, and as applied in Minneapolis
@@ -255,10 +257,10 @@ def calculate_trips(daysim, parcel, control_total):
     taz_df["airport_trips_pop"] = taz_df["hhsize"] * airport_trip_rate_pop
 
     # Zonal Employment (total minus education jobs)
-    parcel["emptot_minus_edu"] = parcel["EMPTOT_P"] - parcel["EMPEDU_P"]
+    parcel["emptot_minus_edu"] = parcel["emptot_p"] - parcel["empedu_p"]
     parcel["airport_trips_emp"] = parcel["emptot_minus_edu"] * airport_trip_rate_emp
-    parcel_df = parcel.groupby("TAZ_P").sum()[["airport_trips_emp"]].reset_index()
-    parcel_df.rename(columns={"TAZ_P": "TAZ"}, inplace=True)
+    parcel_df = parcel.groupby("taz_p").sum()[["airport_trips_emp"]].reset_index()
+    parcel_df.rename(columns={"taz_p": "TAZ"}, inplace=True)
 
     trips = parcel_df.merge(taz_df, on="TAZ")
     trips["airport_trips"] = trips["airport_trips_pop"] + trips["airport_trips_emp"]
@@ -267,7 +269,7 @@ def calculate_trips(daysim, parcel, control_total):
     adj_factor = control_total / trips["airport_trips"].sum()
     trips["adj_trips"] = trips["airport_trips"] * adj_factor
     trips = trips[["TAZ", "adj_trips"]]
-    trips["SeaTac_Taz"] = emme_config["SEATAC"]
+    trips["SeaTac_Taz"] = state.emme_settings.SEATAC
 
     return trips
 
@@ -402,34 +404,31 @@ def summarize(
         for mode in airport_matrix_dict[tod].keys():
             total = airport_matrix_dict[tod][mode].sum().sum()
             _df.loc[mode, "total"] = total
-        df = df.append(_df)
+        df = pd.concat([df, _df])
     df.to_csv(os.path.join(output_dir, "airport_veh_trips_by_tod.csv"))
 
 
-def main():
+def main(state):
     output_dir = r"outputs/supplemental/"
 
-    my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp")
-    zones = my_project.current_scenario.zone_numbers
-    zonesDim = len(my_project.current_scenario.zone_numbers)
+    # my_project = EmmeProject(r"projects/Supplementals/Supplementals.emp", state)
+    zones = state.main_project.current_scenario.zone_numbers
+    zonesDim = len(state.main_project.current_scenario.zone_numbers)
 
-    parcel = pd.read_csv(
-        "inputs/scenario/landuse/parcels_urbansim.txt", delim_whitespace=True
-    )
+    parcel = pd.read_csv("outputs/landuse/parcels_urbansim.txt", sep="\s+")
 
     # Create a dictionary lookup where key is the taz id and value is it's numpy index.
     zone_lookup_dict = dict((value, index) for index, value in enumerate(zones))
 
-    conn = create_engine("sqlite:///inputs/db/soundcast_inputs.db")
-    parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=conn)
+    parameters_df = pd.read_sql("SELECT * FROM mode_choice_parameters", con=state.conn)
     # FIXME:  Document source of TOD factors; consider calculating these from last iteration of soundcast via daysim outputs?
-    tod_factors_df = pd.read_sql("SELECT * FROM time_of_day_factors", con=conn)
+    tod_factors_df = pd.read_sql(f"SELECT * FROM time_of_day_factors WHERE model=='{state.input_settings.abm_model}'", con=state.conn)
 
     # Calculate mode shares for Home-Based Other purposes
     # Work trips from externals are grown from observed data
     trip_purpose = "hbo"
 
-    skim_dict = load_skim_data()
+    skim_dict = load_skim_data(state)
     # Calculate average TAZ parking costs for utility calculations
     parking_costs = destination_parking_costs(parcel, zone_lookup_dict)
 
@@ -438,7 +437,7 @@ def main():
         trip_purpose, skim_dict, parking_costs, parameters_df
     )
     mode_utilities_dict = calculate_mode_utilties(
-        trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict
+        trip_purpose, skim_dict, auto_cost_dict, parameters_df, zone_lookup_dict, state
     )
     mode_shares_dict = calculate_mode_shares(trip_purpose, mode_utilities_dict)
     mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir)
@@ -448,12 +447,12 @@ def main():
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql(
-        "SELECT * FROM seatac WHERE year==" + str(config["model_year"]), con=conn
+        "SELECT * FROM seatac WHERE year==" + str(state.input_settings.model_year), con=state.conn
     )["enplanements"].values[0]
-    airport_trips = calculate_trips(daysim, parcel, airport_control_total)
+    airport_trips = calculate_trips(daysim, parcel, airport_control_total, state)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips["TAZ"].values]
-    destination_index = zone_lookup_dict[emme_config["SEATAC"]]
+    destination_index = zone_lookup_dict[state.emme_settings.SEATAC]
     demand_matrix[origin_index, destination_index] = airport_trips["adj_trips"].values
     # Account for both directions of travel (from/to airport) by transposing the productions matrix
     trips_to_airport = demand_matrix / 2

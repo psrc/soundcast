@@ -1,0 +1,70 @@
+# run Quarto validation notebooks
+run_validation = true
+run_network_validation = true
+
+################################################################
+# run validation notebooks
+################################################################
+network_summary_list = ['JBLM',
+                        'transit_validation',
+                        'traffic_validation',
+                        'bike_validation',
+                        'link_analysis'
+                        ]
+summary_list = [
+                'all_tour_mode',
+                'all_trip_mode',
+                'auto_ownership',
+                'day_pattern',
+                'escort_tour_mode',
+                'escort_trip_mode',
+                'households',
+                'intermediate_stop_generation',
+                'other_home_based_tour_mode',
+                'other_home_based_trip_mode',
+                'persons',
+                'school_location',
+                'school_tour_mode',
+                'school_trip_mode',
+                'telecommute',
+                'time_choice',
+                'tour_destination',
+                'tours',
+                'transit_pass_ownership',
+                'trip_destination',
+                'trips',
+                'work_location',
+                'work_tour_mode',
+                'work_trip_mode',
+                'workbased_subtour_mode',
+                'workbased_subtour_generation',
+                # uncomment the following line to run additional telecommute analysis
+                '../telecommute_analysis/telecommute_analysis'
+                ]
+
+# color palatte for plots
+psrc_color = ["#91268F", "#8CC63E", "#00A7A0", "#F05A28", "#4C4C4C", "#630460", "#9f3913", "#588527", "#00716c", "#3e4040"]
+
+
+################################################################
+# Validation input files and output directory names
+################################################################
+
+# validation output directory
+p_output_dir = "outputs/summary"
+
+# ---- model results
+# - local soundcast run
+model_dir = '../../../..'
+
+# ---- survey results
+# attach uncloned folder path when reading uncloned data
+uncloned_folder = "uncloned"
+
+# list all survey sources to be indluded in validation
+[survey_directories]
+# 2023 HTS dataset
+"survey" = "../../../../inputs/base_year/survey"
+
+# add another survey source to compare
+# "(name of dataset)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
