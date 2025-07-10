@@ -4,9 +4,6 @@
 # Summary Comparisons
 #################################
 protected_namespaces = '()'
-# run old RTP scripts
-run_rtp = true
-run_comparison = false
 
 # run Quarto summary notebooks
 run_run_comparison = true
@@ -102,7 +99,8 @@ RTP_summary_list = ['RTP_topsheet',
                     'RTP_emissions',
                     'RTP_mode_share',
                     'RTP_freight',
-                    'RTP_transit'
+                    'RTP_transit',
+                    'RTP_conformity_analysis'
                     ]
 
 # current run name and directory

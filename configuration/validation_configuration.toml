@@ -6,6 +6,7 @@ run_network_validation = true
 # run validation notebooks
 ################################################################
 network_summary_list = ['JBLM',
+                        'supplementals',
                         'transit_validation',
                         'traffic_validation',
                         'bike_validation',

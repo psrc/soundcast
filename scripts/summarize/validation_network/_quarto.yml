@@ -16,6 +16,7 @@ book:
     - summary_scripts/bike_validation.ipynb
     - summary_scripts/link_analysis.ipynb
     - summary_scripts/JBLM.ipynb
+    - summary_scripts/supplementals.ipynb
 
 format:
   html:
