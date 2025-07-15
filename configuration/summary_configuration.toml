@@ -73,12 +73,13 @@ summer_list = [87]
 #################################
 # equity geographies
 #################################
-equity_geogs = ['hh_disability_reg', 'hh_elderly_reg', 'hh_english_reg', 'hh_poverty_reg', 'hh_racial_reg', 'hh_youth_reg',
-                'hh_poverty_50', 'hh_racial_50']
-equity_geogs_comb = ['youth_geog_vs_reg_total', 'elderly_geog_vs_reg_total', 'english_geog_vs_reg_total',
-                     'racial_geog_vs_reg_total', 'racial_geog_vs_50_percent', 
-                    'poverty_geog_vs_reg_total', 'poverty_geog_vs_50_percent', 
-                    'disability_geog_vs_reg_total']
+equity_geogs = ['equity_focus_areas_2023__efa_dis',
+       'equity_focus_areas_2023__efa_older',
+       'equity_focus_areas_2023__efa_lep',
+       'equity_focus_areas_2023__efa_pov200',
+       'equity_focus_areas_2023__efa_poc',
+       'equity_focus_areas_2023__efa_youth']
+hh_equity_geogs = ['hh_efa_dis', 'hh_efa_older', 'hh_efa_lep', 'hh_efa_pov200', 'hh_efa_poc', 'hh_efa_youth']
 
 #################################
 # run summary notebooks
@@ -91,7 +92,8 @@ summary_list = ['topsheet',
                 'vmt', 
                 'transit']
 
-RTP_summary_list = ['RTP_topsheet',
+RTP_summary_list = [
+                     'RTP_topsheet',
                     'RTP_MIC',
                     'RTP_person',
                     'RTP_access',
@@ -111,8 +113,8 @@ sc_run_path = '../../../../'
 
 # Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]
-# '2050 new parking' = '\\modelstation1\c$\workspace\sc_2050_new_parking_zones_04_23_25'
-# '2050 update' = '\\modelstation1\c$\workspace\sc_2050_with_2023_telecommute_and_wfh_03_17_25'
+'2050 state RUC' = '\\modelstation2\c$\workspace\sc_2050_state_ruc_07_03_25'
+'2050 state RUC VOT Test' = '\\modelstation3\c$\Workspace\sc_vot_test_2050\soundcast'
 # '2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
 
 #################################

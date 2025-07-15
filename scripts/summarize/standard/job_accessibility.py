@@ -283,11 +283,13 @@ def main(state):
         "rg_proposed",
         "Census2020Tract",
         "rgc_binary",
+        "equity_focus_areas_2023__efa_dis",
+        "equity_focus_areas_2023__efa_older",
+        "equity_focus_areas_2023__efa_lep",
+        "equity_focus_areas_2023__efa_pov200",
+        "equity_focus_areas_2023__efa_poc",
+        "equity_focus_areas_2023__efa_youth"
     ]
-    equity_geogs = ["youth", "elderly", "english", "racial", "poverty", "disability"]
-    for equity_geog in equity_geogs:
-        for geog_type in ["_geog_vs_reg_total", "_geog_vs_50_percent"]:
-            geo_list.append(equity_geog + geog_type)
 
     parcel_attributes_list = ["emptot_p"]
 
