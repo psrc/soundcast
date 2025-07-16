@@ -20,6 +20,7 @@ book:
     - summary_scripts/RTP_mode_share.ipynb
     - summary_scripts/RTP_freight.ipynb
     - summary_scripts/RTP_transit.ipynb
+    - summary_scripts/RTP_conformity_analysis.ipynb
         
 
 format:
