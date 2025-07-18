@@ -96,6 +96,7 @@ RTP_summary_list = [
                      'RTP_topsheet',
                     'RTP_MIC',
                     'RTP_person',
+                    'RTP_household',
                     'RTP_access',
                     'RTP_costs',
                     'RTP_emissions',
