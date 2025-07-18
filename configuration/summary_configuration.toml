@@ -6,7 +6,7 @@
 protected_namespaces = '()'
 
 # run Quarto summary notebooks
-run_run_comparison = true
+run_run_comparison = false
 run_RTP_summary = true
 
 # annualization factor; continuing with value used from Vision 2050
@@ -93,9 +93,11 @@ summary_list = ['topsheet',
                 'transit']
 
 RTP_summary_list = [
-                     'RTP_topsheet',
+                    'RTP_congestion',
+                    'RTP_topsheet',
                     'RTP_MIC',
                     'RTP_person',
+                    'RTP_household',
                     'RTP_access',
                     'RTP_costs',
                     'RTP_emissions',
