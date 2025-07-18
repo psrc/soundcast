@@ -28,7 +28,7 @@ def run_ipynb(sheet_name, nb_path):
         with open(Path(nb_path) / (sheet_name + ".ipynb"), "wt") as f:
             nbformat.write(nb, f)
     end_time = time.time()
-    print("Time taken to create " + sheet_name + " page: " + str(end_time - start_time) + " seconds")
+    print(f"Time taken to create {sheet_name} page: {end_time - start_time:.1f} seconds")
 
 
 def create_quarto_notebook(notebook_name, summary_list, scripts_dir, output_folder):

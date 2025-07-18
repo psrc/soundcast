@@ -93,7 +93,8 @@ summary_list = ['topsheet',
                 'transit']
 
 RTP_summary_list = [
-                     'RTP_topsheet',
+                    'RTP_congestion',
+                    'RTP_topsheet',
                     'RTP_MIC',
                     'RTP_person',
                     'RTP_access',
