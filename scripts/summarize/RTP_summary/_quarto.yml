@@ -13,6 +13,7 @@ book:
     - index.qmd
     - summary_scripts/RTP_topsheet.ipynb
     - summary_scripts/RTP_person.ipynb
+    - summary_scripts/RTP_household.ipynb
     - summary_scripts/RTP_access.ipynb
     - summary_scripts/RTP_costs.ipynb
     - summary_scripts/RTP_emissions.ipynb
