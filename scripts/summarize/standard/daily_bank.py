@@ -112,6 +112,8 @@ def main(state):
 
     time_period_list = []
 
+    daily_trips_df = pd.DataFrame()
+
     for tod, time_period in state.network_settings.sound_cast_net_dict.items():
         path = os.path.join("Banks", tod, "emmebank")
         bank = _emmebank.Emmebank(path)
@@ -119,12 +121,17 @@ def main(state):
         network = scenario.get_network()
 
         # Trip table data:
+        results_dict = {}
         for matrix in bank.matrices():
             if matrix.name in daily_matrix_dict:
                 hourly_arr = matrix.get_numpy_data()
                 daily_matrix_dict[matrix.name] = (
                     daily_matrix_dict[matrix.name] + hourly_arr
                 )
+                results_dict[str(matrix.name)] = hourly_arr.sum()
+        df = pd.DataFrame(results_dict.values(), index=results_dict.keys())
+        df['tod'] = tod
+        daily_trips_df = pd.concat([daily_trips_df, df])
 
         # Network data:
         if len(time_period_list) == 0:
@@ -135,6 +142,9 @@ def main(state):
             daily_network = merge_networks(daily_network, network)
             time_period_list.append(time_period)  # this line was repeated above
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
+
+    daily_trips_df.columns = ['trips','tod']
+    daily_trips_df.to_csv('outputs/trips_by_class.csv')
 
     # Write daily trip tables:
     for matrix in daily_emmebank.matrices():

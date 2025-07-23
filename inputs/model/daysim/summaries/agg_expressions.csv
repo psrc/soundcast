@@ -40,8 +40,8 @@ tour,tour_distance,,"tmodetp, pdpurp,pptyp,tautodist_bin",,toexpfac,sum,dash,tou
 tour,tour_distance_mic,,"tmodetp, pdpurp,person_work_mic,tautodist_bin",,toexpfac,sum,dash,tour distance bins by purpose and person type
 tour,tour_time,,"tmodetp, pdpurp,pptyp,tautotime_bin",,toexpfac,sum,dash,tour time bins by purpose and person type
 trip,travel_cost,,"mode,dorp,hh_rg_proposed,hh_county,hh_rgc,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travcost,sum,dash,unweighted sum of travel costs
-trip,trip_sov_ff_time,"(mode in [3,4,5])&(dorp==1)","hh_rg_proposed, hh_county,hh_rgc,mode,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,sov_ff_time_wt,sum,dash,Person delay by home location
-trip,trip_time_total,"(mode in [3,4,5])&(dorp==1)","hh_rg_proposed, hh_county,hh_rgc,mode,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travtime_wt,sum,dash,Person delay by home location
+trip,trip_sov_ff_time,,"hh_rg_proposed, hh_county,hh_rgc,mode,dorp,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,sov_ff_time_wt,sum,dash,Person delay by home location
+trip,trip_time_total,,"hh_rg_proposed, hh_county,hh_rgc,mode,dorp,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travtime_wt,sum,dash,Person delay by home location
 trip,person_cost,,"dorp,mode,hh_rg_proposed,hh_county, hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travcost_wt,sum,dash,total weighted travdist for regional geog
 trip,person_vmt,,"dorp,mode,hh_rg_proposed,hh_county, hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travdist_wt,sum,dash,total weighted travdist for regional geog
 trip,person_vht,,"dorp,mode,hh_rg_proposed,hh_county, hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travtime_wt,sum,dash,total weighted travtime for regional geog
