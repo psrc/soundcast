@@ -15,13 +15,15 @@ print(f"Land Use Inputs: {os.path.join(config['soundcast_inputs_dir'],config['la
 print(f"Network Inputs: {os.path.join(config['soundcast_inputs_dir'],config['network_inputs'])}")
 print("")
 print(f"Distance pricing: {config['add_distance_pricing']}")
-print("")
-print("Distance Pricing Settings in cents/mile (applied only if distance pricing is True)")
-print(f"Morning: {config['distance_rate_dict']['am']}")
-print(f"Mid-Day: {config['distance_rate_dict']['md']}")
-print(f"Afternoon: {config['distance_rate_dict']['pm']}")
-print(f"Evening: {config['distance_rate_dict']['ev']}")
-print(f"Night: {config['distance_rate_dict']['ni']}")
+
+if config['add_distance_pricing']:
+    print("")
+    print("Distance Pricing Settings in cents/mile")
+    print(f"Morning: {config['distance_rate_dict']['am']}")
+    print(f"Mid-Day: {config['distance_rate_dict']['md']}")
+    print(f"Afternoon: {config['distance_rate_dict']['pm']}")
+    print(f"Evening: {config['distance_rate_dict']['ev']}")
+    print(f"Night: {config['distance_rate_dict']['ni']}")
 print("")
 print(f"Run location: {os.getcwd()}")
 ```
