@@ -47,6 +47,12 @@ trip,person_vmt,,"dorp,mode,hh_rg_proposed,hh_county, hh_rgc, hh_city,hh_efa_dis
 trip,person_vht,,"dorp,mode,hh_rg_proposed,hh_county, hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travtime_wt,sum,dash,total weighted travtime for regional geog
 trip,person_trips,,"dorp,dpurp,mode,hh_rgc,hh_rg_proposed,hh_county, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,trexpfac,sum,dash,total number of trips by geography
 trip,vmt_wfh,hhparcel==pwpcl,"mode,dpurp,pptyp,dorp",,travdist_wt,sum,dash,
+trip,trip_median_county,,"hh_county,mode",,travdist,median,dash,median trip distance by home geog
+trip,trip_median_rg,,"hh_rg_proposed,mode",,travdist,median,dash,median trip distance by home 
+trip,trip_median_rgc,,"hh_rgc,mode",,travdist,median,dash,median trip distance by home 
+trip,trip_median_county_time,,"hh_county,mode",,travtime,median,dash,median trip distance by home geog
+trip,trip_median_rg_time,,"hh_rg_proposed,mode",,travtime,median,dash,median trip distance by home 
+trip,trip_median_rgc_time,,"hh_rgc,mode",,travtime,median,dash,median trip distance by home 
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp",,trexpfac,sum,dash,"trips by purpose, mode, path type and person type"
 trip,trip_total,,"deptm_hr,mode,pptyp,dpurp","trip_o_district,trip_d_district",trexpfac,sum,dash,"trips by purpose, mode, path type, person type, and o and d districts"
 trip,trip_time,,"dpurp,mode,pptyp,travtime_bin",,trexpfac,sum,dash,trips by time bin

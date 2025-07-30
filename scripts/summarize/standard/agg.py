@@ -51,6 +51,8 @@ def process_expressions(df, df_expr, table_name, survey):
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).sum())
         elif _row.aggfunc == "mean":
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).mean())
+        elif _row.aggfunc == "median":
+            agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).median())
 
         if survey:
             output_path = f"outputs/agg/{_row.output_dir}/survey/{_row.target}.csv"

@@ -1,31 +1,27 @@
 ---
-title: Quarto tips
+title: Soundcast Outputs
 date: today
 ---
 
+These results reflect outputs for the 2026-2050 Regional Transporation Plan. Select topics from the Table of Contents panel to the left. Basic run settings are shown below:
 
-## Install Quarto
+```{python}
+import toml
+import os
+config = toml.load(os.path.join(os.getcwd(),r'../../../configuration/input_configuration.toml'))
 
-https://quarto.org/docs/get-started/
-
-## Render full Quarto book
-
-use the `render` command at the project location to render all files
-``` {.bash filename="Terminal"}
-quarto render
-```
-
-## To render individual Jupyter Notebooks
-
-``` {.bash filename="Terminal"}
-quarto render notebook.ipynb
-```
-Even though you are rendering only one script in the project, the entire book is still produced using previously rendered versions of the other chapters.
-
-- Note that when rendering an `.ipynb` Quarto will not execute the cells within the notebook by default:
-    - either you already executed them while editing the notebook
-    - or you can execute the cells by passing the `--execute` flag to render:
-
-``` {.bash filename="Terminal"}
-quarto render notebook.ipynb --execute
+print(f"Model Year: {config['model_year']}")
+print(f"Land Use Inputs: {os.path.join(config['soundcast_inputs_dir'],config['landuse_inputs'])}")
+print(f"Network Inputs: {os.path.join(config['soundcast_inputs_dir'],config['network_inputs'])}")
+print("")
+print(f"Distance pricing: {config['add_distance_pricing']}")
+print("")
+print("Distance Pricing Settings in cents/mile (applied only if distance pricing is True)")
+print(f"Morning: {config['distance_rate_dict']['am']}")
+print(f"Mid-Day: {config['distance_rate_dict']['md']}")
+print(f"Afternoon: {config['distance_rate_dict']['pm']}")
+print(f"Evening: {config['distance_rate_dict']['ev']}")
+print(f"Night: {config['distance_rate_dict']['ni']}")
+print("")
+print(f"Run location: {os.getcwd()}")
 ```

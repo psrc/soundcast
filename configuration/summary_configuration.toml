@@ -100,6 +100,7 @@ RTP_summary_list = [
                     'RTP_household',
                     'RTP_access',
                     'RTP_costs',
+                    'RTP_walk_bike',
                     'RTP_emissions',
                     'RTP_mode_share',
                     'RTP_freight',

@@ -16,6 +16,7 @@ book:
     - summary_scripts/RTP_household.ipynb
     - summary_scripts/RTP_access.ipynb
     - summary_scripts/RTP_costs.ipynb
+    - summary_scripts/RTP_walk_bike.ipynb
     - summary_scripts/RTP_emissions.ipynb
     - summary_scripts/RTP_MIC.ipynb
     - summary_scripts/RTP_mode_share.ipynb
@@ -36,7 +37,3 @@ format:
 
 toc: true
 warning: false
-
-
-
-
