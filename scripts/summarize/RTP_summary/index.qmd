@@ -3,27 +3,56 @@ title: Soundcast Outputs
 date: today
 ---
 
-These results reflect outputs for the 2026-2050 Regional Transporation Plan. Select topics from the Table of Contents panel to the left. Basic run settings are shown below:
+These results reflect outputs for the 2026-2050 Regional Transportation Plan. Select topics from the Table of Contents panel to the left. Basic run settings are shown below:
 
 ```{python}
 import toml
 import os
-config = toml.load(os.path.join(os.getcwd(),r'../../../configuration/input_configuration.toml'))
 
+config = toml.load(os.path.join(os.getcwd(),r'../../../configuration/input_configuration.toml'))
+summary_config = toml.load(os.path.join(os.getcwd(), r'../../../configuration/summary_configuration.toml'))
+
+# Relative path between notebooks and goruped output directories
+output_path = os.path.join(summary_config['sc_run_path'],'..', summary_config["output_folder"])
+
+print(f"Run location: {os.getcwd()}")
+print("")
 print(f"Model Year: {config['model_year']}")
 print(f"Land Use Inputs: {os.path.join(config['soundcast_inputs_dir'],config['landuse_inputs'])}")
 print(f"Network Inputs: {os.path.join(config['soundcast_inputs_dir'],config['network_inputs'])}")
-print("")
-print(f"Distance pricing: {config['add_distance_pricing']}")
-
-if config['add_distance_pricing']:
-    print("")
-    print("Distance Pricing Settings in cents/mile")
-    print(f"Morning: {config['distance_rate_dict']['am']}")
-    print(f"Mid-Day: {config['distance_rate_dict']['md']}")
-    print(f"Afternoon: {config['distance_rate_dict']['pm']}")
-    print(f"Evening: {config['distance_rate_dict']['ev']}")
-    print(f"Night: {config['distance_rate_dict']['ni']}")
-print("")
-print(f"Run location: {os.getcwd()}")
 ```
+
+Distance Pricing Settings in cents/mile (applied only if distance pricing is True)
+
+```{python}
+
+print(f"Distance pricing: {config['add_distance_pricing']}")
+print("")
+print(f"Morning: {config['distance_rate_dict']['am']}")
+print(f"Mid-Day: {config['distance_rate_dict']['md']}")
+print(f"Afternoon: {config['distance_rate_dict']['pm']}")
+print(f"Evening: {config['distance_rate_dict']['ev']}")
+print(f"Night: {config['distance_rate_dict']['ni']}")
+print("")
+
+```
+
+# System Summary
+
+{{< embed summary_scripts/RTP_index.ipynb#system_summary >}}
+
+## Total VMT, VHT, Vehicle Hours Delay by County
+
+Includes truck and external trips within bounds of the region (trips on partial links outside 4 counties are not included)
+
+{{< embed summary_scripts/RTP_index.ipynb#total_vmt_vht_delay_by_county >}}
+
+## Transit Boardings
+
+{{< embed summary_scripts/RTP_index.ipynb#transit >}}
+
+## Mode Share 
+
+Resident Trips
+
+{{< embed summary_scripts/RTP_index.ipynb#mode_share >}}

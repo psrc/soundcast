@@ -32,10 +32,6 @@ def run_ipynb(sheet_name, nb_path):
 
 
 def create_quarto_notebook(notebook_name, summary_list, scripts_dir, output_folder):
-    # Try to remove existing data first
-    output_dir = Path.cwd() / output_folder / notebook_name
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
 
     for sheet_name in summary_list:
         run_ipynb(sheet_name, scripts_dir + "/summary_scripts")
@@ -46,6 +42,10 @@ def create_quarto_notebook(notebook_name, summary_list, scripts_dir, output_fold
     os.system(text)
     print(notebook_name + " created")
 
+    # Try to remove existing data first
+    output_dir = Path.cwd() / output_folder / notebook_name
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
     # Move these files to output folder
     if not os.path.exists(Path.cwd() / output_folder):
         os.makedirs(Path.cwd() / output_folder)

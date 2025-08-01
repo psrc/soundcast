@@ -93,6 +93,7 @@ summary_list = ['topsheet',
                 'transit']
 
 RTP_summary_list = [
+                    'RTP_index',
                     'RTP_congestion',
                     'RTP_topsheet',
                     'RTP_MIC',
@@ -116,8 +117,8 @@ sc_run_path = '../../../../'
 
 # Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]
-'2050 state RUC' = '\\modelstation2\c$\workspace\sc_2050_state_ruc_07_03_25'
-'2050 state RUC VOT Test' = '\\modelstation3\c$\Workspace\sc_vot_test_2050\soundcast'
+'2050 new transit, old network' = '\\modelstation3\c$\Workspace\sc_new_2050_transit\soundcast'
+'2050 urbansim' = '\\modelstation2\c$\Workspace\sc_2050_urbansim2_07_30_25'
 # '2050 RTP' = 'L:\RTP_2022\final_runs\sc_rtp_2050_constrained_final_revised\soundcast'
 
 #################################
