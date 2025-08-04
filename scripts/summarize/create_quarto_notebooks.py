@@ -53,10 +53,6 @@ def create_quarto_notebook(notebook_name, summary_list, scripts_dir, output_fold
 
 def main():
 
-    # Ensure output directory for CSV outputs exists
-    if not os.path.exists(Path.cwd() / "outputs/RTP"):
-        os.makedirs(Path.cwd() / "outputs/RTP")
-
     # create summary notebook
     if run_comparison:
         create_quarto_notebook(notebook_name = "run-comparison-notebook",
