@@ -1,13 +1,13 @@
 table,target,query,agg_fields,filter_fields,values,aggfunc,output_dir,description
 household,hh_transit_dist,,"hh_county, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_transit",,hhexpfac,sum,dash,average distance to bus
-household,hh_hct_dist,,"hh_county, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_hct",,hhexpfac,sum,dash,average distance to light rail
+household,hh_hct_dist,,"hh_county,hh_rg_proposed,hh_rgc, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_hct, half_mile_hct",,hhexpfac,sum,dash,average distance to light rail
 household,hh_geog,,"hh_rg_proposed,hh_county,hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,hhexpfac,sum,dash,
 household,household_size_vehs_workers,,"hhsize, hhvehs, hhftw",,hhexpfac,sum,dash,"households by size, vehicles, and workers"
 household,auto_ownership,,"hhvehs,hh_county,hhincome_thousands",,hhexpfac,sum,dash,vehicles owned by county
 household,auto_ownership_efa,,"hhvehs,hhincome_thousands,hh_rg_proposed,hh_county,hh_rgc, hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,hhexpfac,sum,dash,vehicles owned by EFAs
 household,auto_ownership_block_group,,"hhvehs,hh_block_group",,hhexpfac,sum,census,"households by vehicles owned, block group"
 person,work_transit_dist,,"hh_county, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_transit_work",,psexpfac,sum,dash,average distance to bus
-person,work_hct_dist,,"hh_county, hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_hct_work",,psexpfac,sum,dash,average distance to light rail
+person,work_hct_dist,,"hh_county,hh_rg_proposed,hh_rgc,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth, quarter_mile_hct_work, half_mile_hct_work",,psexpfac,sum,dash,average distance to light rail
 person,person_usual_work_dist,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwaudist_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"
 person,person_usual_school_dist,pstyp>0,"person_school_county,pstyp,person_county",,psaudist_wt,sum,dash,"Usual school distance by commute mode, school county location, student type and household county"
 person,person_usual_work_time,(pwtyp>0)&(hhparcel!=pwpcl),"person_work_county,pwtyp,person_county",,pwautime_wt,sum,dash,"Usual work distance by commute mode, school county location, worker type and household county"
