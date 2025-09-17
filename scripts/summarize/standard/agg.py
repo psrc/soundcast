@@ -174,7 +174,8 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
         .otherwise(0)
     )
     hh_df = hh_df.with_columns(
-        quarter_mile_hct=pl.when(pl.col("hh_dist_hct") <= 0.25).then(1).otherwise(0)
+        quarter_mile_hct=pl.when(pl.col("hh_dist_hct") <= 0.25).then(1).otherwise(0),
+        half_mile_hct=pl.when(pl.col("hh_dist_hct") <= 0.5).then(1).otherwise(0)
     )
 
     # Person
@@ -197,6 +198,9 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
     )
     person_df = person_df.with_columns(
         quarter_mile_hct_work=pl.when(pl.col("work_dist_hct") <= 0.25)
+        .then(1)
+        .otherwise(0),
+        half_mile_hct_work=pl.when(pl.col("work_dist_hct") <= 0.5)
         .then(1)
         .otherwise(0)
     )
