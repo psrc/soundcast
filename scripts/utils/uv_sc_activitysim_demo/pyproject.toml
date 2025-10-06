@@ -1,0 +1,17 @@
+[project]
+name = "soundcast-uv"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.13"
+dependencies = [
+    "h5py>=3.14.0",
+    "numpy==1.26",
+    "pandana>=0.7",
+    "pandas>=2.3.3",
+    "plotly>=6.3.1",
+    "polars>=1.34.0",
+    "pydantic>=2.11.9",
+    "sqlalchemy>=2.0.43",
+    "toml>=0.10.2",
+]
