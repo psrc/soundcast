@@ -49,9 +49,9 @@ def get_parcel_geog():
 
     parcel_geog[list(equity_geog_dict.values())] = parcel_geog[list(equity_geog_dict.keys())].\
         apply(lambda x: x.map({0.0: 'Below Regional Average', 
-                                1.0: 'Above Regional Average', 
-                                2.0: 'Higher Share of Equity Population'}
-                                ))
+                               1.0: 'Above Regional Average', 
+                               2.0: 'Higher Share of Equity Population'}
+                               ))
 
     return parcel_geog
 
@@ -59,8 +59,7 @@ def get_parcels_urbansim_data(inc_geog=False):
     """get parcels_urbansim data from model output (merge with parcel geography if needed)"""
     
     # parcel land use data
-    OUTPUT_PATH = Path(summary_config['sc_run_path']) / summary_config["output_folder"]
-    df_parcel = pl.read_csv(OUTPUT_PATH / 'landuse/parcels_urbansim.txt', separator=' ').to_pandas()
+    df_parcel = pl.read_csv(output_path / 'landuse/parcels_urbansim.txt', separator=' ').to_pandas()
 
     if inc_geog:
         df_parcel = df_parcel.merge(get_parcel_geog(), left_on='parcelid', right_on='ParcelID', how='left')     
@@ -72,8 +71,7 @@ def process_network_summary():
     preprocess network-level results
     """
 
-    OUTPUT_PATH = Path(summary_config['sc_run_path']) / summary_config["output_folder"]
-    df = pd.read_csv(OUTPUT_PATH / "network/network_results.csv")
+    df = pd.read_csv(output_path / "network/network_results.csv")
 
     # Exclude trips taken on non-designated facilities (facility_type == 0)
     # These are artificial (weave lanes to connect HOV) or for non-auto uses
