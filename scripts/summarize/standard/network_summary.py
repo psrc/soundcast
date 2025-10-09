@@ -566,7 +566,8 @@ def main(state):
         df.to_csv(filepath, index=False)
 
     ## Write freeflow skims to Daysim trip records to calculate individual-level delay
-    freeflow_skims(state, project, dictZoneLookup)
+    if state.input_settings.abm_model == "daysim":
+        freeflow_skims(state, project, dictZoneLookup)
 
     # Export transit transfers
     df_transit_transfers.to_csv("outputs/transit/transit_transfers.csv")

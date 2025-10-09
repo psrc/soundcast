@@ -102,11 +102,11 @@ EXTERNAL_DISTRICT = 'ga20'
 # Network Import Settings
 ####################################
 [sound_cast_net_dict]
-'5to9' = 'am'
-'9to15' = 'md'   
-'15to18' = 'pm' 
-'18to20' = 'ev' 
-'20to5' = 'ni'
+'5to9' = 'AM'
+'9to15' = 'MD'   
+'15to18' = 'PM' 
+'18to20' = 'EV' 
+'20to5' = 'EA'
 
 [extra_attributes_dict]
 "@tveh" = "total vehicles"

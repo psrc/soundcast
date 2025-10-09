@@ -336,7 +336,7 @@ class State:
         self.emme_settings = emme_settings
         self.network_settings = network_settings
         self.summary_settings = summary_settings
-        self.conifgs_dir = configs_dir
+        self.configs_dir = configs_dir
         self.model_input_dir = model_input_dir
         self.main_project_path = network_settings.main_project
         self.main_project_name = self.name_from_main_project_path()
