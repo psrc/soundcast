@@ -75,7 +75,7 @@ def export_link_values(project):
     network_to_shapefile = project.m.tool(
         "inro.emme.data.network.export_network_as_shapefile"
     )
-    network_to_shapefile(export_path=shapefile_dir, scenario=project.current_scenario)
+    network_to_shapefile(export_path=shapefile_dir, transit_shapes='LINES', scenario=project.current_scenario)
 
 
 def main(state):
