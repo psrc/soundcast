@@ -73,3 +73,5 @@ trip,mode_share_hh_efa_lep,,"dpurp, mode, hh_efa_lep",,trexpfac,sum,dash,
 trip,mode_share_hh_efa_pov200,,"dpurp, mode, hh_efa_pov200",,trexpfac,sum,dash,
 trip,mode_share_hh_efa_poc,,"dpurp, mode, hh_efa_poc",,trexpfac,sum,dash,
 trip,mode_share_hh_efa_youth,,"dpurp, mode, hh_efa_youth",,trexpfac,sum,dash,
+trip,household_vmt,,"dorp,mode,hh_taz_tract",,travdist_wt,sum,dash,total weighted travdist for regional geog
+household,household_tract_pop,,"hh_taz_tract",,hhexpfac,sum,dash,Household counts by census tract
