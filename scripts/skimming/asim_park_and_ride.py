@@ -15,12 +15,6 @@ import os
 from pathlib import Path
 import yaml
 
-# Record script start time
-script_start_time = time.time()
-print(f"=== ASIM PARK AND RIDE SCRIPT START ===")
-print(f"Start time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(script_start_time))}")
-print("=" * 50)
-
 matrix_dict = {
     "DRV_TRN_WLK_DTIM": "auto_pnr_time_access",
     "WLK_TRN_DRV_DTIM": "auto_pnr_time_egress",
@@ -157,7 +151,7 @@ def two_leg_trip(my_project, spec_dir):
         stop_k_utility_spec=json.load(
             open(spec_dir / "access/stop_location_util.json")
         ),
-        leg2_kq_utility_spec=json.load(open(spec_dir / "second_leg.json")),
+        leg2_kq_utility_spec=json.load(open(spec_dir / "access/second_leg.json")),
         leg1_demand=my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND"),
         stop_usage=my_project.bank.matrix("DRV_TRN_WLK_LOT_USAGE"),
         leg2_demand=my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND"),
@@ -177,7 +171,7 @@ def two_leg_trip(my_project, spec_dir):
         stop_k_utility_spec=json.load(
             open(spec_dir / "egress/stop_location_util.json")
         ),
-        leg2_kq_utility_spec=json.load(open(spec_dir / "second_leg.json")),
+        leg2_kq_utility_spec=json.load(open(spec_dir / "egress/second_leg.json")),
         leg1_demand=my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND"),
         stop_usage=my_project.bank.matrix("WLK_TRN_DRV_LOT_USAGE"),
         leg2_demand=my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND"),
@@ -220,6 +214,13 @@ def run_park_and_ride(
     time_period_lookup,
     # project_path: Path
 ):
+    
+    # Record script start time
+    script_start_time = time.time()
+    print(f"=== ASIM PARK AND RIDE SCRIPT START ===")
+    print(f"Start time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(script_start_time))}")
+    print("=" * 50)
+
     results_dict = {}
     pnr_spec_dir = spec_dir / "park_and_ride"
     ferry_spec_dir = spec_dir / "ferry"

@@ -174,11 +174,37 @@ def daysim_assignment(iteration):
     # Run Daysim Activity Models
     ########################################
 
-    if state.input_settings.run_daysim:
+    if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call(
             "Daysim/Daysim.exe -c Daysim/daysim_configuration.properties"
         )
+        logger.info("End of %s iteration of Daysim", str(iteration))
+        if returncode != 0:
+            sys.exit(1)
+
+    if state.input_settings.run_abm and state.input_settings.abm_model == "activitysim":
+        logger.info("Start of %s iteration of ActivitySim", str(iteration))
+        # activitysim_uvenv_path = r"C:\Workspace\asim_run_dir\activitysim\.venv\Scripts\python.exe"
+        activitysim_uvenv_path = os.path.join(state.input_settings.uv_directory, ".venv", "Scripts", "python.exe")
+        returncode = subprocess.run(
+                [
+                    activitysim_uvenv_path,
+                    "-m",
+                    "activitysim",
+                    "run",
+                    # "-c",
+                    # r"C:\workspace\activitysim_dir\psrc_activitysim_pre_tele\psrc_activitysim\configs_sh",
+                    "-c",
+                    "inputs/model/activitysim/configs_mp",
+                    "-c",
+                    "inputs/model/activitysim/configs",
+                    "-o",
+                    "outputs/activitysim",
+                    "-d",
+                    "inputs/scenario/landuse",
+                ]
+            )
         logger.info("End of %s iteration of Daysim", str(iteration))
         if returncode != 0:
             sys.exit(1)
@@ -215,13 +241,13 @@ def check_convergence(iteration):
 
 @data_wrangling.timed
 def run_all_summaries():
-    daily_bank.main(state)
-    network_summary.main(state)
-    transit_summary.main(state)
-    emissions.main(state)
-    agg.main(state)
-    validation.main(state)
-    job_accessibility.main(state)
+    # daily_bank.main(state)
+    # network_summary.main(state)
+    # transit_summary.main(state)
+    # emissions.main(state)
+    # agg.main(state)
+    # validation.main(state)
+    # job_accessibility.main(state)
     subprocess.run(
         "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
         shell=True,
@@ -280,7 +306,7 @@ def main():
     logger.info("Using Git hash %s ", str(hash))
 
     data_wrangling.store_settings(state)
-    data_wrangling.build_output_dirs()
+    data_wrangling.build_output_dirs(state)
     data_wrangling.update_daysim_modes(state)
     data_wrangling.update_skim_parameters(state)
 
@@ -334,7 +360,7 @@ def main():
     ########################################
 
     if (
-        state.input_settings.run_daysim
+        state.input_settings.run_abm
         or state.input_settings.run_skims_and_paths
         or state.input_settings.run_supplemental_trips
         or state.input_settings.run_truck_model

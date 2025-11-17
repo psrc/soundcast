@@ -3,7 +3,7 @@
 #################################
 # Summary Comparisons
 #################################
-run_rtp = true
+run_rtp = false
 run_comparison = false
 
 # annualization factor; continuing with value used from Vision 2050

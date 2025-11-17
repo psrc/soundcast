@@ -49,7 +49,7 @@ transit_submodes = ['b', 'c', 'f', 'p', 'r']
 
 # Transit Fare:
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
-fare_matrices_tod = ['5to9', '9to15']
+fare_matrices_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
 
 
 taz_area_file = 'inputs/model/activitysim/intrazonals/taz_acres.in'

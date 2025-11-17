@@ -34,6 +34,7 @@ class InputSettings(BaseModel):
     db_name: str
     soundcast_inputs_dir: str
     abm_model: str
+    uv_directory: str
 
     ##############################
     # Initial Setup
@@ -51,7 +52,7 @@ class InputSettings(BaseModel):
     run_skims_and_paths: bool
     run_truck_model: bool
     run_supplemental_trips: bool
-    run_daysim: bool
+    run_abm: bool
     run_summaries: bool
 
     ##############################

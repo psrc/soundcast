@@ -9,6 +9,12 @@ def add_run_args(parser, multiprocess=True):
         "-c", "--configs_dir", type=str, metavar="PATH", help="path to configs dir"
     )
 
+    parser.add_argument(
+        "-a", "--output_dir", type=str, metavar="PATH", help="path to output dir"
+    )
+
+    
+
 
 # if __name__ == '__main__':
 parser = argparse.ArgumentParser()

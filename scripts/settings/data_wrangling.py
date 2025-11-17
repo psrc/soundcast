@@ -293,16 +293,17 @@ def copy_accessibility_files(state):
                 sys.exit(1)
 
 
-def build_output_dirs():
+def build_output_dirs(settings):
     for path in [
         "outputs",
-        r"outputs/daysim",
+        os.path.join("outputs", settings.input_settings.abm_model),
+        # r"outputs/daysim",
         "outputs/bike",
         "outputs/network",
         "outputs/transit",
         "outputs/landuse",
         "outputs/emissions",
-        r"outputs/trucks",
+        "outputs/trucks",
         "outputs/supplemental",
     ]:
         if not os.path.exists(path):
