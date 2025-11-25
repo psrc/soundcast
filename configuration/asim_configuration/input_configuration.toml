@@ -11,7 +11,7 @@ base_year = '2023'
 landuse_inputs = '23_on_23_v3'
 network_inputs = 'network_2023_asim'
 db_name = 'soundcast_inputs_2023.db'
-soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/dev'
+soundcast_inputs_dir = 'R:/e2projects_two/SoundCast/Inputs/activitysim'
 abm_model = 'activitysim'
 uv_directory = 'C:/Workspace/asim_run_dir/activitysim'
 
@@ -28,11 +28,11 @@ run_import_networks = false
 # Model Procedures
 ##############################
 run_skims_and_paths_free_flow = false
-run_skims_and_paths = false
-run_truck_model = false
-run_supplemental_trips = false
+run_skims_and_paths = true
+run_truck_model = true
+run_supplemental_trips = true
 run_abm = true
-run_summaries = false
+run_summaries = true
 
 ##############################
 # Modes and Path Types

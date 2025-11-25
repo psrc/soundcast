@@ -1,0 +1,256 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+    - households
+    - land_use
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: True
+
+MATRICES:
+  - file_name: 20to5.omx
+    tables:
+      - name: sov_inc1
+        data_field: sov_EA_1
+      - name: hov2_inc1
+        data_field: hov2_EA_1
+      - name: hov3_inc1
+        data_field: hov3_EA_1
+      - name: sov_inc2
+        data_field: sov_EA_2
+      - name: hov2_inc2
+        data_field: hov2_EA_2
+      - name: hov3_inc2
+        data_field: hov3_EA_2
+      - name: sov_inc3
+        data_field: sov_EA_3
+      - name: hov2_inc3
+        data_field: hov2_EA_3
+      - name: hov3_inc3
+        data_field: hov3_EA_3
+      - name: walk
+        data_field: WALK_EA
+      - name: bike
+        data_field: BIKE_EA
+      - name: trnst
+        data_field: WALK_LOC_EA
+      - name: litrat
+        data_field: WALK_LR_EA
+      - name: ferry
+        data_field: WALK_FRY_EA
+      - name: commuter_rail
+        data_field: WALK_COM_EA
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_EA
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_EA
+      - name: tnc_inc1
+        data_field: TNC_EA_1
+      - name: tnc_inc2
+        data_field: TNC_EA_2
+      - name: tnc_inc3
+        data_field: TNC_EA_3
+      - name: school_bus
+        data_field: SCHOOL_BUS_EA
+  - file_name: 5to9.omx
+    tables:
+      - name: sov_inc1
+        data_field: sov_AM_1
+      - name: hov2_inc1
+        data_field: hov2_AM_1
+      - name: hov3_inc1
+        data_field: hov3_AM_1
+      - name: sov_inc2
+        data_field: sov_AM_2
+      - name: hov2_inc2
+        data_field: hov2_AM_2
+      - name: hov3_inc2
+        data_field: hov3_AM_2
+      - name: sov_inc3
+        data_field: sov_AM_3
+      - name: hov2_inc3
+        data_field: hov2_AM_3
+      - name: hov3_inc3
+        data_field: hov3_AM_3
+      - name: walk
+        data_field: WALK_AM
+      - name: bike
+        data_field: BIKE_AM
+      - name: trnst
+        data_field: WALK_LOC_AM
+      - name: litrat
+        data_field: WALK_LR_AM
+      - name: ferry
+        data_field: WALK_FRY_AM
+      - name: commuter_rail
+        data_field: WALK_COM_AM
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_AM
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_AM
+      - name: tnc_inc1
+        data_field: TNC_AM_1
+      - name: tnc_inc2
+        data_field: TNC_AM_2
+      - name: tnc_inc3
+        data_field: TNC_AM_3
+      - name: school_bus    
+        data_field: SCHOOL_BUS_AM
+  - file_name: 9to15.omx
+    tables:
+      - name: sov_inc1
+        data_field: sov_MD_1
+      - name: hov2_inc1
+        data_field: hov2_MD_1
+      - name: hov3_inc1
+        data_field: hov3_MD_1
+      - name: sov_inc2
+        data_field: sov_MD_2
+      - name: hov2_inc2
+        data_field: hov2_MD_2
+      - name: hov3_inc2
+        data_field: hov3_MD_2
+      - name: sov_inc3
+        data_field: sov_MD_3
+      - name: hov2_inc3
+        data_field: hov2_MD_3
+      - name: hov3_inc3
+        data_field: hov3_MD_3
+      - name: walk
+        data_field: WALK_MD
+      - name: bike
+        data_field: BIKE_MD
+      - name: trnst
+        data_field: WALK_LOC_MD
+      - name: litrat
+        data_field: WALK_LR_MD
+      - name: ferry
+        data_field: WALK_FRY_MD
+      - name: commuter_rail
+        data_field: WALK_COM_MD
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_MD
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_MD
+      - name: tnc_inc1
+        data_field: TNC_MD_1
+      - name: tnc_inc2
+        data_field: TNC_MD_2
+      - name: tnc_inc3
+        data_field: TNC_MD_3
+      - name: school_bus
+        data_field: SCHOOL_BUS_MD
+  - file_name: 15to18.omx
+    tables:
+      - name: sov_inc1
+        data_field: sov_PM_1
+      - name: hov2_inc1
+        data_field: hov2_PM_1
+      - name: hov3_inc1
+        data_field: hov3_PM_1
+      - name: sov_inc2
+        data_field: sov_PM_2
+      - name: hov2_inc2
+        data_field: hov2_PM_2
+      - name: hov3_inc2
+        data_field: hov3_PM_2
+      - name: sov_inc3
+        data_field: sov_PM_3
+      - name: hov2_inc3
+        data_field: hov2_PM_3
+      - name: hov3_inc3
+        data_field: hov3_PM_3
+      - name: walk
+        data_field: WALK_PM
+      - name: bike
+        data_field: BIKE_PM
+      - name: trnst
+        data_field: WALK_LOC_PM
+      - name: litrat
+        data_field: WALK_LR_PM
+      - name: ferry
+        data_field: WALK_FRY_PM
+      - name: commuter_rail
+        data_field: WALK_COM_PM
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_PM
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_PM
+      - name: tnc_inc1
+        data_field: TNC_PM_1
+      - name: tnc_inc2
+        data_field: TNC_PM_2
+      - name: tnc_inc3
+        data_field: TNC_PM_3
+      - name: school_bus
+        data_field: SCHOOL_BUS_PM
+  - file_name: 18to20.omx
+    tables:
+      - name: sov_inc1
+        data_field: sov_EV_1
+      - name: hov2_inc1
+        data_field: hov2_EV_1
+      - name: hov3_inc1
+        data_field: hov3_EV_1
+      - name: sov_inc2
+        data_field: sov_EV_2
+      - name: hov2_inc2        
+        data_field: hov2_EV_2
+      - name: hov3_inc2
+        data_field: hov3_EV_2
+      - name: sov_inc3
+        data_field: sov_EV_3
+      - name: hov2_inc3
+        data_field: hov2_EV_3
+      - name: hov3_inc3
+        data_field: hov3_EV_3
+      - name: walk
+        data_field: WALK_EV
+      - name: bike
+        data_field: BIKE_EV
+      - name: trnst
+        data_field: WALK_LOC_EV
+      - name: litrat
+        data_field: WALK_LR_EV
+      - name: ferry
+        data_field: WALK_FRY_EV
+      - name: commuter_rail
+        data_field: WALK_COM_EV
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_EV
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_EV
+      - name: tnc_inc1
+        data_field: TNC_EV_1
+      - name: tnc_inc2
+        data_field: TNC_EV_2
+      - name: tnc_inc3
+        data_field: TNC_EV_3
+      - name: school_bus
+        data_field: SCHOOL_BUS_EV 
+
+CONSTANTS:
+  time_periods:
+    EA:
+      first_hour: 0
+      last_hour: 4
+    AM:
+      first_hour: 5
+      last_hour: 8
+    MD:
+      first_hour: 10
+      last_hour: 14
+    PM:
+      first_hour: 15
+      last_hour: 17
+    EV:
+      first_hour: 18
+      last_hour: 19

@@ -1,0 +1,11 @@
+# annotating the proto_disaggregate_accessibilty table
+Description,Target,Expression
+workplace location for zero auto only,workplace_location_accessibility_0,"np.where(df.auto_ownership == 0, df.workplace_location_accessibility, np.nan)"
+workplace location for auto deficient,workplace_location_accessibility_1,"np.where(df.auto_ownership == 1, df.workplace_location_accessibility, np.nan)"
+workplace location for auto sufficient,workplace_location_accessibility_2,"np.where(df.auto_ownership == 2, df.workplace_location_accessibility, np.nan)"
+other discretionary for zero auto only,othdiscr_accessibility_0,"np.where(df.auto_ownership == 0, df.othdiscr_accessibility, np.nan)"
+other discretionary for auto deficient,othdiscr_accessibility_1,"np.where(df.auto_ownership ==1, df.othdiscr_accessibility, np.nan)"
+other discretionary for auto sufficient,othdiscr_accessibility_2,"np.where(df.auto_ownership == 2, df.othdiscr_accessibility, np.nan)"
+shopping for zero auto only,shopping_accessibility_0,"np.where(df.auto_ownership == 0, df.shopping_accessibility, np.nan)"
+shopping for auto deficient,shopping_accessibility_1,"np.where(df.auto_ownership ==1, df.shopping_accessibility, np.nan)"
+shopping for auto sufficient,shopping_accessibility_2,"np.where(df.auto_ownership == 2, df.shopping_accessibility, np.nan)"

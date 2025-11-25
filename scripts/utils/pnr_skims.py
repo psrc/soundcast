@@ -34,7 +34,7 @@ sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
 # from emme_configuration import *
 from scripts.emme_project import *
-from data_wrangling import text_to_dictionary, json_to_dictionary
+# from data_wrangling import text_to_dictionary, json_to_dictionary
 from pathlib import Path
 
 # Script should be run from project root
@@ -110,7 +110,17 @@ def skim(spec1, spec2, my_project, class_name):
     return None
 
 
-def process(my_project, sc_tod):
+def process(my_project, sc_tod, asim_tod, h5file):
+
+    # FIXME - read from config
+    pnr_spec_dir = Path(
+        "R:/e2projects_two/activitysim/assignment_skims_inputs/park_and_ride"
+    )
+    ferry_spec_dir = Path("R:/e2projects_two/activitysim/assignment_skims_inputs/ferry")
+
+    pnr_access_class_name = "pnr_access"
+    pnr_egress_class_name = "pnr_egress"
+
     my_project.change_active_database(sc_tod)
 
     matrix_list = [
@@ -133,7 +143,7 @@ def process(my_project, sc_tod):
                 )
                 print("-----")
                 print(matrix_name)
-            except:
+            except Exception:
                 pass
             my_project.create_matrix(matrix_name + "_" + type, "", "FULL")
             print(matrix_name)
@@ -174,7 +184,7 @@ def process(my_project, sc_tod):
     assignment(spec, my_project, pnr_egress_class_name)
 
     spec1 = json.load(open(pnr_spec_dir / "pnr_skim_1_egress.json"))
-    spec2 = json.load(open(prn_spec_dir / "pnr_skim_2_egress.json"))
+    spec2 = json.load(open(pnr_spec_dir / "pnr_skim_2_egress.json"))
     skim(spec1, spec2, my_project, pnr_egress_class_name)
 
     for asim_name, matrix_name in matrix_dict.items():
@@ -224,35 +234,30 @@ def process(my_project, sc_tod):
     del my_project
     return None
 
+def main(state):
+    ################################################
+    # Write skims to file in activitysim format
+    h5file = h5py.File("pnr_skims.h5", "w")
+    h5file.create_group("Skims")
 
-################################################
-# Write skims to file in activitysim format
-h5file = h5py.File("pnr_skims.h5", "w")
-h5file.create_group("Skims")
-
-my_project = EmmeProject(
-    "C:\Workspace\sc_new_daysim\soundcast\projects\LoadTripTables/LoadTripTables.emp"
-)
-pnr_spec_dir = Path(
-    "R:/e2projects_two/activitysim/assignment_skims_inputs/park_and_ride"
-)
-ferry_spec_dir = Path("R:/e2projects_two/activitysim/assignment_skims_inputs/ferry")
-
-pnr_access_class_name = "pnr_access"
-pnr_access_class_name = "pnr_egress"
+    # my_project = EmmeProject(
+    #     "C:\Workspace\sc_new_daysim\soundcast\projects\LoadTripTables/LoadTripTables.emp"
+    # )
 
 
-for asim_tod, sc_tod in tod_dict.items():
-    print(asim_tod)
-    print(sc_tod)
 
-    process(my_project, sc_tod)
+    # for asim_tod, sc_tod in tod_dict.items():
+    for sc_tod, asim_tod in state.network_settings.sound_cast_net_dict.items():
+        print(asim_tod)
+        print(sc_tod)
 
-h5file.close()
+        # my_project = state.main_project
+        my_project = EmmeProject("projects/5to9/5to9.emp", state.model_input_dir)
+
+        process(my_project, sc_tod, asim_tod, h5file)
+
+    h5file.close()
 
 
-# for mat in range(130,150):
-#    try:
-#        my_project.delete_matrix('mf'+str(max))
-#    except:
-#        pass
+if __name__ == "__main__":
+    main()

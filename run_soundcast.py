@@ -159,8 +159,8 @@ def build_shadow_only():
 
 def run_truck_supplemental(iteration, statwe):
     if state.input_settings.run_supplemental_trips:
-        if iteration == 0:
-            generation.main(state)
+        # if iteration == 0:
+        #     generation.main(state)
         distribute_non_work_ixxi.main(state)
         create_airport_trips.main(state)
 
@@ -171,7 +171,7 @@ def run_truck_supplemental(iteration, statwe):
 @data_wrangling.timed
 def daysim_assignment(iteration):
     ########################################
-    # Run Daysim Activity Models
+    # Run Daysim/Activity Models
     ########################################
 
     if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
@@ -187,7 +187,7 @@ def daysim_assignment(iteration):
         logger.info("Start of %s iteration of ActivitySim", str(iteration))
         # activitysim_uvenv_path = r"C:\Workspace\asim_run_dir\activitysim\.venv\Scripts\python.exe"
         activitysim_uvenv_path = os.path.join(state.input_settings.uv_directory, ".venv", "Scripts", "python.exe")
-        returncode = subprocess.run(
+        returncode = subprocess.call(
                 [
                     activitysim_uvenv_path,
                     "-m",
@@ -196,13 +196,14 @@ def daysim_assignment(iteration):
                     # "-c",
                     # r"C:\workspace\activitysim_dir\psrc_activitysim_pre_tele\psrc_activitysim\configs_sh",
                     "-c",
-                    "inputs/model/activitysim/configs_mp",
+                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs_mp"),
                     "-c",
-                    "inputs/model/activitysim/configs",
+                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs"),
                     "-o",
-                    "outputs/activitysim",
+                    run_args.args.output_dir,
                     "-d",
-                    "inputs/scenario/landuse",
+                    # os.path.join(os.getcwd(), "inputs/scenario/landuse"),
+                    run_args.args.data_dir,
                 ]
             )
         logger.info("End of %s iteration of Daysim", str(iteration))

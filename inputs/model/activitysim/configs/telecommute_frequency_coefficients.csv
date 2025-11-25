@@ -1,0 +1,85 @@
+coefficient_name,coefficient_name.1,value,constrain
+coef_HasChildren0to5_1day,HasChildren0to5,0.4920223606227393,F
+coef_HasChildren6to12_1day,HasChildren6to12,0.0,T
+coef_OneAdultInHH_1day,OneAdultInHH,1.4329397952661267,F
+coef_2plusAdultsInHH_1day,2plusAdultsInHH,1.003097959029197,F
+coef_Female_1day,Female,0.0,T
+coef_PartTimeWorker_1day,PartTimeWorker,0.0,T
+coef_CollegeStudent_1day,CollegeStudent,0.0,T
+coef_PaysToPark_1day,PaysToPark,0.0,T
+coef_Income60to100k_1day,Income60to100k,0.963750215149503,F
+coef_Income100to150k_1day,Income100to150k,1.4925431484026337,F
+coef_Income150to200k_1day,Income150to200kplus,1.2726334101562506,F
+coef_Income200kplus_1day,Income 200k+,1.7531954982611873,F
+coef_0Autos_1day,0Autos,-0.7982953043763924,F
+coef_1Auto_1day,1Auto,0.0,T
+coef_3plusAutos_1day,3plusAutos,0.0,T
+coef_DistanceToWork_1day,DistanceToWork,0.0,T
+coef_HasChildren0to5_23day,HasChildren0to5,0.0,T
+coef_HasChildren6to12_23day,HasChildren6to12,0.0,T
+coef_OneAdultInHH_23day,OneAdultInHH,0.47888682162242957,F
+coef_2plusAdultsInHH_23day,2plusAdultsInHH,0.0,T
+coef_Female_23day,Female,0.0,T
+coef_PartTimeWorker_23day,PartTimeWorker,-0.552951236506718,F
+coef_CollegeStudent_23day,CollegeStudent,0.0,T
+coef_PaysToPark_23day,PaysToPark,0.3192288878344207,F
+coef_Income60to100k_23day,Income60to100k,0.6719274460238981,F
+coef_Income100to150k_23day,Income100to150k,1.2545753797698984,F
+coef_Income150to200k_23day,Income150to200,1.4873302005081694,F
+coef_Income200kplus_23day,Income200kplus,1.7235081652637816,F
+coef_0Autos_23day,0Autos,0.0,T
+coef_1Auto_23day,1Auto,0.0,T
+coef_3plusAutos_23day,3plusAutos,0.0,T
+coef_DistanceToWork_23day,DistanceToWork,0.1726966832462066,F
+coef_HasChildren0to5_4day,HasChildren0to5,0.0,T
+coef_HasChildren6to12_4day,HasChildren6to12,0.0,T
+coef_OneAdultInHH_4day,OneAdultInHH,0.31608152307113263,F
+coef_2plusAdultsInHH_4day,2plusAdultsInHH,0.0,T
+coef_Female_4day,Female,0.0,T
+coef_PartTimeWorker_4day,PartTimeWorker,-0.5143283289057389,F
+coef_CollegeStudent_4day,CollegeStudent,0.0,T
+coef_PaysToPark_4day,PaysToPark,0.452296141565652,F
+coef_Income60to100k_4day,Income60to100k,0.46476417968737954,F
+coef_Income100to150k_4day,Income100to150k,1.043735396394056,F
+coef_Income150to200k_4day,Income150to200k,1.2509309335444254,F
+coef_Income200kplus_4day,Income200kplus,1.5345360902439564,F
+coef_0Autos_4day,0Autos,0.0,T
+coef_1Auto_4day,1Auto,0.0,T
+coef_3plusAutos_4day,3plusAutos,0.0,T
+coef_DistanceToWork_4day,DistanceToWork,-0.17373739763806972,F
+coef_WorkAGREMPNshare_1day,WorkAGREMPNshare,0.0,T
+coef_WorkAGREMPNshare_23day,WorkAGREMPNshare,0.0,T
+coef_WorkAGREMPNshare_4day,WorkAGREMPNshare,1.345704840079416,F
+coef_WorkFOOEMPNshare_1day,WorkFOOEMPNshare,0.0,T
+coef_WorkFOOEMPNshare_23day,WorkFOOEMPNshare,0.0,T
+coef_WorkFOOEMPNshare_4day,WorkFOOEMPNshare,0.0,T
+coef_WorkFPSEMPNshare_1day,WorkFPSEMPNshare,1.0254841695695023,F
+coef_WorkFPSEMPNshare_23day,WorkFPSEMPNshare,1.4792802953681203,F
+coef_WorkFPSEMPNshare_4day,WorkFPSEMPNshare,1.1860736296878496,F
+coef_WorkHEREMPNshare_1day,WorkHEREMPNshare,0.0,T
+coef_WorkHEREMPNshare_23day,WorkHEREMPNshare,0.0,T
+coef_WorkHEREMPNshare_4day,WorkHEREMPNshare,-0.46292755046529005,F
+coef_WorkMWTEMPNshare_1day,WorkMWTEMPNshare,1.0851652336101778,F
+coef_WorkMWTEMPNshare_23day,WorkMWTEMPNshare,0.0,T
+coef_WorkMWTEMPNshare_4day,WorkMWTEMPNshare,-0.7905796917184388,F
+coef_WorkOTHEMPNshare_1day,WorkOTHEMPNshare,0.0,T
+coef_WorkOTHEMPNshare_23day,WorkOTHEMPNshare,0.0,T
+coef_WorkOTHEMPNshare_4day,WorkOTHEMPNshare,0.0,T
+coef_WorkRETEMPNshare_1day,WorkRETEMPNshare,0.0,T
+coef_WorkRETEMPNshare_23day,WorkRETEMPNshare,0.0,T
+coef_WorkRETEMPNshare_4day,WorkRETEMPNshare,0.0,T
+coef_ASC_1_day,ASC,-5.0030434872773375,F
+coef_ASC_2_3_day,ASC,-4.329919012763963,F
+coef_ASC_4_day,ASC,-2.368898004664075,F
+coef_ShopMaintAcc_1day,shopping accessiblity,0.0,T
+coef_ShopMaint_23day,shopping accessiblity,0.0,T
+coef_ShopMaintAcc_4day,shopping accessiblity,0.0,T
+coef_MissingIncome_1day,missing income 1 day,1.1296586594215348,F
+coef_MissingIncome_23day,missing income 2or 3 day,0.8966649626444197,F
+coef_MissingIncome_4day,missing income 4 day,0.9350647666926678,F
+coef_Emp_Density_At_Work_1day,coef_Emp_Density_At_Work_1day,0.0,T
+coef_Emp_Density_At_Work_23day,coef_Emp_Density_At_Work_23day,0.13576661808553572,F
+coef_Emp_Density_At_Work_4day,coef_Emp_Density_At_Work_4day,0.0,T
+coef_ASC_KingCounty_1day,coef_ASC_KingCounty_1day,0.3929365472336989,F
+coef_ASC_KingCounty_23day,coef_ASC_KingCounty_23day,0.5385299015229511,F
+coef_ASC_KingCounty_4day,coef_ASC_KingCounty_4day,0.30347304145442155,F

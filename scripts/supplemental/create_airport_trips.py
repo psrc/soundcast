@@ -3,19 +3,30 @@ import numpy as np
 import os, sys
 import h5py
 from sqlalchemy import create_engine
+from tables import File
+
+from scripts.settings import run_args
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
 
 
-def load_skims(skim_file_loc, table, divide_by_100=False):
-    """Load H5 skim matrix for specified mode table and time period.
-    Allow format conversion from scaled integer to float."""
+def load_skims(state, skims_path, mode_name, tod, divide_by_100=False):
 
-    with h5py.File(skim_file_loc, "r") as f:
-        skim_file = f["Skims"][table][:]
-
+    if state.input_settings.abm_model == "activitysim":
+        # get TOD tag added to skim name
+        tod_name = state.network_settings.sound_cast_net_dict[tod]
+        mode_name = mode_name + f"__{tod_name}"
+        fname = f"Skims_{tod}.omx"
+        maindir = "full"
+    else:
+        fname = f"{tod}.h5"
+        maindir = "Skims"
+    """Loads H5 skim matrix for specified mode."""
+    with h5py.File(os.path.join(skims_path, fname), "r") as f:
+        skim_file = f[maindir][mode_name][:]
+    # Divide by 100 since decimals were removed in H5 source file through multiplication
     if divide_by_100:
-        return skim_file.astype(float) / 100.0
+        return skim_file.astype(float) / 100
     else:
         return skim_file
 
@@ -24,32 +35,47 @@ def load_skim_data(state):
     """Load cost, time, and distance skim data required for mode choice models."""
     skim_dict = {}
 
+    if state.input_settings.abm_model == "activitysim":
+        skims_path = run_args.args.data_dir
+        tod_tag = f"__"
+        divide_by_100 = False
+    else:
+        skims_path = "inputs/model/daysim/roster"
+        tod_tag = ""
+        divide_by_100 = True
+        
+
     # Skim for cost, time, and distance for all auto modes
     for skim_type in ["cost", "time", "distance"]:
         skim_dict[skim_type] = {}
         for mode in ["sov", "hov2", "hov3"]:
             # For auto skims, use the average of AM and PM peak periods
             skim_name = mode + "_inc2" + skim_type[0]
-            am_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
-                table=skim_name,
-                divide_by_100=True,
-            )
-            pm_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
-                table=skim_name,
-                divide_by_100=True,
-            )
+            am_skim = load_skims(state, skims_path, skim_name, state.emme_settings.am_skim_name, divide_by_100=divide_by_100)
+            pm_skim = load_skims(state, skims_path, skim_name, state.emme_settings.pm_skim_name, divide_by_100=divide_by_100)
+            # am_skim = load_skims(
+            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+            #     table=skim_name,
+            #     divide_by_100=True,
+            # )
+            # pm_skim = load_skims(
+            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+            #     table=skim_name,
+            #     divide_by_100=True,
+            # )
             skim_dict[skim_type][mode] = (am_skim + pm_skim) * 0.5
 
         # Get walk time skims
         if skim_type == "time":
             for mode in ["walk", "bike"]:
                 skim_dict["time"][mode] = load_skims(
-                    f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.walk_skim_name}.h5",
-                    table=mode + "t",
-                    divide_by_100=True,
+                    state, skims_path, mode + "t", state.emme_settings.walk_skim_name, divide_by_100
                 )
+                # skim_dict["time"][mode] = load_skims(
+                #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.walk_skim_name}.h5",
+                #     table=mode + "t",
+                #     divide_by_100=True,
+                # )
 
     # Skim for transit
     skim_dict["transit"] = {}
@@ -58,23 +84,32 @@ def load_skim_data(state):
         for submode in ["a", "r", "c", "p", "f"]:
             skim_name = skim + submode
             am_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
-                table=skim_name,
-                divide_by_100=True,
+                state, skims_path, skim_name, state.emme_settings.am_skim_name, divide_by_100
             )
             pm_skim = load_skims(
-                f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
-                table=skim_name,
-                divide_by_100=True,
+                state, skims_path, skim_name, state.emme_settings.pm_skim_name, divide_by_100
             )
+            # am_skim = load_skims(
+            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+            #     table=skim_name,
+            #     divide_by_100=True,
+            # )
+            # pm_skim = load_skims(
+            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+            #     table=skim_name,
+            #     divide_by_100=True,
+            # )
             skim_dict["transit"][skim_name] = (am_skim + pm_skim) * 0.5
     # Get transit fare skim
     for skim in ["mfafarps"]:
         skim_dict["transit"][skim] = load_skims(
-            f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.fare_skim_name}.h5",
-            table=skim,
-            divide_by_100=True,
+            state, skims_path, skim, state.emme_settings.fare_skim_name, divide_by_100
         )
+        # skim_dict["transit"][skim] = load_skims(
+        #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.fare_skim_name}.h5",
+        #     table=skim,
+        #     divide_by_100=True,
+        # )
 
     return skim_dict
 
@@ -235,7 +270,7 @@ def build_df(h5file, h5table, cols):
     return pd.DataFrame(data)
 
 
-def calculate_trips(daysim, parcel, control_total, state):
+def calculate_trips(hh_df, parcel, control_total, state):
     """Calculate total daily trips to Sea-Tac based on houeshold size and employment.
            Trips to the airport are estimated using the following formula, based on surveys
            from New Jersey and North Carolina, and as applied in Minneapolis
@@ -248,11 +283,10 @@ def calculate_trips(daysim, parcel, control_total, state):
 
     airport_trip_rate_pop = 0.02112
     airport_trip_rate_emp = 0.01486
+    
     # Zonal Population
-    cols = ["hhno", "hhsize", "hhtaz", "hhexpfac"]
-    daysim_df = build_df(h5file=daysim, h5table="Household", cols=cols)
-    taz_df = pd.DataFrame(daysim_df.groupby("hhtaz").sum()["hhsize"]).reset_index()
-    taz_df.rename(columns={"hhtaz": "TAZ"}, inplace=True)
+    taz_df = pd.DataFrame(hh_df.groupby("TAZ").sum()["hhsize"]).reset_index()
+    # taz_df.rename(columns={"hhtaz": "TAZ"}, inplace=True)
     # Multiply zonal population by the trip rate
     taz_df["airport_trips_pop"] = taz_df["hhsize"] * airport_trip_rate_pop
 
@@ -443,13 +477,20 @@ def main(state):
     mode_choice_to_h5(trip_purpose, mode_shares_dict, output_dir)
 
     # Create airport trip tables
-    daysim = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r+")
+    # Load synthetic population data
+    if state.input_settings.abm_model == "activitysim":
+        hh_df = pd.read_csv(os.path.join(run_args.args.data_dir, "households.csv"))
+        hh_df.rename(columns={'PERSONS': "hhsize"}, inplace=True)
+    else:
+        daysim = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r")
+        hh_df = build_df(h5file=daysim, h5table="Household", cols=["hhno", "hhsize", "hhtaz", "hhexpfac"])
+        hh_df.rename(columns={'hhtaz': "TAZ"}, inplace=True)
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql(
         "SELECT * FROM seatac WHERE year==" + str(state.input_settings.model_year), con=state.conn
     )["enplanements"].values[0]
-    airport_trips = calculate_trips(daysim, parcel, airport_control_total, state)
+    airport_trips = calculate_trips(hh_df, parcel, airport_control_total, state)
     demand_matrix = np.zeros((len(zone_lookup_dict), len(zone_lookup_dict)), np.float64)
     origin_index = [zone_lookup_dict[i] for i in airport_trips["TAZ"].values]
     destination_index = zone_lookup_dict[state.emme_settings.SEATAC]
@@ -466,7 +507,7 @@ def main(state):
     ixxi_non_work_store = h5py.File("outputs/supplemental/external_non_work.h5", "r")
     external_modes = ["sov", "hov2", "hov3"]
     ext_trip_table_dict = {}
-    ext_tod_dict = {}
+    
     # get non-work external trips
     for mode in external_modes:
         ext_trip_table_dict[mode] = np.nan_to_num(np.array(ixxi_non_work_store[mode]))

@@ -1,0 +1,4 @@
+Description,Target,Expression
+flag denoting proto person,is_proto_person,True
+setting work time factor to 1 for disaggregate accessibilities,time_factor_work,1
+setting non-work time factor to 1 for disaggregate accessibilities,time_factor_nonwork,1

@@ -10,7 +10,11 @@ def add_run_args(parser, multiprocess=True):
     )
 
     parser.add_argument(
-        "-a", "--output_dir", type=str, metavar="PATH", help="path to output dir"
+        "-o", "--output_dir", type=str, metavar="PATH", help="path to output dir"
+    )
+
+    parser.add_argument(
+        "-d", "--data_dir", type=str, metavar="PATH", help="path to data dir"
     )
 
     

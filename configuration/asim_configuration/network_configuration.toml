@@ -24,7 +24,7 @@ feedback_list = ['Banks/5to9/emmebank','Banks/15to18/emmebank']
 
 # Time of day periods
 tods = ['5to9', '9to15', '15to18', '18to20', '20to5']
-tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
+tod_networks = ['am', 'md', 'pm', 'ev', 'ea']
 #project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
 emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
