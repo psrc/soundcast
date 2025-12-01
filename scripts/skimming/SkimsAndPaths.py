@@ -1429,8 +1429,12 @@ def feedback_check(emmebank_path_list, emme_settings):
         # my_store = h5py.File(f"{state.model_input_dir}/roster/{tod}.h5", "r+")
         if state.input_settings.abm_model == "daysim":
             my_store = h5py.File(Path(f"{state.model_input_dir}/roster/{tod}.h5"), "r+")
+            skim_group = "Skims"
+            multiplier = 100
         elif state.input_settings.abm_model == "activitysim":
             my_store = h5py.File(os.path.join(run_args.args.data_dir, f"Skims_{tod}.omx"), "r+")
+            skim_group = "full"
+            multiplier = 1
         # put current time skims in numpy:
 
         for y in range(0, len(matrix_dict["Highway"])):
@@ -1449,8 +1453,10 @@ def feedback_check(emmebank_path_list, emme_settings):
 
                 # new skims
                 matrix_name = matrix_name + "t"
+                # if state.input_settings.abm_model == "activitysim":
+                #     matrix_name = matrix_name + f"__{state.network_settings.sound_cast_net_dict[tod]}"
                 matrix_value = emmeMatrix_to_numpyMatrix(
-                    matrix_name, my_bank, "float32", 100
+                    matrix_name, my_bank, "float32", multiplier
                 )
                 new_skim = np.where(
                     matrix_value > np.iinfo("uint16").max,
@@ -1459,7 +1465,10 @@ def feedback_check(emmebank_path_list, emme_settings):
                 )
 
                 # now old skims
-                old_skim = np.asmatrix(my_store.keys()[0][matrix_name])
+                h5_skim_name = matrix_name
+                if state.input_settings.abm_model == "activitysim":
+                    h5_skim_name = matrix_name + f"__{state.network_settings.sound_cast_net_dict[tod]}"
+                old_skim = np.asmatrix(my_store[skim_group][h5_skim_name])
 
                 change_test = np.sum(
                     np.multiply(np.absolute(new_skim - old_skim), trips)

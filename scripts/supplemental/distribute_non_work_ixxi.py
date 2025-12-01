@@ -5,30 +5,10 @@ import h5py
 import numpy as np
 import inro.emme.matrix as ematrix
 from settings import run_args
+from scripts.settings.data_wrangling import load_skims
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
-
-def load_skims(state, skims_path, mode_name, tod, divide_by_100=False):
-
-    if state.input_settings.abm_model == "activitysim":
-        # get TOD tag added to skim name
-        tod_name = state.network_settings.sound_cast_net_dict[tod]
-        mode_name = mode_name + f"__{tod_name}"
-        fname = f"Skims_{tod}.omx"
-        maindir = "full"
-    else:
-        fname = f"{tod}.h5"
-        maindir = "Skims"
-    """Loads H5 skim matrix for specified mode."""
-    with h5py.File(os.path.join(skims_path, fname), "r") as f:
-        skim_file = f[maindir][mode_name][:]
-    # Divide by 100 since decimals were removed in H5 source file through multiplication
-    if divide_by_100:
-        return skim_file.astype(float) / 100
-    else:
-        return skim_file
-
 
 def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup, state):
     """Calculate friction factors for all trip purposes"""

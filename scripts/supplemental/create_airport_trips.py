@@ -6,30 +6,9 @@ from sqlalchemy import create_engine
 from tables import File
 
 from scripts.settings import run_args
+from scripts.settings.data_wrangling import load_skims
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-
-
-def load_skims(state, skims_path, mode_name, tod, divide_by_100=False):
-
-    if state.input_settings.abm_model == "activitysim":
-        # get TOD tag added to skim name
-        tod_name = state.network_settings.sound_cast_net_dict[tod]
-        mode_name = mode_name + f"__{tod_name}"
-        fname = f"Skims_{tod}.omx"
-        maindir = "full"
-    else:
-        fname = f"{tod}.h5"
-        maindir = "Skims"
-    """Loads H5 skim matrix for specified mode."""
-    with h5py.File(os.path.join(skims_path, fname), "r") as f:
-        skim_file = f[maindir][mode_name][:]
-    # Divide by 100 since decimals were removed in H5 source file through multiplication
-    if divide_by_100:
-        return skim_file.astype(float) / 100
-    else:
-        return skim_file
-
 
 def load_skim_data(state):
     """Load cost, time, and distance skim data required for mode choice models."""
@@ -53,16 +32,7 @@ def load_skim_data(state):
             skim_name = mode + "_inc2" + skim_type[0]
             am_skim = load_skims(state, skims_path, skim_name, state.emme_settings.am_skim_name, divide_by_100=divide_by_100)
             pm_skim = load_skims(state, skims_path, skim_name, state.emme_settings.pm_skim_name, divide_by_100=divide_by_100)
-            # am_skim = load_skims(
-            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
-            #     table=skim_name,
-            #     divide_by_100=True,
-            # )
-            # pm_skim = load_skims(
-            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
-            #     table=skim_name,
-            #     divide_by_100=True,
-            # )
+
             skim_dict[skim_type][mode] = (am_skim + pm_skim) * 0.5
 
         # Get walk time skims
@@ -71,11 +41,6 @@ def load_skim_data(state):
                 skim_dict["time"][mode] = load_skims(
                     state, skims_path, mode + "t", state.emme_settings.walk_skim_name, divide_by_100
                 )
-                # skim_dict["time"][mode] = load_skims(
-                #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.walk_skim_name}.h5",
-                #     table=mode + "t",
-                #     divide_by_100=True,
-                # )
 
     # Skim for transit
     skim_dict["transit"] = {}
@@ -89,27 +54,12 @@ def load_skim_data(state):
             pm_skim = load_skims(
                 state, skims_path, skim_name, state.emme_settings.pm_skim_name, divide_by_100
             )
-            # am_skim = load_skims(
-            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
-            #     table=skim_name,
-            #     divide_by_100=True,
-            # )
-            # pm_skim = load_skims(
-            #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
-            #     table=skim_name,
-            #     divide_by_100=True,
-            # )
             skim_dict["transit"][skim_name] = (am_skim + pm_skim) * 0.5
     # Get transit fare skim
     for skim in ["mfafarps"]:
         skim_dict["transit"][skim] = load_skims(
             state, skims_path, skim, state.emme_settings.fare_skim_name, divide_by_100
         )
-        # skim_dict["transit"][skim] = load_skims(
-        #     f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.fare_skim_name}.h5",
-        #     table=skim,
-        #     divide_by_100=True,
-        # )
 
     return skim_dict
 
