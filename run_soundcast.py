@@ -206,7 +206,7 @@ def daysim_assignment(iteration):
                     run_args.args.data_dir,
                 ]
             )
-        logger.info("End of %s iteration of Daysim", str(iteration))
+        logger.info("End of %s iteration of ActivitySim", str(iteration))
         if returncode != 0:
             sys.exit(1)
 
@@ -242,17 +242,17 @@ def check_convergence(iteration):
 
 @data_wrangling.timed
 def run_all_summaries():
-    # daily_bank.main(state)
-    # network_summary.main(state)
+    daily_bank.main(state)
+    network_summary.main(state)
     # transit_summary.main(state)
     # emissions.main(state)
     # agg.main(state)
     # validation.main(state)
     # job_accessibility.main(state)
-    subprocess.run(
-        "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
-        shell=True,
-    )
+    # subprocess.run(
+    #     "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
+    #     shell=True,
+    # )
 
 
 def get_current_commit_hash():
@@ -418,7 +418,7 @@ def main():
                 print("System converged!")
                 break
             print(
-                "The system is not yet converged. Daysim and Assignment will be re-run."
+                "The system is not yet converged. ABM and assignment will be re-run."
             )
 
     # If building shadow prices, update work and school shadow prices

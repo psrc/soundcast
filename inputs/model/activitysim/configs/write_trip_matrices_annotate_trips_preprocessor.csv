@@ -1,0 +1,132 @@
+Description,Target,Expression
+# add additional fields,,
+,tour_participants,trips.tour_id.map(tours.number_of_participants)
+,_is_joint,(tour_participants > 1)
+,distance,od_skims['DIST']
+,_sample_rate,trips.household_id.map(households.sample_rate)
+,weightTrip,"np.where(trips.trip_mode == 'SHARED2FREE', tour_participants/OCC_SHARED2, np.where(trips.trip_mode == 'SHARED3FREE',tour_participants/OCC_SHARED3, np.where(trips.trip_mode == 'TAXI', tour_participants/OCC_TAXI,  np.where(trips.trip_mode == 'TNC_SINGLE', tour_participants/OCC_TNC_SINGLE, np.where(trips.trip_mode == 'TNC_SHARED', tour_participants/OCC_TNC_SHARED, np.where(trips.trip_mode.isin(['WALK','BIKE','EBIKE','ESCOOTER']), tour_participants, 1))))))/_sample_rate"
+,weightPersonTrip,tour_participants/_sample_rate
+# code time periods,,
+,is_ea,"(trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])) | (trips.depart > time_periods['EV']['last_hour'])"
+,is_am,"trips.depart.between(time_periods['AM']['first_hour'], time_periods['AM']['last_hour'])"
+,is_md,"trips.depart.between(time_periods['MD']['first_hour'], time_periods['MD']['last_hour'])"
+,is_pm,"trips.depart.between(time_periods['PM']['first_hour'], time_periods['PM']['last_hour'])"
+,is_ev,"trips.depart.between(time_periods['EV']['first_hour'], time_periods['EV']['last_hour'])"
+,_vot_bin_da,"np.where(trips.trip_mode.isin(['DRIVEALONEFREE']),np.where(trips.vot_da < vot_threshold_low, 1,np.where(trips.vot_da < vot_threshold_med, 2, 3)),0)"
+,_vot_bin_s2,"np.where(trips.trip_mode.isin(['SHARED2FREE','TAXI','TNC_SINGLE']),np.where(trips.vot_s2 < vot_threshold_low,1,np.where(trips.vot_s2 < vot_threshold_med, 2, 3)),0)"
+,_vot_bin_s3,"np.where(trips.trip_mode.isin(['SHARED3FREE','TNC_SHARED']),np.where(trips.vot_s3 < vot_threshold_low,1,np.where(trips.vot_s3 < vot_threshold_med, 2, 3)),0)"
+,vot1,"np.where((_vot_bin_da == 1) |( _vot_bin_s2 == 1) |( _vot_bin_s3 ==1),1,0)"
+,vot2,"np.where((_vot_bin_da == 2 )|( _vot_bin_s2 == 2) |( _vot_bin_s3 ==2),1,0)"
+,vot3,"np.where((_vot_bin_da == 3) | (_vot_bin_s2 == 3) | (_vot_bin_s3 ==3),1,0)"
+,outbound,trips.outbound
+,inbound,~trips.outbound
+# ea trips,,
+,sov_EA_1,((trips.trip_mode == 'DRIVEALONEFREE') & is_ea & vot1) * tour_participants
+,hov2_EA_1,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ea * vot1 * tour_participants
+,hov3_EA_1,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ea * vot1 * tour_participants
+,sov_EA_2,((trips.trip_mode == 'DRIVEALONEFREE') & is_ea & vot2) * tour_participants
+,hov2_EA_2,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ea * vot2 * tour_participants
+,hov3_EA_2,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ea * vot2 * tour_participants
+,sov_EA_3,((trips.trip_mode == 'DRIVEALONEFREE') & is_ea & vot3) * tour_participants
+,hov2_EA_3,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ea * vot3 * tour_participants
+,hov3_EA_3,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ea * vot3 * tour_participants
+,WALK_LOC_EA,((trips.trip_mode == 'WALK_LOC') & is_ea) * tour_participants
+,WALK_LR_EA,((trips.trip_mode == 'WALK_LR') & is_ea) * tour_participants
+,WALK_FRY_EA,((trips.trip_mode == 'WALK_FRY') & is_ea) * tour_participants
+,WALK_COM_EA,((trips.trip_mode == 'WALK_COM') & is_ea) * tour_participants
+,DRV_TRN_WLK_EA,((trips.trip_mode == 'DRIVE_TRN') & is_ea & trips.outbound) * tour_participants
+,WLK_TRN_DRV_EA,((trips.trip_mode == 'DRIVE_TRN') & is_ea & ~trips.outbound) * tour_participants
+,TNC_EA_1,((trips.trip_mode == 'TNC') & is_ea & vot1) * tour_participants
+,TNC_EA_2,((trips.trip_mode == 'TNC') & is_ea & vot2) * tour_participants
+,TNC_EA_3,((trips.trip_mode == 'TNC') & is_ea & vot3) * tour_participants
+,SCHOOL_BUS_EA,((trips.trip_mode == 'SCHOOL_BUS') & is_ea) * tour_participants
+,BIKE_EA,((trips.trip_mode == 'BIKE') & is_ea) * tour_participants
+,WALK_EA,((trips.trip_mode == 'WALK') & is_ea) * tour_participants
+# am trips,,
+,sov_AM_1,((trips.trip_mode == 'DRIVEALONEFREE') & is_am & vot1) * tour_participants
+,hov2_AM_1,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_am * vot1 * tour_participants
+,hov3_AM_1,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_am * vot1 * tour_participants
+,sov_AM_2,((trips.trip_mode == 'DRIVEALONEFREE') & is_am & vot2) * tour_participants
+,hov2_AM_2,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_am * vot2 * tour_participants
+,hov3_AM_2,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_am * vot2 * tour_participants
+,sov_AM_3,((trips.trip_mode == 'DRIVEALONEFREE') & is_am & vot3) * tour_participants
+,hov2_AM_3,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_am * vot3 * tour_participants
+,hov3_AM_3,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_am * vot3 * tour_participants
+,WALK_LOC_AM,((trips.trip_mode == 'WALK_LOC') & is_am) * tour_participants
+,WALK_LR_AM,((trips.trip_mode == 'WALK_LR') & is_am) * tour_participants
+,WALK_FRY_AM,((trips.trip_mode == 'WALK_FRY') & is_am) * tour_participants
+,WALK_COM_AM,((trips.trip_mode == 'WALK_COM') & is_am) * tour_participants
+,DRV_TRN_WLK_AM,((trips.trip_mode == 'DRIVE_TRN') & is_am & trips.outbound) * tour_participants
+,WLK_TRN_DRV_AM,((trips.trip_mode == 'DRIVE_TRN') & is_am & ~trips.outbound) * tour_participants
+,TNC_AM_1,((trips.trip_mode == 'TNC') & is_am & vot1) * tour_participants
+,TNC_AM_2,((trips.trip_mode == 'TNC') & is_am & vot2) * tour_participants
+,TNC_AM_3,((trips.trip_mode == 'TNC') & is_am & vot3) * tour_participants
+,SCHOOL_BUS_AM,((trips.trip_mode == 'SCHOOL_BUS') & is_am) * tour_participants
+,BIKE_AM,((trips.trip_mode == 'BIKE') & is_am) * tour_participants
+,WALK_AM,((trips.trip_mode == 'WALK') & is_am) * tour_participants
+# md trips,,
+,sov_MD_1,((trips.trip_mode == 'DRIVEALONEFREE') & is_md & vot1) * tour_participants
+,hov2_MD_1,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_md * vot1 * tour_participants
+,hov3_MD_1,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_md * vot1 * tour_participants
+,sov_MD_2,((trips.trip_mode == 'DRIVEALONEFREE') & is_md & vot2) * tour_participants
+,hov2_MD_2,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_md * vot2 * tour_participants
+,hov3_MD_2,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_md * vot2 * tour_participants
+,sov_MD_3,((trips.trip_mode == 'DRIVEALONEFREE') & is_md & vot3) * tour_participants
+,hov2_MD_3,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_md * vot3 * tour_participants
+,hov3_MD_3,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_md * vot3 * tour_participants
+,WALK_LOC_MD,((trips.trip_mode == 'WALK_LOC') & is_md) * tour_participants
+,WALK_LR_MD,((trips.trip_mode == 'WALK_LR') & is_md) * tour_participants
+,WALK_FRY_MD,((trips.trip_mode == 'WALK_FRY') & is_md) * tour_participants
+,WALK_COM_MD,((trips.trip_mode == 'WALK_COM') & is_md) * tour_participants
+,DRV_TRN_WLK_MD,((trips.trip_mode == 'DRIVE_TRN') & is_md & trips.outbound) * tour_participants
+,WLK_TRN_DRV_MD,((trips.trip_mode == 'DRIVE_TRN') & is_md & ~trips.outbound) * tour_participants
+,TNC_MD_1,((trips.trip_mode == 'TNC') & is_md & vot1) * tour_participants
+,TNC_MD_2,((trips.trip_mode == 'TNC') & is_md & vot2) * tour_participants
+,TNC_MD_3,((trips.trip_mode == 'TNC') & is_md & vot3) * tour_participants
+,SCHOOL_BUS_MD,((trips.trip_mode == 'SCHOOL_BUS') & is_md) * tour_participants
+,BIKE_MD,((trips.trip_mode == 'BIKE') & is_md) * tour_participants
+,WALK_MD,((trips.trip_mode == 'WALK') & is_md) * tour_participants
+# pm trips,,
+,sov_PM_1,((trips.trip_mode == 'DRIVEALONEFREE') & is_pm & vot1) * tour_participants
+,hov2_PM_1,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_pm * vot1 * tour_participants
+,hov3_PM_1,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_pm * vot1 * tour_participants
+,sov_PM_2,((trips.trip_mode == 'DRIVEALONEFREE') & is_pm & vot2) * tour_participants
+,hov2_PM_2,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_pm * vot2 * tour_participants
+,hov3_PM_2,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_pm * vot2 * tour_participants
+,sov_PM_3,((trips.trip_mode == 'DRIVEALONEFREE') & is_pm & vot3) * tour_participants
+,hov2_PM_3,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_pm * vot3 * tour_participants
+,hov3_PM_3,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_pm * vot3 * tour_participants
+,WALK_LOC_PM,((trips.trip_mode == 'WALK_LOC') & is_pm) * tour_participants
+,WALK_LR_PM,((trips.trip_mode == 'WALK_LR') & is_pm) * tour_participants
+,WALK_FRY_PM,((trips.trip_mode == 'WALK_FRY') & is_pm) * tour_participants
+,WALK_COM_PM,((trips.trip_mode == 'WALK_COM') & is_pm) * tour_participants
+,DRV_TRN_WLK_PM,((trips.trip_mode == 'DRIVE_TRN') & is_pm & trips.outbound) * tour_participants
+,WLK_TRN_DRV_PM,((trips.trip_mode == 'DRIVE_TRN') & is_pm & ~trips.outbound) * tour_participants
+,TNC_PM_1,((trips.trip_mode == 'TNC') & is_pm & vot1) * tour_participants
+,TNC_PM_2,((trips.trip_mode == 'TNC') & is_pm & vot2) * tour_participants
+,TNC_PM_3,((trips.trip_mode == 'TNC') & is_pm & vot3) * tour_participants
+,SCHOOL_BUS_PM,((trips.trip_mode == 'SCHOOL_BUS') & is_pm) * tour_participants
+,BIKE_PM,((trips.trip_mode == 'BIKE') & is_pm) * tour_participants
+,WALK_PM,((trips.trip_mode == 'WALK') & is_pm) * tour_participants
+# ev trips,,
+,sov_EV_1,((trips.trip_mode == 'DRIVEALONEFREE') & is_ev & vot1) * tour_participants
+,hov2_EV_1,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ev * vot1 * tour_participants
+,hov3_EV_1,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ev * vot1 * tour_participants
+,sov_EV_2,((trips.trip_mode == 'DRIVEALONEFREE') & is_ev & vot2) * tour_participants
+,hov2_EV_2,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ev * vot2 * tour_participants
+,hov3_EV_2,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ev * vot2 * tour_participants
+,sov_EV_3,((trips.trip_mode == 'DRIVEALONEFREE') & is_ev & vot3) * tour_participants
+,hov2_EV_3,(trips.trip_mode.isin(['SHARED2FREE'])/OCC_SHARED2)* is_ev * vot3 * tour_participants
+,hov3_EV_3,(trips.trip_mode.isin(['SHARED3FREE'])/OCC_SHARED3)* is_ev * vot3 * tour_participants
+,WALK_LOC_EV,((trips.trip_mode == 'WALK_LOC') & is_ev) * tour_participants
+,WALK_LR_EV,((trips.trip_mode == 'WALK_LR') & is_ev) * tour_participants
+,WALK_FRY_EV,((trips.trip_mode == 'WALK_FRY') & is_ev) * tour_participants
+,WALK_COM_EV,((trips.trip_mode == 'WALK_COM') & is_ev) * tour_participants
+,DRV_TRN_WLK_EV,((trips.trip_mode == 'DRIVE_TRN') & is_ev & trips.outbound) * tour_participants
+,WLK_TRN_DRV_EV,((trips.trip_mode == 'DRIVE_TRN') & is_ev & ~trips.outbound) * tour_participants
+,TNC_EV_1,((trips.trip_mode == 'TNC') & is_ev & vot1) * tour_participants
+,TNC_EV_2,((trips.trip_mode == 'TNC') & is_ev & vot2) * tour_participants
+,TNC_EV_3,((trips.trip_mode == 'TNC') & is_ev & vot3) * tour_participants
+,SCHOOL_BUS_EV,((trips.trip_mode == 'SCHOOL_BUS') & is_ev) * tour_participants
+,BIKE_EV,((trips.trip_mode == 'BIKE') & is_ev) * tour_participants
+,WALK_EV,((trips.trip_mode == 'WALK') & is_ev) * tour_participants
