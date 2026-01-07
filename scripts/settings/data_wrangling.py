@@ -90,7 +90,7 @@ def load_skims(state, skims_path, mode_name, tod, divide_by_100=False):
         tod_name = state.network_settings.sound_cast_net_dict[tod]
         mode_name = mode_name + f"__{tod_name}"
         fname = f"Skims_{tod}.omx"
-        maindir = "full"
+        maindir = "data"
     else:
         fname = f"{tod}.h5"
         maindir = "Skims"
