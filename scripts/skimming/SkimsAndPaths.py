@@ -790,7 +790,7 @@ def write_skims(state, matrix_data, h5_file, matrix_out_name, dtype, taz_indexes
         #             )
 
         # Write skims to OMX format for Activitysim with proper zone indexing
-        matrix_data = matrix_data[taz_indexes, :][:, taz_indexes]
+        # matrix_data = matrix_data[taz_indexes, :][:, taz_indexes]
         h5_file["data"].create_dataset(
                         matrix_out_name, 
                         data=matrix_data.astype(dtype), 
@@ -806,25 +806,19 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     # Activitysim skims need time of day period appended to matrix name
     if state.input_settings.abm_model == "activitysim":
         tod_tag = f"__{state.network_settings.sound_cast_net_dict[my_project.tod]}"
-        # skim_dir_name = "full"
         skim_dir_name = "data"
         dtype = "float32"    # always export as float
         scale_value = 1    # no scaling for factors used for activitysim
         cost_scale_value = 0.01   # cost inputs are in cents, convert to dollars for activitysim
-        # skim_group_list = ["full", "data"]
-        skim_group_list = ["data"]
     else:
         tod_tag = ""
         skim_dir_name = "Skims"
         dtype = "uint16"    # export as integer by default
         scale_value = 100   #  multiply values to store efficiently
         cost_scale_value = 1    # no scaling for cost values
-        skim_group_list = [skim_dir_name]
     # Get TAZ indeces for Activitysim
     if state.input_settings.abm_model == "activitysim":
         taz = pd.read_csv(os.path.join(run_args.args.data_dir, "taz.csv")).sort_values('TAZ')
-        # land_use = pd.read_csv(os.path.join(run_args.args.data_dir, "land_use.csv")).sort_values('TAZ')
-        # taz = taz[taz["TAZ"].isin(land_use.TAZ)]
         integerize_id_columns(taz, 'taz')
         taz.index = taz.TAZ - 1
         taz_indexes = taz.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
@@ -838,20 +832,18 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     # if averaging, load old skims in dictionary of numpy matrices
     # Use full set of skims for averaging; results will trimmed and exported as needed
-
     if average_skims:
         np_old_matrices = {}
         for key in my_store[skim_dir_name].keys():
             np_matrix = my_store[skim_dir_name][key]
             np_matrix = np.matrix(np_matrix)
             np_old_matrices[str(key)] = np_matrix
-    
-    for group in skim_group_list:
-        if group in my_store:
-            del my_store[group]
-            my_store.create_group(group)
-        else:
-            my_store.create_group(group)
+
+    if skim_dir_name in my_store:
+        del my_store[skim_dir_name]
+        my_store.create_group(skim_dir_name)
+    else:
+        my_store.create_group(skim_dir_name)
 
     # Load in the necessary Dictionaries
     matrix_dict = json_to_dictionary("user_classes", state.model_input_dir)
@@ -1420,7 +1412,6 @@ def matrix_controlled_rounding(my_project):
     matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir)
     uniqueMatrices = set(matrix_dict.values())
 
-    NAMESPACE = "inro.emme.matrix_calculation.matrix_controlled_rounding"
     for matrix_name in uniqueMatrices:
         matrix_id = my_project.bank.matrix(matrix_name).id
         result = my_project.matrix_calculator(
@@ -1433,7 +1424,7 @@ def matrix_controlled_rounding(my_project):
             controlled_rounding = my_project.m.tool(
                 "inro.emme.matrix_calculation.matrix_controlled_rounding"
             )
-            report = controlled_rounding(
+            controlled_rounding(
                 demand_to_round=matrix_id,
                 rounded_demand=matrix_id,
                 min_demand=0.1,
@@ -1667,7 +1658,7 @@ def feedback_check(emmebank_path_list, emme_settings):
             multiplier = 100
         elif state.input_settings.abm_model == "activitysim":
             my_store = h5py.File(os.path.join(run_args.args.data_dir, f"Skims_{tod}.omx"), "r+")
-            skim_group = "full"
+            skim_group = "data"
             multiplier = 1
         # put current time skims in numpy:
 
@@ -2042,22 +2033,23 @@ def load_asim_trip_matrices(state, my_project):
         demand_matrices.update({matrix_name: demand_matrix})
 
     # Trips from Activitysim are only for internal zones
-    # We need the zone system to match the full externals and park and ride zones
-    # The TAZ index is also unordered, so we need to import using Emme
+    # Reformat to full zone system for Emme and store as an OMX file
+    # Use Emme's import_from_omx tool to read in the full matrix with correct zone ordering
     trips_omx = omx.open_file(os.path.join(run_args.args.output_dir, f"{my_project.tod}.omx"), "r")
-    new_omx_filename = f"full_{my_project.tod}.omx"
+    new_omx_filename = os.path.join(run_args.args.output_dir, f"full_{my_project.tod}.omx")
     new_omx = omx.open_file(new_omx_filename,'w') 
     
+    # Create an empty matrix for all zones (internal + external and park and ride)
     for table_name in trips_omx.list_matrices():
         # Create an empty matrix with full size
         table = trips_omx[table_name][:].copy()
         new_array = np.zeros([zonesDim, zonesDim], dtype=table.dtype)
 
-        # Fill activitysim results with internal zone data
+        # Fill empty matrix with internal zone trips
         new_array[:table.shape[0], :table.shape[1]] = table[:] 
         new_omx[table_name] = new_array
 
-    # Update mapping using existing (unsorted) mapping appended with any missing zones as zero values
+    # Append (unsorted) TAZ mapping with any missing zones
     activitysim_mapping = list(trips_omx.mapping("TAZ").keys())
     new_mapping = activitysim_mapping + [zone for zone in zones if zone not in activitysim_mapping]
     new_omx.create_mapping('TAZ', new_mapping)
@@ -2080,27 +2072,6 @@ def load_asim_trip_matrices(state, my_project):
         scenario=my_project.current_scenario,
         zone_mapping="TAZ"
     )
-
-
-    # Read the Matrix File from the Dictionary File and Set Unique Matrix Names
-    matrix_dict = text_to_dictionary(
-        "demand_matrix_dictionary",
-        state.model_input_dir,
-    )
-    uniqueMatrices = set(matrix_dict.values())
-    # Add pnr_demand to list since it is not included in demand_matrix_dictionary
-    uniqueMatrices.add("pnr_demand_access")
-    uniqueMatrices.add("pnr_demand_egress")
-
-    # write matrices to emme
-    for mat_name in uniqueMatrices:
-        matrix_id = my_project.bank.matrix(str(mat_name)).id
-        np_array = demand_matrices[mat_name]
-        emme_matrix = ematrix.MatrixData(indices=[zones, zones], type="f")
-        emme_matrix.from_numpy(np_array)
-        my_project.bank.matrix(matrix_id).set_data(
-            emme_matrix, my_project.current_scenario
-        )
 
 def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
     user_classes = create_user_class_dict(
@@ -2313,7 +2284,7 @@ def run(free_flow_skims=False, num_iterations=100):
     else:
         run_assignments_parallel("projects/5to9/5to9.emp", free_flow_skims, num_iterations)
 
-    ### calculate link daily volumes for use in bike model
+    ## calculate link daily volumes for use in bike model
 
     daily_link_df = pd.DataFrame()
     for _df in pool_list[0]:
@@ -2321,11 +2292,11 @@ def run(free_flow_skims=False, num_iterations=100):
         grouped = daily_link_df.groupby(["link_id"])
     daily_link_df = grouped.agg({"@tveh": "sum", "length": "min", "modes": "min"})
     daily_link_df.reset_index(level=0, inplace=True)
-    daily_link_df.to_csv(r"outputs\bike\daily_link_volume.csv")
+    daily_link_df.to_csv("outputs/bike/daily_link_volume.csv")
     start_transit_pool(project_list)
     # # run_transit(r'projects/20to5/20to5.emp')
 
-    daily_link_df = pd.read_csv(r'outputs\bike\daily_link_volume.csv')
+    daily_link_df = pd.read_csv("outputs/bike/daily_link_volume.csv")
     start_bike_pool(project_list, daily_link_df)
     # # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
@@ -2349,7 +2320,7 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, state.emme_settings.parallel_instances):
         l = project_list[i : i + state.emme_settings.parallel_instances]
         export_to_hdf5_pool(l, free_flow_skims)
-    # average_skims_to_hdf5_concurrent(EmmeProject("projects/5to9/5to9.emp", state.model_input_dir), True)
+    # average_skims_to_hdf5_concurrent(EmmeProject("projects/5to9/5to9.emp", state.model_input_dir), False)
 
     f.close()
     end_of_run = time.time()
