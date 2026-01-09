@@ -40,6 +40,7 @@ from scripts.supplemental import create_airport_trips
 from scripts.trucks import truck_model
 from scripts.utils import update_parking
 from scripts.utils import urbansim_skims
+from scripts.summarize.create_quarto_notebooks import create_quarto_notebooks
 from scripts.summarize.standard import (
     daily_bank,
     network_summary,
@@ -222,10 +223,13 @@ def run_all_summaries():
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)
-    subprocess.run(
-        "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
-        shell=True,
-    )
+
+    create_quarto_notebooks(state.input_settings.abm_model, state.summary_settings)
+
+    # subprocess.run(
+    #     "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
+    #     shell=True,
+    # )
 
 
 def get_current_commit_hash():

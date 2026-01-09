@@ -1,104 +1,131 @@
 import os, sys, shutil, time
 from pathlib import Path
 import toml
+import papermill as pm
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-config = toml.load(Path.cwd() / "configuration/summary_configuration.toml")
-valid_config = toml.load(Path.cwd() / "configuration/validation_configuration.toml")
+# def run_ipynb(sheet_name, nb_folder: Path):
+#     """Execute a Jupyter notebook using papermill."""
 
-# run notebooks
-run_comparison = config['run_run_comparison']
-run_RTP_summary = config['run_RTP_summary']
-run_network_validation = valid_config['run_network_validation']
-run_validation = valid_config['run_validation']
+#     print(f"Start executing {sheet_name}")
+#     start_time = time.time()
+#     nb_path = nb_folder / f"{sheet_name}.ipynb"
+
+#     pm.execute_notebook(
+#         str(nb_path),
+#         str(nb_path),  # Output to same file
+#         kernel_name=None,
+#         execution_timeout=1500,
+#         cwd=str(nb_folder)
+#     )
+
+#     end_time = time.time()
+#     print(f"Successfully executed {sheet_name} in {end_time - start_time:.1f} seconds")
 
 
 def run_ipynb(sheet_name, nb_path):
     start_time = time.time()
+    
     print("creating " + sheet_name + " page")
-    with open(Path(nb_path) / (sheet_name + ".ipynb")) as f:
+    with open(nb_path / (sheet_name + ".ipynb")) as f:
         nb = nbformat.read(f, as_version=4)
         if sys.version_info > (3, 0):
             py_version = "python3"
         else:
             py_version = "python2"
         ep = ExecutePreprocessor(timeout=1500, kernel_name=py_version)
-        ep.preprocess(nb, {"metadata": {"path": Path(nb_path)}})
-        with open(Path(nb_path) / (sheet_name + ".ipynb"), "wt") as f:
+        ep.preprocess(nb, {"metadata": {"path": nb_path}})
+        with open(nb_path / (sheet_name + ".ipynb"), "wt") as f:
             nbformat.write(nb, f)
     end_time = time.time()
     print(f"Time taken to create {sheet_name} page: {end_time - start_time:.1f} seconds")
 
 
-def create_quarto_notebook(notebook_name, summary_list, scripts_dir, output_folder):
+def render_quarto(
+    notebook_name, 
+    nb_list, 
+    scripts_dir: Path, 
+    output_summary_folder: Path
+    ):
 
-    for sheet_name in summary_list:
-        run_ipynb(sheet_name, scripts_dir + "/summary_scripts")
+    for sheet_name in nb_list:
+        run_ipynb(sheet_name, scripts_dir/ "nb")
 
     # render quarto book
-    # TODO: automate _quarto.yml chapter list
-    text = "quarto render " + scripts_dir
+    text = "quarto render " + str(scripts_dir)
     os.system(text)
     print(notebook_name + " created")
 
+    # create output folder if not exist
+    output_summary_folder.mkdir(parents=True, exist_ok=True)
+    # move notebook to output folder
     # Try to remove existing data first
-    output_dir = Path.cwd() / output_folder / notebook_name
-    if os.path.exists(output_dir):
+    output_dir = output_summary_folder / notebook_name
+    if output_dir.exists():
         shutil.rmtree(output_dir)
-    # Move these files to output folder
-    if not os.path.exists(Path.cwd() / output_folder):
-        os.makedirs(Path.cwd() / output_folder)
-    shutil.move(Path.cwd() / scripts_dir / notebook_name, output_dir)
+    shutil.move(scripts_dir / notebook_name, output_dir)
 
-def main():
 
-    # create summary notebook
-    if run_comparison:
-        create_quarto_notebook(notebook_name = "run-comparison-notebook",
-                            summary_list = config["summary_list"],
-                            scripts_dir = "scripts/summarize/summary",
-                            output_folder = config["p_output_dir"]) 
+def create_quarto_notebooks(abm_model, summary_settings):
+
+    # run notebooks
+    run_RTP_summary = summary_settings.run_RTP_summary
+    run_validation = summary_settings.run_validation
+    run_network_validation = summary_settings.run_network_validation
+    run_comparison = summary_settings.run_run_comparison
+
+    output_path = Path.cwd()/ summary_settings.p_output_dir
+
         
     # create RTP summary notebook
     if run_RTP_summary:
-        create_quarto_notebook(notebook_name = "RTP-summary-notebook",
-                            summary_list = config["RTP_summary_list"],
-                            scripts_dir = "scripts/summarize/RTP_summary",
-                            output_folder = config["p_output_dir"])
-
-    # create network validation notebook
-    if run_network_validation:
-        create_quarto_notebook(notebook_name = "network-validation-notebook",
-                            summary_list = valid_config["network_summary_list"],
-                            scripts_dir = "scripts/summarize/validation_network",
-                            output_folder = valid_config["p_output_dir"])
+        render_quarto(notebook_name = "RTP-summary-notebook",
+                            nb_list = summary_settings.rtp_summary_list,
+                            scripts_dir = Path.cwd()/ "scripts/summarize/RTP_summary",
+                            output_summary_folder = output_path)
     
     # create validation notebook
     if run_validation:
-        create_quarto_notebook(notebook_name = "validation-notebook",
-                            summary_list = valid_config["summary_list"],
-                            scripts_dir = "scripts/summarize/validation",
-                            output_folder = valid_config["p_output_dir"])
+        
+        if abm_model == "daysim":
+            validation_nb_list = summary_settings.validation_list_daysim
+        elif abm_model == "activitysim":
+            validation_nb_list = summary_settings.validation_list_activitysim
 
-        # separate notebook for telecommute analysis
-        if "../telecommute_analysis/telecommute_analysis" in valid_config["summary_list"]:
-            # Try to remove existing data first
-            telecommute_analysis_output_dir = Path.cwd() / valid_config["p_output_dir"] / "telecommute-analysis-notebook"
-            if os.path.exists(telecommute_analysis_output_dir):
-                shutil.rmtree(telecommute_analysis_output_dir)
+        render_quarto(notebook_name = f"{abm_model}-validation-notebook",
+                            nb_list = validation_nb_list,
+                            scripts_dir = Path.cwd()/ f"scripts/summarize/validation_{abm_model}",
+                            output_summary_folder = output_path)
 
-            text = "quarto render scripts/summarize/validation/telecommute_analysis"
-            os.system(text)
-            print("telecommute analysis notebook created")
+    # create network validation notebook
+    if run_network_validation:
+        render_quarto(notebook_name = "network-validation-notebook",
+                            nb_list = summary_settings.network_validation_list,
+                            scripts_dir = Path.cwd()/ "scripts/summarize/validation_network",
+                            output_summary_folder = output_path)
+                            
+    # create comparison notebook
+    if run_comparison:
+        render_quarto(notebook_name = "run-comparison-notebook",
+                            nb_list = summary_settings.comparison_summary_list,
+                            scripts_dir = Path.cwd()/ "scripts/summarize/run_comparison",
+                            output_summary_folder = output_path) 
 
-            # Move these files to output folder
-            if not os.path.exists(Path.cwd() / valid_config["p_output_dir"]):
-                os.makedirs(Path.cwd() / valid_config["p_output_dir"])
-            shutil.move(
-                Path.cwd() / "scripts/summarize/validation/telecommute-analysis-notebook",
-                telecommute_analysis_output_dir,
-            )
 
 if __name__ == "__main__":
-    main()
+    
+    sys.path.append(os.getcwd())
+    from scripts.settings.state import InputSettings, SummarySettings
+
+    
+    config = toml.load(Path.cwd() / "configuration/input_configuration.toml")
+    summary_config = toml.load(
+        Path.cwd() / "configuration/summary_configuration.toml"
+    )
+
+    input_settings = InputSettings(**config)
+    summary_settings = SummarySettings(**summary_config)
+
+    create_quarto_notebooks(input_settings.abm_model, summary_settings)
+    

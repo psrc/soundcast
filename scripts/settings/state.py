@@ -4,7 +4,6 @@ import typing
 from pathlib import Path
 import toml
 import typing
-import settings.run_args
 import sys
 import os
 from sqlalchemy import create_engine
@@ -12,7 +11,8 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-from emme_project import EmmeProject
+# from emme_project import EmmeProject # moved to create_main_project function to aviod error when running summary
+# import settings.run_args
 
 # from typing_extensions import Literal
 
@@ -309,6 +309,41 @@ class NetworkSettings(BaseModel):
 
 
 class SummarySettings(BaseModel):
+    #################################
+    # Summary Comparisons
+    #################################
+    run_run_comparison: bool
+    run_RTP_summary: bool
+    run_validation: bool
+    run_network_validation: bool
+    # run_telecommute_analysis: bool
+    #################################
+    # Run Summary Notebooks
+    #################################
+    rtp_summary_list: list
+    validation_list_daysim: list
+    validation_list_activitysim: list
+    network_validation_list: list
+    comparison_summary_list: list
+    #################################
+    # Reletive Paths
+    #################################
+    p_output_dir: str
+    output_folder: str
+    survey_folder: str
+    uncloned_folder: str
+    #################################
+    # model results
+    #################################
+    sc_run_name: str
+    sc_run_path: str
+    # all survey sources to be indluded in validation
+    survey_directories: dict
+    # add comparison run directories
+    comparison_runs_list: dict
+    #################################
+    # Other Data
+    #################################
     county_map: dict
     uc_list: list
     agency_lookup: dict
@@ -344,6 +379,8 @@ class State:
         self.conn = self.sqlite_connect()
 
     def create_main_project(self):
+
+        from emme_project import EmmeProject
         self.main_project = EmmeProject(self.main_project_path, self.model_input_dir)
 
     def name_from_main_project_path(self):
