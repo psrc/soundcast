@@ -110,11 +110,6 @@ def get_transit_skim_data(state):
         "ndbwa": "ndbwa",
         "xfrwa": "xfrwa",
         "auxwa": "auxwa",
-        "ivtwr": "ivtwr",
-        "iwtwr": "iwtwr",
-        "ndbwr": "ndbwr",
-        "xfrwr": "xfrwr",
-        "auxwr": "auxwr",
         "farwa": "mfafarps",
         "farbx": "mfafarbx",
     }
@@ -138,16 +133,16 @@ def get_transit_skim_data(state):
 
 
 def get_total_transit_time(tod, state):
-    rail_component_list = ["ivtwr", "auxwr", "iwtwr", "xfrwr"]
+    #rail_component_list = ["ivtwr", "auxwr", "iwtwr", "xfrwr"]
     bus_component_list = ["ivtwa", "auxwa", "iwtwa", "xfrwa"]
-    rail_skims = {}
+    #rail_skims = {}
     bus_skims = {}
-    for component in rail_component_list:
-        rail_skims[component] = load_skims(
-            f"inputs/model/{state.input_settings.abm_model}/roster/{tod}.h5",
-            mode_name=component,
-            divide_by_100=True,
-        )
+    # for component in rail_component_list:
+    #     rail_skims[component] = load_skims(
+    #         f"inputs/model/{state.input_settings.abm_model}/roster/{tod}.h5",
+    #         mode_name=component,
+    #         divide_by_100=True,
+    #     )
     for component in bus_component_list:
         bus_skims[component] = load_skims(
             f"inputs/model/{state.input_settings.abm_model}/roster/{tod}.h5",
@@ -155,11 +150,11 @@ def get_total_transit_time(tod, state):
             divide_by_100=True,
         )
 
-    rail = sum(rail_skims.values())
+    #rail = sum(rail_skims.values())
     bus = sum(bus_skims.values())
-    bus[rail <= bus] = 0
-    rail[bus < rail] = 0
-    return bus + rail
+    #bus[rail <= bus] = 0
+    #rail[bus < rail] = 0
+    return bus 
 
 
 def get_total_sov_trips(tod_list, zones):
@@ -225,7 +220,6 @@ def calculate_log_sums(trip_purpose, mode_utilities_dict):
         + mode_utilities_dict["eus2"]
         + mode_utilities_dict["eus3"]
         + mode_utilities_dict["eutw"]
-        + mode_utilities_dict["eurw"]
         + mode_utilities_dict["eubk"]
         + mode_utilities_dict["euwk"]
     )
@@ -321,25 +315,25 @@ def calculate_mode_utilties(
     utility_matrices["eutw"][:, zone_start_constraint:] = 0
 
     # Calculate Walk to Light Rail Utility
-    utility_matrices["eurw"] = np.exp(
-        parameters_dict[trip_purpose]["ascctw"]
-        + parameters_dict[trip_purpose]["trwivt"] * transit_skim_dict["ivtwr"]
-        + parameters_dict[trip_purpose]["trwovt"]
-        * (
-            transit_skim_dict["auxwr"]
-            + transit_skim_dict["iwtwr"]
-            + transit_skim_dict["xfrwr"]
-        )
-        + parameters_dict[trip_purpose]["trwcos"] * transit_skim_dict["farwa"]
-    )
+    # utility_matrices["eurw"] = np.exp(
+    #     parameters_dict[trip_purpose]["ascctw"]
+    #     + parameters_dict[trip_purpose]["trwivt"] * transit_skim_dict["ivtwr"]
+    #     + parameters_dict[trip_purpose]["trwovt"]
+    #     * (
+    #         transit_skim_dict["auxwr"]
+    #         + transit_skim_dict["iwtwr"]
+    #         + transit_skim_dict["xfrwr"]
+    #     )
+    #     + parameters_dict[trip_purpose]["trwcos"] * transit_skim_dict["farwa"]
+    # )
     # rows, cols includes internal, excludes extermal, p&rs (no walk, transit to external stations)
     zone_start_constraint = zone_lookup_dict[3733]
-    utility_matrices["eurw"][zone_start_constraint:] = 0
-    utility_matrices["eurw"][:, zone_start_constraint:] = 0
+    #utility_matrices["eurw"][zone_start_constraint:] = 0
+    #utility_matrices["eurw"][:, zone_start_constraint:] = 0
 
     # keep best utility between regular transit and light rail. Give to light rail if there is a tie.
-    utility_matrices["eutw"][utility_matrices["eurw"] >= utility_matrices["eutw"]] = 0
-    utility_matrices["eurw"][utility_matrices["eutw"] > utility_matrices["eurw"]] = 0
+    #utility_matrices["eutw"][utility_matrices["eurw"] >= utility_matrices["eutw"]] = 0
+    #utility_matrices["eurw"][utility_matrices["eutw"] > utility_matrices["eurw"]] = 0
 
     # Calculate Walk Utility
     utility_matrices["euwk"] = np.exp(
