@@ -375,9 +375,7 @@ def generate_state(configs_dir):
         config = toml.load(configs_dir / "input_configuration.toml")
         emme_config = toml.load(configs_dir / "emme_configuration.toml")
         network_config = toml.load(configs_dir / "network_configuration.toml")
-        summary_config = toml.load(
-            Path.cwd() / "configuration/summary_configuration.toml"
-        )
+        summary_config = toml.load(configs_dir / "summary_configuration.toml")
 
     input_settings = InputSettings(**config)
     emme_settings = EmmeSettings(**emme_config)

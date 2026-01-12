@@ -5,12 +5,8 @@ run_network_validation = true
 ################################################################
 # run validation notebooks
 ################################################################
-network_summary_list = ['JBLM',
-                        'supplementals',
-                        'transit_validation',
-                        'traffic_validation',
-                        'bike_validation',
-                        'link_analysis'
+network_summary_list = ['traffic_validation',
+                        'transit_validation'
                         ]
 summary_list = [
                 'all_tour_mode',

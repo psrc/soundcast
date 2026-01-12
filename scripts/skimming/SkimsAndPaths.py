@@ -2011,13 +2011,14 @@ def load_asim_trip_matrices(state, my_project):
 
     demand_matrices = {}
 
-    for matrix_name in ["medium_truck", "heavy_truck", "delivery_truck"]:
+    # Load truck trips to memory
+    truck_matrix_list = ["medium_truck", "heavy_truck", "delivery_truck"]
+    for matrix_name in truck_matrix_list:
         demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})
 
-    # Load in supplemental trips
-    # We're assuming all trips are only for Income Class 2
-    for matrix_name in [
+    # Load supplemental trips to memory, add to any demand exported from ActivitySim
+    supplemental_matrix_list = [
         "sov_inc2",
         "hov2_inc2",
         "hov3_inc2",
@@ -2028,7 +2029,9 @@ def load_asim_trip_matrices(state, my_project):
         "passenger_ferry",
         "ferry",
         "commuter_rail",
-    ]:
+    ]
+    # We're assuming all trips are only for Income Class 2
+    for matrix_name in supplemental_matrix_list:
         demand_matrix = load_supplemental_trips(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})
 
@@ -2073,6 +2076,25 @@ def load_asim_trip_matrices(state, my_project):
         zone_mapping="TAZ"
     )
 
+    # Use list of demand matrices to import relevant trip data
+    matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir)
+    uniqueMatrices = set(matrix_dict.values())
+
+    # Load supplemental and truck matrices into Emme
+    export_matrix_list = truck_matrix_list + supplemental_matrix_list
+    for matrix_name in export_matrix_list:
+        if matrix_name in uniqueMatrices:
+            matrix_id = my_project.bank.matrix(str(matrix_name)).id
+            matrix_value = emmeMatrix_to_numpyMatrix(
+                    matrix_name, my_project.bank, "float32", 1, 99999
+                )
+            updated_matrix_value = demand_matrices[matrix_name] + matrix_value
+            emme_matrix = ematrix.MatrixData(indices=[zones, zones], type="f")
+            emme_matrix.from_numpy(updated_matrix_value)
+            my_project.bank.matrix(matrix_id).set_data(
+                emme_matrix, my_project.current_scenario
+            )
+
 def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
     user_classes = create_user_class_dict(
         json_to_dictionary("user_classes", state.model_input_dir)
@@ -2082,6 +2104,7 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
 
     my_project = EmmeProject(project_name, state.model_input_dir)
     tod_parameters = TOD_Parameters(state.network_settings, my_project.tod)
+
 
     # Delete and create new demand and skim matrices:
     for matrix_type in ["FULL", "ORIGIN", "DESTINATION"]:

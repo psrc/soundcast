@@ -498,223 +498,223 @@ def main(state):
     # ACS Comparisons
     ########################################
 
-    # Auto Ownership
-    df_obs = pd.read_sql(
-        "SELECT * FROM observed_auto_ownership_acs_block_group WHERE year="
-        + str(state.input_settings.model_year),
-        con=state.conn,
-    )
-    if int(state.input_settings.base_year) < 2020:
-        geocol = "GEOID10"
-    else:
-        geocol = "GEOID20"
-    df_obs[geocol] = df_obs[geocol].astype("int64")
-    df_obs.index = df_obs[geocol]
-    df_obs.rename(
-        columns={
-            "cars_none_control": 0,
-            "cars_one_control": 1,
-            "cars_two_or_more_control": 2,
-        },
-        inplace=True,
-    )
-    df_obs = df_obs[[0, 1, 2]]
-    df_obs_sum = df_obs.sum()
-    df_obs_sum = pd.DataFrame(df_obs_sum, columns=["census"])
-    df_obs = df_obs.unstack().reset_index()
-    df_obs.rename(columns={"level_0": "hhvehs", 0: "census"}, inplace=True)
+    # # Auto Ownership
+    # df_obs = pd.read_sql(
+    #     "SELECT * FROM observed_auto_ownership_acs_block_group WHERE year="
+    #     + str(state.input_settings.model_year),
+    #     con=state.conn,
+    # )
+    # if int(state.input_settings.base_year) < 2020:
+    #     geocol = "GEOID10"
+    # else:
+    #     geocol = "GEOID20"
+    # df_obs[geocol] = df_obs[geocol].astype("int64")
+    # df_obs.index = df_obs[geocol]
+    # df_obs.rename(
+    #     columns={
+    #         "cars_none_control": 0,
+    #         "cars_one_control": 1,
+    #         "cars_two_or_more_control": 2,
+    #     },
+    #     inplace=True,
+    # )
+    # df_obs = df_obs[[0, 1, 2]]
+    # df_obs_sum = df_obs.sum()
+    # df_obs_sum = pd.DataFrame(df_obs_sum, columns=["census"])
+    # df_obs = df_obs.unstack().reset_index()
+    # df_obs.rename(columns={"level_0": "hhvehs", 0: "census"}, inplace=True)
 
-    df_model = pd.read_csv(r"outputs\agg\census\auto_ownership_block_group.csv")
-    # Record categories to max of 2+
-    df_model.loc[df_model["hhvehs"] >= 2, "hhvehs"] = 2
-    df_model = (
-        df_model.groupby(["hhvehs", "hh_block_group"]).sum()[["hhexpfac"]].reset_index()
-    )
-    df_model["hhvehs"] = df_model["hhvehs"].astype("int")
+    # df_model = pd.read_csv(r"outputs\agg\census\auto_ownership_block_group.csv")
+    # # Record categories to max of 2+
+    # df_model.loc[df_model["hhvehs"] >= 2, "hhvehs"] = 2
+    # df_model = (
+    #     df_model.groupby(["hhvehs", "hh_block_group"]).sum()[["hhexpfac"]].reset_index()
+    # )
+    # df_model["hhvehs"] = df_model["hhvehs"].astype("int")
 
-    df_model_sum = df_model.pivot_table(
-        index="hh_block_group", columns="hhvehs", aggfunc="sum", values="hhexpfac"
-    )
-    df_model_sum = df_model_sum.fillna(0)
-    df_model_sum = df_model_sum.sum()
-    df_model_sum = pd.DataFrame(df_model_sum.reset_index(drop=True), columns=["model"])
-    df_sum = df_obs_sum.merge(df_model_sum, left_index=True, right_index=True)
-    df = df_model.merge(
-        df_obs,
-        left_on=["hh_block_group", "hhvehs"],
-        right_on=[geocol, "hhvehs"],
-        how="left",
-    )
-    df.rename(columns={"hhexpfac": "modeled"}, inplace=True)
-    df.to_csv(r"outputs\validation\auto_ownership_block_group.csv", index=False)
+    # df_model_sum = df_model.pivot_table(
+    #     index="hh_block_group", columns="hhvehs", aggfunc="sum", values="hhexpfac"
+    # )
+    # df_model_sum = df_model_sum.fillna(0)
+    # df_model_sum = df_model_sum.sum()
+    # df_model_sum = pd.DataFrame(df_model_sum.reset_index(drop=True), columns=["model"])
+    # df_sum = df_obs_sum.merge(df_model_sum, left_index=True, right_index=True)
+    # df = df_model.merge(
+    #     df_obs,
+    #     left_on=["hh_block_group", "hhvehs"],
+    #     right_on=[geocol, "hhvehs"],
+    #     how="left",
+    # )
+    # df.rename(columns={"hhexpfac": "modeled"}, inplace=True)
+    # df.to_csv(r"outputs\validation\auto_ownership_block_group.csv", index=False)
 
-    # compare vs survey
-    df_survey = pd.read_csv(r"outputs\agg\census\survey\auto_ownership_block_group.csv")
+    # # compare vs survey
+    # df_survey = pd.read_csv(r"outputs\agg\census\survey\auto_ownership_block_group.csv")
 
-    df_survey.loc[df_survey["hhvehs"] >= 2, "hhvehs"] = 2
-    df_survey = (
-        df_survey.groupby(["hhvehs", "hh_block_group"])
-        .sum()[["hhexpfac"]]
-        .reset_index()
-    )
+    # df_survey.loc[df_survey["hhvehs"] >= 2, "hhvehs"] = 2
+    # df_survey = (
+    #     df_survey.groupby(["hhvehs", "hh_block_group"])
+    #     .sum()[["hhexpfac"]]
+    #     .reset_index()
+    # )
 
-    df_survey_sum = df_survey.pivot_table(
-        index="hh_block_group", columns="hhvehs", aggfunc="sum", values="hhexpfac"
-    )
-    df_survey_sum = df_survey_sum.fillna(0)
-    df_survey_sum = df_survey_sum.sum()
-    df_survey_sum = pd.DataFrame(
-        df_survey_sum.reset_index(drop=True), columns=["survey"]
-    )
-    df_sum.merge(df_survey_sum, left_index=True, right_index=True).to_csv(
-        r"outputs\validation\auto_ownership_census_totals.csv", index=False
-    )
+    # df_survey_sum = df_survey.pivot_table(
+    #     index="hh_block_group", columns="hhvehs", aggfunc="sum", values="hhexpfac"
+    # )
+    # df_survey_sum = df_survey_sum.fillna(0)
+    # df_survey_sum = df_survey_sum.sum()
+    # df_survey_sum = pd.DataFrame(
+    #     df_survey_sum.reset_index(drop=True), columns=["survey"]
+    # )
+    # df_sum.merge(df_survey_sum, left_index=True, right_index=True).to_csv(
+    #     r"outputs\validation\auto_ownership_census_totals.csv", index=False
+    # )
 
-    # Commute Mode Share by Workplace Geography
-    # Model Data
-    df_model = pd.read_csv(r"outputs\agg\census\tour_place.csv")
-    df_model = df_model[df_model["pdpurp"] == "Work"]
-    df_model = (
-        df_model.groupby(["t_o_place", "t_d_place", "tmodetp"])
-        .sum()[["toexpfac"]]
-        .reset_index()
-    )
-    # rename columns
-    df_model.loc[df_model["tmodetp"] == "SOV", "mode"] = "auto"
-    df_model.loc[df_model["tmodetp"] == "HOV2", "mode"] = "auto"
-    df_model.loc[df_model["tmodetp"] == "HOV3+", "mode"] = "auto"
-    df_model.loc[df_model["tmodetp"] == "Transit", "mode"] = "transit"
-    df_model.loc[df_model["tmodetp"] == "Walk", "mode"] = "walk_and_bike"
-    df_model.loc[df_model["tmodetp"] == "Bike", "mode"] = "walk_and_bike"
-    df_model = df_model.groupby(["mode", "t_d_place"]).sum()[["toexpfac"]].reset_index()
+    # # Commute Mode Share by Workplace Geography
+    # # Model Data
+    # df_model = pd.read_csv(r"outputs\agg\census\tour_place.csv")
+    # df_model = df_model[df_model["pdpurp"] == "Work"]
+    # df_model = (
+    #     df_model.groupby(["t_o_place", "t_d_place", "tmodetp"])
+    #     .sum()[["toexpfac"]]
+    #     .reset_index()
+    # )
+    # # rename columns
+    # df_model.loc[df_model["tmodetp"] == "SOV", "mode"] = "auto"
+    # df_model.loc[df_model["tmodetp"] == "HOV2", "mode"] = "auto"
+    # df_model.loc[df_model["tmodetp"] == "HOV3+", "mode"] = "auto"
+    # df_model.loc[df_model["tmodetp"] == "Transit", "mode"] = "transit"
+    # df_model.loc[df_model["tmodetp"] == "Walk", "mode"] = "walk_and_bike"
+    # df_model.loc[df_model["tmodetp"] == "Bike", "mode"] = "walk_and_bike"
+    # df_model = df_model.groupby(["mode", "t_d_place"]).sum()[["toexpfac"]].reset_index()
 
-    # Observed Data
-    df = pd.read_sql(
-        "SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year="
-        + str(state.input_settings.base_year),
-        con=state.conn,
-    )
-    df = df[df["geography"] == "place"]
-    df = df[df["mode"] != "worked_at_home"]
-    df["geog_name"] = df["geog_name"].apply(lambda row: row.split(" city")[0])
+    # # Observed Data
+    # df = pd.read_sql(
+    #     "SELECT * FROM acs_commute_mode_by_workplace_geog WHERE year="
+    #     + str(state.input_settings.base_year),
+    #     con=state.conn,
+    # )
+    # df = df[df["geography"] == "place"]
+    # df = df[df["mode"] != "worked_at_home"]
+    # df["geog_name"] = df["geog_name"].apply(lambda row: row.split(" city")[0])
 
-    # FIXME:
-    # no HOV modes - is SOV including all auto trips?
-    df.loc[df["mode"] == "sov", "mode"] = "auto"
+    # # FIXME:
+    # # no HOV modes - is SOV including all auto trips?
+    # df.loc[df["mode"] == "sov", "mode"] = "auto"
 
-    # Merge modeled and observed
-    df = df.merge(
-        df_model, left_on=["geog_name", "mode"], right_on=["t_d_place", "mode"]
-    )
-    df.rename(
-        columns={"trips": "observed", "toexpfac": "modeled", "geog_name": "work_place"},
-        inplace=True,
-    )
-    df = df[["work_place", "mode", "modeled", "observed"]]
-    df["percent_diff"] = (df["modeled"] - df["observed"]) / df["observed"]
-    df["diff"] = df["modeled"] - df["observed"]
+    # # Merge modeled and observed
+    # df = df.merge(
+    #     df_model, left_on=["geog_name", "mode"], right_on=["t_d_place", "mode"]
+    # )
+    # df.rename(
+    #     columns={"trips": "observed", "toexpfac": "modeled", "geog_name": "work_place"},
+    #     inplace=True,
+    # )
+    # df = df[["work_place", "mode", "modeled", "observed"]]
+    # df["percent_diff"] = (df["modeled"] - df["observed"]) / df["observed"]
+    # df["diff"] = df["modeled"] - df["observed"]
 
-    df.to_csv(
-        r"outputs\validation\acs_commute_share_by_workplace_geog.csv", index=False
-    )
+    # df.to_csv(
+    #     r"outputs\validation\acs_commute_share_by_workplace_geog.csv", index=False
+    # )
 
-    # Commute Mode Share by Home Tract
-    df_model = pd.read_csv(r"outputs\agg\census\tour_dtract.csv")
+    # # Commute Mode Share by Home Tract
+    # df_model = pd.read_csv(r"outputs\agg\census\tour_dtract.csv")
 
-    df_model[["to_tract", "td_tract"]] = df_model[["to_tract", "td_tract"]].astype(
-        "str"
-    )
-    df_model["to_tract"] = df_model["to_tract"].apply(lambda row: row.split(".")[0])
-    df_model["td_tract"] = df_model["td_tract"].apply(lambda row: row.split(".")[0])
+    # df_model[["to_tract", "td_tract"]] = df_model[["to_tract", "td_tract"]].astype(
+    #     "str"
+    # )
+    # df_model["to_tract"] = df_model["to_tract"].apply(lambda row: row.split(".")[0])
+    # df_model["td_tract"] = df_model["td_tract"].apply(lambda row: row.split(".")[0])
 
-    df_model = df_model[df_model["pdpurp"] == "Work"]
-    df_model = (
-        df_model.groupby(["to_tract", "tmodetp"]).sum()[["toexpfac"]].reset_index()
-    )
+    # df_model = df_model[df_model["pdpurp"] == "Work"]
+    # df_model = (
+    #     df_model.groupby(["to_tract", "tmodetp"]).sum()[["toexpfac"]].reset_index()
+    # )
 
-    # # Group all HOV together
-    df_model["mode"] = df_model["tmodetp"]
-    df_model.loc[df_model["tmodetp"] == "HOV2", "mode"] = "HOV"
-    df_model.loc[df_model["tmodetp"] == "HOV3+", "mode"] = "HOV"
-    df_model = df_model.groupby(["to_tract", "mode"]).sum().reset_index()
+    # # # Group all HOV together
+    # df_model["mode"] = df_model["tmodetp"]
+    # df_model.loc[df_model["tmodetp"] == "HOV2", "mode"] = "HOV"
+    # df_model.loc[df_model["tmodetp"] == "HOV3+", "mode"] = "HOV"
+    # df_model = df_model.groupby(["to_tract", "mode"]).sum().reset_index()
 
-    df_model = df_model[df_model["to_tract"] != "nan"]
-    df_model["to_tract"] = df_model["to_tract"].astype("int64")
-    df_model["modeled"] = df_model["toexpfac"]
+    # df_model = df_model[df_model["to_tract"] != "nan"]
+    # df_model["to_tract"] = df_model["to_tract"].astype("int64")
+    # df_model["modeled"] = df_model["toexpfac"]
 
-    # Load the census data
-    df_acs = pd.read_sql(
-        "SELECT * FROM acs_commute_mode_home_tract WHERE year="
-        + str(state.input_settings.base_year),
-        con=state.conn,
-    )
+    # # Load the census data
+    # df_acs = pd.read_sql(
+    #     "SELECT * FROM acs_commute_mode_home_tract WHERE year="
+    #     + str(state.input_settings.base_year),
+    #     con=state.conn,
+    # )
 
-    # Select only tract records
-    df_acs = df_acs[df_acs["place_type"] == "tr"]
+    # # Select only tract records
+    # df_acs = df_acs[df_acs["place_type"] == "tr"]
 
-    # Only include modes for people that travel to work (exclude telecommuters and others)
-    mode_map = {
-        "Drove Alone": "SOV",
-        "Carpooled": "HOV",
-        "Walked": "Walk",
-        "Other": "Other",
-        "Transit": "Transit",
-    }
+    # # Only include modes for people that travel to work (exclude telecommuters and others)
+    # mode_map = {
+    #     "Drove Alone": "SOV",
+    #     "Carpooled": "HOV",
+    #     "Walked": "Walk",
+    #     "Other": "Other",
+    #     "Transit": "Transit",
+    # }
 
-    df_acs["mode"] = df_acs["mode"].map(mode_map)
-    df_acs = df_acs[-df_acs["mode"].isnull()]
+    # df_acs["mode"] = df_acs["mode"].map(mode_map)
+    # df_acs = df_acs[-df_acs["mode"].isnull()]
 
-    # Drop the Other mode for now
-    df_acs = df_acs[df_acs["mode"] != "Other"]
+    # # Drop the Other mode for now
+    # df_acs = df_acs[df_acs["mode"] != "Other"]
 
-    # Merge the model and observed data
-    df = df_acs[["mode", "geoid", "place_name", "estimate"]].merge(
-        df_model, left_on=["geoid", "mode"], right_on=["to_tract", "mode"]
-    )
-    df.rename(columns={"estimate": "observed", "trexpfac": "modeled"}, inplace=True)
-    df[["observed", "modeled"]] = df[["observed", "modeled"]].astype("float")
+    # # Merge the model and observed data
+    # df = df_acs[["mode", "geoid", "place_name", "estimate"]].merge(
+    #     df_model, left_on=["geoid", "mode"], right_on=["to_tract", "mode"]
+    # )
+    # df.rename(columns={"estimate": "observed", "trexpfac": "modeled"}, inplace=True)
+    # df[["observed", "modeled"]] = df[["observed", "modeled"]].astype("float")
 
-    # Add geography columns based on tract
-    parcel_geog = pd.read_sql(
-        "SELECT * FROM parcel_" + str(state.input_settings.base_year) + "_geography",
-        con=state.conn,
-    )
+    # # Add geography columns based on tract
+    # parcel_geog = pd.read_sql(
+    #     "SELECT * FROM parcel_" + str(state.input_settings.base_year) + "_geography",
+    #     con=state.conn,
+    # )
 
-    tract_geog = (
-        parcel_geog.groupby("Census2020Tract")
-        .first()[
-            [
-                "CountyName",
-                "rg_proposed",
-                "CityName",
-                "GrowthCenterName",
-                "TAZ",
-                "District",
-            ]
-        ]
-        .reset_index()
-    )
-    tract_geog["Census2020Tract"] = (
-        tract_geog["Census2020Tract"].replace("nan", -1).astype("int64")
-    )
-    # tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1)
-    df = df.merge(tract_geog, left_on="geoid", right_on="Census2020Tract", how="left")
-    df.to_csv(r"outputs\validation\acs_commute_share_by_home_tract.csv", index=False)
+    # tract_geog = (
+    #     parcel_geog.groupby("Census2020Tract")
+    #     .first()[
+    #         [
+    #             "CountyName",
+    #             "rg_proposed",
+    #             "CityName",
+    #             "GrowthCenterName",
+    #             "TAZ",
+    #             "District",
+    #         ]
+    #     ]
+    #     .reset_index()
+    # )
+    # tract_geog["Census2020Tract"] = (
+    #     tract_geog["Census2020Tract"].replace("nan", -1).astype("int64")
+    # )
+    # # tract_geog['Census2020Tract'] = tract_geog['Census2020Tract'].replace('nan', -1)
+    # df = df.merge(tract_geog, left_on="geoid", right_on="Census2020Tract", how="left")
+    # df.to_csv(r"outputs\validation\acs_commute_share_by_home_tract.csv", index=False)
 
-    # Copy select results to dash directory    # Copy existing CSV files for topsheet
-    dash_table_list = [
-        "daily_volume_county_facility",
-        "external_volumes",
-        "screenlines",
-        "daily_volume",
-        "daily_boardings_by_agency",
-        "daily_boardings_key_routes",
-        "light_rail_boardings",
-    ]
-    for fname in dash_table_list:
-        shutil.copy(
-            os.path.join(r"outputs/validation", fname + ".csv"), r"outputs/agg/dash"
-        )
+    # # Copy select results to dash directory    # Copy existing CSV files for topsheet
+    # dash_table_list = [
+    #     "daily_volume_county_facility",
+    #     "external_volumes",
+    #     "screenlines",
+    #     "daily_volume",
+    #     "daily_boardings_by_agency",
+    #     "daily_boardings_key_routes",
+    #     "light_rail_boardings",
+    # ]
+    # for fname in dash_table_list:
+    #     shutil.copy(
+    #         os.path.join(r"outputs/validation", fname + ".csv"), r"outputs/agg/dash"
+    #     )
 
 
 if __name__ == "__main__":
