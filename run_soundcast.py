@@ -157,10 +157,10 @@ def build_shadow_only():
             return
 
 
-def run_truck_supplemental(iteration, statwe):
+def run_truck_supplemental(iteration, state):
     if state.input_settings.run_supplemental_trips:
-        # if iteration == 0:
-        #     generation.main(state)
+        if iteration == 0:
+            generation.main(state)
         distribute_non_work_ixxi.main(state)
         create_airport_trips.main(state)
 
@@ -211,9 +211,9 @@ def daysim_assignment(iteration):
             sys.exit(1)
 
     ########################################
-    # Calcualte Trucks and Supplemental Demand
+    # Calculate Trucks and Supplemental Demand
     ########################################
-    run_truck_supplemental(iteration, state.input_settings)
+    run_truck_supplemental(iteration, state)
 
     ########################################
     # Assign Demand to Networks
