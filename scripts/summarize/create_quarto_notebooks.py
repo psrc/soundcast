@@ -2,45 +2,26 @@ import os, sys, shutil, time
 from pathlib import Path
 import toml
 import papermill as pm
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
+# import nbformat
+# from nbconvert.preprocessors import ExecutePreprocessor
 
-# def run_ipynb(sheet_name, nb_folder: Path):
-#     """Execute a Jupyter notebook using papermill."""
+def run_ipynb(sheet_name, nb_folder: Path):
+    """Execute a Jupyter notebook using papermill."""
 
-#     print(f"Start executing {sheet_name}")
-#     start_time = time.time()
-#     nb_path = nb_folder / f"{sheet_name}.ipynb"
-
-#     pm.execute_notebook(
-#         str(nb_path),
-#         str(nb_path),  # Output to same file
-#         kernel_name=None,
-#         execution_timeout=1500,
-#         cwd=str(nb_folder)
-#     )
-
-#     end_time = time.time()
-#     print(f"Successfully executed {sheet_name} in {end_time - start_time:.1f} seconds")
-
-
-def run_ipynb(sheet_name, nb_path):
+    print(f"Start executing {sheet_name}")
     start_time = time.time()
-    
-    print("creating " + sheet_name + " page")
-    with open(nb_path / (sheet_name + ".ipynb")) as f:
-        nb = nbformat.read(f, as_version=4)
-        if sys.version_info > (3, 0):
-            py_version = "python3"
-        else:
-            py_version = "python2"
-        ep = ExecutePreprocessor(timeout=1500, kernel_name=py_version)
-        ep.preprocess(nb, {"metadata": {"path": nb_path}})
-        with open(nb_path / (sheet_name + ".ipynb"), "wt") as f:
-            nbformat.write(nb, f)
-    end_time = time.time()
-    print(f"Time taken to create {sheet_name} page: {end_time - start_time:.1f} seconds")
+    nb_path = nb_folder / f"{sheet_name}.ipynb"
 
+    pm.execute_notebook(
+        str(nb_path),
+        str(nb_path),  # Output to same file
+        kernel_name=None,
+        execution_timeout=1500,
+        cwd=str(nb_folder)
+    )
+
+    end_time = time.time()
+    print(f"Successfully executed {sheet_name} in {end_time - start_time:.1f} seconds")
 
 def render_quarto(
     notebook_name, 
@@ -48,6 +29,8 @@ def render_quarto(
     scripts_dir: Path, 
     output_summary_folder: Path
     ):
+
+    print(f"Creating {notebook_name}...")
 
     for sheet_name in nb_list:
         run_ipynb(sheet_name, scripts_dir/ "nb")

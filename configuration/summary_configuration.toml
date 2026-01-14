@@ -6,8 +6,8 @@
 protected_namespaces = '()'
 
 # run Quarto notebooks
-run_RTP_summary = false
-run_validation = true
+run_RTP_summary = true
+run_validation = false
 run_network_validation = false
 run_run_comparison = false
 
@@ -16,47 +16,47 @@ run_run_comparison = false
 #################################
 rtp_summary_list = [
     'RTP_index',
-    # 'RTP_congestion',
-    # 'RTP_topsheet',
-    # 'RTP_MIC',
-    # 'RTP_person',
-    # 'RTP_household',
-    # 'RTP_access',
-    # 'RTP_costs',
-    # 'RTP_walk_bike',
-    # 'RTP_emissions',
-    # 'RTP_mode_share',
-    # 'RTP_freight',
-    # 'RTP_transit',
-    # 'RTP_conformity_analysis'
+    'RTP_congestion',
+    'RTP_topsheet',
+    'RTP_MIC',
+    'RTP_person',
+    'RTP_household',
+    'RTP_access',
+    'RTP_costs',
+    'RTP_walk_bike',
+    'RTP_emissions',
+    'RTP_mode_share',
+    'RTP_freight',
+    'RTP_transit',
+    'RTP_conformity_analysis'
     ]
 validation_list_daysim = [
     'all_tour_mode',
-    # 'all_trip_mode',
-    # 'auto_ownership',
-    # 'day_pattern',
-    # 'escort_tour_mode',
-    # 'escort_trip_mode',
-    # 'households',
-    # 'intermediate_stop_generation',
-    # 'other_home_based_tour_mode',
-    # 'other_home_based_trip_mode',
-    # 'persons',
-    # 'school_location',
-    # 'school_tour_mode',
-    # 'school_trip_mode',
-    # 'telecommute',
-    # 'time_choice',
-    # 'tour_destination',
-    # 'tours',
-    # 'transit_pass_ownership',
-    # 'trip_destination',
-    # 'trips',
-    # 'work_location',
-    # 'work_tour_mode',
-    # 'work_trip_mode',
-    # 'workbased_subtour_mode',
-    # 'workbased_subtour_generation'
+    'all_trip_mode',
+    'auto_ownership',
+    'day_pattern',
+    'escort_tour_mode',
+    'escort_trip_mode',
+    'households',
+    'intermediate_stop_generation',
+    'other_home_based_tour_mode',
+    'other_home_based_trip_mode',
+    'persons',
+    'school_location',
+    'school_tour_mode',
+    'school_trip_mode',
+    'telecommute',
+    'time_choice',
+    'tour_destination',
+    'tours',
+    'transit_pass_ownership',
+    'trip_destination',
+    'trips',
+    'work_location',
+    'work_tour_mode',
+    'work_trip_mode',
+    'workbased_subtour_mode',
+    'workbased_subtour_generation'
     ]
 validation_list_activitysim = [
     'work_from_home',
@@ -85,18 +85,18 @@ validation_list_activitysim = [
 ]
 network_validation_list = [
     'JBLM',
-    # 'supplementals',
-    # 'transit_validation',
-    # 'traffic_validation',
-    # 'bike_validation',
-    # 'link_analysis'
+    'supplementals',
+    'transit_validation',
+    'traffic_validation',
+    'bike_validation',
+    'link_analysis'
     ]
 comparison_summary_list = [
     'topsheet',
-    # 'population',
-    # 'parking',
-    # 'vmt', 
-    # 'transit'
+    'population',
+    'parking',
+    'vmt', 
+    'transit'
     ]
 
 #################################
@@ -191,7 +191,7 @@ uncloned_folder = "uncloned"
 # list all survey sources to be indluded in validation
 [survey_directories]
 # 2023 HTS dataset
-"survey" = "../../../../inputs/base_year/survey"
+# "survey" = "../../../../inputs/base_year/survey"
 # add another survey source to compare
 # "(name of dataset)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 
