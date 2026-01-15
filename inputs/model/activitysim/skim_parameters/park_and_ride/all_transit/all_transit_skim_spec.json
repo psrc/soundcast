@@ -1,0 +1,18 @@
+{
+    "by_mode_subset": {
+        "modes": [
+            "b",
+            "c",
+            "f",
+            "r",
+            "w",
+            "x"
+        ],
+        "actual_in_vehicle_times": "WLK_TRN_WLK_IVT",
+        "actual_aux_transit_times": "WLK_TRN_WLK_WAUX",
+        "avg_boardings": "WLK_TRN_WLK_BOARDS"
+    },
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS",
+    "actual_first_waiting_times": "WLK_TRN_WLK_IWAIT",
+    "actual_total_waiting_times": "WLK_TRN_WLK_TWAIT"
+}

@@ -1,0 +1,40 @@
+{
+    "type": "ZONAL_CHOICE_RESULTS",
+    "results": [
+        {
+            "operand": "sov_inc2t",
+            "operand_type": "pk",
+            "result": "DRV_TRN_WLK_DTIM"
+        },
+        {
+            "operand": "sov_inc2d",
+            "operand_type": "pk",
+            "result": "DRV_TRN_WLK_DDIST"
+        },
+        {
+            "operand": "WLK_TRN_WLK_WAUX",
+            "operand_type": "kq",
+            "result": "DRV_TRN_WLK_WAUX"
+        },
+        {
+            "operand": "WLK_TRN_WLK_IVT",
+            "operand_type": "kq",
+            "result": "DRV_TRN_WLK_TOTIVT"
+        },
+        {
+            "operand": "WLK_TRN_WLK_TWAIT",
+            "operand_type": "kq",
+            "result": "DRV_TRN_WLK_WAIT"
+        },
+        {
+            "operand": "WLK_TRN_WLK_IWAIT",
+            "operand_type": "kq",
+            "result": "DRV_TRN_WLK_IWAIT"
+        },
+        {
+            "operand": "WLK_TRN_WLK_BOARDS",
+            "operand_type": "kq",
+            "result": "DRV_TRN_WLK_BOARDS"
+        }
+    ]
+}

@@ -159,11 +159,12 @@ def define_matrices(my_project, user_classes, tod_parameters):
             my_project.create_matrix(
                 "ivtwc" + item, "Actual IVTs by Mode, Commuter Rail: " + item, "FULL"
             )
-            my_project.create_matrix(
-                "ivtwp" + item,
-                "Actual IVTs by Mode, Passenger Ferry Assignment: " + item,
-                "FULL",
-            )
+            if state.input_settings.abm_model == "daysim":
+                my_project.create_matrix(
+                    "ivtwp" + item,
+                    "Actual IVTs by Mode, Passenger Ferry Assignment: " + item,
+                    "FULL",
+                )
 
         # Transit, All Modes:
         dct_aggregate_transit_skim_names = json_to_dictionary(
@@ -874,18 +875,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             if state.input_settings.abm_model == "activitysim":
                 matrix_value = fill_inf_with_max(matrix_value, dtype)
 
-            # # Write numpy results back to Emme
-            # matrix_id = my_project.bank.matrix(str(matrix_name)).id
-            # # emme_matrix = emmebank.matrix(matrix_id)
-            # # matrix_data = emme_matrix.get_data()
-            # # np_matrix = np.matrix(matrix_data.raw_data)
-            # full_zones = my_project.current_scenario.zone_numbers
-            # emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
-            # emme_matrix.from_numpy(matrix_value)
-            # my_project.bank.matrix(matrix_id).set_data(
-            #     emme_matrix, my_project.current_scenario
-            # )
-
             # open old skim and average
             if average_skims:
                 matrix_value = average_matrices(
@@ -984,7 +973,10 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     # Transit Skims
     if my_project.tod in state.network_settings.transit_skim_tod:
         # assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
-        for path_mode in ["a", "r", "f", "c", "p"]:
+        mode_list = ["a", "r", "f", "c"]
+        if state.input_settings.abm_model == "daysim":
+            mode_list.append("p")  # only Daysim uses passenger ferry skims
+        for path_mode in mode_list:
             for item in state.network_settings.transit_submodes:
                 matrix_name = "ivtw" + path_mode + item
                 matrix_out_name = matrix_name + tod_tag
@@ -1514,16 +1506,18 @@ def run_transit(project_name):
     start_of_run = time.time()
 
     my_project = EmmeProject(project_name, state.model_input_dir)
+    mode_dict = {
+            "bus": "trnst",
+            "light_rail": "litrat",
+            "ferry": "ferry",
+            "commuter_rail": "commuter_rail",
+        }
+    if state.input_settings.abm_model == "daysim":
+        mode_dict['passenger_ferry'] = "passenger_ferry"
 
     # Assign transit submodes, adding volumes to existing after first submode:
     counter = 0
-    for submode, class_name in {
-        "bus": "trnst",
-        "light_rail": "litrat",
-        "ferry": "ferry",
-        "passenger_ferry": "passenger_ferry",
-        "commuter_rail": "commuter_rail",
-    }.items():
+    for submode, class_name in mode_dict.items():
         if counter > 0:
             add_volumes = True
         else:
@@ -1554,7 +1548,10 @@ def run_transit(project_name):
     matrix_calc(mod_calc)
 
     # Wait times for transit submodes
-    for submode in ["r", "f", "p", "c"]:
+    submode_list = ["r", "f", "c"]
+    if state.input_settings.abm_model == "daysim":
+        submode_list.append("p")
+    for submode in submode_list:
         total_wait_matrix = my_project.bank.matrix("twtw" + submode).id
         initial_wait_matrix = my_project.bank.matrix("iwtw" + submode).id
         transfer_wait_matrix = my_project.bank.matrix("xfrw" + submode).id
@@ -2026,7 +2023,7 @@ def load_asim_trip_matrices(state, my_project):
         "walk",
         "trnst",
         "litrat",
-        "passenger_ferry",
+        # "passenger_ferry",
         "ferry",
         "commuter_rail",
     ]
@@ -2161,7 +2158,7 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
             state,
             # EmmeProject("projects/LoadTripTables/LoadTripTables.emp", state.model_input_dir),
             my_project,
-            Path("R:/e2projects_two/activitysim/assignment_skims_inputs"),
+            Path("inputs/model/activitysim/skim_parameters/park_and_ride"),
             state.network_settings.sound_cast_net_dict
             )
         
@@ -2316,12 +2313,13 @@ def run(free_flow_skims=False, num_iterations=100):
     daily_link_df = grouped.agg({"@tveh": "sum", "length": "min", "modes": "min"})
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv("outputs/bike/daily_link_volume.csv")
+
     start_transit_pool(project_list)
-    # # run_transit(r'projects/20to5/20to5.emp')
+    # run_transit(r'projects/20to5/20to5.emp')
 
     daily_link_df = pd.read_csv("outputs/bike/daily_link_volume.csv")
     start_bike_pool(project_list, daily_link_df)
-    # # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
+    # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
     #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.

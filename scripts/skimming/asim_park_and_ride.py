@@ -1,19 +1,7 @@
-import array as _array
 import time
-import inro.emme.desktop.app as app
-import inro.modeller as _m
-import inro.emme.matrix as ematrix
-import inro.emme.database.matrix
-import inro.emme.database.emmebank as _eb
 import pandas as pd
 import numpy as np
-import h5py
-import openmatrix as omx
 import json
-import os
-
-from pathlib import Path
-import yaml
 
 matrix_dict = {
     "DRV_TRN_WLK_DTIM": "auto_pnr_time_access",
@@ -73,8 +61,6 @@ def change_max_matrices_emmebank(my_project, number_of_matriecs):
 
 def park_and_ride_assignment(my_project, sc_tod, spec_dir, results_dict, asim_tod):
 
-    # my_project.change_active_database(sc_tod)
-
     matrix_list = [
         "pnr_demand",
         "auto_pnr_distance",
@@ -114,39 +100,15 @@ def all_transit_assignment(
         json.load(open(transit_spec_dir / "all_transit_skim_spec.json")),
         class_name=class_name,
     )
-    # Export
-    # for name in matrix_list:
-    #     print(name)
-    #     try:
-    #         matrix_value = emmeMatrix_to_numpyMatrix(name, my_project.bank, "uint16", 1)
-    #         results_dict[name + "__" + asim_tod] = matrix_value
-    #         # h5file.create_dataset(name+'__'+asim_tod, data=matrix_value.astype('uint16'),compression='gzip')
-    #         # f[name+'__'+asim_tod] = matrix_value
-    #     except:
-    #         print(name)
-
-    # return results_dict
-
 
 def two_leg_trip(my_project, spec_dir):
     _m = inro.modeller
     NAMESPACE = "inro.emme.choice_model.two_leg_trip_chain"
-    # two_leg_trip = _m.Modeller().tool(NAMESPACE)
     two_leg_trip = my_project.m.tool(NAMESPACE)
-    # trip_demand = my_project.bank.matrix("pnr_demand_access")
-    # mf16 = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND")
-    # md4 = my_project.bank.matrix("DRV_TRANSIT_WLK_LOT_USAGE")
-    # mf17 = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND")
-    # leg1_pk_spec =json.load(open(spec_dir/'first_leg.json'))
-    # stop_k_spec =json.load(open(spec_dir/'stop_location_util.json'))
-    # leg2_kq_spec =json.load(open(spec_dir/'second_leg.json'))
-    # zone_spec =json.load(open(spec_dir/'constraint.json'))
-    # pq_avg_results = json.load(open(spec_dir/'average_results.json'))
 
     # DRV_TRN_WLK ()
     two_leg_trip(
         tour_demand=my_project.bank.matrix("pnr_demand_access"),   # THIS IS WHERE DEMAND GOES IN
-        # tour_demand=my_project.bank.matrix("pnr_demand"),
         leg1_pk_utility_spec=json.load(open(spec_dir / "access/first_leg.json")),
         stop_k_utility_spec=json.load(
             open(spec_dir / "access/stop_location_util.json")
@@ -166,7 +128,7 @@ def two_leg_trip(my_project, spec_dir):
     # WLK_TRN_DRV (EGRESS)
     two_leg_trip(
         tour_demand=my_project.bank.matrix("pnr_demand_egress"),   # THIS IS WHERE DEMAND GOES IN
-        # tour_demand=my_project.bank.matrix("pnr_demand"),
+
         leg1_pk_utility_spec=json.load(open(spec_dir / "egress/first_leg.json")),
         stop_k_utility_spec=json.load(
             open(spec_dir / "egress/stop_location_util.json")
@@ -223,9 +185,7 @@ def run_park_and_ride(
 
     results_dict = {}
     pnr_spec_dir = spec_dir / "park_and_ride"
-    ferry_spec_dir = spec_dir / "ferry"
     all_transit_dir = spec_dir / "all_transit"
-    emme_spec_dir = spec_dir / "emme"
     # matrix_list = ["WLK_TRN_WLK_DEMAND", "WLK_TRN_WLK_WAUX", "WLK_TRN_WLK_TWAIT", "WLK_TRN_WLK_IVT"]
     matrix_list = {
         "FULL": [
@@ -280,18 +240,8 @@ def run_park_and_ride(
     df = df[["index", "value"]]
     df.to_csv("inputs/scenario/networks/p_r_capacities.csv", index=False)
 
-    # for sc_tod, asim_tod in time_period_lookup.items():
-    #     print(asim_tod)
-    #     print(sc_tod)
-        # my_project.change_active_database(sc_tod)
-        # change_max_matrices_emmebank(my_project, 170)
-        # create zone partition to hold park and ride zones
     my_project.initialize_zone_partition("ga")
 
-    # my_project
-
-    # use matrix calculator to save park and rides to partition
-    # matrix_calc_spec = json.load(open(emme_spec_dir / "matrix_calc_spec.json"))
     my_project.matrix_calculator(
         # matrix_calc_spec,
         result="ga",
@@ -311,7 +261,7 @@ def run_park_and_ride(
         "inputs/scenario/networks/p_r_capacities.csv",
         "PARK_AND_RIDE_CAPACITY"
     )
-    # ferry_assignment(my_project, ferry_spec_dir, ferry_class_name)
+
     # need to run all tranist to get transit impedances for park and ride lot choice
     all_transit_assignment(
         my_project,

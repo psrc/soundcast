@@ -1,0 +1,8 @@
+{
+    "by_zone": {
+        "origins": "ga1",
+        "destinations": "ga1",
+        "intermediates": "ga2"
+    },
+    "by_value": null
+}
