@@ -226,11 +226,6 @@ def run_all_summaries():
 
     create_quarto_notebooks(state.input_settings.abm_model, state.summary_settings)
 
-    # subprocess.run(
-    #     "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
-    #     shell=True,
-    # )
-
 
 def get_current_commit_hash():
     try:

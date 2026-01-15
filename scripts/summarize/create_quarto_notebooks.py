@@ -2,8 +2,6 @@ import os, sys, shutil, time
 from pathlib import Path
 import toml
 import papermill as pm
-# import nbformat
-# from nbconvert.preprocessors import ExecutePreprocessor
 
 def run_ipynb(sheet_name, nb_folder: Path):
     """Execute a Jupyter notebook using papermill."""
