@@ -146,7 +146,7 @@ def main(state):
     # Use a copy of an existing bank for the daily bank and rename
     # if daily bank file doesn't already exist
     if not os.path.exists("Banks/Daily"):
-        copy_emmebank(f"Banks/{state.network_settings.tods[0]}", "Banks/Daily")
+        copy_emmebank(f"Banks/{state.network_settings.tods[1]}", "Banks/Daily")
     daily_emmebank = _emmebank.Emmebank(r"Banks/Daily/emmebank")
     daily_emmebank.title = "daily"
     daily_scenario = daily_emmebank.scenario(1002)

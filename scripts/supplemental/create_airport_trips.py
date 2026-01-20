@@ -46,7 +46,10 @@ def load_skim_data(state):
     skim_dict["transit"] = {}
 
     for skim in ["ivtw", "iwtw", "ndbw", "xfrw", "auxw"]:
-        for submode in ["a", "r", "c", "p", "f"]:
+        submode_list = ["a", "r", "c", "p", "f"]
+        if state.input_settings.abm_model == "activitysim":
+            submode_list = ["a", "r", "c", "f"]
+        for submode in submode_list:
             skim_name = skim + submode
             am_skim = load_skims(
                 state, skims_path, skim_name, state.emme_settings.am_skim_name, divide_by_100
@@ -150,6 +153,9 @@ def calculate_mode_utilties(
         "f": "ferry",
         "p": "passenger_ferry",
     }
+
+    if state.input_settings.abm_model == "activitysim":
+        submode_dict.pop("p")  # Remove passenger ferry for activitysim model
 
     # Calcualte utility for all modes
 
@@ -302,7 +308,7 @@ def split_trips_into_modes(total_trips, mode_shares_dict):
     return table_dict
 
 
-def split_tod_internal(total_trips_by_mode, tod_factors_df):
+def split_tod_internal(total_trips_by_mode, tod_factors_df, state):
     """Split trips into time of a day: apply time of the day factors to internal trips"""
 
     matrix_dict = {}
@@ -329,6 +335,9 @@ def split_tod_internal(total_trips_by_mode, tod_factors_df):
             "ferry": "ferry",
             "passenger_ferry": "passenger_ferry",
         }
+
+        if state.input_settings.abm_model == "activitysim":
+            tod_dict.pop("passenger_ferry")  # Remove passenger ferry for activitysim model
 
         for mode, tod_type in tod_dict.items():
             if mode in ["sov", "hov2", "hov3"]:
@@ -476,7 +485,7 @@ def main(state):
     )
 
     # Apply time of day factors
-    airport_matrix_dict = split_tod_internal(total_trips_by_mode, tod_factors_df)
+    airport_matrix_dict = split_tod_internal(total_trips_by_mode, tod_factors_df, state)
 
     summarize(
         mode_shares_dict,

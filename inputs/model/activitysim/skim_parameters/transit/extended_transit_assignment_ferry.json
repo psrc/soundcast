@@ -78,10 +78,6 @@
                     "next_journey_level": 0
                 },
                 {
-                    "mode": "p",
-                    "next_journey_level": 0
-                },
-                {
                     "mode": "r",
                     "next_journey_level": 0
                 }
@@ -112,10 +108,6 @@
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "p",
                     "next_journey_level": 1
                 },
                 {

@@ -2,6 +2,22 @@ import time
 import pandas as pd
 import numpy as np
 import json
+import array as _array
+import time
+import inro.emme.desktop.app as app
+import inro.modeller as _m
+import inro.emme.matrix as ematrix
+import inro.emme.database.matrix
+import inro.emme.database.emmebank as _eb
+import pandas as pd
+import numpy as np
+import h5py
+import openmatrix as omx
+import json
+import os
+
+from pathlib import Path
+
 
 matrix_dict = {
     "DRV_TRN_WLK_DTIM": "auto_pnr_time_access",
@@ -102,7 +118,7 @@ def all_transit_assignment(
     )
 
 def two_leg_trip(my_project, spec_dir):
-    _m = inro.modeller
+    # _m = inro.modeller
     NAMESPACE = "inro.emme.choice_model.two_leg_trip_chain"
     two_leg_trip = my_project.m.tool(NAMESPACE)
 
