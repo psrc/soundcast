@@ -1,0 +1,464 @@
+coefficient_name,value,constrain
+coef_one,1,T
+coef_zero,0,T
+coef_nest_root,1,T
+coef_nest_AUTO,0.72,T
+coef_nest_AUTO_DRIVEALONE,0.35,T
+coef_nest_AUTO_SHAREDRIDE2,0.35,T
+coef_nest_AUTO_SHAREDRIDE3,0.35,T
+coef_nest_NONMOTORIZED,0.72,T
+coef_nest_TRANSIT,0.72,T
+coef_nest_TRANSIT_WALKACCESS,0.5,T
+coef_nest_TRANSIT_DRIVEACCESS,0.5,T
+coef_nest_RIDEHAIL,0.36,T
+coef_nest_SCHOOL_BUS,0.5,T
+#,,
+coef_ivt_disc,-0.03,F
+coef_ivt_maint,-0.034,F
+coef_ivt_school,-0.02,F
+coef_ivt_univ,-0.032,F
+coef_ivt_work,-0.032,F
+coef_ivt_atwork,-0.064,F
+coef_inc_adj_cost_disc,-0.524,F
+coef_inc_adj_cost_maint,-0.524,F
+coef_inc_adj_cost_school,-0.524,F
+coef_inc_adj_cost_univ,-0.524,F
+coef_inc_adj_cost_work,-1.25,F
+coef_inc_adj_cost_atwork,-0.524,F
+coef_ivt_lr_disc,-0.02511,F
+coef_ivt_lr_maint,-0.02511,F
+coef_ivt_lr_school,-0.02439,F
+coef_ivt_lr_univ,-0.02439,F
+coef_ivt_lr_work,-0.0198,F
+coef_ivt_lr_atwork,-0.02511,F
+coef_ivt_fry_disc,-0.2232,F
+coef_ivt_fry_maint,-0.2232,F
+coef_ivt_fry_school,-0.2168,F
+coef_ivt_fry_univ,-0.2168,F
+coef_ivt_fry_work,-0.176,F
+coef_ivt_fry_atwork,-0.2232,F
+coef_ivt_com_disc,-0.01953,F
+coef_ivt_com_maint,-0.01953,F
+coef_ivt_com_school,-0.01897,F
+coef_ivt_com_univ,-0.01897,F
+coef_ivt_com_work,-0.0154,F
+coef_ivt_com_atwork,-0.01953,F
+coef_walktime_short_disc,-0.0558,F
+coef_walktime_short_maint,-0.0558,F
+coef_walktime_short_school,-0.0542,F
+coef_walktime_short_univ,-0.0542,F
+coef_walktime_short_work,-0.044,F
+coef_walktime_short_atwork,-0.0558,F
+coef_walktime_long_disc,-0.279,F
+coef_walktime_long_maint,-0.279,F
+coef_walktime_long_school,-0.271,F
+coef_walktime_long_univ,-0.271,F
+coef_walktime_long_work,-0.22,F
+coef_walktime_long_atwork,-0.279,F
+coef_biketime_short_disc,-0.1116,F
+coef_biketime_short_maint,-0.1116,F
+coef_biketime_short_school,-0.1084,F
+coef_biketime_short_univ,-0.1084,F
+coef_biketime_short_work,-0.088,F
+coef_biketime_short_atwork,-0.1116,F
+coef_biketime_long_disc,-0.558,F
+coef_biketime_long_maint,-0.558,F
+coef_biketime_long_school,-0.542,F
+coef_biketime_long_univ,-0.542,F
+coef_biketime_long_work,-0.44,F
+coef_biketime_long_atwork,-0.558,F
+coef_iwait_disc,-0.0558,F
+coef_iwait_maint,-0.0558,F
+coef_iwait_school,-0.0542,F
+coef_iwait_univ,-0.0542,F
+coef_iwait_work,-0.044,F
+coef_iwait_atwork,-0.0558,F
+coef_iwait_ridehail_disc,-0.04185,F
+coef_iwait_ridehail_maint,-0.04185,F
+coef_iwait_ridehail_school,-0.04065,F
+coef_iwait_ridehail_univ,-0.04065,F
+coef_iwait_ridehail_work,-0.033,F
+coef_iwait_ridehail_atwork,-0.04185,F
+coef_xwait_disc,-0.0558,F
+coef_xwait_maint,-0.0558,F
+coef_xwait_school,-0.0542,F
+coef_xwait_univ,-0.0542,F
+coef_xwait_work,-0.044,F
+coef_xwait_atwork,-0.0558,F
+coef_xfer_disc,-0.279,F
+coef_xfer_maint,-0.279,F
+coef_xfer_school,-0.271,F
+coef_xfer_univ,-0.271,F
+coef_xfer_work,-0.22,F
+coef_xfer_atwork,-0.279,F
+coef_dtim_disc,-0.0558,F
+coef_dtim_maint,-0.0558,F
+coef_dtim_school,-0.0542,F
+coef_dtim_univ,-0.0542,F
+coef_dtim_work,-0.044,F
+coef_dtim_atwork,-0.0558,F
+coef_density_index_disc,0.1395,F
+coef_density_index_maint,0.1395,F
+coef_density_index_school,0.1355,F
+coef_density_index_univ,0.1355,F
+coef_density_index_work,0.11,F
+coef_density_index_atwork,0.1395,F
+coef_topology_walk_disc,0,F
+coef_topology_walk_maint,0,F
+coef_topology_walk_school,0,F
+coef_topology_walk_univ,0,F
+coef_topology_walk_work,0,F
+coef_topology_walk_atwork,0,F
+coef_topology_bike_disc,0,F
+coef_topology_bike_maint,0,F
+coef_topology_bike_school,0,F
+coef_topology_bike_univ,0,F
+coef_topology_bike_work,0,F
+coef_topology_bike_atwork,0,F
+coef_female_bike_disc,-0.7423365124359972,F
+coef_female_bike_maint,-0.2558487696616779,F
+coef_female_bike_school,0.00001,T
+coef_female_bike_univ,0.00001,T
+coef_female_bike_work,-0.69763731339318,F
+coef_female_bike_atwork,-14.236119237107628,F
+coef_topology_trn_disc,0,F
+coef_topology_trn_maint,0,F
+coef_topology_trn_school,0,F
+coef_topology_trn_univ,0,F
+coef_topology_trn_work,0,F
+coef_topology_trn_atwork,0,F
+coef_age1619_da_disc,0,F
+coef_age1619_da_maint,0,F
+coef_age1619_da_school,0,F
+coef_age1619_da_univ,0,F
+coef_age1619_da_work,0,F
+coef_age1619_da_atwork,0,F
+coef_age010_trn_disc,0,F
+coef_age010_trn_maint,0,F
+coef_age010_trn_school,0,F
+coef_age010_trn_univ,0,F
+coef_age010_trn_work,0,F
+coef_age010_trn_atwork,0,F
+coef_age16p_sr_disc,0,F
+coef_age16p_sr_maint,0,F
+coef_age16p_sr_school,0,F
+coef_age16p_sr_univ,0,F
+coef_age16p_sr_work,0,F
+coef_age16p_sr_atwork,0,F
+coef_hhsize1_sr_disc,-0.7346,F
+coef_hhsize1_sr_maint,-0.7346,F
+coef_hhsize1_sr_school,-0.7346,F
+coef_hhsize1_sr_univ,-0.7346,F
+coef_hhsize1_sr_work,-0.7346,F
+coef_hhsize1_sr_atwork,-0.7346,F
+coef_hhsize2_sr_disc,0,F
+coef_hhsize2_sr_maint,0,F
+coef_hhsize2_sr_school,0,F
+coef_hhsize2_sr_univ,0,F
+coef_hhsize2_sr_work,0,F
+coef_hhsize2_sr_atwork,0,F
+#,,
+#,, MTC at soime point appears to have estimated atwork coefficients that are multipliers for other tour types
+#,, unfortunatly there appers to be no record of when or why or how or by whom this was performed.
+#,, we have to divide by the atwork coef_ivt value (-0.0279) to get produce a coefficient consistent with CTRAMP model
+# coef_walktimeshort_atwork,-0.0376,
+# coef_walktimeshort_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00* c_ivt,
+# coef_biketimeshort_atwork,-0.0752,
+# coef_biketimeshort_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,4.00* c_ivt,
+# coef_dtim_atwork,-0.0376,
+# coef_dtim_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_ivt_ferry_atwork,-0.01504,
+# coef_ivt_ferry_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,0.80 * c_ivt,
+# coef_ivt_lrt_atwork,-0.01692,
+# coef_ivt_lrt_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,0.90 * c_ivt,
+# coef_long_iwait_atwork,-0.0188,
+# coef_long_iwait_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,1.00 * c_ivt,
+# coef_short_iwait_atwork,-0.0376,
+# coef_short_iwait_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_wacc_atwork,-0.0376,
+# coef_wacc_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_walktimeshort_atwork,-0.0376,
+# coef_walktimeshort_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_waux_atwork,-0.0376,
+# coef_waux_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_wegr_atwork,-0.0376,
+# coef_wegr_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+# coef_xwait_atwork,-0.0376,
+# coef_xwait_work_univ_school_escort_shopping_eatout_othmaint_social_othdiscr,2.00 * c_ivt,
+#,,
+#,,
+coef_bike_ASC_rh,-7,T
+coef_bike_ASC_walk_univ,-0.3399,F
+coef_bike_ASC_walk_othmaint,-0.5706,F
+coef_bike_ASC_walk_shopping,-1.0245,F
+coef_bike_ASC_walk_othdiscr,-1.3577,F
+coef_bike_ASC_walk_work,-1.8333,F
+coef_bike_ASC_walk_social,-13.2384,F
+coef_bike_ASC_walk_escort,-13.5203,F
+coef_bike_ASC_walk_school,-2.0332,F
+coef_bike_ASC_walk_eatout,-2.699,F
+coef_bike_ASC_walk_atwork,-5.0532,F
+coef_drive_transit_ASC_work,0.4012,
+coef_drive_transit_ASC_shopping_eatout_othmaint_social_othdiscr_atwork,0.5129,
+coef_drive_transit_ASC_escort,0.5442,
+coef_drive_transit_ASC_univ_school,0.9082,
+#duplicates apparently intrduced with TNC mode,,
+coef_drive_transit_ASC_rh,-4.25,
+# coef_drive_transit_ASC_rh_school,-0.1272,
+# coef_drive_transit_ASC_rh_univ,-0.6328,
+# coef_drive_transit_ASC_rh_atwork,-6.952,
+# coef_drive_transit_ASC_rh_work,0.6674,
+# coef_drive_transit_ASC_rh_escort_shopping_othmaint,0.687,
+# coef_drive_transit_ASC_rh_eatout_social_othdiscr,3.5701,
+#,,
+coef_joint_auto_ASC_rh_shopping_eatout_othmaint_social_othdiscr,-7,
+coef_joint_auto_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_auto_ASC_sr2_eatout_othmaint_social_othdiscr,-0.0634,
+coef_joint_auto_ASC_sr2_work_univ_school_escort_atwork,0,
+coef_joint_auto_ASC_sr2_shopping,0.5875,
+coef_joint_auto_ASC_sr3p_eatout_othmaint_social_othdiscr,-0.1625,
+coef_joint_auto_ASC_sr3p_shopping,-19.0454,
+coef_joint_auto_ASC_sr3p_work_univ_school_escort_atwork,0,
+coef_joint_auto_ASC_walk_eatout_othmaint_social_othdiscr,-0.7144,
+coef_joint_auto_ASC_walk_shopping,-23.4688,
+coef_joint_auto_ASC_walk_work_univ_school_escort_atwork,0,
+coef_joint_bike_ASC_rh_shopping_eatout_othmaint_social_othdiscr,-12.3057,
+coef_joint_bike_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_bike_ASC_walk_othmaint,-13.5192,
+coef_joint_bike_ASC_walk_othdiscr,-14.444,
+coef_joint_bike_ASC_walk_eatout,-15.5588,
+coef_joint_bike_ASC_walk_social,-26.1714,
+coef_joint_bike_ASC_walk_shopping,-7.0476,
+coef_joint_bike_ASC_walk_work_univ_school_escort_atwork,0,
+coef_joint_drive_transit_ASC_work_univ_school_escort_atwork,0,
+coef_joint_drive_transit_ASC_shopping_eatout_othmaint_social_othdiscr,0.5129,
+coef_joint_drive_transit_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_drive_transit_ASC_rh_shopping_eatout_othmaint_social_othdiscr,4.6138,
+coef_joint_ride_hail_ASC_sr2_shopping_eatout_othmaint_social_othdiscr,-7,
+coef_joint_ride_hail_ASC_sr2_work_univ_school_escort_atwork,0,
+coef_joint_ride_hail_ASC_sr3p_shopping_eatout_othmaint_social_othdiscr,-7,
+coef_joint_ride_hail_ASC_sr3p_work_univ_school_escort_atwork,0,
+coef_joint_ride_hail_ASC_taxi_shopping_eatout_othmaint_social_othdiscr,-7,
+coef_joint_ride_hail_ASC_taxi_work_univ_school_escort_atwork,0,
+coef_joint_ride_hail_ASC_tnc_shared,0,
+coef_joint_ride_hail_ASC_tnc_single_shopping_eatout_othmaint_social_othdiscr,-4.7339,
+coef_joint_ride_hail_ASC_tnc_single_work_univ_school_escort_atwork,0,
+coef_joint_ride_hail_ASC_walk_shopping_eatout_othmaint_social_othdiscr,-7,
+coef_joint_ride_hail_ASC_walk_work_univ_school_escort_atwork,0,
+coef_joint_ride_hail_ASC_walk_transit,0,
+coef_joint_walk_ASC_rh_shopping_eatout_othmaint_social_othdiscr,-3.0362,
+coef_joint_walk_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_commuter_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_commuter_shopping_eatout_othmaint_social_othdiscr,0.5129,
+coef_joint_walk_transit_ASC_ferry_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_ferry_shopping_eatout_othmaint_social_othdiscr,0.6466,
+coef_joint_walk_transit_ASC_lightrail_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_lightrail_shopping_eatout_othmaint_social_othdiscr,0.5392,
+coef_joint_walk_transit_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_rh_shopping_eatout_othmaint_social_othdiscr,1.2266,
+coef_joint_walk_transit_ASC_sr2_eatout,-14.9134,
+coef_joint_walk_transit_ASC_sr2_othdiscr,-14.9801,
+coef_joint_walk_transit_ASC_sr2_social,-20.5022,
+coef_joint_walk_transit_ASC_sr2_shopping,-21.5768,
+coef_joint_walk_transit_ASC_sr2_othmaint,-5.323,
+coef_joint_walk_transit_ASC_sr2_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_sr3p_othdiscr,-16.7354,
+coef_joint_walk_transit_ASC_sr3p_eatout,-16.7587,
+coef_joint_walk_transit_ASC_sr3p_shopping,-25.5953,
+coef_joint_walk_transit_ASC_sr3p_othmaint,-3.9563,
+coef_joint_walk_transit_ASC_sr3p_social,-34.7378,
+coef_joint_walk_transit_ASC_sr3p_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_walk_othdiscr,-0.0024,
+coef_joint_walk_transit_ASC_walk_shopping,-0.5472,
+coef_joint_walk_transit_ASC_walk_social,-2.1301,
+coef_joint_walk_transit_ASC_walk_work_univ_school_escort_atwork,0,
+coef_joint_walk_transit_ASC_walk_othmaint,1.1876,
+coef_joint_walk_transit_ASC_walk_eatout,2.3017,
+#duplicates apparently intrduced with TNC mode,,
+coef_ride_hail_ASC_sr2_school,-1.5869,FALSE
+coef_ride_hail_ASC_sr2_univ,-4.3372,FALSE
+coef_ride_hail_ASC_sr2_atwork,-5.2763,FALSE
+coef_ride_hail_ASC_sr2_escort_shopping_othmaint,-5.6483,FALSE
+coef_ride_hail_ASC_sr2_eatout_social_othdiscr,-5.9692,FALSE
+coef_ride_hail_ASC_sr2_work,-6.108,FALSE
+# coef_ride_hail_ASC_sr2_univ,-2.5785,FALSE
+# coef_ride_hail_ASC_sr2_school,-3.0613,FALSE
+# coef_ride_hail_ASC_sr2_eatout_social_othdiscr,-3.301,FALSE
+# coef_ride_hail_ASC_sr2_escort_shopping_othmaint,-3.3353,FALSE
+# coef_ride_hail_ASC_sr2_work,-3.9085,FALSE
+# coef_ride_hail_ASC_sr2_atwork,-4.2636,FALSE
+#,,
+#duplicates apparently intrduced with TNC mode,,
+coef_ride_hail_ASC_sr3p_school,-2.5362,FALSE
+coef_ride_hail_ASC_sr3p_univ,-4.922,FALSE
+coef_ride_hail_ASC_sr3p_eatout_social_othdiscr,-6.7199,FALSE
+coef_ride_hail_ASC_sr3p_work_escort_shopping_othmaint_atwork,-7,FALSE
+# coef_ride_hail_ASC_sr3p_work,-10.8661,FALSE
+# coef_ride_hail_ASC_sr3p_univ,-3.1888,FALSE
+# coef_ride_hail_ASC_sr3p_eatout_social_othdiscr,-4.0649,FALSE
+# coef_ride_hail_ASC_sr3p_school,-4.0886,FALSE
+# coef_ride_hail_ASC_sr3p_escort_shopping_othmaint_atwork,-7,FALSE
+#,,
+coef_ride_hail_ASC_taxi_school,-0.5869,
+coef_ride_hail_ASC_taxi_univ,-1.5994,
+coef_ride_hail_ASC_taxi_atwork,-1.7764,
+coef_ride_hail_ASC_taxi_work,-2.385,
+coef_ride_hail_ASC_taxi_eatout_social_othdiscr,-2.5543,
+coef_ride_hail_ASC_taxi_escort_shopping_othmaint,-3.6629,
+coef_ride_hail_ASC_tnc_shared,0,
+coef_ride_hail_ASC_tnc_single_univ,0.1081,
+coef_ride_hail_ASC_tnc_single_school,0.3201,
+coef_ride_hail_ASC_tnc_single_work,0.735,
+coef_ride_hail_ASC_tnc_single_escort_shopping_othmaint,0.7879,
+coef_ride_hail_ASC_tnc_single_eatout_social_othdiscr,0.8274,
+coef_ride_hail_ASC_tnc_single_atwork,1.2143,
+#duplicates apparently intrduced with TNC mode,,
+coef_ride_hail_ASC_walk_atwork,-2.6103,FALSE
+coef_ride_hail_ASC_walk_eatout_social_othdiscr,-3.3603,FALSE
+coef_ride_hail_ASC_walk_univ_escort_shopping_othmaint,-7,FALSE
+coef_ride_hail_ASC_walk_school,0.245,FALSE
+coef_ride_hail_ASC_walk_work,0.2858,FALSE
+# coef_ride_hail_ASC_walk_school,-1.2386,FALSE
+# coef_ride_hail_ASC_walk_eatout_social_othdiscr,-1.3318,FALSE
+# coef_ride_hail_ASC_walk_atwork,-1.6755,FALSE
+# coef_ride_hail_ASC_walk_univ,-10.8471,FALSE
+# coef_ride_hail_ASC_walk_escort_shopping_othmaint,-7,FALSE
+# coef_ride_hail_ASC_walk_work,1.497,FALSE
+#,,
+#duplicates apparently intrduced with TNC mode,,
+coef_ride_hail_ASC_walk_transit,0,TRUE
+# coef_ride_hail_ASC_walk_transit_work,-10.8661,FALSE
+# coef_ride_hail_ASC_walk_transit_univ_school_escort_shopping_eatout_othmaint_social_othdiscr_atwork,-7,FALSE
+#,,
+coef_sov_ASC_rh_school,-5.6549,F
+coef_sov_ASC_rh_univ,-6.649,F
+coef_sov_ASC_rh_work_atwork,-7,T
+coef_sov_ASC_rh_escort_shopping_eatout_othmaint_social_othdiscr,0,T
+coef_sov_ASC_sr2_work_univ_school_shopping_eatout_othmaint_social_othdiscr_atwork,-999,T
+coef_sov_ASC_sr2_escort,0,T
+coef_sov_ASC_sr3p_work_univ_school_shopping_eatout_othmaint_social_othdiscr_atwork,-999,T
+coef_sov_ASC_sr3p_escort,0,T
+coef_sov_ASC_walk_work,-0.8398,F
+coef_sov_ASC_walk_univ,-1.0579,F
+coef_sov_ASC_walk_othmaint,-1.2993,F
+coef_sov_ASC_walk_eatout,-1.3443,F
+coef_sov_ASC_walk_shopping,-1.4766,F
+coef_sov_ASC_walk_othdiscr,-1.5507,F
+coef_sov_ASC_walk_atwork,-1.7875,F
+coef_sov_ASC_walk_social,-1.8077,F
+coef_sov_ASC_walk_school,-71.8977,F
+coef_sov_ASC_walk_escort,0,T
+coef_sr2_ASC_rh_univ,-6.6897,F
+coef_sr2_ASC_rh_work_school_escort_shopping_eatout_othmaint_social_othdiscr_atwork,-7,T
+coef_sr2_ASC_sr2_school,-1.9335,F
+coef_sr2_ASC_sr2_work,0.0149,F
+coef_sr2_ASC_sr2_escort,0.3533,F
+coef_sr2_ASC_sr2_univ,0.4304,F
+coef_sr2_ASC_sr2_social,0.5663,F
+coef_sr2_ASC_sr2_othdiscr,0.7478,F
+coef_sr2_ASC_sr2_othmaint,0.8574,F
+coef_sr2_ASC_sr2_eatout,0.9971,F
+coef_sr2_ASC_sr2_shopping,1.3765,F
+coef_sr2_ASC_sr2_atwork,2.2815,F
+coef_sr2_ASC_sr3p,-999,T
+coef_sr2_ASC_walk_othdiscr,-0.0268,F
+coef_sr2_ASC_walk_eatout,-0.0729,F
+coef_sr2_ASC_walk_shopping,-0.1117,F
+coef_sr2_ASC_walk_othmaint,-0.5989,F
+coef_sr2_ASC_walk_social,-0.7932,F
+coef_sr2_ASC_walk_school,-1.0362,F
+coef_sr2_ASC_walk_escort,-2.0528,F
+coef_sr2_ASC_walk_work,0.126,F
+coef_sr2_ASC_walk_atwork,1.1789,F
+coef_sr2_ASC_walk_univ,1.3041,F
+coef_sr3p_ASC_rh_atwork,-6.026,F
+coef_sr3p_ASC_rh_school,-6.6714,F
+coef_sr3p_ASC_rh_univ_escort_shopping_eatout_othmaint_social_othdiscr,-7,T
+coef_sr3p_ASC_rh_work,-71.9177,F
+coef_sr3p_ASC_sr2_shopping,-0.0781,F
+coef_sr3p_ASC_sr2_social,-0.1556,F
+coef_sr3p_ASC_sr2_escort,-0.2682,F
+coef_sr3p_ASC_sr2_othmaint,-0.2958,F
+coef_sr3p_ASC_sr2_univ,-0.3117,F
+coef_sr3p_ASC_sr2_eatout,-0.3178,F
+coef_sr3p_ASC_sr2_othdiscr,-0.6142,F
+coef_sr3p_ASC_sr2_work,-1.1956,F
+coef_sr3p_ASC_sr2_school,-2.7407,F
+coef_sr3p_ASC_sr2_atwork,1.0387,F
+coef_sr3p_ASC_sr3p_work,-0.1836,F
+coef_sr3p_ASC_sr3p_school,-1.7718,F
+coef_sr3p_ASC_sr3p_univ,0.6293,F
+coef_sr3p_ASC_sr3p_escort,0.7358,F
+coef_sr3p_ASC_sr3p_othdiscr,0.7398,F
+coef_sr3p_ASC_sr3p_social,0.8331,F
+coef_sr3p_ASC_sr3p_othmaint,0.9527,F
+coef_sr3p_ASC_sr3p_eatout,1.3323,F
+coef_sr3p_ASC_sr3p_shopping,1.3395,F
+coef_sr3p_ASC_sr3p_atwork,2.4128,F
+coef_sr3p_ASC_walk_eatout,-0.0434,F
+coef_sr3p_ASC_walk_social,-0.3134,F
+coef_sr3p_ASC_walk_shopping,-0.5079,F
+coef_sr3p_ASC_walk_othdiscr,-0.5272,F
+coef_sr3p_ASC_walk_escort,-1.0075,F
+coef_sr3p_ASC_walk_school,-1.2127,F
+coef_sr3p_ASC_walk_othmaint,0.0422,F
+coef_sr3p_ASC_walk_work,0.2171,F
+coef_sr3p_ASC_walk_atwork,0.8102,F
+coef_sr3p_ASC_walk_univ,1.6793,F
+coef_walk_ASC_rh,-7,T
+coef_walk_transit_ASC_commuter_work,0.4012,F
+coef_walk_transit_ASC_commuter_shopping_eatout_othmaint_social_othdiscr_atwork,0.5129,F
+coef_walk_transit_ASC_commuter_escort,0.5442,F
+coef_walk_transit_ASC_commuter_univ_school,0.9082,F
+coef_walk_transit_ASC_ferry_work,0.5277,F
+coef_walk_transit_ASC_ferry_escort,0.6005,F
+coef_walk_transit_ASC_ferry_shopping_eatout_othmaint_social_othdiscr_atwork,0.6466,F
+coef_walk_transit_ASC_ferry_univ_school,1.7237,F
+coef_walk_transit_ASC_lightrail_work,0.4621,F
+coef_walk_transit_ASC_lightrail_escort,0.5252,F
+coef_walk_transit_ASC_lightrail_shopping_eatout_othmaint_social_othdiscr_atwork,0.5392,F
+coef_walk_transit_ASC_lightrail_univ_school,1.4436,F
+coef_walk_transit_ASC_rh_escort_shopping_othmaint,-3.1136,F
+coef_walk_transit_ASC_rh_work,-3.7408,F
+coef_walk_transit_ASC_rh_atwork,-3.8506,F
+coef_walk_transit_ASC_rh_univ,-4.2691,F
+coef_walk_transit_ASC_rh_eatout_social_othdiscr,-4.7508,F
+coef_walk_transit_ASC_rh_school,-7,F
+coef_walk_transit_ASC_sr2_escort,-2.6284,F
+coef_walk_transit_ASC_sr2_othdiscr,-2.759,F
+coef_walk_transit_ASC_sr2_atwork,-22.6587,F
+coef_walk_transit_ASC_sr2_eatout,-3.1434,F
+coef_walk_transit_ASC_sr2_social,-3.3663,F
+coef_walk_transit_ASC_sr2_work,-3.6631,F
+coef_walk_transit_ASC_sr2_othmaint,-34.6746,F
+coef_walk_transit_ASC_sr2_univ,-4.005,F
+coef_walk_transit_ASC_sr2_shopping,-4.0115,F
+coef_walk_transit_ASC_sr2_school,-4.2961,F
+coef_walk_transit_ASC_sr3p_othdiscr,-2.5126,F
+coef_walk_transit_ASC_sr3p_social,-21.6309,F
+coef_walk_transit_ASC_sr3p_univ,-28.6972,F
+coef_walk_transit_ASC_sr3p_othmaint,-29.3858,F
+coef_walk_transit_ASC_sr3p_escort,-3.2074,F
+coef_walk_transit_ASC_sr3p_eatout,-3.852,F
+coef_walk_transit_ASC_sr3p_school,-3.8665,F
+coef_walk_transit_ASC_sr3p_atwork,-35.958,F
+coef_walk_transit_ASC_sr3p_work,-4.1314,F
+coef_walk_transit_ASC_sr3p_shopping,-4.3852,F
+coef_walk_transit_ASC_walk_shopping,-0.1943,F
+coef_walk_transit_ASC_walk_othdiscr,-0.4997,F
+coef_walk_transit_ASC_walk_social,-0.7651,F
+coef_walk_transit_ASC_walk_escort,-0.9974,F
+coef_walk_transit_ASC_walk_univ,-1.0311,F
+coef_walk_transit_ASC_walk_school,-1.1828,F
+coef_walk_transit_ASC_walk_work,0.4432,F
+coef_walk_transit_ASC_walk_atwork,0.5165,F
+coef_walk_transit_ASC_walk_othmaint,0.7248,F
+coef_walk_transit_ASC_walk_eatout,1.3504,F
+adjust_tnc_shared,30,T
+coef_origin_density_applied_work_univ_school,0,T
+coef_origin_density_applied_escort_shopping_eatout_othmaint_social_othdiscr_atwork,1,T
+coef_age6to12_schb_school,0.5,T
+coef_age0105_schb_school,0.00001,T
+coef_age0612_schb_school,1.9350655990955905,F
+coef_age1315_schb_school,1.9324032694876994,F
+coef_female_schb_school,0.00001,T

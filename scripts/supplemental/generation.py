@@ -1,8 +1,8 @@
 import pandas as pd
 import os, sys, time
 import h5py
-from sqlalchemy import create_engine
 import logging
+from settings import run_args
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
@@ -436,12 +436,29 @@ def main(state):
         "stuhgh_p": "high-school",
         "stuuni_p": "university",
     }
+    if state.input_settings.abm_model == "activitysim":
+        hh_df = pd.read_csv(os.path.join(run_args.args.data_dir, "households.csv"))
+        person_df = pd.read_csv(os.path.join(run_args.args.data_dir, "persons.csv"))
+        # FIXME: make sure ptype has the same coding as pptyp in daysim
+        hh_df = hh_df.drop('workers', axis=1)
 
-    hh_person = r"inputs/scenario/landuse/hh_and_persons.h5"
-    hh_people = h5py.File(hh_person, "r+")
-    hh_df = create_df_from_h5(hh_people, "Household", hh_variables)
-    person_df = create_df_from_h5(hh_people, "Person", person_variables)
+        person_type = "ptype"
+        household_id = "household_id"
+        person_number = "PNUM"
+        hhsize = "PERSONS"
+        income = "income"
+    else:
+        hh_person = r"inputs/scenario/landuse/hh_and_persons.h5"
+        hh_people = h5py.File(hh_person, "r+")
+        hh_df = create_df_from_h5(hh_people, "Household", hh_variables)
+        person_df = create_df_from_h5(hh_people, "Person", person_variables)
+        person_type = "pptyp"
+        household_id = "hhno"
+        person_number = "pno"
+        hhsize = "hhsize"
+        income = "hhincome"
 
+    # Parcel inputs are use for both Daysim and Activitysim
     parcels = pd.read_csv(parcel_file, sep=" ")
     parcels = parcels.rename(columns=parcel_col_map)
 
@@ -454,31 +471,30 @@ def main(state):
 
     # Flag if the person has a full or part-time job
     person_df["workers"] = 0
-    person_df.loc[person_df["pptyp"] == 1, "workers"] = 1
-    person_df.loc[person_df["pptyp"] == 2, "workers"] = 1
+    person_df.loc[person_df[person_type] == 1, "workers"] = 1
+    person_df.loc[person_df[person_type] == 2, "workers"] = 1
 
     # Flag if the person is a school age kid
     person_df["school-age"] = 0
-    person_df.loc[person_df["pptyp"] == 6, "school-age"] = 1
-    person_df.loc[person_df["pptyp"] == 7, "school-age"] = 1
+    person_df.loc[person_df[person_type] == 6, "school-age"] = 1
+    person_df.loc[person_df[person_type] == 7, "school-age"] = 1
 
     # Flag if the person is a college student
     person_df["college-student"] = 0
-    person_df.loc[person_df["pptyp"] == 5, "college-student"] = 1
+    person_df.loc[person_df[person_type] == 5, "college-student"] = 1
 
     # Remove a couple columns
-    fields_to_remove = ["pno", "pptyp"]
+    fields_to_remove = [person_number, person_type]
     person_df = person_df.drop(fields_to_remove, axis=1)
 
     # Create a HH file by grouping the person file by household number
-    df_hh = person_df.groupby("hhno").sum()
+    df_hh = person_df.groupby(household_id).sum()
     df_hh = df_hh.reset_index()
 
     # Merge the HH File created from the persons with the original HH file from H5
-    df_hh = pd.merge(df_hh, hh_df, on="hhno", suffixes=("_x", "_y"), how="left")
-
+    df_hh = pd.merge(df_hh, hh_df, left_on=household_id, right_on="hhno", suffixes=("_x", "_y"), how="left")
     # Create a Column for Household sizes 1, 2, 3 or 4+
-    df_hh["household-class"] = df_hh["hhsize"]
+    df_hh["household-class"] = df_hh[hhsize]
     df_hh.loc[df_hh["household-class"] > 4, "household-class"] = 4
 
     # Create a Column for workers 0, 1, 2 or 3+
@@ -487,18 +503,18 @@ def main(state):
 
     # Create a Column for Income 1, 2 ,3 or 4
     df_hh["income-class"] = 0
-    df_hh.loc[df_hh["hhincome"] <= state.emme_settings.low_income, "income-class"] = 1
+    df_hh.loc[df_hh[income] <= state.emme_settings.low_income, "income-class"] = 1
     df_hh.loc[
-        (df_hh["hhincome"] > state.emme_settings.low_income)
-        & (df_hh["hhincome"] <= state.emme_settings.medium_income),
+        (df_hh[income] > state.emme_settings.low_income)
+        & (df_hh[income] <= state.emme_settings.medium_income),
         "income-class",
     ] = 2
     df_hh.loc[
-        (df_hh["hhincome"] > state.emme_settings.medium_income)
-        & (df_hh["hhincome"] <= state.emme_settings.high_income),
+        (df_hh[income] > state.emme_settings.medium_income)
+        & (df_hh[income] <= state.emme_settings.high_income),
         "income-class",
     ] = 3
-    df_hh.loc[df_hh["hhincome"] > state.emme_settings.high_income, "income-class"] = 4
+    df_hh.loc[df_hh[income] > state.emme_settings.high_income, "income-class"] = 4
 
     # Create a Column for school age children 0, 1, 2 or 3+
     df_hh["school-class"] = df_hh["school-age"]

@@ -24,7 +24,7 @@ feedback_list = ['Banks/5to9/emmebank','Banks/15to18/emmebank']
 
 # Time of day periods
 tods = ['5to9', '9to15', '15to18', '18to20', '20to5']
-tod_networks = ['am', 'md', 'pm', 'ev', 'ni']
+tod_networks = ['am', 'md', 'pm', 'ev', 'ea']
 #project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
 emme_matrix_subgroups = ['Highway', 'Walk', 'Bike', 'Transit', 'LightRail','Ferry','CommuterRail','PassengerFerry']
@@ -45,11 +45,11 @@ bike_walk_skim_tod = ['5to9']
 
 # Transit Inputs:
 transit_skim_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
-transit_submodes = ['b', 'c', 'f', 'p', 'r']
+transit_submodes = ['b', 'c', 'f', 'r']
 
 # Transit Fare:
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
-fare_matrices_tod = ['5to9', '9to15']
+fare_matrices_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
 
 
 taz_area_file = 'inputs/model/activitysim/intrazonals/taz_acres.in'
@@ -102,11 +102,11 @@ EXTERNAL_DISTRICT = 'ga20'
 # Network Import Settings
 ####################################
 [sound_cast_net_dict]
-'5to9' = 'am'
-'9to15' = 'md'   
-'15to18' = 'pm' 
-'18to20' = 'ev' 
-'20to5' = 'ni'
+'5to9' = 'AM'
+'9to15' = 'MD'   
+'15to18' = 'PM' 
+'18to20' = 'EV' 
+'20to5' = 'EA'
 
 [extra_attributes_dict]
 "@tveh" = "total vehicles"

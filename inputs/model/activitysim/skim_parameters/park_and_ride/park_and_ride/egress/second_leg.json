@@ -1,0 +1,15 @@
+{
+    "type": "ZONAL_CHOICE_UTILITY",
+    "utility": [
+        {
+            "name": "drive_time",
+            "c": "-0.2",
+            "v": "sov_inc2t"
+        },
+        {
+            "name": "drive_cost",
+            "c": "-0.01",
+            "v": "sov_inc2c"
+        }
+    ]
+}

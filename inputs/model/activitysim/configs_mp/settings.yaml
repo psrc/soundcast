@@ -1,0 +1,61 @@
+inherit_settings: True
+trace_hh_id: 1216910
+
+#MKL_NUM_THREADS: 1
+#activitysim run -c configs_mp -s settings_mp.yaml -c configs -d data/full -o output_test
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+#use_shadow_pricing: False
+#chunk_size: 115_000_000_000
+chunk_training_mode: explicit
+#chunk_method: uss
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+multiprocess: True
+#num_processes: 12
+
+multiprocess_steps:
+  - name: mp_initialize_proto
+    begin: initialize_proto_population
+    num_processes: 1
+  - name: mp_compute_disaggregate_accessibility
+    begin: compute_disaggregate_accessibility
+    num_processes: 20
+    slice:
+      tables:
+        - proto_households
+        - proto_persons
+        - proto_tours
+  - name: mp_initialize
+    begin: initialize_landuse
+    num_processes: 1
+  - name: mp_accessibility
+    begin: compute_accessibility
+    num_processes: 20
+    slice:
+      tables:
+        - accessibility
+      exclude: True
+  - name: mp_initialize_hh
+    begin: initialize_households
+    num_processes: 1
+  - name: mp_households
+    begin: auto_ownership_simulate
+    num_processes: 20
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary
+    num_processes: 1
+
+
+
+
+ 
+

@@ -220,25 +220,25 @@ def run_importer(state):
         my_project.process_modes("inputs/scenario/networks/modes.txt")
 
         my_project.process_base_network(
-            "inputs/scenario/networks/roadway/" + value + "_roadway.in"
+            "inputs/scenario/networks/roadway/" + value.lower() + "_roadway.in"
         )
 
         my_project.process_shape(
-            "inputs/scenario/networks/shape/" + value + "_shape.in"
+            "inputs/scenario/networks/shape/" + value.lower() + "_shape.in"
         )
-        my_project.process_turn("inputs/scenario/networks/turns/" + value + "_turns.in")
+        my_project.process_turn("inputs/scenario/networks/turns/" + value.lower() + "_turns.in")
         if my_project.tod in state.network_settings.transit_tod_list:
             my_project.process_vehicles("inputs/scenario/networks/vehicles.txt")
             my_project.process_transit(
-                "inputs/scenario/networks/transit/" + value + "_transit.in"
+                "inputs/scenario/networks/transit/" + value.lower() + "_transit.in"
             )
             for att in state.network_settings.transit_line_extra_attributes:
                 my_project.create_extra_attribute("TRANSIT_LINE", att)
             my_project.import_extra_attributes(
                 "inputs/scenario/networks/extra_attributes/"
-                + value
+                + value.lower()
                 + "_link_attributes.in/extra_transit_lines_"
-                + str(tod_index[value])
+                + str(tod_index[value.lower()])
                 + ".txt",
                 False,
             )
@@ -251,22 +251,22 @@ def run_importer(state):
             my_project.create_extra_attribute("NODE", att)
         my_project.import_extra_attributes(
             "inputs/scenario/networks/extra_attributes/"
-            + value
+            + value.lower()
             + "_link_attributes.in/extra_links_"
-            + str(tod_index[value])
+            + str(tod_index[value.lower()])
             + ".txt"
         )
         my_project.import_extra_attributes(
             "inputs/scenario/networks/extra_attributes/"
-            + value
+            + value.lower()
             + "_link_attributes.in/extra_nodes_"
-            + str(tod_index[value])
+            + str(tod_index[value.lower()])
             + ".txt"
         )
 
         arterial_delay(my_project, state.network_settings.rdly_factor)
         if state.input_settings.add_distance_pricing:
             distance_pricing(
-                state.input_settings.distance_rate_dict[value], my_project, state.input_settings
+                state.input_settings.distance_rate_dict[value.lower()], my_project, state.input_settings
             )
         my_project.bank.dispose()

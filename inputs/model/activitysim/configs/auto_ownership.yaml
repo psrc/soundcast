@@ -1,0 +1,18 @@
+
+SPEC: auto_ownership.csv
+COEFFICIENTS: auto_ownership_coefficients.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: auto_ownership_preprocessor
+  DF: choosers
+  TABLES:
+    - persons_merged
+
+annotate_households:
+  SPEC: annotate_households_auto_ownership
+  DF: households
+  TABLES:
+    - persons_merged

@@ -292,6 +292,16 @@ class EmmeProject:
             scenario=self.current_scenario,
         )
 
+    def import_matrix_from_csv(self, transaction_file, emme_matrix_name):
+        NAMESPACE = "inro.emme.data.matrix.import_matrix_from_csv"
+        process = self.m.tool(NAMESPACE)
+        emme_matrix = self.bank.matrix(emme_matrix_name)
+        process(
+            matrix=emme_matrix,
+            file_path=transaction_file,
+            scenario=self.current_scenario,
+        )
+
     def export_matrix(self, matrix, matrix_path_name):
         NAMESPACE = "inro.emme.data.matrix.export_matrices"
         process = self.m.tool(NAMESPACE)

@@ -158,7 +158,7 @@ def build_shadow_only():
             return
 
 
-def run_truck_supplemental(iteration, statwe):
+def run_truck_supplemental(iteration, state):
     if state.input_settings.run_supplemental_trips:
         if iteration == 0:
             generation.main(state)
@@ -172,10 +172,10 @@ def run_truck_supplemental(iteration, statwe):
 @data_wrangling.timed
 def daysim_assignment(iteration):
     ########################################
-    # Run Daysim Activity Models
+    # Run Daysim/Activity Models
     ########################################
 
-    if state.input_settings.run_daysim:
+    if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call(
             "Daysim/Daysim.exe -c Daysim/daysim_configuration.properties"
@@ -184,10 +184,37 @@ def daysim_assignment(iteration):
         if returncode != 0:
             sys.exit(1)
 
+    if state.input_settings.run_abm and state.input_settings.abm_model == "activitysim":
+        logger.info("Start of %s iteration of ActivitySim", str(iteration))
+        # activitysim_uvenv_path = r"C:\Workspace\asim_run_dir\activitysim\.venv\Scripts\python.exe"
+        activitysim_uvenv_path = os.path.join(state.input_settings.uv_directory, ".venv", "Scripts", "python.exe")
+        returncode = subprocess.call(
+                [
+                    activitysim_uvenv_path,
+                    "-m",
+                    "activitysim",
+                    "run",
+                    # "-c",
+                    # r"C:\workspace\activitysim_dir\psrc_activitysim_pre_tele\psrc_activitysim\configs_sh",
+                    "-c",
+                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs_mp"),
+                    "-c",
+                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs"),
+                    "-o",
+                    run_args.args.output_dir,
+                    "-d",
+                    # os.path.join(os.getcwd(), "inputs/scenario/landuse"),
+                    run_args.args.data_dir,
+                ]
+            )
+        logger.info("End of %s iteration of ActivitySim", str(iteration))
+        if returncode != 0:
+            sys.exit(1)
+
     ########################################
-    # Calcualte Trucks and Supplemental Demand
+    # Calculate Trucks and Supplemental Demand
     ########################################
-    run_truck_supplemental(iteration, state.input_settings)
+    run_truck_supplemental(iteration, state)
 
     ########################################
     # Assign Demand to Networks
@@ -267,7 +294,7 @@ def main():
     logger.info("Using Git hash %s ", str(hash))
 
     data_wrangling.store_settings(state)
-    data_wrangling.build_output_dirs()
+    data_wrangling.build_output_dirs(state)
     data_wrangling.update_daysim_modes(state)
     data_wrangling.update_skim_parameters(state)
 
@@ -321,7 +348,7 @@ def main():
     ########################################
 
     if (
-        state.input_settings.run_daysim
+        state.input_settings.run_abm
         or state.input_settings.run_skims_and_paths
         or state.input_settings.run_supplemental_trips
         or state.input_settings.run_truck_model
@@ -378,7 +405,7 @@ def main():
                 print("System converged!")
                 break
             print(
-                "The system is not yet converged. Daysim and Assignment will be re-run."
+                "The system is not yet converged. ABM and assignment will be re-run."
             )
 
     # If building shadow prices, update work and school shadow prices

@@ -34,6 +34,7 @@ class InputSettings(BaseModel):
     db_name: str
     soundcast_inputs_dir: str
     abm_model: str
+    uv_directory: str
 
     ##############################
     # Initial Setup
@@ -51,7 +52,7 @@ class InputSettings(BaseModel):
     run_skims_and_paths: bool
     run_truck_model: bool
     run_supplemental_trips: bool
-    run_daysim: bool
+    run_abm: bool
     run_summaries: bool
 
     ##############################
@@ -371,7 +372,7 @@ class State:
         self.emme_settings = emme_settings
         self.network_settings = network_settings
         self.summary_settings = summary_settings
-        self.conifgs_dir = configs_dir
+        self.configs_dir = configs_dir
         self.model_input_dir = model_input_dir
         self.main_project_path = network_settings.main_project
         self.main_project_name = self.name_from_main_project_path()
@@ -411,9 +412,7 @@ def generate_state(configs_dir):
         config = toml.load(configs_dir / "input_configuration.toml")
         emme_config = toml.load(configs_dir / "emme_configuration.toml")
         network_config = toml.load(configs_dir / "network_configuration.toml")
-        summary_config = toml.load(
-            Path.cwd() / "configuration/summary_configuration.toml"
-        )
+        summary_config = toml.load(configs_dir / "summary_configuration.toml")
 
     input_settings = InputSettings(**config)
     emme_settings = EmmeSettings(**emme_config)

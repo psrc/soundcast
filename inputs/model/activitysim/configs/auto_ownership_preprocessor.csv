@@ -1,0 +1,8 @@
+Description,Target,Expression
+# averaging disaggregate accessibilities across all household members
+,shopping_accessibility_0,persons_merged.groupby('household_id').shopping_accessibility_0.mean().reindex(df.index)
+,shopping_accessibility_1,persons_merged.groupby('household_id').shopping_accessibility_1.mean().reindex(df.index)
+,shopping_accessibility_2,persons_merged.groupby('household_id').shopping_accessibility_2.mean().reindex(df.index)
+,othdiscr_accessibility_0,persons_merged.groupby('household_id').othdiscr_accessibility_0.mean().reindex(df.index)
+,othdiscr_accessibility_1,persons_merged.groupby('household_id').othdiscr_accessibility_1.mean().reindex(df.index)
+,othdiscr_accessibility_2,persons_merged.groupby('household_id').othdiscr_accessibility_2.mean().reindex(df.index)

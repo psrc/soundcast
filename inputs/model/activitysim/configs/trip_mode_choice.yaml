@@ -1,0 +1,110 @@
+# trip_mode_choice.yaml
+
+SPEC: trip_mode_choice.csv
+COEFFICIENTS: trip_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: trip_mode_choice_coefficients_template.csv
+
+LOGIT_TYPE: NL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+          - DRIVEALONEFREE
+          - SHARED2FREE
+          - SHARED3FREE
+      - name: NONMOTORIZED
+        coefficient: coef_nest_NONMOTORIZED
+        alternatives:
+          - WALK
+          - BIKE
+      - name: TRANSIT
+        coefficient:  coef_nest_TRANSIT
+        alternatives:
+            - name: WALKACCESS
+              coefficient: coef_nest_TRANSIT_WALKACCESS
+              alternatives:
+              - WALK_LOC
+              - WALK_LR
+              - WALK_FRY
+              - WALK_COM
+            - name: DRIVEACCESS
+              coefficient: coef_nest_TRANSIT_DRIVEACCESS
+              alternatives:
+              - DRIVE_TRN
+      - name: RIDEHAIL
+        coefficient: coef_nest_RIDEHAIL
+        alternatives:
+          - TNC
+      - name: SCHOOL_BUS
+        coefficient: coef_nest_SCHOOL_BUS
+        alternatives:
+          - SCH_BUS
+
+CONSTANTS:
+  orig_col_name: origin
+  dest_col_name: destination
+  I_MODE_MAP:
+    DRIVEALONEFREE: 1
+    SHARED2FREE: 2
+    SHARED3FREE: 3
+    WALK: 4
+    BIKE: 5
+    WALK_LOC: 6
+    WALK_LR: 7
+    WALK_FRY: 8
+    WALK_COM: 9
+    DRIVE_TRN: 10
+    TNC: 11
+  I_SOV_MODES: 1
+  I_SR2_MODES: 2
+  I_SR3P_MODES: 3
+  I_AUTO_MODES: [1, 2, 3]
+  I_WALK_MODE: 4
+  I_BIKE_MODE: 5
+  I_WALK_TRANSIT_MODES: [6, 7, 8, 9]
+  I_DRIVE_TRANSIT_MODES: 10
+  I_RIDE_HAIL_MODES: 11
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: trip_mode_choice_annotate_trips_preprocessor
+  DF: df
+  TABLES:
+    - land_use
+    - tours
+
+#annotate_trips:
+#  SPEC: trip_mode_choice_annotate_trips_postprocessor
+#  DF: choosers
+#  TABLES:
+#    - trips
+CHOOSER_COLS_TO_KEEP:
+  - vot_da
+  - vot_s2
+  - vot_s3
+  - od_dist_drive
+
+# to reduce memory needs filter chooser table to these fields
+TOURS_MERGED_CHOOSER_COLUMNS:
+  - hhsize
+  - age
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - parent_tour_id
+  - tour_mode
+  - duration
+  - tour_type
+  - free_parking_at_work
+  - income_segment
+  - income
+  - time_factor_work
+  - time_factor_nonwork
+  - sex
+  - ptype
+  
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

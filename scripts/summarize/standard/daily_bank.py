@@ -1,3 +1,10 @@
+"""Daily bank creation and network summarization for Soundcast transportation model.
+
+This module creates a daily Emme databank by aggregating time-of-day specific
+transportation analysis results. It merges trip matrices and networks from
+multiple time periods into a single daily representation for analysis.
+"""
+
 # Copyright [2014] [Puget Sound Regional Council]
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +27,35 @@ import pandas as pd
 
 
 def copy_emmebank(from_dir, to_dir):
+    """Copy an Emme databank directory from source to destination.
+    
+    Args:
+        from_dir: Source directory path containing the Emme databank
+        to_dir: Destination directory path for the copied databank
+        
+    Note:
+        If destination directory exists, it will be removed first.
+        Creates a complete copy of the Emme databank structure.
+    """
     if os.path.exists(to_dir):
         shutil.rmtree(to_dir)
     shutil.copytree(from_dir, to_dir)
 
 
 def merge_networks(master_network, merge_network):
+    """Merge transportation network elements from one network into another.
+    
+    Args:
+        master_network: Primary Emme network to receive merged elements
+        merge_network: Source Emme network providing elements to merge
+        
+    Returns:
+        Emme network: Updated master network with merged elements
+        
+    Note:
+        Adds nodes and links from merge_network to master_network if they
+        don't already exist. Preserves node coordinates and link modes.
+    """
     for node in merge_network.nodes():
         if not master_network.node(node.id):
             new_node = master_network.create_regular_node(node.id)
@@ -40,8 +70,16 @@ def merge_networks(master_network, merge_network):
 
 
 def export_link_values(project):
-    """Extract link attribute values for a given scenario and emmebank (i.e., time period)"""
-
+    """Extract and export link attribute values from Emme network.
+    
+    Args:
+        project: Emme project instance containing the network scenario
+        
+    Note:
+        Exports all link attributes to CSV file and creates network shapefile.
+        Output files are saved in outputs/network/ directory for analysis.
+        Reshapes data from wide to long format for easier analysis.
+    """
     network = project.current_scenario.get_network()
     link_type = "LINK"
 
@@ -79,11 +117,36 @@ def export_link_values(project):
 
 
 def main(state):
-    state.main_project.change_active_database(state.network_settings.tods[0])
+    """Create daily Emme databank by aggregating time-of-day results.
+    
+    Args:
+        state: Configuration object containing model settings and project info
+        
+    Note:
+        Creates a daily databank by:
+        1. Adding time-of-day banks to main project
+        2. Copying base bank structure for daily analysis
+        3. Aggregating trip matrices across time periods
+        4. Merging network elements from all time periods
+        5. Calculating daily link volumes and attributes
+        6. Exporting results to CSV and shapefile formats
+    """
     project = state.main_project
 
+    # Add banks to the main project if not already present
+    project_bank_list = [
+            database.title() for database in project.data_explorer.databases()
+        ]
+    for tod in state.network_settings.tods:
+        if tod not in project_bank_list:
+            project.data_explorer.add_database("Banks/" + tod + "/emmebank")
+    project.desktop.project.save()
+    state.main_project.change_active_database(state.network_settings.tods[0])
+
     # Use a copy of an existing bank for the daily bank and rename
-    copy_emmebank(f"Banks/{state.network_settings.tods[1]}", "Banks/Daily")
+    # if daily bank file doesn't already exist
+    if not os.path.exists("Banks/Daily"):
+        copy_emmebank(f"Banks/{state.network_settings.tods[1]}", "Banks/Daily")
     daily_emmebank = _emmebank.Emmebank(r"Banks/Daily/emmebank")
     daily_emmebank.title = "daily"
     daily_scenario = daily_emmebank.scenario(1002)
@@ -153,7 +216,7 @@ def main(state):
     for extra_attribute in daily_scenario.extra_attributes():
         if extra_attribute not in ["@type"]:
             daily_scenario.delete_extra_attribute(extra_attribute)
-    daily_volume_attr = daily_scenario.create_extra_attribute("LINK", "@tveh")
+    daily_scenario.create_extra_attribute("LINK", "@tveh")
     daily_network = daily_scenario.get_network()
 
     for tod, time_period in state.network_settings.sound_cast_net_dict.items():
@@ -168,7 +231,6 @@ def main(state):
         daily_scenario.set_attribute_values("LINK", [attr], values)
 
     daily_network = daily_scenario.get_network()
-    attr_list = ["@tv" + x for x in state.network_settings.tods]
 
     for link in daily_network.links():
         for item in state.network_settings.tods:

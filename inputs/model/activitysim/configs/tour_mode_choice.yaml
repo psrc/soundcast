@@ -1,0 +1,90 @@
+LOGIT_TYPE: NL
+#LOGIT_TYPE: MNL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO_TRN_NM
+        alternatives:
+          - DRIVEALONEFREE
+          - SHARED2FREE
+          - SHARED3FREE
+      - name: NONMOTORIZED
+        coefficient: coef_nest_AUTO_TRN_NM
+        alternatives:
+          - WALK
+          - BIKE
+      - name: TRANSIT
+        coefficient:  coef_nest_AUTO_TRN_NM
+        alternatives:
+          - WALK_LOC
+          - WALK_LR
+          - WALK_FRY
+          - WALK_COM
+      - name: DRIVEACCESS
+        coefficient: coef_nest_TRANSIT_DRIVEACCESS
+        alternatives:
+          - DRIVE_TRN
+      - name: RIDEHAIL
+        coefficient: coef_nest_RIDEHAIL
+        alternatives:       
+          - TNC     
+      - name: SCHOOL_BUS
+        coefficient: coef_nest_SCHOOL_BUS
+        alternatives:       
+          - SCH_BUS        
+              
+           
+    
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
+
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+
+annotate_tours:
+  SPEC: annotate_tours_tour_mode_choice
+  DF: choosers
+  TABLES:
+    - tours
+
+# to reduce memory needs filter chooser table to these fields
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - ptype
+  - sex
+  - hhsize
+  - density_index
+  - log_hh_1
+  - log_emptot_1
+  - age
+  - age_16_p
+  - age_16_to_19
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - num_workers
+  - free_parking_at_work
+  - income_segment
+  - income
+  - time_factor_work
+  - time_factor_nonwork
+
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

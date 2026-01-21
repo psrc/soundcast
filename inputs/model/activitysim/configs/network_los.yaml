@@ -1,0 +1,28 @@
+#inherit_settings: True
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: False
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: False
+
+zone_system: 2
+
+# glob 'skims*.omx' will match one or more files: skims.omx, skims1.omx, skims2.omx...
+taz_skims: 
+  omx: Skims*.omx
+  #zarr: skims.zarr
+
+
+maz: maz.csv
+
+maz_to_maz:
+  tables:
+   - maz_to_maz_walk.csv
+   - maz_to_maz_bike.csv
+  #max_blend_distance: 0
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 5, 9, 15, 18, 20, 24]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV', 'EA']

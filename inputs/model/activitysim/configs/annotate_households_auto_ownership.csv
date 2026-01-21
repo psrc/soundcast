@@ -1,0 +1,15 @@
+Description,Target,Expression
+#,, annotate households table after auto_ownership model has run
+#,, need to select the appropriate accessibility value from the persons table for the household
+,_wla0,persons_merged.groupby('household_id').workplace_location_accessibility_0.mean().reindex(df.index)
+,_wla1,persons_merged.groupby('household_id').workplace_location_accessibility_1.mean().reindex(df.index)
+,_wla2,persons_merged.groupby('household_id').workplace_location_accessibility_2.mean().reindex(df.index)
+,workplace_location_accessibility,"np.where(df.auto_ownership == 0, _wla0, np.where(df.auto_ownership == 1, _wla1, _wla2))"
+,_sha0,persons_merged.groupby('household_id').shopping_accessibility_0.mean().reindex(df.index)
+,_sha1,persons_merged.groupby('household_id').shopping_accessibility_1.mean().reindex(df.index)
+,_sha2,persons_merged.groupby('household_id').shopping_accessibility_2.mean().reindex(df.index)
+,shopping_accessibility,"np.where(df.auto_ownership == 0, _sha0, np.where(df.auto_ownership == 1, _sha1, _sha2))"
+,_otha0,persons_merged.groupby('household_id').othdiscr_accessibility_0.mean().reindex(df.index)
+,_otha1,persons_merged.groupby('household_id').othdiscr_accessibility_1.mean().reindex(df.index)
+,_otha2,persons_merged.groupby('household_id').othdiscr_accessibility_2.mean().reindex(df.index)
+,othdiscr_accessibility,"np.where(df.auto_ownership == 0, _otha0, np.where(df.auto_ownership == 1, _otha1, _otha2))"
