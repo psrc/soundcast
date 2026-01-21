@@ -34,3 +34,4 @@ Household,hhparcel,buffered_parcels,parcelid,raw_dist_transit,hh_dist_transit
 Household,hhparcel,buffered_parcels,parcelid,raw_dist_hct,hh_dist_hct
 Person,pwpcl,buffered_parcels,parcelid,raw_dist_transit,work_dist_transit
 Person,pwpcl,buffered_parcels,parcelid,raw_dist_hct,work_dist_hct
+Household,hhparcel,parcel_geog,ParcelID,Census2020Tract,hh_taz_tract

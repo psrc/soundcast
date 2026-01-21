@@ -7,18 +7,18 @@ book:
   repo-url: https://github.com/psrc/soundcast
   search: false
   sidebar:
-    logo: PSRClogo2016path.png
+    logo: ../notebook_styling/PSRClogo2016path.png
 
   chapters:
     - index.qmd
-    - summary_scripts/topsheet.ipynb
-    - summary_scripts/vmt.ipynb
-    - summary_scripts/population.ipynb
-    - summary_scripts/parking.ipynb
-    - summary_scripts/transit.ipynb
-    # - summary_scripts/trucks.ipynb
-    # - summary_scripts/JBLM.ipynb
-    # - summary_scripts/supplementals.ipynb
+    - nb/topsheet.ipynb
+    - nb/vmt.ipynb
+    - nb/population.ipynb
+    - nb/parking.ipynb
+    - nb/transit.ipynb
+    # - nb/trucks.ipynb
+    # - nb/JBLM.ipynb
+    # - nb/supplementals.ipynb
         
 
 format:

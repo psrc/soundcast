@@ -40,6 +40,7 @@ from scripts.supplemental import create_airport_trips
 from scripts.trucks import truck_model
 from scripts.utils import update_parking
 from scripts.utils import urbansim_skims
+from scripts.summarize.create_quarto_notebooks import create_quarto_notebooks
 from scripts.summarize.standard import (
     daily_bank,
     network_summary,
@@ -244,15 +245,13 @@ def check_convergence(iteration):
 def run_all_summaries():
     daily_bank.main(state)
     network_summary.main(state)
-    # transit_summary.main(state)
-    # emissions.main(state)
-    # agg.main(state)
-    # validation.main(state)
-    # job_accessibility.main(state)
-    # subprocess.run(
-    #     "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
-    #     shell=True,
-    # )
+    transit_summary.main(state)
+    emissions.main(state)
+    agg.main(state)
+    validation.main(state)
+    job_accessibility.main(state)
+
+    create_quarto_notebooks(state.input_settings.abm_model, state.summary_settings)
 
 
 def get_current_commit_hash():
@@ -263,18 +262,6 @@ def get_current_commit_hash():
     return commit
 
 def check_settings(state):
-
-    # Check that distance pricing has b1een applied correctly
-    if state.input_settings.model_year != state.input_settings.base_year and not state.input_settings.add_distance_pricing:
-        # get user input y/n to continue
-        print(
-            "Distance pricing is not applied to this future year run. "
-            "Do you want to continue? (y/n)"
-        )
-        user_input = input().strip().lower()
-        if user_input != "y":
-            print("Exiting the model run.")
-            sys.exit(1)
 
     # If banks exist, don't erase them without confirmation
     if state.input_settings.run_setup_emme_bank_folders and os.path.isdir('Banks'):

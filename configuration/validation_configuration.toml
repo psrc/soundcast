@@ -52,7 +52,8 @@ p_output_dir = "outputs/summary"
 
 # ---- model results
 # - local soundcast run
-model_dir = '../../../..'
+# model_dir = '../../../..'
+model_dir = 'C:/workspace/sc_rtp_2035/soundcast'
 
 # ---- survey results
 # attach uncloned folder path when reading uncloned data
@@ -61,7 +62,7 @@ uncloned_folder = "uncloned"
 # list all survey sources to be indluded in validation
 [survey_directories]
 # 2023 HTS dataset
-"survey" = "../../../../inputs/base_year/survey"
+# "survey" = "../../../../inputs/base_year/survey"
 
 # add another survey source to compare
 # "(name of dataset)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"

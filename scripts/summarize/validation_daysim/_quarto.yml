@@ -1,0 +1,64 @@
+project:
+  type: book
+  output-dir: "daysim-validation-notebook"
+  
+book:
+  title: "Validation Summary"
+  repo-url: https://github.com/psrc/soundcast/scripts/summarize
+  search: false
+  sidebar:
+    logo: ../notebook_styling/PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - nb/telecommute.ipynb
+    - nb/auto_ownership.ipynb
+    - nb/transit_pass_ownership.ipynb
+    - nb/day_pattern.ipynb
+    - nb/intermediate_stop_generation.ipynb
+    - nb/workbased_subtour_generation.ipynb
+    - nb/time_choice.ipynb
+    - part: "<b>LOCATION CHOICE</b>"
+      chapters:
+        - nb/work_location.ipynb
+        - nb/school_location.ipynb
+    - part: "<b>TOUR MODE CHOICE</b>"
+      chapters:
+        - nb/all_tour_mode.ipynb
+        - nb/work_tour_mode.ipynb
+        - nb/school_tour_mode.ipynb
+        - nb/escort_tour_mode.ipynb
+        - nb/other_home_based_tour_mode.ipynb
+        - nb/workbased_subtour_mode.ipynb
+    - part: "<b>TRIP MODE CHOICE</b>"
+      chapters:
+        - nb/all_trip_mode.ipynb
+        - nb/work_trip_mode.ipynb   
+        - nb/school_trip_mode.ipynb   
+        - nb/escort_trip_mode.ipynb   
+        - nb/other_home_based_trip_mode.ipynb       
+    - part: "<b>DESTINATION CHOICE</b>"
+      chapters:
+        - nb/tour_destination.ipynb
+        - nb/trip_destination.ipynb
+    - part: "<b>REGIONAL SUMMARY</b>"
+      chapters:
+        - nb/persons.ipynb
+        - nb/households.ipynb
+        - nb/tours.ipynb
+        - nb/trips.ipynb
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
+    echo: false
+    code-tools: true
+
+toc: true
+warnings: false
+
+
+
