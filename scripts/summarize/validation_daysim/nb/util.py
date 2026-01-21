@@ -1,167 +1,257 @@
+import os, sys
 import numpy as np
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import create_engine
 import polars as pl
 from pathlib import Path
+import toml
+
+from scripts.summarize.notebook_styling import psrc_theme
+from scripts.settings.state import InputSettings, SummarySettings
 
 
-class ValidationData:
-    def __init__(self, config, input_config, get_data: list =['hh','person','person_day','tour','trip','land_use','parcel_geog']) -> None:
-        self.config = config
-        self.input_config = input_config
-        self.get_data = get_data
-        # get uncloned hh data
-        self.hh = self._get_hh_data()
-        # get uncloned person data
-        self.person = self._get_person_data()
-        self.person_day = self._get_person_day_data(False)
-        self.tour = self._get_tour_data(False)
-        self.trip = self._get_trip_data(False)
-        self.land_use = self._get_parcel_landuse_data()
-        self.parcel_geog = self._get_parcel_geog()
+config = toml.load(Path.cwd() / "../../../../configuration/input_configuration.toml")
+summary_config = toml.load(Path.cwd() / "../../../../configuration/summary_configuration.toml")
+
+input_settings = InputSettings(**config)
+summary_settings = SummarySettings(**summary_config)
+run_path = summary_settings.sc_run_path
+
+# person
+pptyp_cat = {1: "1: full time worker",
+             2: "2: part time worker",
+             3: "3: non-worker age 65+",
+             4: "4: other non-working adult",
+             5: "5: university student",
+             6: "6: grade school student/child age 16+",
+             7: "7: child age 5-15",
+             8: "8: child age 0-4"}
+# tour
+tmodetp_cat = {1: "1: walk",
+               2: "2: bike",
+               3: "3: sov",
+               4: "4: hov 2",
+               5: "5: hov 3+",
+               6: "6: walk to transit",
+               7: "7: park-and-ride",
+               8: "8: school bus",
+               9: "9: tnc"}
+pdpurp_cat = {1: "1: Work",
+              2: "2: School",
+              3: "3: Escort",
+              4: "4: Personal Business",
+              5: "5: Shop",
+              6: "6: Meal",
+              7: "7: Social"}
+
+# trip
+mode_cat = {1: "1: walk",
+            2: "2: bike",
+            3: "3: sov",
+            4: "4: hov 2",
+            5: "5: hov 3+",
+            6: "6: transit",
+            8: "8: school bus",
+            9: "9: tnc"}
 
 
-    # Read data for model and survey data
-    def _get_data(self, df_name, uncloned=True):
-        # model data
-        model = pl.read_csv(
-            Path(self.config["model_dir"], "outputs/daysim", "_" + df_name + ".tsv"),
-            # Path("outputs/daysim", "_" + df_name + ".tsv"),
-            separator="\t",
-        )
+def get_validation_data(df_name, uncloned=True):
+    
+    # model data
+    model = pl.read_csv(
+        Path.cwd()/ run_path/ f"outputs/daysim/_{df_name}.tsv",
+        separator="\t"
+    )
 
-        # Apply expected data types to data when read in
+    # Add source column and apply expected data types to data when read in
+    model = model.with_columns(
+        pl.lit("model").alias("source"),
+        pl.col("^.*expfac.*$").cast(pl.Float64)
+    )
 
-        # model["source"] = "model"
-        # model.drop_in_place('fraction_with_jobs_outside')
-        wt_col = model.select(pl.col("^.*expfac.*$")).columns[0]
+    # Generate a placeholder column for worker type
+    if df_name == "person":
         model = model.with_columns(
-            source = pl.lit("model"),
-            **{wt_col: pl.col(wt_col).cast(pl.Float64)}
+            worker_type = pl.lit("null")
         )
 
-        # Generate a placeholder column for worker type
-        # model["worker_type"] = "commuter"
-        if df_name == "person":
-            model = model.with_columns(
-                worker_type = pl.lit("null")
+    # survey data
+    survey_list = []
+
+    # read survey data in all sources
+    for source_name in summary_settings.survey_directories.keys():
+        
+        if uncloned:
+            # get uncloned data
+            survey_path = Path(summary_settings.survey_directories[source_name])/ summary_settings.uncloned_folder
+        else:
+            # get cloned data
+            survey_path = Path(summary_settings.survey_directories[source_name])
+
+        df = pl.read_csv(survey_path/ f"_{df_name}.tsv", separator="\t")
+
+        # Add source column
+        df = df.with_columns(
+            pl.lit(source_name).alias("source")
+        )
+
+        survey_list.append(df)
+    
+    survey_data = pl.concat(survey_list)
+    
+    col_list = np.intersect1d(survey_data.columns, model.columns)
+    survey_data = survey_data[col_list]
+    model = model[col_list]
+
+    # align survey data to model schema
+    model_schema = model.schema
+    survey_data = survey_data.with_columns([
+        pl.col(col_name).cast(new_type) for col_name, new_type in model_schema.items()
+    ])
+
+    data = pl.concat([survey_data,model])
+
+    return data
+
+def get_hh_data(uncloned=True, quantile_groups=None):
+    
+    hh_data = get_validation_data("household", uncloned)
+
+    # data manipulation
+    hh_data = hh_data.with_columns(
+        # hhwkrs is not always accurate; recalculate from part and full time workers
+        (pl.col('hhftw') + pl.col('hhptw'))
+        .alias('hhwkrs'),
+        # Add column for (potential) drivers adults (all hh members 16 and above)
+        (pl.col('hhsize') - pl.col('hh515') - pl.col('hhcu5'))
+        .alias('drivers')
+    )
+
+    hh_data = hh_data.with_columns(
+        [
+            # add counts with 4+
+            pl.when(pl.col(col) >= 4).then(pl.lit("4+"))
+            .otherwise(pl.col(col))
+            .alias(col + "_4+")
+            for col in ['hhvehs','hhsize','hhwkrs','drivers']
+        ]
+    )
+
+    hh_data = hh_data.with_columns(
+        [
+            # add auto availability
+            pl.when(pl.col(col) <= 0).then(pl.lit("no driver"))
+            .when(pl.col('hhvehs') <= 0).then(pl.lit("no car"))
+            .when((pl.col('hhvehs') - pl.col(col)) < 0).then(pl.lit("cars fewer than drivers"))
+            .otherwise(pl.lit("enough cars"))
+            .alias("auto_available_" + col)
+            for col in ['drivers','hhwkrs']
+        ]
+    )
+
+    # get quantile groups for specified columns
+    if quantile_groups:
+        land_use = get_parcel_landuse_data().select('parcelid','emptot_1','hh_1')
+        hh_data = hh_data.join(land_use, left_on="hhparcel", right_on="parcelid", how="left")
+
+        hh_data = hh_data.with_columns(
+            [
+                pl.when(pl.col("source") != "model").then(None)
+                .otherwise(pl.col(col))
+                .alias(col+"_model")
+                for col in quantile_groups
+            ]
             )
-
-        # survey data
-        # survey = pd.DataFrame()
-        survey_list = []
-
-        # read survey data in all sources
-        for source_name in self.config["survey_directories"].keys():
-            if uncloned:
-                # get uncloned data
-                survey_path = Path(
-                    self.config["survey_directories"][source_name],
-                    self.config["uncloned_folder"],
-                )
-            else:
-                # get cloned data
-                survey_path = self.config["survey_directories"][source_name]
-
-            df = pl.read_csv(Path(survey_path, "_" + df_name + ".tsv"), separator="\t")
-            # df["source"] = source_name
-            df = df.with_columns(
-                source = pl.lit(source_name)
-            )
-            # df = df[model.columns]
-            col_list = np.intersect1d(df.columns, model.columns)
-            df = df[col_list]
-            # model_schema = model[col_list].collect_schema()
-            model_schema = model[col_list].schema
-            # Apply the new schema
-            df = df.with_columns([
-                pl.col(col_name).cast(new_type) for col_name, new_type in model_schema.items()
-            ])
-            # survey = pl.concat([survey, df])
-            survey_list.append(df)
-
-        data = pl.concat(survey_list+[model[col_list]])
-
-        return data
-
-    def _get_hh_data(self, uncloned=True):
         
-        if 'hh' in self.get_data:
-            hh_data = self._get_data("household", uncloned)
-            return hh_data
+        hh_data = hh_data.with_columns(
+            [
+                pl.when(pl.col(col) < 0).then(None)
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.125)).then(pl.lit("very low"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.25)).then(pl.lit("low"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.5)).then(pl.lit("medium"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.75)).then(pl.lit("medium-high"))
+                .otherwise(pl.lit("high"))
+                .alias(col+"_4group")
+                for col in quantile_groups
+            ]
+        )
 
-    def _get_person_data(self, uncloned=True):
+        hh_data = hh_data.drop([col+"_model" for col in quantile_groups])
+
+    return hh_data
+
+def get_person_data(uncloned=True):
         
-        if 'person' in self.get_data:
-            per_data = self._get_data("person", uncloned)
-            return per_data
+    per_data = get_validation_data("person", uncloned)
+    
+    # data manipulation
+    per_data = per_data.with_columns(
+        pl.col("pptyp").replace_strict(pptyp_cat, default=None).alias("pptyp_label")
+    )
 
-    def _get_person_day_data(self, uncloned=True):
+    return per_data
+
+def get_person_day_data(uncloned=True):
+    
+    per_day_data = get_validation_data("person_day", uncloned)
+    return per_day_data
+
+def get_tour_data(uncloned=True):
         
-        if 'person_day' in self.get_data:
-            per_day_data = self._get_data("person_day", uncloned)
-            return per_day_data
+    tour_data = get_validation_data("tour", uncloned)
+    
+    # data manipulation
+    tour_data = tour_data.with_columns(
 
-    def _get_tour_data(self, uncloned=True):
-            
-        if 'tour' in self.get_data:
-            tour_data = self._get_data("tour", uncloned)
-            return tour_data
+        # get tour mode labels
+        pl.col("tmodetp").replace_strict(tmodetp_cat, default=None)
+        .alias("tmodetp_label"),
 
-    def _get_trip_data(self, uncloned=True):
+        # get tour purpose labels
+        pl.col("pdpurp").replace_strict(pdpurp_cat, default=None)
+        .alias("pdpurp_label")
+        )
+
+    return tour_data
+
+def get_trip_data(uncloned=True):
+    
+    trip_data = get_validation_data("trip", uncloned)
+
+    # data manipulation
+    trip_data = trip_data.with_columns(
+
+        # get trip mode labels
+        pl.col("mode").replace_strict(mode_cat, default=None)
+        .alias("mode_label")
+
+    )
+
+    return trip_data
+
+def get_parcel_landuse_data():
+    
+    # parcel land use data
+    df_parcel = pl.read_csv(
+        Path.cwd()/ run_path/ "outputs/landuse/buffered_parcels.txt",
+        separator=" ",
+    )
+
+    return df_parcel
+
+def read_sqlite_db(query):
+    """get parcel geography data from sqlite database"""
         
-        if 'trip' in self.get_data:
-            trip_data = self._get_data("trip", uncloned)
-            return trip_data
+    async_engine = create_engine('sqlite:///' + run_path + '/inputs/db/' + input_settings.db_name)
+    df = pl.read_database(query= query,
+                          connection=async_engine.connect()
+                          )
 
-    def _get_parcel_landuse_data(self):
-        
-        if 'land_use' in self.get_data:
-            # parcel land use data
-            df_parcel = pl.read_csv(
-                Path(self.config["model_dir"], "outputs/landuse/buffered_parcels.txt"),
-                separator=" ",
-            )
+    return df
 
-            return df_parcel
+def get_parcel_geog():
+    """get parcel geography data from sqlite database"""
+    
+    parcel_geog = read_sqlite_db("SELECT * FROM parcel_" + input_settings.base_year + "_geography")
 
-    def _get_parcel_geog(self):
+    return parcel_geog
 
-        if 'parcel_geog' in self.get_data:
-            
-            # conn = create_engine("sqlite:///"+ self.config["model_dir"]+ "/inputs/db/"+ self.input_config["db_name"])
-            async_engine = create_engine("sqlite:///../../../../inputs/db/"+ self.input_config["db_name"])
-            parcel_geog = pl.read_database(
-                query=
-                    "SELECT * FROM "
-                    + "parcel_"
-                    + self.input_config["base_year"]
-                    + "_geography"
-                ,
-                connection=async_engine.connect()
-            )
-
-            return parcel_geog
-
-    # def _get_elmer_data(self, table_name):
-
-    #     def load_elmer_table(table_name, sql=None):
-    #         conn_string = "DRIVER={ODBC Driver 17 for SQL Server}; SERVER=SQLserver; DATABASE=Elmer; trusted_connection=yes"
-    #         sql_conn = pyodbc.connect(conn_string)
-    #         params = urllib.parse.quote_plus(conn_string)
-    #         engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
-
-    #         # if sql is None:
-    #         #     sql = "SELECT * FROM " + table_name
-
-    #         # df = pd.DataFrame(engine.connect().execute(text(sql)))
-    #         with engine.begin() as connection:
-    #             result = connection.execute(text(f"SELECT * FROM HHSurvey.{table_name} WHERE survey_year in ({self.input_config['base_year']})"))
-    #             df = pd.DataFrame(result.fetchall())
-    #             df.columns = result.keys()
-
-    #         return df
-
-    #     df_elmer = load_elmer_table(table_name)
-
-    #     return df_elmer
