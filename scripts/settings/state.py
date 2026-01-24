@@ -34,7 +34,7 @@ class InputSettings(BaseModel):
     db_name: str
     soundcast_inputs_dir: str
     abm_model: str
-    uv_directory: str
+    # uv_directory: str
 
     ##############################
     # Initial Setup
@@ -321,11 +321,12 @@ class SummarySettings(BaseModel):
     #################################
     # Run Summary Notebooks
     #################################
-    rtp_summary_list: list
-    validation_list_daysim: list
-    validation_list_activitysim: list
-    network_validation_list: list
-    comparison_summary_list: list
+    summary_list: dict
+    # rtp_summary_list: list
+    # validation_list_daysim: list
+    # validation_list_activitysim: list
+    # network_validation_list: list
+    # comparison_summary_list: list
     #################################
     # Reletive Paths
     #################################
