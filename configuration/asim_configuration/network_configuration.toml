@@ -45,7 +45,7 @@ bike_walk_skim_tod = ['5to9']
 
 # Transit Inputs:
 transit_skim_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
-transit_submodes = ['b', 'c', 'f', 'r']
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
 
 # Transit Fare:
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'
