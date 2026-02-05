@@ -72,9 +72,9 @@ dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & l
 ,_destination_distance_to_transit,"reindex(land_use.access_dist_transit, df[DESTINATION]) if 'access_dist_transit' in land_use else shortWalk"
 ,walk_transit_available,(_origin_distance_to_transit <= walkThresh) & (_destination_distance_to_transit <= walkThresh) & (_origin_distance_to_transit > 0) & (_destination_distance_to_transit > 0)
 ,walk_local_available,walk_transit_available & (odt_skims['ivtwa']>0)
-,walk_light_rail_available,walk_transit_available & (i_tour_mode >= 10) & (odt_skims['ivtwr']>0)
-,walk_ferry_available,walk_transit_available & (i_tour_mode >= 11) & (odt_skims['ivtwf']>0)
-,walk_commuter_available,walk_transit_available & (i_tour_mode >= 12) & (odt_skims['ivtwc']>0) 
+,walk_light_rail_available,walk_transit_available & (i_tour_mode >= 7) & (odt_skims['ivtwr']>0)
+,walk_ferry_available,walk_transit_available & (i_tour_mode >= 8) & (odt_skims['ivtwf']>0)
+,walk_commuter_available,walk_transit_available & (i_tour_mode >= 9) & (odt_skims['ivtwc']>0) 
 ,drive_transit_available_outbound,(_destination_distance_to_transit <= walkThresh) & df.outbound & (odt_skims['WLK_TRN_DRV_TOTIVT']>0)
 ,drive_transit_available_inbound,(_origin_distance_to_transit <= walkThresh) & ~df.outbound & (odt_skims['WLK_TRN_DRV_TOTIVT']>0)
 ,origin_walk_time,_origin_distance_to_transit*60/walkSpeed
