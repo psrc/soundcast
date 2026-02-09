@@ -321,11 +321,7 @@ class SummarySettings(BaseModel):
     #################################
     # Run Summary Notebooks
     #################################
-    rtp_summary_list: list
-    validation_list_daysim: list
-    validation_list_activitysim: list
-    network_validation_list: list
-    comparison_summary_list: list
+    summary_list: dict
     #################################
     # Reletive Paths
     #################################
