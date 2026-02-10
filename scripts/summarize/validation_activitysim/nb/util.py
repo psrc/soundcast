@@ -1,6 +1,7 @@
 import numpy as np
 from sqlalchemy import create_engine
 import polars as pl
+import pandas as pd
 from pathlib import Path
 import toml
 
@@ -53,7 +54,9 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
             # get cloned data
             survey_path = Path(summary_settings.survey_directories[source_name])
 
-        df = pl.read_csv(survey_path/ f"override_{df_name}.csv")
+        df = pl.read_csv(survey_path/ f"override_{df_name}.csv", 
+                         # TODO: clean or remove prev_home_notwa_zip column in household table
+                         schema_overrides={'prev_home_notwa_zip': pl.String})
 
         # Add source column
         df = df.with_columns(
@@ -84,19 +87,104 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
     return data
 
-def get_hh_data(summary_config, uncloned=True):
+def get_hh_data(summary_config, uncloned=True, quantile_groups=False):
         
     hh_data = get_validation_data(summary_config, 
                                   "households", 
                                   "hh_weight", 
                                   uncloned)
+    group_enum = pl.Enum(["low","medium","medium-high","high"])
+    group_enum_very_low = pl.Enum(["very low","low","medium","medium-high","high"])
     
     # data manipulation
-    # per_data = per_data.with_columns(
-    #     pl.col("pptyp").replace_strict(pptyp_cat, default=None).alias("pptyp_label")
-    # )
 
-    return hh_data
+    # add vehicle counts with 2+
+    hh_data = hh_data.with_columns(
+        [
+            pl.when(pl.col('auto_ownership') >= 2).then(pl.lit("2+"))
+            .otherwise(pl.col('auto_ownership'))
+            .alias("auto_ownership_2+")
+        ]
+    )
+
+    # add counts with 4+
+    hh_data = hh_data.with_columns(
+        [
+            pl.when(pl.col(col) >= 4).then(pl.lit("4+"))
+            .otherwise(pl.col(col))
+            .alias(col + "_4+")
+            for col in ['auto_ownership','hhsize','num_workers','num_drivers']
+        ]
+    )
+
+    # income groups
+    hh_data = hh_data.with_columns(
+        [
+            pl.when(pl.col("source") != "model").then(None)
+            .otherwise(pl.col("income"))
+            .alias("income_model")
+        ]
+        )
+    hh_data = hh_data.with_columns(
+        [
+            pl.when(pl.col("income") < 0).then(None)
+            .when(pl.col("income") < pl.col("income_model").quantile(.25)).then(pl.lit("low"))
+            .when(pl.col("income") < pl.col("income_model").quantile(.5)).then(pl.lit("medium"))
+            .when(pl.col("income") < pl.col("income_model").quantile(.75)).then(pl.lit("medium-high"))
+            .otherwise(pl.lit("high"))
+            .alias("income_group")
+        ]
+    )
+    hh_data = hh_data.with_columns(
+        pl.col("income_group").cast(group_enum, strict=False)
+    )
+    
+    hh_data = hh_data.drop(["income_model"])
+
+    # get quantile groups for specified columns
+    if quantile_groups:
+
+        col_list = ['log_emptot_1','log_hh_1']
+
+        hh_data = hh_data.\
+            join(get_landuse_data(summary_config).select(['zone_id','log_emptot_1','log_hh_1']), 
+                how="left",left_on='home_zone_id',right_on='zone_id').\
+            join(pl.read_csv(summary_config['p_maz_bg_lookup'])[['MAZ', 'block_group_id']], 
+                how="left",left_on='home_zone_id',right_on='MAZ')
+
+        # create landuse variable with only model values
+        hh_data = hh_data.with_columns(
+            [
+                pl.when(pl.col("source") != "model").then(None)
+                .otherwise(pl.col(col))
+                .alias(col+"_model")
+                for col in col_list
+            ]
+            )
+        
+        hh_data = hh_data.with_columns(
+            [
+                pl.when(pl.col(col) < 0).then(None)
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.125)).then(pl.lit("very low"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.25)).then(pl.lit("low"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.5)).then(pl.lit("medium"))
+                .when(pl.col(col) < pl.col(col+"_model").quantile(.75)).then(pl.lit("medium-high"))
+                .otherwise(pl.lit("high"))
+                .alias(col+"_group")
+                for col in col_list
+            ]        
+        )
+        hh_data = hh_data.with_columns(
+            [
+                pl.col(col+"_group").cast(group_enum_very_low, strict=False)
+                for col in col_list
+            ]
+        
+        )
+
+        hh_data = hh_data.drop([col+"_model" for col in col_list])
+
+    return hh_data.to_pandas()
 
 def get_person_data(summary_config, uncloned=True):
         

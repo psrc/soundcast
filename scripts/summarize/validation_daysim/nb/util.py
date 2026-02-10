@@ -155,6 +155,7 @@ def get_hh_data(summary_config, uncloned=True, quantile_groups=None):
         land_use = get_parcel_landuse_data(summary_config).select('parcelid','emptot_1','hh_1')
         hh_data = hh_data.join(land_use, left_on="hhparcel", right_on="parcelid", how="left")
 
+        # create landuse variable with only model values
         hh_data = hh_data.with_columns(
             [
                 pl.when(pl.col("source") != "model").then(None)
