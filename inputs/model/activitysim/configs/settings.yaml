@@ -29,7 +29,7 @@ want_dest_choice_sample_tables: False
 
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
-trace_hh_id: 562656
+trace_hh_id: 1
 cleanup_trace_files_on_resume: True
 
 
@@ -42,24 +42,24 @@ input_table_list:
   - tablename: households
     filename: households.csv
     index_col: household_id
-    rename_columns:
-      HHID: household_id
-      PERSONS: hhsize
-      workers: num_workers
-      MAZ: home_zone_id
+    # rename_columns:
+      # HHID: household_id
+      # PERSONS: hhsize
+      # workers: num_workers
+      # MAZ: home_zone_id
     recode_columns:
       home_zone_id: land_use.zone_id
     keep_columns:
       - home_zone_id
       - income
       - hhsize
-      - HHT
       - num_workers
+      - HHT
   - tablename: persons
     filename: persons.csv
     index_col: person_id
-    rename_columns:
-      PERID: person_id
+    # rename_columns:
+    #   PERID: person_id
     keep_columns:
       - household_id
       - age
@@ -79,16 +79,16 @@ input_table_list:
       TAZ: land_use_taz.TAZ
     keep_columns:
       - TAZ
-      - DISTRICT
-      - SD
+      # - DISTRICT
+      # - SD
       - county_id
       - TOTHH
       - TOTPOP
       - TOTACRE
-      - RESACRE
-      - CIACRE
+      # - RESACRE
+      # - CIACRE
       - TOTEMP
-      - AGE0519
+      # - AGE0519
       - RETEMPN
       - FPSEMPN
       - HEREMPN
@@ -104,7 +104,7 @@ input_table_list:
       - COLLPTE
       - TOPOLOGY
       - TERMINAL
-      - transit_score_scaled
+      # - transit_score_scaled
 #      - density_index
       - buff_density_index
       - GSENROLL
@@ -117,7 +117,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: auto_ownership_simulate
+resume_after: compute_accessibility
 models:
   ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
