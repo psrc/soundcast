@@ -3,41 +3,57 @@ from pathlib import Path
 import toml
 import papermill as pm
 
-def run_ipynb(sheet_name, nb_folder: Path):
+sys.path.append(os.getcwd())
+from scripts.settings.state import InputSettings, SummarySettings
+
+def run_ipynb(input_settings: InputSettings,
+              summary_settings: SummarySettings,
+              sheet_name: str, 
+              nb_folder: Path):
     """Execute a Jupyter notebook using papermill."""
 
     print(f"Start executing {sheet_name}")
     start_time = time.time()
     nb_path = nb_folder / f"{sheet_name}.ipynb"
-
+    
+    input_config = input_settings.model_dump()
+    summary_config = summary_settings.model_dump()
+    
     pm.execute_notebook(
         str(nb_path),
         str(nb_path),  # Output to same file
         kernel_name=None,
         execution_timeout=1500,
-        cwd=str(nb_folder)
+        cwd=str(nb_folder),
+        parameters=dict(summary_config = summary_config, # inject input and summary config as parameters
+                        input_config = input_config)
     )
 
     end_time = time.time()
     print(f"Successfully executed {sheet_name} in {end_time - start_time:.1f} seconds")
 
-def render_quarto(
-    notebook_name, 
-    nb_list, 
-    scripts_dir: Path, 
-    output_summary_folder: Path
-    ):
+def render_quarto(input_settings: InputSettings,
+                  summary_settings: SummarySettings,
+                  notebook_name: str, 
+                  scripts_dir: Path
+                  ):
 
     print(f"Creating {notebook_name}...")
 
+    nb_list = summary_settings.summary_list[notebook_name]
+
     for sheet_name in nb_list:
-        run_ipynb(sheet_name, scripts_dir/ "nb")
+        run_ipynb(input_settings,
+                  summary_settings,
+                  sheet_name, 
+                  scripts_dir/ "nb")
 
     # render quarto book
     text = "quarto render " + str(scripts_dir)
     os.system(text)
     print(notebook_name + " created")
 
+    output_summary_folder = Path.cwd()/ summary_settings.p_output_dir
     # create output folder if not exist
     output_summary_folder.mkdir(parents=True, exist_ok=True)
     # move notebook to output folder
@@ -48,65 +64,53 @@ def render_quarto(
     shutil.move(scripts_dir / notebook_name, output_dir)
 
 
-def create_quarto_notebooks(abm_model, summary_settings):
-
-    # run notebooks
-    run_RTP_summary = summary_settings.run_RTP_summary
-    run_validation = summary_settings.run_validation
-    run_network_validation = summary_settings.run_network_validation
-    run_comparison = summary_settings.run_run_comparison
-
-    output_path = Path.cwd()/ summary_settings.p_output_dir
-
+def create_quarto_notebooks(input_settings, summary_settings):
         
     # create RTP summary notebook
-    if run_RTP_summary:
-        render_quarto(notebook_name = "RTP-summary-notebook",
-                            nb_list = summary_settings.rtp_summary_list,
-                            scripts_dir = Path.cwd()/ "scripts/summarize/RTP_summary",
-                            output_summary_folder = output_path)
+    if summary_settings.run_RTP_summary:
+
+        render_quarto(input_settings,
+                      summary_settings,
+                      notebook_name = "RTP-summary-notebook",
+                      scripts_dir = Path.cwd()/ "scripts/summarize/RTP_summary")
     
     # create validation notebook
-    if run_validation:
-        
-        if abm_model == "daysim":
-            validation_nb_list = summary_settings.validation_list_daysim
-        elif abm_model == "activitysim":
-            validation_nb_list = summary_settings.validation_list_activitysim
+    if summary_settings.run_validation:
 
-        render_quarto(notebook_name = f"{abm_model}-validation-notebook",
-                            nb_list = validation_nb_list,
-                            scripts_dir = Path.cwd()/ f"scripts/summarize/validation_{abm_model}",
-                            output_summary_folder = output_path)
+        render_quarto(input_settings,
+                      summary_settings,
+                      notebook_name = f"{input_settings.abm_model}-validation-notebook",
+                      scripts_dir = Path.cwd()/ f"scripts/summarize/validation_{input_settings.abm_model}")
 
     # create network validation notebook
-    if run_network_validation:
-        render_quarto(notebook_name = "network-validation-notebook",
-                            nb_list = summary_settings.network_validation_list,
-                            scripts_dir = Path.cwd()/ "scripts/summarize/validation_network",
-                            output_summary_folder = output_path)
+    if summary_settings.run_network_validation:
+
+        render_quarto(input_settings,
+                      summary_settings,
+                      notebook_name = "network-validation-notebook",
+                      scripts_dir = Path.cwd()/ "scripts/summarize/validation_network")
                             
     # create comparison notebook
-    if run_comparison:
-        render_quarto(notebook_name = "run-comparison-notebook",
-                            nb_list = summary_settings.comparison_summary_list,
-                            scripts_dir = Path.cwd()/ "scripts/summarize/run_comparison",
-                            output_summary_folder = output_path) 
+    if summary_settings.run_run_comparison:
+
+        render_quarto(input_settings,
+                      summary_settings,
+                      notebook_name = "run-comparison-notebook",
+                      scripts_dir = Path.cwd()/ "scripts/summarize/run_comparison") 
 
 
 if __name__ == "__main__":
-    
-    sys.path.append(os.getcwd())
-    from scripts.settings.state import InputSettings, SummarySettings
 
-    
-    config = toml.load(Path.cwd() / "configuration/input_configuration.toml")
-    summary_config = toml.load(
-        Path.cwd() / "configuration/summary_configuration.toml"
-    )
+    # activitysim
+    input_config = toml.load(Path.cwd() / "configuration/asim_configuration/input_configuration.toml")
+    summary_config = toml.load(Path.cwd() / "configuration/asim_configuration/summary_configuration.toml")
 
-    input_settings = InputSettings(**config)
+    # daysim
+    # input_config = toml.load(Path.cwd() / "configuration/input_configuration.toml")
+    # summary_config = toml.load(Path.cwd() / "configuration/summary_configuration.toml")
+
+    input_settings = InputSettings(**input_config)
     summary_settings = SummarySettings(**summary_config)
 
-    create_quarto_notebooks(input_settings.abm_model, summary_settings)
+    create_quarto_notebooks(input_settings, summary_settings)
     

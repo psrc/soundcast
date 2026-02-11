@@ -2162,17 +2162,17 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
             state.network_settings.sound_cast_net_dict
             )
         
-    # Fill inf with max values for park and ride matrices
-    for emme_matrix_name in [
-        "DRV_TRN_WLK_A_DEMAND",
-        "WLK_TRN_DRV_T_DEMAND",
-        "DRV_TRN_WLK_T_DEMAND",
-        "WLK_TRN_DRV_A_DEMAND",
-    ]:
+        # Fill inf with max values for park and ride matrices
+        for emme_matrix_name in [
+            "DRV_TRN_WLK_A_DEMAND",
+            "WLK_TRN_DRV_T_DEMAND",
+            "DRV_TRN_WLK_T_DEMAND",
+            "WLK_TRN_DRV_A_DEMAND",
+        ]:
 
-        matrix_value = emmeMatrix_to_numpyMatrix(
-            emme_matrix_name, my_project.bank, "float32", 1, 99999
-        )
+            matrix_value = emmeMatrix_to_numpyMatrix(
+                emme_matrix_name, my_project.bank, "float32", 1, 99999
+            )
         if state.input_settings.abm_model == "activitysim":
             matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
 
@@ -2185,42 +2185,42 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
             emme_matrix, my_project.current_scenario
         )
         
-    # Add park and ride demand to the model
-    # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
-    # Add to sov_inc2 matrix
-    pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND").id
-    pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND").id
-    sov_inc2_matrix = my_project.bank.matrix("sov_inc2").id
-    my_project.matrix_calculator(
-        result=sov_inc2_matrix,
-        expression=f"{sov_inc2_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-    )
+        # Add park and ride demand to the model
+        # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
+        # Add to sov_inc2 matrix
+        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND").id
+        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND").id
+        sov_inc2_matrix = my_project.bank.matrix("sov_inc2").id
+        my_project.matrix_calculator(
+            result=sov_inc2_matrix,
+            expression=f"{sov_inc2_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
+        )
 
-    controlled_rounding = my_project.m.tool(
-                "inro.emme.matrix_calculation.matrix_controlled_rounding"
-            )
-    controlled_rounding(
-        demand_to_round=sov_inc2_matrix,
-        rounded_demand=sov_inc2_matrix,
-        min_demand=0.1,
-        values_to_round="SMALLER_THAN_MIN",
-    )
+        controlled_rounding = my_project.m.tool(
+                    "inro.emme.matrix_calculation.matrix_controlled_rounding"
+                )
+        controlled_rounding(
+            demand_to_round=sov_inc2_matrix,
+            rounded_demand=sov_inc2_matrix,
+            min_demand=0.1,
+            values_to_round="SMALLER_THAN_MIN",
+        )
 
-    # DRV_TRN_WALK_T_DEMAND and WLK_TRN_DRV_A_DEMAND are transit trips, add to trnst
-    pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND").id
-    pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND").id
-    trnst_matrix = my_project.bank.matrix("trnst").id
-    my_project.matrix_calculator(
-        result=trnst_matrix,
-        expression=f"{trnst_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-    )
+        # DRV_TRN_WALK_T_DEMAND and WLK_TRN_DRV_A_DEMAND are transit trips, add to trnst
+        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND").id
+        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND").id
+        trnst_matrix = my_project.bank.matrix("trnst").id
+        my_project.matrix_calculator(
+            result=trnst_matrix,
+            expression=f"{trnst_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
+        )
 
-    controlled_rounding(
-        demand_to_round=trnst_matrix,
-        rounded_demand=trnst_matrix,
-        min_demand=0.1,
-        values_to_round="SMALLER_THAN_MIN",
-    )
+        controlled_rounding(
+            demand_to_round=trnst_matrix,
+            rounded_demand=trnst_matrix,
+            min_demand=0.1,
+            values_to_round="SMALLER_THAN_MIN",
+        )
 
     # Park and ride demand needs to be re-run
     # FIXME: maybe only run this once after convergence
@@ -2302,7 +2302,7 @@ def run(free_flow_skims=False, num_iterations=100):
             l = project_list[i : i + state.emme_settings.parallel_instances]
             pool_list.append(start_pool(l, free_flow_skims, num_iterations))
     else:
-        run_assignments_parallel("projects/5to9/5to9.emp", free_flow_skims, num_iterations)
+        run_assignments_parallel("projects/20to5/20to5.emp", free_flow_skims, num_iterations)
 
     ## calculate link daily volumes for use in bike model
 

@@ -252,7 +252,7 @@ def run_all_summaries():
     validation.main(state)
     job_accessibility.main(state)
 
-    create_quarto_notebooks(state.input_settings.abm_model, state.summary_settings)
+    create_quarto_notebooks(state.input_settings, state.summary_settings)
 
 
 def get_current_commit_hash():
