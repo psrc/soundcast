@@ -247,7 +247,7 @@ coef_joint_ride_hail_ASC_walk_shopping_eatout_othmaint_social_othdiscr,-7,
 coef_joint_ride_hail_ASC_walk_work_univ_school_escort_atwork,0,
 coef_joint_ride_hail_ASC_walk_transit,0,
 coef_joint_walk_ASC_rh_shopping_eatout_othmaint_social_othdiscr,-3.0362,
-coef_joint_walk_ASC_rh_work_univ_school_escort_atwork,0,
+coef_joint_walk_ASC_rh_work_univ_school_escort_atwork,-2,
 coef_joint_walk_transit_ASC_commuter_work_univ_school_escort_atwork,0,
 coef_joint_walk_transit_ASC_commuter_shopping_eatout_othmaint_social_othdiscr,0.5129,
 coef_joint_walk_transit_ASC_ferry_work_univ_school_escort_atwork,0,
@@ -372,7 +372,7 @@ coef_sr2_ASC_walk_work,0.126,F
 coef_sr2_ASC_walk_atwork,1.1789,F
 coef_sr2_ASC_walk_univ,1.3041,F
 coef_sr3p_ASC_rh_atwork,-6.026,F
-coef_sr3p_ASC_rh_school,-6.6714,F
+coef_sr3p_ASC_rh_school,-3,F
 coef_sr3p_ASC_rh_univ_escort_shopping_eatout_othmaint_social_othdiscr,-7,T
 coef_sr3p_ASC_rh_work,-71.9177,F
 coef_sr3p_ASC_sr2_shopping,-0.0781,F
@@ -405,7 +405,7 @@ coef_sr3p_ASC_walk_othmaint,0.0422,F
 coef_sr3p_ASC_walk_work,0.2171,F
 coef_sr3p_ASC_walk_atwork,0.8102,F
 coef_sr3p_ASC_walk_univ,1.6793,F
-coef_walk_ASC_rh,-7,T
+coef_walk_ASC_rh,-10,T
 coef_walk_transit_ASC_commuter_work,0.4012,F
 coef_walk_transit_ASC_commuter_shopping_eatout_othmaint_social_othdiscr_atwork,0.5129,F
 coef_walk_transit_ASC_commuter_escort,0.5442,F
