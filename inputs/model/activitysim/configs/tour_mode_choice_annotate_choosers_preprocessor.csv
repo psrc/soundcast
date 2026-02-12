@@ -19,7 +19,6 @@ deal with negative durations,start,"np.where((df.duration < 0) & (df.out_period 
 ,is_school,(df.tour_category=='school') if 'tour_category' in df.columns else False
 ,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
 #,,
-,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
 #,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
 ,dest_log_emptot_1,"reindex(land_use.log_emptot_1, df[dest_col_name])"

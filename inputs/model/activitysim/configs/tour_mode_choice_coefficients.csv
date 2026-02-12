@@ -419,6 +419,6 @@ drive_transit_CBD_ASC_school_univ,0.0,T
 drive_transit_CBD_ASC_work,0.0,T
 drive_transit_CBD_ASC_atwork,0.0,T
 coef_age0105_schb_school,0.0,T
-coef_age0612_schb_school,1.9350655990955905,F
-coef_age1315_schb_school,1.9324032694876994,F
+coef_age0612_schb_school,1.8,F
+coef_age1315_schb_school,1.8,F
 coef_female_schb_school,0.0,T

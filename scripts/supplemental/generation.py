@@ -436,29 +436,17 @@ def main(state):
         "stuhgh_p": "high-school",
         "stuuni_p": "university",
     }
-    if state.input_settings.abm_model == "activitysim":
-        hh_df = pd.read_csv(os.path.join(run_args.args.data_dir, "households.csv"))
-        person_df = pd.read_csv(os.path.join(run_args.args.data_dir, "persons.csv"))
-        # FIXME: make sure ptype has the same coding as pptyp in daysim
-        hh_df = hh_df.drop('workers', axis=1)
 
-        person_type = "ptype"
-        household_id = "household_id"
-        person_number = "PNUM"
-        hhsize = "PERSONS"
-        income = "income"
-    else:
-        hh_person = r"inputs/scenario/landuse/hh_and_persons.h5"
-        hh_people = h5py.File(hh_person, "r+")
-        hh_df = create_df_from_h5(hh_people, "Household", hh_variables)
-        person_df = create_df_from_h5(hh_people, "Person", person_variables)
-        person_type = "pptyp"
-        household_id = "hhno"
-        person_number = "pno"
-        hhsize = "hhsize"
-        income = "hhincome"
+    hh_person = r"inputs/scenario/landuse/hh_and_persons.h5"
+    hh_people = h5py.File(hh_person, "r+")
+    hh_df = create_df_from_h5(hh_people, "Household", hh_variables)
+    person_df = create_df_from_h5(hh_people, "Person", person_variables)
+    person_type = "pptyp"
+    household_id = "hhno"
+    person_number = "pno"
+    hhsize = "hhsize"
+    income = "hhincome"
 
-    # Parcel inputs are use for both Daysim and Activitysim
     parcels = pd.read_csv(parcel_file, sep=" ")
     parcels = parcels.rename(columns=parcel_col_map)
 

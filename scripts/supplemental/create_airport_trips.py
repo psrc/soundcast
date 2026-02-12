@@ -437,13 +437,9 @@ def main(state):
 
     # Create airport trip tables
     # Load synthetic population data
-    if state.input_settings.abm_model == "activitysim":
-        hh_df = pd.read_csv(os.path.join(run_args.args.data_dir, "households.csv"))
-        hh_df.rename(columns={'PERSONS': "hhsize"}, inplace=True)
-    else:
-        daysim = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r")
-        hh_df = build_df(h5file=daysim, h5table="Household", cols=["hhno", "hhsize", "hhtaz", "hhexpfac"])
-        hh_df.rename(columns={'hhtaz': "TAZ"}, inplace=True)
+    daysim = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r")
+    hh_df = build_df(h5file=daysim, h5table="Household", cols=["hhno", "hhsize", "hhtaz", "hhexpfac"])
+    hh_df.rename(columns={'hhtaz': "TAZ"}, inplace=True)
 
     # Calculate total trips by TAZ to Seattle-Tacoma International Airport from internal zones
     airport_control_total = pd.read_sql(

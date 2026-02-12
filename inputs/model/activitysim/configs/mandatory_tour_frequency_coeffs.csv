@@ -42,8 +42,6 @@ coef_hh_income_gt_50k_work,-0.0528,F
 coef_hh_income_gt_50k_school1,0.0347,F
 coef_hh_income_gt_50k_worker_work_and_school,0.0347,F
 coef_hh_income_gt_50k_student_work_and_school,-0.0528,F
-coef_non_family_hh_category1,-0.25,F
-coef_non_family_hh_category2,-0.1792,F
 coef_num_under_16_not_at_school_work2,0.1804
 coef_num_under_16_not_at_school_school2,0.0866
 coef_num_under_16_not_at_school_work_and_school,-0.1955

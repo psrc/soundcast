@@ -138,7 +138,6 @@ def process_households(parcel_geog):
             "hhno": "household_id",
             "hhtaz": "TAZ",
             "hhincome": "income",
-            # "hhsize": "PERSONS",
         },
         inplace=True,
     )
@@ -149,10 +148,6 @@ def process_households(parcel_geog):
         },
         inplace=True
     )
-
-    # FIXME: REMOVE from models
-    df_psrc["HHT"] = 1
-    # df_psrc["HHID"] = df_psrc["hhno"].copy()
 
     # Household income 
     df_psrc["income"] = np.where(df_psrc["income"] < 0, 0, df_psrc["income"])
@@ -172,7 +167,7 @@ def process_households(parcel_geog):
     df_psrc = df_psrc.merge(parcel_geog[["ParcelID", "maz_id"]], left_on="hhparcel", right_on="ParcelID", how="left")
     df_psrc.rename(columns={"maz_id": "home_zone_id"}, inplace=True)
 
-    hh_col_list = ["household_id", "home_zone_id", "income", "hhsize", "num_workers", "HHT"]
+    hh_col_list = ["household_id", "home_zone_id", "income", "hhsize", "num_workers"]
     df_psrc = df_psrc[hh_col_list]
     
     return df_psrc, df_psrc_person
@@ -350,9 +345,6 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df_lu["area_type"] = pd.cut(
         df_lu.density, bins=[-1, 6, 30, 55, 100, 300, np.inf], labels=[5, 4, 3, 2, 1, 0]
     )
-
-    # FIXME: remove TOPOLOGY from models
-    df_lu["TOPOLOGY"] = 1
 
     # Terminal Times
     df_tt = pd.read_csv(

@@ -69,13 +69,6 @@ util_hh_income_gt_50k_non_working_adult,Household income higher than $50k - Non-
 util_hh_income_gt_50k_retired,Household income higher than $50k - Retired interaction,(ptype == 5) & (income_in_thousands > 50),0,,coef_hh_income_gt_50k_school1,,
 util_hh_income_gt_50k_driving_age_student,Household income higher than $50k - Driving-age student interaction,(ptype == 6) & (income_in_thousands > 50),coef_hh_income_gt_50k_work,,0,,coef_hh_income_gt_50k_student_work_and_school
 util_hh_income_gt_50k_pre_driving_age_student,Household income higher than $50k - Pre-driving age child who is in school interaction,(ptype == 7) & (income_in_thousands > 50),coef_hh_income_gt_50k_work,,0,,
-util_non_family_hh_ft,Non-family household - Full-time worker interaction,(ptype == 1) & non_family,0,,coef_non_family_hh_category1,,coef_non_family_hh_category1
-util_non_family_hh_pt,Non-family household - Part-time worker interaction,(ptype == 2) & non_family,0,,coef_non_family_hh_category1,,coef_non_family_hh_category1
-util_non_family_hh_univ,Non-family household - University student interaction,(ptype == 3) & non_family,coef_non_family_hh_category2,coef_non_family_hh_category2,0,,coef_non_family_hh_category2
-util_non_family_hh_non_working_adult,Non-family household - Non-working adult interaction,(ptype == 4) & non_family,0,,coef_non_family_hh_category1,,
-util_non_family_hh_retired,Non-family household - Retired interaction,(ptype == 5) & non_family,0,,coef_non_family_hh_category1,,
-util_non_family_hh_driving_age_student,Non-family household - Driving-age student interaction,(ptype == 6) & non_family,coef_non_family_hh_category2,,0,,coef_non_family_hh_category2
-util_non_family_hh_pre_driving_age_student,Non-family household - Pre-driving age child who is in school interaction,(ptype == 7) & non_family,coef_non_family_hh_category2,,0,,
 util_num_under_16_not_at_school_ft,Number of children under 16 not at school - Full-time worker interaction,(ptype == 1) * num_under16_not_at_school,,coef_num_under_16_not_at_school_work2,,,coef_num_under_16_not_at_school_work_and_school
 util_num_under_16_not_at_school_pt,Number of children under 16 not at school - Part-time worker interaction,(ptype == 2) * num_under16_not_at_school,,coef_num_under_16_not_at_school_work2,,,coef_num_under_16_not_at_school_work_and_school
 util_num_under_16_not_at_school_univ,Number of children under 16 not at school - University student interaction,(ptype == 3) * num_under16_not_at_school,,coef_num_under_16_not_at_school_work2,,coef_num_under_16_not_at_school_school2,coef_num_under_16_not_at_school_work_and_school
