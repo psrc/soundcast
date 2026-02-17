@@ -7,8 +7,8 @@ protected_namespaces = '()'
 
 # run Quarto notebooks
 run_RTP_summary = false
-run_validation = true
-run_network_validation = false
+run_validation = false
+run_network_validation = true
 run_run_comparison = false
 
 #################################
@@ -116,30 +116,16 @@ uncloned_folder = "uncloned"
 #################################
 
 [tod_lookup]
-5to6 = 5
-6to7 = 6
-7to8 = 7
-8to9 = 8
-9to10 = 9
-10to14 = 10
-14to15 = 14
-15to16 = 15
-16to17 = 16
-17to18 = 17
+5to9 = 5
+9to15 = 9
+15to18 = 15
 18to20 = 18
 20to5 = 20
 
 [tod_dict]
-5to6 = 'AM'
-6to7 = 'AM'
-7to8 = 'AM'
-8to9 = 'AM'
-9to10 = 'Mid-Day'
-10to14 = 'Mid-Day'
-14to15 = 'Mid-Day'
-15to16 = 'PM'
-16to17 = 'PM'
-17to18 = 'PM'
+5to9 = 'AM'
+9to15 = 'Mid-Day'
+15to18 = 'PM'
 18to20 = 'Evening'
 20to5 = 'Night'
 
@@ -193,28 +179,6 @@ uncloned_folder = "uncloned"
 5 = 'Connector'
 6 = 'Arterial'
 
-[purp_dict]
-0 = 'Home'
-1 = 'Work'
-2 = 'School'
-3 = 'Escort'
-4 = 'Personal Business'
-5 = 'Shopping'
-6 = 'Meal'
-7 = 'Social'
-8 = 'Recreational'
-9 = 'Medical'
-10 = 'Change Mode'
-
-[mode_dict]
-1 = 'Walk'
-2 = 'Bike'
-3 = 'SOV'
-4 = 'HOV2'
-5 = 'HOV3+'
-6 = 'Transit'
-8 = 'School Bus'
-
 [fac_type_lookup]
 0 = 0
 1 = 4
@@ -225,34 +189,6 @@ uncloned_folder = "uncloned"
 6 = 3
 7 = 5
 8 = 0
-
-# Map pollutant name and ID
-###
-### FIXME: put in db
-###
-[pollutant_map]
-1 = "Total Gaseous HCs"
-2 = "CO"
-3 = "NOx"
-5 = "Methane"
-6 = "N20"
-79 = "Non-methane HCs"
-87 = "VOCs"
-90 = "Atmospheric CO2"
-91 = "Total Energy"
-98 = "CO2 Equivalent"
-PM10 = "PM10 Total"
-PM25 = "PM25 Total"
-100 = "PM10 Exhaust"
-106 = "PM10 Brakewear"
-107 = "PM10 Tirewear"
-110 = "PM25 Exhaust"
-112 = "Elemental Carbon"
-115 = "Sulfate Particulate"
-116 = "PM25 Brakewear"
-117 = "PM25 Tirewear"
-118 = "Composite NonECPM"
-119 = "H20 Aerosol"
 
 
 #################################
@@ -304,11 +240,11 @@ PM25 = "PM25 Total"
     # 'workbased_subtour_generation'
     ]
 "network-validation-notebook" = [
-    'JBLM',
-    'supplementals',
+#    'JBLM',
+#    'supplementals',
     'transit_validation',
     'traffic_validation',
-    'bike_validation',
+#    'bike_validation',
     'link_analysis'
     ]
 "run-comparison-notebook" = [

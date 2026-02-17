@@ -2,6 +2,7 @@ import os, shutil
 import pandas as pd
 import polars as pl
 from sqlalchemy import create_engine
+from scripts.settings import run_args
 
 pd.options.mode.chained_assignment = None
 
@@ -267,15 +268,19 @@ def calculate_start_emissions(state):
     """Calculate start emissions based on vehicle population by year."""
 
     df_veh = pd.read_sql(
-        "SELECT * FROM vehicle_population WHERE year=="
+        "SELECT * FROM vehicle_population WHERE source=='MOVES' AND year=="
         + state.input_settings.base_year,
         con=state.conn,
     )
     df_veh = df_veh.groupby(['type']).sum()[['vehicles']].reset_index()
 
     # Scale all vehicles by difference between base year and model total vehicles owned from auto ownership model
-    df_hh = pl.read_csv(r"outputs/daysim/_household.tsv", separator="\t",)
-    tot_veh = df_hh["hhvehs"].sum()
+    if state.input_settings.abm_model == "activitysim":
+        df_hh = pd.read_parquet(os.path.join(run_args.args.output_dir, "final_households.parquet"))
+        tot_veh = df_hh["auto_ownership"].sum()
+    else:
+        df_hh = pl.read_csv(r"outputs/daysim/_household.tsv", separator="\t")
+        tot_veh = df_hh["hhvehs"].sum()
 
     # Scale vehicles by change in household vehicle ownership model versus base year
     veh_scale = 1.0 + (tot_veh - state.summary_settings.tot_veh_model_base_year) / state.summary_settings.tot_veh_model_base_year
@@ -446,12 +451,15 @@ def main(state):
     ].astype(
         "int"
     )
-    summary_df["pollutant_name"] = (
-        summary_df["pollutantID"]
-        .astype("int", errors="ignore")
-        .astype("str")
-        .map(state.summary_settings.pollutant_map)
-    )
+    # Get pollutant names from db
+    pollutant_map = pd.read_sql(
+            "SELECT * FROM pollutants",
+            con=state.conn,
+        )
+    
+    summary_df['pollutantID'] = summary_df["pollutantID"].astype("str")
+    summary_df = summary_df.merge(pollutant_map, on="pollutantID", how="left")
+
     summary_df["total_daily_tons"] = (
         summary_df["start_tons"]
         + summary_df["interzonal_tons"]

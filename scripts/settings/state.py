@@ -11,11 +11,6 @@ from sqlalchemy import create_engine
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.getcwd())
-# from emme_project import EmmeProject # moved to create_main_project function to aviod error when running summary
-# import settings.run_args
-
-# from typing_extensions import Literal
-
 
 class InputSettings(BaseModel):
     # toml input notes:
@@ -182,7 +177,6 @@ class NetworkSettings(BaseModel):
     # Time of day periods
     tods: list
     tod_networks: list
-    # project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
     emme_matrix_subgroups: list
     # Skim for time, cost
@@ -228,11 +222,6 @@ class NetworkSettings(BaseModel):
     # Bin definition of total elevation gain (per link)
     slope_bins: list
     slope_labels: list
-
-    # avg_bike_speed = 10 # miles per hour
-
-    # Multiplier for storing skim results
-    # bike_skim_mult = 100    # divide by 100 to store as int
 
     # Calibration factor for bike weights on ferry links
     ferry_bike_factor: float
@@ -300,15 +289,6 @@ class NetworkSettings(BaseModel):
 
     truck_adjustment_factor: dict
 
-
-# class State(BaseModel):
-#     input_settings: InputSettings
-#     emme_settings: EmmeSettings
-#     network_settings: NetworkSettings
-#     configs_dir: typing.Any
-#     model_input_dir: typing.Any
-
-
 class SummarySettings(BaseModel):
     #################################
     # Summary Comparisons
@@ -317,7 +297,6 @@ class SummarySettings(BaseModel):
     run_RTP_summary: bool
     run_validation: bool
     run_network_validation: bool
-    # run_telecommute_analysis: bool
     #################################
     # Run Summary Notebooks
     #################################
@@ -334,7 +313,7 @@ class SummarySettings(BaseModel):
     #################################
     sc_run_name: str
     sc_run_path: str
-    # all survey sources to be indluded in validation
+    # all survey sources to be included in validation
     survey_directories: dict
     # add comparison run directories
     comparison_runs_list: dict
@@ -350,7 +329,6 @@ class SummarySettings(BaseModel):
     fac_type_lookup: dict
     tod_lookup: dict
     summer_list: list
-    pollutant_map: dict
     special_route_lookup: dict
 
 
@@ -424,29 +402,3 @@ def generate_state(configs_dir):
         configs_dir=configs_dir,
         model_input_dir=model_input_dir,
     )
-
-
-# def generate_settings():
-#     # set up configs/settings:
-#     configs_dir = run_args.args.configs_dir
-#     if configs_dir is None:
-#         config = toml.load(Path.cwd()/'configuration/input_configuration.toml')
-#         emme_config = toml.load(Path.cwd()/'configuration/emme_configuration.toml')
-#         network_config = toml.load(Path.cwd()/'configuration/network_configuration.toml')
-#     else :
-#         configs_dir = Path(configs_dir)
-#         config = toml.load(configs_dir/'input_configuration.toml')
-#         emme_config = toml.load(configs_dir/'emme_configuration.toml')
-#         network_config = toml.load(configs_dir/'network_configuration.toml')
-
-#     input_settings = InputSettings(**config)
-#     emme_settings = EmmeSettings(**emme_config)
-#     network_settings = NetworkSettings(**network_config)
-
-#     return Settings(input_settings=input_settings,
-#                     emme_settings=emme_settings,
-#                     network_settings= network_settings,
-#                     configs_dir= configs_dir)
-
-# if __name__ == "__main__":
-#     generate_settings()
