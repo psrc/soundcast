@@ -4,6 +4,7 @@ import polars as pl
 import pandas as pd
 from pathlib import Path
 import toml
+import plotly.express as px
 
 from scripts.summarize.notebook_styling import psrc_theme
 from scripts.settings.state import InputSettings, SummarySettings
@@ -27,6 +28,9 @@ work_from_home_cat = {True: "wfh worker",
 # trip
 outbound_cat = {True: "outbound",
                 False: "inbound"}
+
+transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
+all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCH_BUS","TNC","Other"]
 
 def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
@@ -253,13 +257,28 @@ def get_trip_data(summary_config, uncloned=False):
     
     # data manipulation
     trip_data = trip_data.with_columns(
-        pl.col("outbound").replace_strict(outbound_cat, default=None).alias("tour_direction")
-    )
 
-    trip_data = trip_data.with_columns(
+        # get tour direction
+        pl.col("outbound").replace_strict(outbound_cat, default=None)
+        .alias("tour_direction"),
+
+        # clean up purpose labels
         pl.when(pl.col("purpose") == "Home").then(pl.lit("home"))
         .otherwise(pl.col("purpose"))
-        .alias("purpose")
+        .alias("purpose"),
+
+        # aggregate transit modes
+        pl.when(pl.col("trip_mode").is_in(transit_modes))
+        .then(pl.lit("ALL_TRANSIT"))
+        .otherwise(pl.col("trip_mode"))
+        .cast(pl.Enum(all_modes_transit_agg), strict=False)
+        .alias("trip_mode_transit_agg"),
+
+        # only transit modes
+        pl.when(pl.col("trip_mode").is_in(transit_modes))
+        .then(pl.col("trip_mode"))
+        .otherwise(None)
+        .alias("trip_mode_transit_only")
     )
 
     # distance bins
@@ -282,10 +301,24 @@ def get_tour_data(summary_config, uncloned=False):
     
     # data manipulation
 
-    # number of stops in outbound and inbound direction
     tour_data = tour_data.with_columns(
+
+        # number of stops in outbound and inbound direction
         pl.col("stop_frequency").cast(pl.String).str.slice(0, 1).alias("stop_frequency_out"),
-        pl.col("stop_frequency").cast(pl.String).str.slice(-3, 1).alias("stop_frequency_in")
+        pl.col("stop_frequency").cast(pl.String).str.slice(-3, 1).alias("stop_frequency_in"),
+
+        # aggregate transit modes
+        pl.when(pl.col("tour_mode").is_in(transit_modes))
+        .then(pl.lit("ALL_TRANSIT"))
+        .otherwise(pl.col("tour_mode"))
+        .cast(pl.Enum(all_modes_transit_agg), strict=False)
+        .alias("tour_mode_transit_agg"),
+
+        # only transit modes
+        pl.when(pl.col("tour_mode").is_in(transit_modes))
+        .then(pl.col("tour_mode"))
+        .otherwise(None)
+        .alias("tour_mode_transit_only")
     )
 
     # distance bins
@@ -327,3 +360,43 @@ def create_distance_bin_60mi(col):
     return (
         pl.col(col).cut(np.arange(bin_size, max_bin, bin_size), labels=[str(i) for i in np.arange(0, max_bin, bin_size)])
     )
+
+# plotting functions
+
+def plot_share_barchart(data, weight, share_col, 
+                        title, height=400):
+    """
+    simple bar chart showing share
+    """
+    # show only transit modes
+    df_plot = data.groupby(['source', share_col], observed=True)[weight].sum().reset_index()
+    df_plot['percentage'] = df_plot.groupby(['source'], group_keys=False)[weight]. \
+        apply(lambda x: x / float(x.sum()))
+
+    fig = px.bar(df_plot, x=share_col, y="percentage", color="source",barmode="group",
+                 title=title)
+    fig.for_each_annotation(lambda a: a.update(text = a.text.split("=")[-1]))
+    fig.update_layout(height=height, width=700, yaxis=dict(tickformat=".1%"))
+    fig.show()
+
+def plot_share_facetbar(data, weight, share_col, title, 
+                        facet_col, facet_col_wrap=3,
+                        height=400):
+    """
+    faceted bar chart showing share by segment
+    """
+    
+    df_plot = data.groupby(['source', facet_col, share_col], observed=True).\
+        agg(sample_size=(weight, 'size'),
+            weighted_sum=(weight, 'sum')).reset_index()
+    df_plot['percentage'] = df_plot.groupby(['source',facet_col], group_keys=False, observed=True)['weighted_sum']. \
+        apply(lambda x: x / float(x.sum()))
+
+    fig = px.bar(df_plot,
+                 x="percentage", y=share_col, color="source",barmode="group",
+                hover_data=["sample_size"],
+                 facet_col=facet_col, facet_col_wrap=facet_col_wrap, orientation='h',
+                 title=title)
+    fig.for_each_annotation(lambda a: a.update(text = a.text.split("=")[-1]))
+    fig.update_layout(height=height, width=700, xaxis1=dict(tickformat=".0%"), xaxis2=dict(tickformat=".0%"))
+    fig.show()
