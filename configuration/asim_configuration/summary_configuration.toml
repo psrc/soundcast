@@ -264,17 +264,17 @@ PM25 = "PM25 Total"
     ]
 "activitysim-validation-notebook" = [
     'work_from_home',
-    # 'auto_ownership', # household and tour data not working
-    # 'telecommute_frequency',
+    'auto_ownership', # household and tour data not working
+    'telecommute_frequency',
     'free_parking',
     'cdap',
-    # 'intermediate_stop_frequency',
-    # 'trip_purpose',
+    'intermediate_stop_frequency',
+    'trip_purpose',
     'trip_destination_choice',
     'school_location',
-    # 'work_location',
+    'work_location',
     # 'mandatory_tour_frequency',
-    # 'mandatory_tour_scheduling',
+    'mandatory_tour_scheduling',
     # 'non_mandatory_tour_frequency',
     # 'non_mandatory_tour_destination_choice',
     # 'non_mandatory_tour_scheduling',
@@ -284,7 +284,7 @@ PM25 = "PM25 Total"
     # 'atwork_subtours_destination_choice',
     # 'atwork_subtours_scheduling',
     # 'atwork_subtour_mode',
-    # 'tour_mode_choice',
+    'tour_mode_choice',
     # 'trip_mode_choice'
 ]
 "network-validation-notebook" = [

@@ -69,10 +69,15 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     survey_data = pl.concat(survey_list)
     
     if df_name == "tours":
-        survey_data = survey_data.rename({"survey_tour_id": "tour_id"})
+        survey_data = survey_data.rename({
+            "survey_tour_id": "tour_id",
+            "tour_distance": "tour_distance_one_way"})
     
     if df_name == "trips":
-        survey_data = survey_data.rename({"trip_distance": "od_dist_drive"})
+        survey_data = survey_data.rename({
+            "trip_distance": "od_dist_drive",
+            "survey_tour_id": "tour_id"
+            })
 
     col_list = np.intersect1d(survey_data.columns, model.columns)
     survey_data = survey_data[col_list]
@@ -156,7 +161,7 @@ def get_hh_data(summary_config, uncloned=True):
     col_list = ['log_emptot_1','log_hh_1']
 
     hh_data = hh_data.\
-        join(get_landuse_data(summary_config).select(['zone_id','log_emptot_1','log_hh_1']), 
+        join(get_landuse_data(summary_config, to_pandas=False).select(['zone_id','log_emptot_1','log_hh_1']), 
             how="left",left_on='home_zone_id',right_on='zone_id').\
         join(pl.read_csv(summary_config['p_maz_bg_lookup'])[['MAZ', 'block_group_id']], 
             how="left",left_on='home_zone_id',right_on='MAZ')
@@ -218,6 +223,24 @@ def get_person_data(summary_config, uncloned=True):
         .alias("work_from_home_label")
 
     )
+    # distance bins
+    per_data = per_data.with_columns(
+        [
+            create_distance_bin(col)  
+            .alias(col+'_bin')
+            for col in ['distance_to_school','distance_to_work']
+        ]
+        
+    )
+    per_data = per_data.with_columns(
+        [
+            create_distance_bin_60mi(col)  
+            .alias(col+'_bin_60mi')
+            for col in ['distance_to_school','distance_to_work']
+        ]
+        
+    )
+
 
     return per_data.to_pandas()
 
@@ -239,6 +262,15 @@ def get_trip_data(summary_config, uncloned=False):
         .alias("purpose")
     )
 
+    # distance bins
+    trip_data = trip_data.with_columns(
+        create_distance_bin('od_dist_drive')
+        .alias('trip_distance_bin'),
+
+        create_distance_bin_60mi('od_dist_drive')
+        .alias('trip_distance_bin_60mi')  
+    )
+
     return trip_data.to_pandas()
 
 def get_tour_data(summary_config, uncloned=False):
@@ -250,12 +282,48 @@ def get_tour_data(summary_config, uncloned=False):
     
     # data manipulation
 
+    # number of stops in outbound and inbound direction
+    tour_data = tour_data.with_columns(
+        pl.col("stop_frequency").cast(pl.String).str.slice(0, 1).alias("stop_frequency_out"),
+        pl.col("stop_frequency").cast(pl.String).str.slice(-3, 1).alias("stop_frequency_in")
+    )
+
+    # distance bins
+    tour_data = tour_data.with_columns(
+        create_distance_bin('tour_distance_one_way')
+        .alias('tour_distance_bin'),
+
+        create_distance_bin_60mi('tour_distance_one_way')
+        .alias('tour_distance_bin_60mi')  
+    )
+
     return tour_data.to_pandas()
 
-def get_landuse_data(summary_config):
+def get_landuse_data(summary_config, to_pandas=True):
     
     summary_settings = SummarySettings(**summary_config)
     run_path = summary_settings.sc_run_path
         
-    return pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
+    landuse_data = pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
+    if to_pandas:
+        landuse_data = landuse_data.to_pandas()
+    return landuse_data
     
+# create distance bins for distance columns
+def create_distance_bin(col):
+    return (
+        pl.when(pl.col(col) < 0).then(None)
+        .when(pl.col(col) < 1).then(pl.lit("dist_0_1"))
+        .when(pl.col(col) < 2).then(pl.lit("dist_1_2"))
+        .when(pl.col(col) < 5).then(pl.lit("dist_2_5"))
+        .when(pl.col(col) < 15).then(pl.lit("dist_5_15"))
+        .otherwise(pl.lit("dist_15_up"))
+    )
+
+# Create bins: bins of 2 miles up to 60 miles
+def create_distance_bin_60mi(col):
+    max_bin = 60
+    bin_size = 2
+    return (
+        pl.col(col).cut(np.arange(bin_size, max_bin, bin_size), labels=[str(i) for i in np.arange(0, max_bin, bin_size)])
+    )
