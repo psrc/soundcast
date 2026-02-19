@@ -29,6 +29,12 @@ work_from_home_cat = {True: "wfh worker",
 outbound_cat = {True: "outbound",
                 False: "inbound"}
 
+# landuse
+county = {1: "King",
+          2: "Kitsap",
+          3: "Pierce",
+          4: "Snohomish"}
+
 transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
 all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCH_BUS","TNC","Other"]
 
@@ -260,6 +266,7 @@ def get_trip_data(summary_config, uncloned=False):
 
         # get tour direction
         pl.col("outbound").replace_strict(outbound_cat, default=None)
+        .cast(pl.Enum(['outbound','inbound']), strict=False)
         .alias("tour_direction"),
 
         # clean up purpose labels
@@ -300,13 +307,18 @@ def get_tour_data(summary_config, uncloned=False):
                                     uncloned)
     
     # data manipulation
-
     tour_data = tour_data.with_columns(
-
         # number of stops in outbound and inbound direction
         pl.col("stop_frequency").cast(pl.String).str.slice(0, 1).alias("stop_frequency_out"),
-        pl.col("stop_frequency").cast(pl.String).str.slice(-3, 1).alias("stop_frequency_in"),
-
+        pl.col("stop_frequency").cast(pl.String).str.slice(-3, 1).alias("stop_frequency_in")
+    )
+    
+    tour_data = tour_data.with_columns(
+        # total stops
+        (pl.col("stop_frequency_out").cast(pl.Int32) + pl.col("stop_frequency_in").cast(pl.Int32)).alias("stop_frequency_total")
+    )
+    
+    tour_data = tour_data.with_columns(
         # aggregate transit modes
         pl.when(pl.col("tour_mode").is_in(transit_modes))
         .then(pl.lit("ALL_TRANSIT"))
@@ -338,8 +350,19 @@ def get_landuse_data(summary_config, to_pandas=True):
     run_path = summary_settings.sc_run_path
         
     landuse_data = pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
+
+    # data manipulation
+    landuse_data = landuse_data.with_columns(
+
+        pl.col("county_id")
+        .replace_strict(county, default=None)
+        .alias("county_label")
+
+    )
+
     if to_pandas:
         landuse_data = landuse_data.to_pandas()
+        
     return landuse_data
     
 # create distance bins for distance columns
@@ -351,6 +374,7 @@ def create_distance_bin(col):
         .when(pl.col(col) < 5).then(pl.lit("dist_2_5"))
         .when(pl.col(col) < 15).then(pl.lit("dist_5_15"))
         .otherwise(pl.lit("dist_15_up"))
+        .cast(pl.Enum(["dist_0_1", "dist_1_2", "dist_2_5", "dist_5_15", "dist_15_up"]), strict=False)
     )
 
 # Create bins: bins of 2 miles up to 60 miles
@@ -364,39 +388,55 @@ def create_distance_bin_60mi(col):
 # plotting functions
 
 def plot_share_barchart(data, weight, share_col, 
-                        title, height=400):
+                        title, height=400, width=700):
     """
     simple bar chart showing share
     """
-    # show only transit modes
-    df_plot = data.groupby(['source', share_col], observed=True)[weight].sum().reset_index()
-    df_plot['percentage'] = df_plot.groupby(['source'], group_keys=False)[weight]. \
+    # calculate sample size and percentages
+    df_plot = data.groupby(['source', share_col], observed=True).\
+        agg(sample_size=(weight, 'size'),
+            weighted_sum=(weight, 'sum')).reset_index()
+    df_plot['percentage'] = df_plot.groupby('source', group_keys=False, observed=True)['weighted_sum']. \
         apply(lambda x: x / float(x.sum()))
 
     fig = px.bar(df_plot, x=share_col, y="percentage", color="source",barmode="group",
-                 title=title)
+                hover_data=["sample_size"],
+                title=title)
     fig.for_each_annotation(lambda a: a.update(text = a.text.split("=")[-1]))
-    fig.update_layout(height=height, width=700, yaxis=dict(tickformat=".1%"))
+    fig.update_layout(height=height, width=width, yaxis=dict(tickformat=".1%"))
     fig.show()
 
 def plot_share_facetbar(data, weight, share_col, title, 
                         facet_col, facet_col_wrap=3,
-                        height=400):
+                        height=400, orientation='h'):
     """
     faceted bar chart showing share by segment
     """
+
+    if orientation == 'h':
+        x = "percentage"
+        y = share_col
+    else:
+        x = share_col
+        y = "percentage"
     
+    # calculate sample size and percentages
     df_plot = data.groupby(['source', facet_col, share_col], observed=True).\
         agg(sample_size=(weight, 'size'),
             weighted_sum=(weight, 'sum')).reset_index()
     df_plot['percentage'] = df_plot.groupby(['source',facet_col], group_keys=False, observed=True)['weighted_sum']. \
         apply(lambda x: x / float(x.sum()))
 
-    fig = px.bar(df_plot,
-                 x="percentage", y=share_col, color="source",barmode="group",
+    fig = px.bar(df_plot, x=x, y=y, color="source",barmode="group",
                 hover_data=["sample_size"],
-                 facet_col=facet_col, facet_col_wrap=facet_col_wrap, orientation='h',
+                 facet_col=facet_col, facet_col_wrap=facet_col_wrap, orientation=orientation,
                  title=title)
     fig.for_each_annotation(lambda a: a.update(text = a.text.split("=")[-1]))
-    fig.update_layout(height=height, width=700, xaxis1=dict(tickformat=".0%"), xaxis2=dict(tickformat=".0%"))
+    fig.update_layout(height=height, width=750)
+
+    if orientation == 'h':
+        fig.update_layout(xaxis1=dict(tickformat=".0%"), xaxis2=dict(tickformat=".0%"))
+    else:
+        fig.update_layout(yaxis1=dict(tickformat=".0%"), yaxis2=dict(tickformat=".0%"))
+
     fig.show()
