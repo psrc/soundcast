@@ -23,29 +23,13 @@ import random
 import h5py
 import pandas as pd
 from pathlib import Path
-
 sys.path.append(os.path.join(os.getcwd(), "inputs", "model", "skim_parameters"))
 sys.path.append(os.getcwd())
 from logcontroller import *
-
-# from emme_configuration import *
 from skimming.skim_templates import *
-
-# from settings import state
-# import input_configuration
+from scripts.settings import run_args
 import glob
 import toml
-
-# state = state.generate_state(run_args.args.configs_dir)
-
-# config = toml.load(os.path.join(os.getcwd(), "configuration/input_configuration.toml"))
-# emme_config = toml.load(
-#     os.path.join(os.getcwd(), "configuration/emme_configuration.toml")
-# )
-# network_config = toml.load(
-#     os.path.join(os.getcwd(), "configuration/network_configuration.toml")
-# )
-
 
 def multipleReplace(text, wordDict):
     for key in wordDict:
@@ -233,12 +217,6 @@ def copy_scenario_inputs(state):
         "db" / state.input_settings.db_name,
         "inputs/db"
     )
-    # copyanything(
-    #     Path(state.input_settings.soundcast_inputs_dir) 
-    #     / "db" 
-    #     / state.input_settings.db_name, 
-    #     Path("inputs/db") 
-    #     / state.input_settings.db_name)
     copyanything(
         Path(state.input_settings.soundcast_inputs_dir)
         / "landuse"
@@ -254,6 +232,15 @@ def copy_scenario_inputs(state):
         "inputs/scenario/networks",
     )
 
+    # Create folder for Activitysim data and output if needed
+    for arg_dir in [run_args.args.data_dir, run_args.args.output_dir]:
+        if not os.path.exists(arg_dir):
+            os.makedirs(arg_dir)
+
+    # Copy MAZ to MAZ distance files from base year folder to Activitysim inputs directory
+    if state.input_settings.abm_model == "activitysim":
+        for fname in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
+            shcopy(f"inputs/base_year/{fname}",run_args.args.data_dir)
 
 @timed
 def copy_shadow_price_file():
