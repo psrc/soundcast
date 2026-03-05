@@ -206,7 +206,6 @@ df_students = person_df[person_df["school_zone_id"]>-1].copy()
 
 df_assigned_students = pd.DataFrame()
 
-# FIXME: labels and filtering
 for segment_label, segment_value in {
     "presechool": "is_preschool", 
     "gradeschool": "is_gradeschool",
@@ -231,6 +230,9 @@ person_df["school_parcel"].fillna(-1, inplace=True)
 # Mandatory Tours (work and school) 
 ########################################
 
+########################################
+# Work Tours
+########################################
 df_processed_work_tours = pd.DataFrame()
 
 # If work tour is to usual work location MAZ, assume the tour is assigned to the usual work parcel. 
@@ -242,28 +244,76 @@ df_work_tours.loc[df_work_tours["destination"]==df_work_tours["workplace_zone_id
 # If work tour is not to usual workplace, assign the destiation to parcels in the destination MAZ using the size terms for workplace choice by income
 df_work_tours_to_assign = df_work_tours[df_work_tours["destination_parcel"].isnull()]
 
-for segment_label, segment_value in {
-    "work_low": 1, 
-    "work_med": 2, 
-    "work_high": 3, 
-    "work_veryhigh": 4
-    }.items():
-    print("Assigning work tours not to usual workplace for segment:", segment_label)
-    df = df_work_tours_to_assign[df_work_tours_to_assign["income_segment"]==segment_value]
-    df = assign_parcels(df, df_size_terms, segment_label, "workplace", "workplace_zone_id")
-    df_processed_work_tours = pd.concat([df_processed_work_tours, df])
+if len(df_work_tours_to_assign) > 0:
+    for segment_label, segment_value in {
+        "work_low": 1, 
+        "work_med": 2, 
+        "work_high": 3, 
+        "work_veryhigh": 4
+        }.items():
+        print("Assigning work tours not to usual workplace for segment:", segment_label)
+        df = df_work_tours_to_assign[df_work_tours_to_assign["income_segment"]==segment_value]
+        df = assign_parcels(df, df_size_terms, segment_label, "workplace", "workplace_zone_id")
+        df_processed_work_tours = pd.concat([df_processed_work_tours, df])
 
-df_processed_work_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+    df_processed_work_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 
-# Non mandatory tours
-# for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
-    # df = tour_df[tour_df["tour_type"]==tour_type].copy()
-#     tours_to_maz = assign_parcels(df, df_size_terms, purpose, "non_mandatory", "destination")
-#     results_df = pd.concat([results_df, tours_to_maz])
+########################################
+# School Tours
+########################################
+df_processed_school_tours = pd.DataFrame()
+
+tour_df = tour_df.merge(df_assigned_students[[ "school_zone_id", "school_parcel"]], left_on="person_id", right_index=True, how="left")
+
+# If school tour is to usual school location MAZ, assume the tour is assigned to the usual school parcel.
+df_school_tours = tour_df[tour_df["tour_type"]=="school"]
+df_school_tours.loc[df_school_tours["destination"]==df_school_tours["school_zone_id"], "destination_parcel"] = df_school_tours["school_parcel"]
+
+# If school tour is not to usual school location, assign the destination to parcels in the destination MAZ using the size terms for school choice by grade level
+df_school_tours_to_assign = df_school_tours[df_school_tours["destination_parcel"].isnull()]
+
+if len(df_school_tours_to_assign) > 0:
+    for segment_label, segment_value in {
+        "presechool": "is_preschool", 
+        "gradeschool": "is_gradeschool",
+        "highshool": "is_highschool",
+        "college": "is_university"
+        }.items():
+        print("Assigning usual school parcels for segment:", segment_label)
+        df = df_school_tours_to_assign[df_school_tours_to_assign[segment_value]==True]
+        df = assign_parcels(df, df_size_terms, segment_label, "school", "school_zone_id")
+        df_processed_school_tours = pd.concat([df_processed_school_tours, df])
+
+    df_processed_school_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+
+########################################
+# Non-mandatory tours
+########################################
+non_mandatory_tour_results = pd.DataFrame()
+for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
+    df = tour_df[tour_df["tour_type"]==purpose].copy()
+    tours_to_maz = assign_parcels(df, df_size_terms, purpose, "non_mandatory", "destination")
+    non_mandatory_tour_results = pd.concat([non_mandatory_tour_results, tours_to_maz])
+
 
 ########################################
 # Trips
 ########################################
+
+trip_results = pd.DataFrame()
+for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
+    df = trip_df[trip_df["primary_purpose"]==purpose].copy()
+    tours_to_maz = assign_parcels(df, df_size_terms, purpose, "trip", "destination")
+    trip_results = pd.concat([non_mandatory_tour_results, tours_to_maz])
+
+
+# Treat work trips like work tours; trips to usual work MAZ are assigned to usual work parcel, others are assigned using size terms for workplace choice by income
+
+
+# Treat school trips like school tours
+
+
+
 
 
 ########################################
