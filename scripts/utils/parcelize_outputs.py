@@ -1,35 +1,36 @@
+import os
 import pandas as pd
 import geopandas as gpd
 import numpy as np
 import warnings
 import time
+import h5py
 
 # suppress pandas warnings
 warnings.filterwarnings('ignore')
 pd.options.mode.chained_assignment = None
 
+use_sample = True
+output_dir = r"C:\workspace\sc_20251118\outputs_new"
+
 # load parquet output of Activitysim
-person_df = pd.read_parquet(r"C:\workspace\sc_20251118\outputs_new\final_persons.parquet")
-hh_df = pd.read_parquet(r"C:\workspace\sc_20251118\outputs_new\final_households.parquet")
-tour_df = pd.read_parquet(r"C:\workspace\sc_20251118\outputs_new\final_tours.parquet")
-trip_df = pd.read_parquet(r"C:\workspace\sc_20251118\outputs_new\final_trips.parquet")
+person_df = pd.read_parquet(os.path.join(output_dir, r"final_persons.parquet"))
+hh_df = pd.read_parquet(os.path.join(output_dir, r"final_households.parquet"))
+tour_df = pd.read_parquet(os.path.join(output_dir, r"final_tours.parquet"))
+trip_df = pd.read_parquet(os.path.join(output_dir, r"final_trips.parquet"))
 
-##### TEMP FOR TESTING!!!!!!!!!!!
-################
 # Select sample of persons and their tours/trips for testing
-person_df = person_df.sample(1000, random_state=1)
-hh_df = hh_df[hh_df.index.isin(person_df["household_id"])]
-tour_df = tour_df[tour_df["person_id"].isin(person_df.index)]
-trip_df = trip_df[trip_df["person_id"].isin(person_df.index)]
-
-# Calculate weights as a function of size terms and jobs/hh
+if use_sample:
+    person_df = person_df.sample(1000, random_state=1)
+    hh_df = hh_df[hh_df.index.isin(person_df["household_id"])]
+    tour_df = tour_df[tour_df["person_id"].isin(person_df.index)]
+    trip_df = trip_df[trip_df["person_id"].isin(person_df.index)]
 
 # Load size terms from model
-df_size_terms = pd.read_csv(r"C:\Workspace\sc_asim_01_15_26\inputs\model\activitysim\configs\destination_choice_size_terms.csv")
-
+df_size_terms = pd.read_csv(r"inputs\model\activitysim\configs\destination_choice_size_terms.csv")
 
 # Load parcel data
-df_parcel = pd.read_csv(r"C:\workspace\sc_asim_01_15_26\outputs\landuse\parcels_urbansim.txt", sep=" ")
+df_parcel = pd.read_csv(r"outputs\landuse\parcels_urbansim.txt", sep=" ")
 
 # covnert to geodataframe
 df_parcel["geometry"] = gpd.points_from_xy(df_parcel["xcoord_p"], df_parcel["ycoord_p"])
@@ -162,7 +163,7 @@ def assign_to_maz(df, df_size_terms, target_col):
 
     return results_df
 
-tour_results_df = pd.DataFrame
+tour_results_df = pd.DataFrame()
 trip_results_df = pd.DataFrame()
 
 ########################################
@@ -257,6 +258,7 @@ if len(df_work_tours_to_assign) > 0:
         df_processed_work_tours = pd.concat([df_processed_work_tours, df])
 
     df_processed_work_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+    tour_results_df = pd.concat([tour_results_df, df_processed_work_tours])
 
 ########################################
 # School Tours
@@ -286,6 +288,8 @@ if len(df_school_tours_to_assign) > 0:
 
     df_processed_school_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 
+    tour_results_df = pd.concat([tour_results_df, df_processed_school_tours])
+
 ########################################
 # Non-mandatory tours
 ########################################
@@ -295,6 +299,7 @@ for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"
     tours_to_maz = assign_parcels(df, df_size_terms, purpose, "non_mandatory", "destination")
     non_mandatory_tour_results = pd.concat([non_mandatory_tour_results, tours_to_maz])
 
+tour_results_df = pd.concat([tour_results_df, non_mandatory_tour_results])
 
 ########################################
 # Trips
@@ -302,18 +307,36 @@ for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"
 
 trip_results = pd.DataFrame()
 for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
-    df = trip_df[trip_df["primary_purpose"]==purpose].copy()
-    tours_to_maz = assign_parcels(df, df_size_terms, purpose, "trip", "destination")
-    trip_results = pd.concat([non_mandatory_tour_results, tours_to_maz])
+    df = trip_df[trip_df["purpose"]==purpose].copy()
+    trips_to_maz = assign_parcels(df, df_size_terms, purpose, "trip", "destination")
+    trip_results = pd.concat([non_mandatory_tour_results, trips_to_maz])
 
+# For work trips, if the destination is the same as the workplace_zone_id, assign to the workplace parcel. 
+# If not, assign to parcels in the destination MAZ using trip size terms
 
-# Treat work trips like work tours; trips to usual work MAZ are assigned to usual work parcel, others are assigned using size terms for workplace choice by income
+# If work tour is to usual work location MAZ, assume the tour is assigned to the usual work parcel. 
+trip_df = trip_df.merge(df_assigned_workers[["workplace_zone_id", "workplace_parcel"]], left_on="person_id", right_index=True, how="left")
+df_work_trips = trip_df[trip_df["purpose"]=="work"]
+df_work_trips.loc[df_work_trips["destination"]==df_work_trips["workplace_zone_id"], "destination_parcel"] = df_work_trips["workplace_parcel"]
 
+# If work tour is not to usual workplace, assign the destiation to parcels in the destination MAZ using the size terms for workplace choice by income
+df_work_trips_to_assign = df_work_trips[df_work_trips["destination_parcel"].isnull()]
 
-# Treat school trips like school tours
+trips_to_maz = assign_parcels(df, df_size_terms, "work", "trip", "destination")
+trip_results = pd.concat([non_mandatory_tour_results, trips_to_maz])
 
+# For school trips, if the destination is the same as the school_zone_id, assign to the school parcel.
+# If not, assign to parcels in the destination MAZ using trip size terms
 
+trip_df = trip_df.merge(df_assigned_students[["school_zone_id", "school_parcel"]], left_on="person_id", right_index=True, how="left")
+df_school_trips = trip_df[trip_df["purpose"]=="school"]
+df_school_trips.loc[df_school_trips["destination"]==df_school_trips["school_zone_id"], "destination_parcel"] = df_school_trips["school_parcel"]
 
+# If school tour is not to usual school location, assign the destination to parcels in the destination MAZ using the size terms for school choice by grade level
+df_school_trips_to_assign = df_school_trips[df_school_trips["destination_parcel"].isnull()]
+
+trips_to_maz = assign_parcels(df, df_size_terms, "school", "trip", "destination")
+trip_results = pd.concat([trip_results, trips_to_maz])
 
 
 ########################################
@@ -323,16 +346,72 @@ for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"
 # atwork size terms are shared across tours and trips
 # process these separately from other tours/trips
 
-# atwork tours
-tours_to_maz = assign_parcels(tour_df, df_size_terms, "atwork", "atwork")
+tours_to_maz = assign_parcels(tour_df, df_size_terms, "atwork", "atwork", "destination")
 tour_results_df = pd.concat([tour_results_df, tours_to_maz])
 
 # atwork trips
-trips_to_maz = assign_parcels(trip_df, df_size_terms, "atwork", "atwork")
+trips_to_maz = assign_parcels(trip_df, df_size_terms, "atwork", "atwork", "destination")
 trip_results_df = pd.concat([trip_results_df, trips_to_maz])
+
+tour_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+trip_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 
 ########################################
 # Household location
 ########################################
 
 # Get household parcels from input synthetic population file
+synpop_h5 = h5py.File("inputs\scenario\landuse\hh_and_persons.h5", "r")
+
+hh_synpop_df = pd.DataFrame({
+    "household_id": synpop_h5["Household"]["hhno"][:],
+    "hhparcel": synpop_h5["Household"]["hhparcel"][:]
+})
+
+# FIXME: household ID doesn't seem to match between activitysim and synthetic population, add hhparcel to households.csv activitysim input file in settings.yaml
+hh_df = hh_df.merge(hh_synpop_df, left_index=True, right_on="household_id", how="left")
+hh_df.index = hh_df["household_id"]
+hh_df.drop("household_id", axis=1, inplace=True)
+
+########################################
+# Origin parcels
+########################################
+
+# Trips
+trip_results_df = trip_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
+
+# For trips to home set destination as home parcel
+trip_results_df.loc[trip_results_df["purpose"] == "home", "destination_parcel"] = trip_results_df["hhparcel"]
+
+# For trips from same zone as home assume origin is home parcel
+trip_results_df.loc[trip_results_df["origin"]==trip_results_df["home_zone_id"], "origin_parcel"] = trip_results_df["hhparcel"]
+
+# Tours
+tour_results_df = tour_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
+
+# For tours to home set destination as home parcel
+tour_results_df.loc[tour_results_df["purpose"] == "home", "destination_parcel"] = tour_results_df["hhparcel"]
+
+# For tours from same zone as home assume origin is home parcel
+tour_results_df.loc[tour_results_df["origin"]==tour_results_df["home_zone_id"], "origin_parcel"] = tour_results_df["hhparcel"]
+
+# Trip origin is destination of previous trip
+
+########################################
+# Q/C 
+########################################
+
+# check that results have expected number of records
+assert len(tour_results_df) == len(tour_df), "Number of records in tour_results_df does not match original tour_df"
+assert len(trip_results_df) == len(trip_df), "Number of records in trip_results_df does not match original trip_df"
+
+# TODO run in parallel
+
+# First
+# Run as chunks in parallel
+# Calculate usual work and household location parcels 
+
+# Next, use results of usual work location parcel assignment to assign parcels for work tours/trips to usual workplace and then assign remaining work tours/trips to parcels in the destination MAZ using size terms for workplace choice by income
+# Run by different purposes in parallel 
+
+# run tours and trips in parallel for all different purposes
