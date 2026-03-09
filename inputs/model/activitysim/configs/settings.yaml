@@ -46,6 +46,7 @@ input_table_list:
       home_zone_id: land_use.zone_id
     keep_columns:
       - home_zone_id
+      - hhparcel
       - income
       - hhsize
       - num_workers
