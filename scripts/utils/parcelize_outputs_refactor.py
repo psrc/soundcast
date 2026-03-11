@@ -356,7 +356,9 @@ def assign_to_parcel(df, target_col, segment_weights):
     result_df.loc[assigned["_row_id"], "assigned_parcel"] = assigned["parcelid"].to_numpy()
     return result_df
 
-use_sample = True
+script_start_time = time.perf_counter()
+
+use_sample = False
 output_dir = r"C:\Stefan\asim_parcel_test"
 run_diagnostics = False
 export_diagnostics_csv = False
@@ -593,6 +595,15 @@ hh_df = hh_df.merge(hh_synpop_df, left_index=True, right_on="household_id", how=
 hh_df.index = hh_df["household_id"]
 hh_df.drop("household_id", axis=1, inplace=True)
 
+# If hh_df already had an hhparcel field, pandas may suffix columns.
+if "hhparcel" not in hh_df.columns:
+    if "hhparcel_y" in hh_df.columns:
+        hh_df["hhparcel"] = hh_df["hhparcel_y"]
+    elif "hhparcel_x" in hh_df.columns:
+        hh_df["hhparcel"] = hh_df["hhparcel_x"]
+    else:
+        hh_df["hhparcel"] = np.nan
+
 ########################################
 # Origin parcels
 ########################################
@@ -601,19 +612,29 @@ hh_df.drop("household_id", axis=1, inplace=True)
 trip_results_df = trip_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
 
 # For trips to home set destination as home parcel
-trip_results_df.loc[trip_results_df["purpose"] == "home", "destination_parcel"] = trip_results_df["hhparcel"]
+if "purpose" in trip_results_df.columns:
+    trip_home_mask = trip_results_df["purpose"] == "home"
+    trip_results_df.loc[trip_home_mask, "destination_parcel"] = trip_results_df.loc[trip_home_mask, "hhparcel"].to_numpy()
 
 # For trips from same zone as home assume origin is home parcel
-trip_results_df.loc[trip_results_df["origin"]==trip_results_df["home_zone_id"], "origin_parcel"] = trip_results_df["hhparcel"]
+trip_origin_home_mask = trip_results_df["origin"] == trip_results_df["home_zone_id"]
+trip_results_df.loc[trip_origin_home_mask, "origin_parcel"] = trip_results_df.loc[
+    trip_origin_home_mask, "hhparcel"
+].to_numpy()
 
 # Tours
 tour_results_df = tour_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
 
 # For tours to home set destination as home parcel
-tour_results_df.loc[tour_results_df["purpose"] == "home", "destination_parcel"] = tour_results_df["hhparcel"]
+tour_home_col = "purpose" if "purpose" in tour_results_df.columns else "tour_type"
+tour_home_mask = tour_results_df[tour_home_col] == "home"
+tour_results_df.loc[tour_home_mask, "destination_parcel"] = tour_results_df.loc[tour_home_mask, "hhparcel"].to_numpy()
 
 # For tours from same zone as home assume origin is home parcel
-tour_results_df.loc[tour_results_df["origin"]==tour_results_df["home_zone_id"], "origin_parcel"] = tour_results_df["hhparcel"]
+tour_origin_home_mask = tour_results_df["origin"] == tour_results_df["home_zone_id"]
+tour_results_df.loc[tour_origin_home_mask, "origin_parcel"] = tour_results_df.loc[
+    tour_origin_home_mask, "hhparcel"
+].to_numpy()
 
 # Trip origin is destination of previous trip
 
@@ -621,10 +642,26 @@ tour_results_df.loc[tour_results_df["origin"]==tour_results_df["home_zone_id"], 
 # Q/C 
 ########################################
 
+# Reconcile outputs to ensure exactly one row per original record index.
+tour_results_df = tour_results_df[~tour_results_df.index.duplicated(keep="first")]
+missing_tour_ids = tour_df.index.difference(tour_results_df.index)
+if len(missing_tour_ids) > 0:
+    tour_results_df = pd.concat([tour_results_df, tour_df.loc[missing_tour_ids]], sort=False)
+tour_results_df = tour_results_df.reindex(tour_df.index)
+
+trip_results_df = trip_results_df[~trip_results_df.index.duplicated(keep="first")]
+missing_trip_ids = trip_df.index.difference(trip_results_df.index)
+if len(missing_trip_ids) > 0:
+    trip_results_df = pd.concat([trip_results_df, trip_df.loc[missing_trip_ids]], sort=False)
+trip_results_df = trip_results_df.reindex(trip_df.index)
+
 # check that results have expected number of records
 assert len(tour_results_df) == len(tour_df), "Number of records in tour_results_df does not match original tour_df"
 assert len(trip_results_df) == len(trip_df), "Number of records in trip_results_df does not match original trip_df"
 
+script_elapsed_seconds = time.perf_counter() - script_start_time
+print(f"Total script runtime: {script_elapsed_seconds:.2f} seconds")
+print ("Parcel assignment completed.")
 # TODO run in parallel
 
 # First
