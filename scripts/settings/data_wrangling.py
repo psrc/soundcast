@@ -232,13 +232,13 @@ def copy_scenario_inputs(state):
         "inputs/scenario/networks",
     )
 
-    # Create folder for Activitysim data and output if needed
-    for arg_dir in [run_args.args.data_dir, run_args.args.output_dir]:
-        if not os.path.exists(arg_dir):
-            os.makedirs(arg_dir)
-
     # Copy MAZ to MAZ distance files from base year folder to Activitysim inputs directory
     if state.input_settings.abm_model == "activitysim":
+        # Create folder for Activitysim data and output if needed
+        for arg_dir in [run_args.args.data_dir, run_args.args.output_dir]:
+            if not os.path.exists(arg_dir):
+                os.makedirs(arg_dir)
+
         for fname in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
             shcopy(f"inputs/base_year/{fname}",run_args.args.data_dir)
 

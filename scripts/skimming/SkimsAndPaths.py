@@ -1087,7 +1087,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                     np_old_matrices[matrix_out_name], matrix_value
                 )
 
-            write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
+            # Daysim and activitysim both expect floats for generalized cost values
+            # These skims are shared for external assignment so should be consistent
+            write_skims(state, matrix_value, my_store, matrix_out_name, "float32", taz_indexes)
 
     # Add zones indeces
     if "lookup" in my_store:
@@ -2287,10 +2289,10 @@ def run(free_flow_skims=False, num_iterations=100):
         if os.path.exists(strat_dir):
             shutil.rmtree(strat_dir)
 
-    # # Start Daysim-Emme Equilibration
-    # # This code is organized around the time periods for which we run assignments,
-    # # often represented by the variable "tod". This variable will always
-    # # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
+    # Start Daysim-Emme Equilibration
+    # This code is organized around the time periods for which we run assignments,
+    # often represented by the variable "tod". This variable will always
+    # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     start_of_run = time.time()
     pool_list = []
     project_list = [
@@ -2304,8 +2306,7 @@ def run(free_flow_skims=False, num_iterations=100):
     else:
         run_assignments_parallel("projects/20to5/20to5.emp", free_flow_skims, num_iterations)
 
-    ## calculate link daily volumes for use in bike model
-
+    # calculate link daily volumes for use in bike model
     daily_link_df = pd.DataFrame()
     for _df in pool_list[0]:
         daily_link_df = pd.concat([daily_link_df, _df], axis=0)
@@ -2322,7 +2323,7 @@ def run(free_flow_skims=False, num_iterations=100):
     # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
-    #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
+    # if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
     if free_flow_skims is False:
         if (
             feedback_check(state.network_settings.feedback_list, state.emme_settings)
@@ -2341,7 +2342,7 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, state.emme_settings.parallel_instances):
         l = project_list[i : i + state.emme_settings.parallel_instances]
         export_to_hdf5_pool(l, free_flow_skims)
-    # average_skims_to_hdf5_concurrent(EmmeProject("projects/5to9/5to9.emp", state.model_input_dir), False)
+    # average_skims_to_hdf5_concurrent(EmmeProject("projects/7to8/7to8.emp", state.model_input_dir), False)
 
     f.close()
     end_of_run = time.time()

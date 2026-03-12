@@ -55,7 +55,7 @@ from scripts.summarize.standard import (
 state = state.generate_state(run_args.args.configs_dir)
 
 
-def accessibility_calcs():
+def accessibility_calcs(state):
     data_wrangling.copy_accessibility_files(state)
     create_ixxi_work_trips.main(state)
     
