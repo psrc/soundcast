@@ -12,8 +12,8 @@
             "program": "run_soundcast.py",
             "console": "integratedTerminal",
             "args": [
-                "-c", "C:/Workspace/sc_asim_01_12_26/configuration/asim_configuration", 
-                "-o", "C:/Workspace/sc_20251118/outputs",
+                "-c", "C:/Workspace/sc_asim_01_15_26/configuration/asim_configuration", 
+                "-o", "C:/Workspace/sc_20251118/outputs_new",
                 "-d", "C:/Workspace/sc_20251118/data"]
         }
     ]

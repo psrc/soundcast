@@ -167,7 +167,7 @@ def process_households(parcel_geog):
     df_psrc = df_psrc.merge(parcel_geog[["ParcelID", "maz_id"]], left_on="hhparcel", right_on="ParcelID", how="left")
     df_psrc.rename(columns={"maz_id": "home_zone_id"}, inplace=True)
 
-    hh_col_list = ["household_id", "home_zone_id", "income", "hhsize", "num_workers"]
+    hh_col_list = ["household_id", "home_zone_id", "hhparcel", "income", "hhsize", "num_workers"]
     df_psrc = df_psrc[hh_col_list]
     
     return df_psrc, df_psrc_person
