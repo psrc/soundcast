@@ -23,18 +23,18 @@ def prepare_inputs(use_sample, output_dir):
 
     # Select sample of persons and their tours/trips for testing
     if use_sample:
-        person_df = person_df.sample(100000, random_state=1)
+        person_df = person_df.sample(1000, random_state=1)
         hh_df = hh_df[hh_df.index.isin(person_df["household_id"])]
         tour_df = tour_df[tour_df["person_id"].isin(person_df.index)]
         trip_df = trip_df[trip_df["person_id"].isin(person_df.index)]
 
     # Load size terms from model
     df_size_terms = pd.read_csv(
-        r"\\modelstation3\c$\workspace\sc_asim_01_12_26\inputs\model\activitysim\configs\destination_choice_size_terms.csv"
+        r"c:\workspace\sc_2023_asim_03_10_26\inputs\model\activitysim\configs\destination_choice_size_terms.csv"
     )
 
     # Load parcel data
-    df_parcel = pd.read_csv(r"C:\Stefan\asim_parcel_test\parcels_urbansim.txt", sep=" ")
+    df_parcel = pd.read_csv(r"c:\workspace\sc_2023_asim_03_10_26\outputs\landuse\parcels_urbansim.txt", sep=" ")
 
     # convert to geodataframe
     df_parcel["geometry"] = gpd.points_from_xy(df_parcel["xcoord_p"], df_parcel["ycoord_p"])
@@ -359,7 +359,7 @@ def assign_to_parcel(df, target_col, segment_weights):
 script_start_time = time.perf_counter()
 
 use_sample = False
-output_dir = r"C:\Stefan\asim_parcel_test"
+output_dir = r"C:\workspace\sc_20251118\outputs_new"
 run_diagnostics = False
 export_diagnostics_csv = False
 export_parcel_weights_csv = False
@@ -622,6 +622,10 @@ trip_results_df.loc[trip_origin_home_mask, "origin_parcel"] = trip_results_df.lo
     trip_origin_home_mask, "hhparcel"
 ].to_numpy()
 
+# For at-work trips set origin as workplace parcel
+atwork_trip_mask = trip_results_df["purpose"]=="atwork"
+trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "workplace_parcel"].to_numpy()
+
 # Tours
 tour_results_df = tour_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
 
@@ -636,7 +640,55 @@ tour_results_df.loc[tour_origin_home_mask, "origin_parcel"] = tour_results_df.lo
     tour_origin_home_mask, "hhparcel"
 ].to_numpy()
 
+# For at-work tours set origin as workplace parcel
+atwork_tour_mask = tour_results_df["tour_category"]=="atwork"
+tour_results_df.loc[atwork_tour_mask, "origin_parcel"] = tour_results_df.loc[atwork_tour_mask, "workplace_parcel"].to_numpy()
+
 # Trip origin is destination of previous trip
+# when a trip belongs to a tour we can often infer the origin
+# from the destination of the previous trip in that tour.  This
+# should only fill values that are still missing (i.e. not already
+# computed by the household/home/workplace logic above.
+tour_col = "tour_id"
+
+# create an intra-tour sequence index using trip_num and outbound.
+# outbound trips take their trip_num.  inbound trips are offset by the
+# last outbound trip_num seen so far, so the index continues increasing
+# through a tour.  This handles the relative nature of trip_num.
+if tour_col is not None and {"trip_num", "outbound"}.issubset(trip_results_df.columns):
+    def _indexer(sub):
+        last_out = 0
+        seq = []
+        for tn, out in zip(sub["trip_num"], sub["outbound"]):
+            if out:
+                idx = tn
+                if tn > last_out:
+                    last_out = tn
+            else:
+                idx = last_out + tn
+            seq.append(idx)
+        return pd.Series(seq, index=sub.index)
+
+    # apply in existing order (will be re-sorted later)
+    trip_results_df["tour_trip_index"] = (
+        trip_results_df.groupby(tour_col, sort=False).apply(_indexer)
+        .reset_index(level=0, drop=True)
+    )
+
+# sort so that shift corresponds to intended order
+sort_cols = [tour_col]
+if "tour_trip_index" in trip_results_df.columns:
+    sort_cols.append("tour_trip_index")
+# use trip_num as a secondary key to keep increasing order
+if "trip_num" in trip_results_df.columns:
+    sort_cols.append("trip_num")
+
+trip_results_df = trip_results_df.sort_values(sort_cols)
+# compute previous destination within each tour
+prev_dest = trip_results_df.groupby(tour_col)["destination_parcel"].shift()
+# only fill origins that are null
+missing_origin = trip_results_df["origin_parcel"].isna()
+trip_results_df.loc[missing_origin, "origin_parcel"] = prev_dest[missing_origin]
 
 ########################################
 # Q/C 
@@ -658,6 +710,12 @@ trip_results_df = trip_results_df.reindex(trip_df.index)
 # check that results have expected number of records
 assert len(tour_results_df) == len(tour_df), "Number of records in tour_results_df does not match original tour_df"
 assert len(trip_results_df) == len(trip_df), "Number of records in trip_results_df does not match original trip_df"
+
+# check that no origin_parcel or destination_parcel is null for tours/trips with non-null origin/destination
+assert tour_results_df.loc[tour_results_df["origin"].notnull(), "origin_parcel"].isnull().sum() == 0, "Some tours with non-null origin have null origin_parcel"
+assert tour_results_df.loc[tour_results_df["destination"].notnull(), "destination_parcel"].isnull().sum() == 0, "Some tours with non-null destination have null destination_parcel"
+assert trip_results_df.loc[trip_results_df["origin"].notnull(), "origin_parcel"].isnull().sum() == 0, "Some trips with non-null origin have null origin_parcel"
+assert trip_results_df.loc[trip_results_df["destination"].notnull(), "destination_parcel"].isnull().sum() == 0, "Some trips with non-null destination have null destination_parcel"
 
 script_elapsed_seconds = time.perf_counter() - script_start_time
 print(f"Total script runtime: {script_elapsed_seconds:.2f} seconds")
