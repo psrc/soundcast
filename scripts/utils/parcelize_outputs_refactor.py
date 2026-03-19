@@ -21,9 +21,12 @@ def prepare_inputs(use_sample, output_dir):
     tour_df = pd.read_parquet(os.path.join(output_dir, r"final_tours.parquet"))
     trip_df = pd.read_parquet(os.path.join(output_dir, r"final_trips.parquet"))
 
+    # Merge household parcel to trips
+    trip_df = trip_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left") 
+
     # Select sample of persons and their tours/trips for testing
     if use_sample:
-        person_df = person_df.sample(1000, random_state=1)
+        person_df = person_df.sample(10000, random_state=1)
         hh_df = hh_df[hh_df.index.isin(person_df["household_id"])]
         tour_df = tour_df[tour_df["person_id"].isin(person_df.index)]
         trip_df = trip_df[trip_df["person_id"].isin(person_df.index)]
@@ -358,7 +361,7 @@ def assign_to_parcel(df, target_col, segment_weights):
 
 script_start_time = time.perf_counter()
 
-use_sample = False
+use_sample = True
 output_dir = r"C:\workspace\sc_20251118\outputs_new"
 run_diagnostics = False
 export_diagnostics_csv = False
@@ -430,7 +433,7 @@ df_students = person_df[person_df["school_zone_id"]>-1].copy()
 df_assigned_students = pd.DataFrame()
 
 for segment_label, segment_value in {
-    "presechool": "is_preschool", 
+    "preschool": "is_preschool", 
     "gradeschool": "is_gradeschool",
     "highshool": "is_highschool",
     "college": "is_university"
@@ -443,7 +446,7 @@ for segment_label, segment_value in {
 df_assigned_students.rename(columns={"assigned_parcel": "school_parcel"}, inplace=True)
 
 # Merge assigned students back to person_df
-person_df = df_students.merge(df_assigned_students[["school_parcel"]], left_index=True, right_index=True, how="left")
+person_df = person_df.merge(df_assigned_students[["school_parcel"]], left_index=True, right_index=True, how="left")
 # Make sure no students with school_zone_id > -1 have null school_parcel
 assert person_df[person_df["school_zone_id"]>-1]["school_parcel"].isnull().sum() == 0, "Some students with school_zone_id > -1 have null school_parcel"
 
@@ -465,6 +468,7 @@ df_work_tours = tour_df[tour_df["tour_type"]=="work"]
 df_work_tours.loc[df_work_tours["destination"]==df_work_tours["workplace_zone_id"], "destination_parcel"] = df_work_tours["workplace_parcel"]
 
 # If work tour is not to usual workplace, assign the destiation to parcels in the destination MAZ using the size terms for workplace choice by income
+df_work_tours_complete = df_work_tours[~df_work_tours["destination_parcel"].isnull()]
 df_work_tours_to_assign = df_work_tours[df_work_tours["destination_parcel"].isnull()]
 
 if len(df_work_tours_to_assign) > 0:
@@ -481,6 +485,7 @@ if len(df_work_tours_to_assign) > 0:
 
     df_processed_work_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
     tour_results_df = pd.concat([tour_results_df, df_processed_work_tours])
+tour_results_df = pd.concat([tour_results_df, df_work_tours_complete])
 
 ########################################
 # School Tours
@@ -494,13 +499,14 @@ df_school_tours = tour_df[tour_df["tour_type"]=="school"]
 df_school_tours.loc[df_school_tours["destination"]==df_school_tours["school_zone_id"], "destination_parcel"] = df_school_tours["school_parcel"]
 
 # If school tour is not to usual school location, assign the destination to parcels in the destination MAZ using the size terms for school choice by grade level
+df_school_tours_complete = df_school_tours[~df_school_tours["destination_parcel"].isnull()]
 df_school_tours_to_assign = df_school_tours[df_school_tours["destination_parcel"].isnull()]
 
 if len(df_school_tours_to_assign) > 0:
     for segment_label, segment_value in {
         "presechool": "is_preschool", 
         "gradeschool": "is_gradeschool",
-        "highshool": "is_highschool",
+        "highschool": "is_highschool",
         "college": "is_university"
         }.items():
         print("Assigning usual school parcels for segment:", segment_label)
@@ -511,6 +517,7 @@ if len(df_school_tours_to_assign) > 0:
     df_processed_school_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 
     tour_results_df = pd.concat([tour_results_df, df_processed_school_tours])
+tour_results_df = pd.concat([tour_results_df, df_school_tours_complete])
 
 ########################################
 # Non-mandatory tours
@@ -527,11 +534,11 @@ tour_results_df = pd.concat([tour_results_df, non_mandatory_tour_results])
 # Trips
 ########################################
 
-trip_results = pd.DataFrame()
+trip_results_df = pd.DataFrame()
 for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
     df = trip_df[trip_df["purpose"]==purpose].copy()
     trips_to_maz = assign_parcels(df, df_size_terms, purpose, "trip", "destination")
-    trip_results = pd.concat([non_mandatory_tour_results, trips_to_maz])
+    trip_results_df = pd.concat([trip_results_df, trips_to_maz])
 
 # For work trips, if the destination is the same as the workplace_zone_id, assign to the workplace parcel. 
 # If not, assign to parcels in the destination MAZ using trip size terms
@@ -542,24 +549,24 @@ df_work_trips = trip_df[trip_df["purpose"]=="work"]
 df_work_trips.loc[df_work_trips["destination"]==df_work_trips["workplace_zone_id"], "destination_parcel"] = df_work_trips["workplace_parcel"]
 
 # If work tour is not to usual workplace, assign the destiation to parcels in the destination MAZ using the size terms for workplace choice by income
+df_work_trips_complete = df_work_trips[~df_work_trips["destination_parcel"].isnull()]
 df_work_trips_to_assign = df_work_trips[df_work_trips["destination_parcel"].isnull()]
 
-trips_to_maz = assign_parcels(df, df_size_terms, "work", "trip", "destination")
-trip_results = pd.concat([non_mandatory_tour_results, trips_to_maz])
+trips_to_maz = assign_parcels(df_work_trips_to_assign, df_size_terms, "work", "trip", "destination")
+trip_results_df = pd.concat([trip_results_df,df_work_trips_complete, trips_to_maz])
 
 # For school trips, if the destination is the same as the school_zone_id, assign to the school parcel.
 # If not, assign to parcels in the destination MAZ using trip size terms
-
 trip_df = trip_df.merge(df_assigned_students[["school_zone_id", "school_parcel"]], left_on="person_id", right_index=True, how="left")
-df_school_trips = trip_df[trip_df["purpose"]=="school"]
+df_school_trips = trip_df[trip_df["purpose"].isin(["univ", "school"])]
 df_school_trips.loc[df_school_trips["destination"]==df_school_trips["school_zone_id"], "destination_parcel"] = df_school_trips["school_parcel"]
 
 # If school tour is not to usual school location, assign the destination to parcels in the destination MAZ using the size terms for school choice by grade level
+df_school_trips_complete = df_school_trips[~df_school_trips["destination_parcel"].isnull()]
 df_school_trips_to_assign = df_school_trips[df_school_trips["destination_parcel"].isnull()]
 
-trips_to_maz = assign_parcels(df, df_size_terms, "school", "trip", "destination")
-trip_results = pd.concat([trip_results, trips_to_maz])
-
+trips_to_maz = assign_parcels(df_school_trips_to_assign, df_size_terms, "school", "trip", "destination")
+trip_results_df = pd.concat([trip_results_df,df_school_trips_complete, trips_to_maz])
 
 ########################################
 # At-work tours and trips
@@ -567,54 +574,30 @@ trip_results = pd.concat([trip_results, trips_to_maz])
 
 # atwork size terms are shared across tours and trips
 # process these separately from other tours/trips
-
-tours_to_maz = assign_parcels(tour_df, df_size_terms, "atwork", "atwork", "destination")
+df_atwork_tours = tour_df[tour_df["tour_category"]=="atwork"].copy()
+tours_to_maz = assign_parcels(df_atwork_tours, df_size_terms, "atwork", "atwork", "destination")
 tour_results_df = pd.concat([tour_results_df, tours_to_maz])
 
 # atwork trips
-trips_to_maz = assign_parcels(trip_df, df_size_terms, "atwork", "atwork", "destination")
+df_atwork_trips = trip_df[trip_df["purpose"]=="atwork"].copy()
+trips_to_maz = assign_parcels(df_atwork_trips, df_size_terms, "atwork", "atwork", "destination")
 trip_results_df = pd.concat([trip_results_df, trips_to_maz])
+
+# Set trip parcel destination for trips to home as home parcel
+df_home_trips = trip_df[trip_df["purpose"]=="home"].copy()
+df_home_trips["assigned_parcel"] = df_home_trips["hhparcel"].copy()
+trip_results_df = pd.concat([trip_results_df, df_home_trips])
 
 tour_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 trip_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
 
-########################################
-# Household location
-########################################
-
-# Get household parcels from input synthetic population file
-synpop_h5 = h5py.File("inputs\scenario\landuse\hh_and_persons.h5", "r")
-
-hh_synpop_df = pd.DataFrame({
-    "household_id": synpop_h5["Household"]["hhno"][:],
-    "hhparcel": synpop_h5["Household"]["hhparcel"][:]
-})
-
-# FIXME: household ID doesn't seem to match between activitysim and synthetic population, add hhparcel to households.csv activitysim input file in settings.yaml
-hh_df = hh_df.merge(hh_synpop_df, left_index=True, right_on="household_id", how="left")
-hh_df.index = hh_df["household_id"]
-hh_df.drop("household_id", axis=1, inplace=True)
-
-# If hh_df already had an hhparcel field, pandas may suffix columns.
-if "hhparcel" not in hh_df.columns:
-    if "hhparcel_y" in hh_df.columns:
-        hh_df["hhparcel"] = hh_df["hhparcel_y"]
-    elif "hhparcel_x" in hh_df.columns:
-        hh_df["hhparcel"] = hh_df["hhparcel_x"]
-    else:
-        hh_df["hhparcel"] = np.nan
+# trip_results_df and tour_results_df should now be the same size as the original trip and tour tables
+assert len(trip_results_df) == len(trip_df), "Trip results table size mismatch"
+assert len(tour_results_df) == len(tour_df), "Tour results table size mismatch"
 
 ########################################
 # Origin parcels
 ########################################
-
-# Trips
-trip_results_df = trip_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
-
-# For trips to home set destination as home parcel
-if "purpose" in trip_results_df.columns:
-    trip_home_mask = trip_results_df["purpose"] == "home"
-    trip_results_df.loc[trip_home_mask, "destination_parcel"] = trip_results_df.loc[trip_home_mask, "hhparcel"].to_numpy()
 
 # For trips from same zone as home assume origin is home parcel
 trip_origin_home_mask = trip_results_df["origin"] == trip_results_df["home_zone_id"]
@@ -623,26 +606,26 @@ trip_results_df.loc[trip_origin_home_mask, "origin_parcel"] = trip_results_df.lo
 ].to_numpy()
 
 # For at-work trips set origin as workplace parcel
-atwork_trip_mask = trip_results_df["purpose"]=="atwork"
-trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "workplace_parcel"].to_numpy()
+# atwork_trip_mask = trip_results_df["purpose"]=="atwork"
+# trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "workplace_parcel"].to_numpy()
 
 # Tours
 tour_results_df = tour_results_df.merge(hh_df[["hhparcel","home_zone_id"]], left_on="household_id", right_index=True, how="left")
 
-# For tours to home set destination as home parcel
-tour_home_col = "purpose" if "purpose" in tour_results_df.columns else "tour_type"
-tour_home_mask = tour_results_df[tour_home_col] == "home"
-tour_results_df.loc[tour_home_mask, "destination_parcel"] = tour_results_df.loc[tour_home_mask, "hhparcel"].to_numpy()
+# Tours are home-based except for at-work tours. 
+# For home-based tours, set origin as home parcel. 
+tour_home_mask = tour_results_df["origin"] == tour_results_df["home_zone_id"]
+tour_results_df.loc[tour_home_mask, "origin_parcel"] = tour_results_df.loc[tour_home_mask, "hhparcel"].to_numpy()
 
-# For tours from same zone as home assume origin is home parcel
-tour_origin_home_mask = tour_results_df["origin"] == tour_results_df["home_zone_id"]
-tour_results_df.loc[tour_origin_home_mask, "origin_parcel"] = tour_results_df.loc[
-    tour_origin_home_mask, "hhparcel"
-].to_numpy()
+# For at-work tours set origin as destination for parent tour_id
+tour_results_df = tour_results_df.merge(tour_results_df[["destination_parcel"]], how="left", left_on="parent_tour_id", right_index=True, suffixes=("", "_parent"))
+atwork_tour_mask = (tour_results_df["primary_purpose"]=="atwork")
 
-# For at-work tours set origin as workplace parcel
-atwork_tour_mask = tour_results_df["tour_category"]=="atwork"
-tour_results_df.loc[atwork_tour_mask, "origin_parcel"] = tour_results_df.loc[atwork_tour_mask, "workplace_parcel"].to_numpy()
+# Get origin destination for at-work trips from parent tour_id
+trip_results_df = trip_results_df.merge(tour_results_df[["origin_parcel"]], how="left", left_on="tour_id", right_index=True, suffixes=("", "_tour"))
+atwork_trip_mask = (trip_results_df["primary_purpose"]=="atwork") & (trip_results_df["purpose"]=="atwork")
+trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "origin_parcel_tour"]
+trip_results_df.drop("origin_parcel_tour", axis=1, inplace=True)
 
 # Trip origin is destination of previous trip
 # when a trip belongs to a tour we can often infer the origin

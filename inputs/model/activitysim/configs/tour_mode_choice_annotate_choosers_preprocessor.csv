@@ -16,7 +16,7 @@ deal with negative durations,start,"np.where((df.duration < 0) & (df.out_period 
 ,is_joint,(df.tour_category=='joint') if 'tour_category' in df.columns else False
 ,is_indiv,~is_joint
 ,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
-,is_school,(df.tour_category=='school') if 'tour_category' in df.columns else False
+,is_school,(df.tour_type=='school') if _DF_IS_TOUR else False
 ,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
 #,,
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
