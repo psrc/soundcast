@@ -1,0 +1,6 @@
+﻿table,new_variable,expression,description
+household,hhincome_thousands,((pl.col("income") / 1000).round(0) * 1000).cast(pl.Int32),"Value represents the low end range (e.g., 67,834 becomes 67,000, which represents the range 67,000 - 68,000)"
+person,pwaudist_wt,pl.col("distance_to_work")
+person,psaudist_wt,pl.col("distance_to_school")
+person,pwautime_wt,pl.col("roundtrip_auto_time_to_work")
+person,psautime_wt,pl.col("roundtrip_auto_time_to_school")
