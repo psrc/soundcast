@@ -404,12 +404,12 @@ local_bus_ASC_work,-3,T
 walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,-0.8,T
 walk_light_rail_ASC_school_univ,-0.8,T
 walk_light_rail_ASC_work,-0.8,F
-walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,2.9204213525598313,F
-walk_ferry_ASC_school_univ,0.0,T
-walk_ferry_ASC_work,2.025856907407617,F
-commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,0.0,T
+walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,3.5,F
+walk_ferry_ASC_school_univ,1,T
+walk_ferry_ASC_work,2.75,F
+commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,0.75,T
 commuter_rail_ASC_school_univ,0.0,T
-commuter_rail_ASC_work,0.7197407461950334,F
+commuter_rail_ASC_work,1.5,F
 walk_transit_CBD_ASC_eatout_escort_othdiscr_othmaint_shopping_social,0.0,T
 walk_transit_CBD_ASC_school_univ,0.0,T
 walk_transit_CBD_ASC_work,0.0,T

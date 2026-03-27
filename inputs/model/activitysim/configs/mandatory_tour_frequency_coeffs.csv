@@ -2,8 +2,8 @@ coefficient_name,value,constrain
 coef_unavailable,-999,T
 coef_ft_worker_work2_asc,-3.3781,F
 coef_pt_worker_work2_asc,-3.0476,F
-coef_univ_work1_asc,2.166,F
-coef_univ_work2_asc,-1.3965,F
+coef_univ_work1_asc,2.4,F
+coef_univ_work2_asc,-1.2,F
 coef_univ_school2_asc,-3.7429,F
 coef_univ_work_and_school_asc,0.1073,F
 coef_driving_age_child_school2_asc,-3.136,F
