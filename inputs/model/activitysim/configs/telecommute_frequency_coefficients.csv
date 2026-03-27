@@ -68,9 +68,9 @@ coef_WorkOTHEMPNshare_4day,WorkOTHEMPNshare,0.0,T
 coef_WorkRETEMPNshare_1day,WorkRETEMPNshare,0.0,T
 coef_WorkRETEMPNshare_23day,WorkRETEMPNshare,0.0,T
 coef_WorkRETEMPNshare_4day,WorkRETEMPNshare,0.0,T
-coef_ASC_1_day,ASC,-5.0030434872773375,F
-coef_ASC_2_3_day,ASC,-4.329919012763963,F
-coef_ASC_4_day,ASC,-2.368898004664075,F
+coef_ASC_1_day,ASC,-4.9,F
+coef_ASC_2_3_day,ASC,-4.9,F
+coef_ASC_4_day,ASC,-2.9,F
 coef_ShopMaintAcc_1day,shopping accessiblity,0.0,T
 coef_ShopMaint_23day,shopping accessiblity,0.0,T
 coef_ShopMaintAcc_4day,shopping accessiblity,0.0,T
