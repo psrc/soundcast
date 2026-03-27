@@ -361,7 +361,7 @@ def assign_to_parcel(df, target_col, segment_weights):
 
 script_start_time = time.perf_counter()
 
-use_sample = True
+use_sample = False
 output_dir = r"C:\workspace\sc_20251118\outputs_new"
 run_diagnostics = False
 export_diagnostics_csv = False
@@ -588,8 +588,10 @@ df_home_trips = trip_df[trip_df["purpose"]=="home"].copy()
 df_home_trips["assigned_parcel"] = df_home_trips["hhparcel"].copy()
 trip_results_df = pd.concat([trip_results_df, df_home_trips])
 
-tour_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
-trip_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+# tour_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+# trip_results_df.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
+tour_results_df["destination_parcel"].fillna(tour_results_df["assigned_parcel"], inplace=True)
+trip_results_df["destination_parcel"].fillna(trip_results_df["assigned_parcel"], inplace=True)
 
 # trip_results_df and tour_results_df should now be the same size as the original trip and tour tables
 assert len(trip_results_df) == len(trip_df), "Trip results table size mismatch"
@@ -620,55 +622,21 @@ tour_results_df.loc[tour_home_mask, "origin_parcel"] = tour_results_df.loc[tour_
 # For at-work tours set origin as destination for parent tour_id
 tour_results_df = tour_results_df.merge(tour_results_df[["destination_parcel"]], how="left", left_on="parent_tour_id", right_index=True, suffixes=("", "_parent"))
 atwork_tour_mask = (tour_results_df["primary_purpose"]=="atwork")
+tour_results_df.loc[atwork_tour_mask, "origin_parcel"] = tour_results_df["destination_parcel_parent"]
+
+# Sort trips by trip_id
+trip_results_df = trip_results_df.sort_index()
 
 # Get origin destination for at-work trips from parent tour_id
-trip_results_df = trip_results_df.merge(tour_results_df[["origin_parcel"]], how="left", left_on="tour_id", right_index=True, suffixes=("", "_tour"))
-atwork_trip_mask = (trip_results_df["primary_purpose"]=="atwork") & (trip_results_df["purpose"]=="atwork")
-trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "origin_parcel_tour"]
-trip_results_df.drop("origin_parcel_tour", axis=1, inplace=True)
+atwork_trip_mask = trip_results_df["purpose"]=="atwork"
+trip_results_df = trip_results_df.merge(tour_results_df[["destination_parcel_parent"]], how="left", left_on="tour_id", right_index=True, suffixes=("", "_tour"))
 
-# Trip origin is destination of previous trip
-# when a trip belongs to a tour we can often infer the origin
-# from the destination of the previous trip in that tour.  This
-# should only fill values that are still missing (i.e. not already
-# computed by the household/home/workplace logic above.
-tour_col = "tour_id"
+# First trip in atwork tour has origin of destination_parcel_parent
+atwork_trip_mask = (trip_results_df["primary_purpose"]=="atwork") & (trip_results_df["trip_num"]==1) & (trip_results_df["outbound"]==True)
+trip_results_df.loc[atwork_trip_mask, "origin_parcel"] = trip_results_df.loc[atwork_trip_mask, "destination_parcel_parent"]
 
-# create an intra-tour sequence index using trip_num and outbound.
-# outbound trips take their trip_num.  inbound trips are offset by the
-# last outbound trip_num seen so far, so the index continues increasing
-# through a tour.  This handles the relative nature of trip_num.
-if tour_col is not None and {"trip_num", "outbound"}.issubset(trip_results_df.columns):
-    def _indexer(sub):
-        last_out = 0
-        seq = []
-        for tn, out in zip(sub["trip_num"], sub["outbound"]):
-            if out:
-                idx = tn
-                if tn > last_out:
-                    last_out = tn
-            else:
-                idx = last_out + tn
-            seq.append(idx)
-        return pd.Series(seq, index=sub.index)
-
-    # apply in existing order (will be re-sorted later)
-    trip_results_df["tour_trip_index"] = (
-        trip_results_df.groupby(tour_col, sort=False).apply(_indexer)
-        .reset_index(level=0, drop=True)
-    )
-
-# sort so that shift corresponds to intended order
-sort_cols = [tour_col]
-if "tour_trip_index" in trip_results_df.columns:
-    sort_cols.append("tour_trip_index")
-# use trip_num as a secondary key to keep increasing order
-if "trip_num" in trip_results_df.columns:
-    sort_cols.append("trip_num")
-
-trip_results_df = trip_results_df.sort_values(sort_cols)
 # compute previous destination within each tour
-prev_dest = trip_results_df.groupby(tour_col)["destination_parcel"].shift()
+prev_dest = trip_results_df.groupby("tour_id")["destination_parcel"].shift()
 # only fill origins that are null
 missing_origin = trip_results_df["origin_parcel"].isna()
 trip_results_df.loc[missing_origin, "origin_parcel"] = prev_dest[missing_origin]
@@ -703,13 +671,10 @@ assert trip_results_df.loc[trip_results_df["destination"].notnull(), "destinatio
 script_elapsed_seconds = time.perf_counter() - script_start_time
 print(f"Total script runtime: {script_elapsed_seconds:.2f} seconds")
 print ("Parcel assignment completed.")
-# TODO run in parallel
 
-# First
-# Run as chunks in parallel
-# Calculate usual work and household location parcels 
-
-# Next, use results of usual work location parcel assignment to assign parcels for work tours/trips to usual workplace and then assign remaining work tours/trips to parcels in the destination MAZ using size terms for workplace choice by income
-# Run by different purposes in parallel 
-
-# run tours and trips in parallel for all different purposes
+# Write results to output directory as parquet file
+person_df.to_parquet(os.path.join(output_dir, "final_persons_with_parcels.parquet"), index=False)
+tour_cols = tour_df.columns.tolist() + ["destination_parcel", "origin_parcel"]
+trip_cols = trip_df.columns.tolist() + ["destination_parcel", "origin_parcel"]
+tour_results_df[tour_cols].to_parquet(os.path.join(output_dir, "final_tours_with_parcels.parquet"), index=False)
+trip_results_df[trip_cols].to_parquet(os.path.join(output_dir, "final_trips_with_parcels.parquet"), index=False)
