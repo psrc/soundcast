@@ -254,3 +254,6 @@ CONSTANTS:
     EV:
       first_hour: 18
       last_hour: 19
+# Note that logic in write_trip_matrices_annotate_trips_prepocessor.yaml 
+# adds all trips with hour > EV["last_hour"] to EA, to match 20to5 time period
+# is_ea,"(trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])) | (trips.depart > time_periods['EV']['last_hour'])

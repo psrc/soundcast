@@ -52,7 +52,10 @@ def process_expressions(df, df_expr, table_name, survey):
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).mean())
         elif _row.aggfunc == "median":
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).median())
-
+        elif  _row.aggfunc == "len":
+            agg_df = df.group_by(agg_cols).len()
+            # Rename len with values used for daysim for consistency
+            agg_df = agg_df.rename({"len": _row["values"]})
         if survey:
             output_path = f"outputs/agg/{_row.output_dir}/survey/{_row.target}.csv"
         else:
@@ -197,17 +200,16 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
             geog_file,
         )
 
-    # FIXME: This used to be taken care of from the variables CSV
-    # How can we specify these outside of code?
-
     # Calculate variables
     var_expr_df = pd.read_csv(
         os.path.join(
             os.getcwd(), f"{state.model_input_dir}/summaries/variables_activitysim.csv"
         )
     )
-    process_variables(hh_df, var_expr_df, "household")
-
+    hh_df = process_variables(hh_df, var_expr_df, "household")
+    person_df = process_variables(person_df, var_expr_df, "person")
+    trip_df = process_variables(trip_df, var_expr_df, "trip")
+    tour_df = process_variables(tour_df, var_expr_df, "tour")
     # hh_df = hh_df.with_columns(
     #     hhincome_thousands=((pl.col("hhincome") / 1000).round(0) * 1000).cast(pl.Int32)
     # )
@@ -225,7 +227,7 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
     # )
 
     # Person
-    process_variables(person_df, var_expr_df, "person")
+    # process_variables(person_df, var_expr_df, "person")
 
     # person_df = person_df.with_columns(
     #     pwaudist_wt=pl.col("pwaudist") * pl.col("psexpfac")
@@ -240,7 +242,6 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
     #     psautime_wt=pl.col("psautime") * pl.col("psexpfac")
     # )
 
-    ## FIXME: add these from accessibility
 
     # person_df = person_df.with_columns(
     #     quarter_mile_transit_work=pl.when(pl.col("work_dist_transit") <= 0.25)
