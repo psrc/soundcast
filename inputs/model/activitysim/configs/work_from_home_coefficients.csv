@@ -1,5 +1,5 @@
 coefficient_name,value,constrain
-coef_work_from_home_constant,-3.2,F
+coef_work_from_home_constant,-3.8,F
 coef_part_time_worker,0.45559994970535733,F
 coef_full_time_worker,0.0,T
 coef_female_worker,0.0,T
