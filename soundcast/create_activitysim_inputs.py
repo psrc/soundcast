@@ -256,6 +256,14 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     )
     df_lu = df_lu.reset_index()
 
+    # Consolidate columns with duplicate names from overlapping renames
+    # (e.g., empedu_p and empmed_p both map to HEREMPN; empgov_p and empsvc_p both map to OTHEMPN)
+    duplicate_cols = df_lu.columns[df_lu.columns.duplicated(keep=False)].unique()
+    for col in duplicate_cols:
+        df_lu[col+"_sum"] = df_lu[col].sum(axis=1)
+        df_lu.drop(col, axis=1, inplace=True)
+        df_lu.rename(columns={col+"_sum": col}, inplace=True)
+
     # FIXME: assert all college students are full-time for now...
     # No data on this in parcels
     df_lu["COLLPTE"] = 0
