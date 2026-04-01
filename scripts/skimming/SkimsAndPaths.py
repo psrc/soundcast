@@ -865,6 +865,16 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 "indices", data=em_val.indices, compression="gzip"
             )
 
+    df_taz_district = pd.read_csv(r"inputs/scenario/networks/TAZIndex.txt", sep='\t')
+    df_taz_district.rename(columns={"External": "district"}, inplace=True)
+
+    # Get an array to fill with district data
+    matrix_value = emmeMatrix_to_numpyMatrix(
+                "mf01", my_project.bank, dtype, 1, 99999
+            )
+    matrix_value[:] = df_taz_district["district"].values[:, np.newaxis] 
+    write_skims(state, matrix_value, my_store, "DISTRICT", dtype, taz_indexes)
+
     # Export park and ride skims
     if state.input_settings.abm_model == "activitysim":
         for matrix_name in asim_park_and_ride.matrix_dict.keys():
@@ -2163,29 +2173,51 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
             Path("inputs/model/activitysim/skim_parameters/park_and_ride"),
             state.network_settings.sound_cast_net_dict
             )
-        
+
         # Fill inf with max values for park and ride matrices
+        matrix_name_list = [i.name for i in my_project.bank.matrices()]
         for emme_matrix_name in [
+            "WLK_TRN_WLK_DEMAND",
+            "WLK_TRN_WLK_WAUX",
+            "DRV_TRN_WLK_DDIST",
+            "DRV_TRN_WLK_DTIM",
+            "DRV_TRN_WLK_WAUX",
+            "DRV_TRN_WLK_TOTIVT",
+            "DRV_TRN_WLK_WAIT",
+            "DRV_TRN_WLK_IWAIT",
+            "DRV_TRN_WLK_BOARDS",
+            "WLK_TRN_DRV_DDIST",
+            "WLK_TRN_DRV_DTIM",
+            "WLK_TRN_DRV_WAUX",
+            "WLK_TRN_DRV_TOTIVT",
+            "WLK_TRN_DRV_WAIT",
+            "WLK_TRN_DRV_IWAIT",
+            "WLK_TRN_DRV_BOARDS",
+            "WLK_TRN_WLK_TWAIT",
+            "WLK_TRN_WLK_IWAIT",
+            "WLK_TRN_WLK_IVT",
+            "WLK_TRN_WLK_TIMP",
+            "WLK_TRN_WLK_BOARDS",
+            "DRV_TRN_WLK_T_DEMAND",
             "DRV_TRN_WLK_A_DEMAND",
             "WLK_TRN_DRV_T_DEMAND",
-            "DRV_TRN_WLK_T_DEMAND",
             "WLK_TRN_DRV_A_DEMAND",
         ]:
+            if emme_matrix_name in matrix_name_list:
+                
+                matrix_value = emmeMatrix_to_numpyMatrix(
+                    emme_matrix_name, my_project.bank, "float32", 1, 99999
+                )
+                matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
 
-            matrix_value = emmeMatrix_to_numpyMatrix(
-                emme_matrix_name, my_project.bank, "float32", 1, 99999
-            )
-        if state.input_settings.abm_model == "activitysim":
-            matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
-
-        # Write numpy results back to Emme
-        matrix_id = my_project.bank.matrix(str(emme_matrix_name)).id
-        full_zones = my_project.current_scenario.zone_numbers
-        emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
-        emme_matrix.from_numpy(matrix_value)
-        my_project.bank.matrix(matrix_id).set_data(
-            emme_matrix, my_project.current_scenario
-        )
+                # Write numpy results back to Emme
+                matrix_id = my_project.bank.matrix(str(emme_matrix_name)).id
+                full_zones = my_project.current_scenario.zone_numbers
+                emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
+                emme_matrix.from_numpy(matrix_value)
+                my_project.bank.matrix(matrix_id).set_data(
+                    emme_matrix, my_project.current_scenario
+                )
         
         # Add park and ride demand to the model
         # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
@@ -2342,7 +2374,7 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, state.emme_settings.parallel_instances):
         l = project_list[i : i + state.emme_settings.parallel_instances]
         export_to_hdf5_pool(l, free_flow_skims)
-    # average_skims_to_hdf5_concurrent(EmmeProject("projects/7to8/7to8.emp", state.model_input_dir), False)
+    # average_skims_to_hdf5_concurrent(EmmeProject("projects/20to5/20to5.emp", state.model_input_dir), False)
 
     f.close()
     end_of_run = time.time()

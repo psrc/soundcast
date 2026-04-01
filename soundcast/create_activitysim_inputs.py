@@ -286,11 +286,12 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
 
     # df = (df_parcel.groupby("MAZ").sum()[['sqft_p']]/43560).reset_index()
     df = (df_parcel.groupby("MAZ").sum()[["area"]] / 43560).reset_index()
+
     df.rename(columns={"area": "TOTACRE"}, inplace=True)
     df_lu = df_lu.merge(df, on="MAZ", how="left")
 
     # Some TAZs have 0 TOTACRE fields.
-    # Popuilate with regional average
+    # Populate with regional average
     df_lu.loc[df_lu["TOTACRE"] == 0, "TOTACRE"] = df_lu.TOTACRE.mean()
 
     # Calculate density index as a check; should not be null
@@ -346,7 +347,7 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df = df[["MAZ", "access_dist_transit"]]
 
     df_lu = df_lu.merge(df, on="MAZ", how="left")
-
+    # Borrowed from MTC; note that they weight employment density by 2.5
     df_lu["density"] = (df_lu.TOTPOP + (2.5 * df_lu.TOTEMP)) / df_lu.TOTACRE
     # Fill zones with no residents/employment as 0
     df_lu["density"] = df_lu["density"].fillna(0)
@@ -368,7 +369,11 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df_lu["mixed_use2_2"] = log2(df_lu, "hh_2", "emptot_2", 0.0001)
     df_lu["mixed_use3_1"] = log3(df_lu, "hh_1", "empret_1", "empsvc_1", 0.0001)
 
-    # df_lu["TAZ"] = df_lu["taz"]
+    # Merge district from TAZ Index file
+    df_taz = pd.read_csv("inputs/scenario/networks/TAZIndex.txt", sep="\t")
+    df_lu = df_lu.merge(df_taz[["Zone_id","External"]], left_on="TAZ", right_on="Zone_id", how="left")
+    # District column is incorrectly titled External in TAZIndex; rename as district
+    df_lu.rename(columns={"External": "district"}, inplace=True)
     
     # create the MAZ and TAZ lookup files
     df_lu[["MAZ", "TAZ"]] = df_lu[["MAZ", "TAZ"]].astype("int")
