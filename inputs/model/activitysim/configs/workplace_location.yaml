@@ -3,6 +3,7 @@ SAMPLE_SIZE: 30
 SIMULATE_CHOOSER_COLUMNS:
   - income_segment
   - home_zone_id
+  - home_district
 
 SAMPLE_SPEC: workplace_location_sample.csv
 SPEC: workplace_location.csv

@@ -97,6 +97,7 @@ input_table_list:
       - access_dist_transit
       - hh_1
       - emptot_1
+      - district
   - tablename: land_use_taz
     filename: taz.csv
     index_col: TAZ
