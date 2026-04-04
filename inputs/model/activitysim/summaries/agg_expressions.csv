@@ -38,7 +38,7 @@ tour,non_wfh_tours,(work_from_home==False),"ptype,tour_type",,toexpfac,len,dash,
 tour,non_worker_tours,(ptype!=1)&(ptype!=2),"ptype,tour_type",,toexpfac,len,dash,tours for non workers
 tour,tour_distance,,"tour_mode, tour_type,ptype,tautodist_bin",,toexpfac,len,dash,tour distance bins by purpose and person type
 tour,tour_distance_mic,,"tour_mode, tour_type,person_work_mic,tautodist_bin",,toexpfac,len,dash,tour distance bins by purpose and person type
-tour,tour_time,,"tour_mode, tour_type,ptype,tautotime_bin",,toexpfac,len,dash,tour time bins by purpose and person type
+#tour,tour_time,,"tour_mode, tour_type,ptype,tautotime_bin",,toexpfac,len,dash,tour time bins by purpose and person type
 #trip,travel_cost,,"trip_mode,hh_rg_proposed,hh_county,hh_rgc,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travcost,len,dash,unweighted count of travel costs
 trip,trip_sov_ff_time,,"hh_rg_proposed, hh_county,hh_rgc,trip_mode,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,sov_ff_time_wt,len,dash,Person delay by home location
 #trip,trip_time_total,,"hh_rg_proposed, hh_county,hh_rgc,trip_mode,hh_city,hh_efa_dis, hh_efa_older, hh_efa_lep, hh_efa_pov200, hh_efa_poc, hh_efa_youth",,travtime_wt,len,dash,Person delay by home location

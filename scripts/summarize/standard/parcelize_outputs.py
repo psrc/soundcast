@@ -689,11 +689,11 @@ def main(state,output_dir):
     print ("Parcel assignment completed.")
 
     # Write results to output directory as parquet file
-    person_df.to_parquet(os.path.join(output_dir, "final_persons_with_parcels.parquet"), index=False)
+    person_df.to_parquet(os.path.join(output_dir, "final_persons_with_parcels.parquet"))
     tour_cols = tour_df.columns.tolist() + ["destination_parcel", "origin_parcel"]
     trip_cols = trip_df.columns.tolist() + ["destination_parcel", "origin_parcel"]
-    tour_results_df[tour_cols].to_parquet(os.path.join(output_dir, "final_tours_with_parcels.parquet"), index=False)
-    trip_results_df[trip_cols].to_parquet(os.path.join(output_dir, "final_trips_with_parcels.parquet"), index=False)
+    tour_results_df[tour_cols].to_parquet(os.path.join(output_dir, "final_tours_with_parcels.parquet"))
+    trip_results_df[trip_cols].to_parquet(os.path.join(output_dir, "final_trips_with_parcels.parquet"))
 
 if __name__ == "__main__":
     main(state, output_dir)

@@ -13,4 +13,4 @@ util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'
 util_no_attractions,No attractions,@df['size_term']==0,-999
 util_mode_logsum,Mode choice logsum,mode_choice_logsum,coef_mode_logsum
 util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1
-util_Home_Work_Kitsap_ASC,Home-Work Kitsap ASC,"@np.where(df['home_district'].isin([1,2]) & _DISTRICT.isin([1,2]), 1, 0)",coef_Home_Work_Kitsap_ASC
+util_Home_Work_Kitsap_ASC,Home-Work Kitsap ASC,"@np.where(df['home_district'].isin([9,11]) & _DISTRICT.isin([9,11]), 1, 0)",coef_Home_Work_Kitsap_ASC
