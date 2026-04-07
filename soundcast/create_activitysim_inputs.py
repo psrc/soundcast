@@ -8,7 +8,7 @@ from settings import run_args
 
 # Supply a base
 # land_use_dir = r"R:\e2projects_two\SoundCast\Inputs\dev\landuse\2018\new_emp"
-parcel_area_file = r"R:\e2projects_two\activitysim\conversion\parcel_area.csv"
+# parcel_area_file = r"R:\e2projects_two\activitysim\conversion\parcel_area.csv"
 
 lu_aggregate_dict = {
     "hh_p": "sum",
@@ -204,7 +204,7 @@ def process_persons(df):
     return df
 
 
-def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
+def process_buffered_landuse(state, df_psrc, parcel_geog, aggregate_dict):
     """
     Generate MAZ-level land use and synthetic population data for Activitysim.
     """
@@ -274,38 +274,32 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df_lu = df_lu.merge(df, left_on="MAZ", right_on="home_zone_id", how="left")  # Retain all zones with left join
 
     # GET AREA FROM BLOCK GEOG?
-
-    # Total acres, based on parcel size
-    df_parcel_area = pd.read_csv(parcel_area_file)
-    # df_parcel_area['parcel_id'] = df_parcel_area['pin'].astype(int)
-    df_parcel = df_parcel.merge(df_parcel_area, how="left", left_on='parcelid', right_on="parcel_id")
-    df_parcel["area"] = df_parcel["area"].fillna(0)
-    df_parcel["area"] = np.where(
-        df_parcel["area"] < 1, df_parcel["area"].mean(), df_parcel["area"]
+    df_maz_geog = pd.read_sql(
+        "SELECT * FROM maz_geography",
+        con=state.conn,
     )
 
-    # df = (df_parcel.groupby("MAZ").sum()[['sqft_p']]/43560).reset_index()
-    df = (df_parcel.groupby("MAZ").sum()[["area"]] / 43560).reset_index()
+    df_lu = df_lu.merge(df_maz_geog[["maz_id", "land_acres"]], left_on="MAZ", right_on="maz_id", how="left")
+    df_lu.rename(columns={"land_acres": "TOTACRE"}, inplace=True)
 
-    df.rename(columns={"area": "TOTACRE"}, inplace=True)
-    df_lu = df_lu.merge(df, on="MAZ", how="left")
+    # # Total acres, based on parcel size
+    # df_parcel_area = pd.read_csv(parcel_area_file)
+    # # df_parcel_area['parcel_id'] = df_parcel_area['pin'].astype(int)
+    # df_parcel = df_parcel.merge(df_parcel_area, how="left", left_on='parcelid', right_on="parcel_id")
+    # df_parcel["area"] = df_parcel["area"].fillna(0)
+    # df_parcel["area"] = np.where(
+    #     df_parcel["area"] < 1, df_parcel["area"].mean(), df_parcel["area"]
+    # )
+
+    # # df = (df_parcel.groupby("MAZ").sum()[['sqft_p']]/43560).reset_index()
+    # df = (df_parcel.groupby("MAZ").sum()[["area"]] / 43560).reset_index()
+
+    # df.rename(columns={"area": "TOTACRE"}, inplace=True)
+    # df_lu = df_lu.merge(df, on="MAZ", how="left")
 
     # Some TAZs have 0 TOTACRE fields.
     # Populate with regional average
     df_lu.loc[df_lu["TOTACRE"] == 0, "TOTACRE"] = df_lu.TOTACRE.mean()
-
-    # Calculate density index as a check; should not be null
-    df_lu["household_density"] = df_lu.TOTHH / df_lu.TOTACRE
-    df_lu["employment_density"] = df_lu.TOTEMP / (df_lu.TOTACRE)
-
-    df_lu["density_index"] = (df_lu.household_density * df_lu.employment_density) / (
-        df_lu.household_density + df_lu.employment_density
-    ).clip(lower=1)
-    df_lu["density_index"] = df_lu["density_index"].replace(np.nan, 0)
-    df_lu["buff_density_index"] = (df_lu.hh_1 * df_lu.emptot_1) / (
-        df_lu.hh_1 + df_lu.emptot_1
-    ).clip(lower=1)
-    df_lu["buff_density_index"] = df_lu["buff_density_index"].replace(np.nan, 0)
 
     # PRKCST Hourly parking rate paid by long-term hours (8 hours)
     # Take the average for all parcels (weighted by number of spaces)
@@ -347,7 +341,9 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df = df[["MAZ", "access_dist_transit"]]
 
     df_lu = df_lu.merge(df, on="MAZ", how="left")
+
     # Borrowed from MTC; note that they weight employment density by 2.5
+    # Used to determine CBD definition
     df_lu["density"] = (df_lu.TOTPOP + (2.5 * df_lu.TOTEMP)) / df_lu.TOTACRE
     # Fill zones with no residents/employment as 0
     df_lu["density"] = df_lu["density"].fillna(0)
@@ -364,10 +360,10 @@ def process_buffered_landuse(df_psrc, parcel_geog, aggregate_dict):
     df_tt["taz_p"] = df_tt["taz_p"].apply(lambda i: i.split(":")[0]).astype("int")
     df_lu = df_lu.merge(df_tt, left_on="TAZ", right_on="taz_p", how="left")
 
-    # mixed use variable from buffered parcels:
-    df_lu["mixed_use2_1"] = log2(df_lu, "hh_1", "emptot_1", 0.0001)
-    df_lu["mixed_use2_2"] = log2(df_lu, "hh_2", "emptot_2", 0.0001)
-    df_lu["mixed_use3_1"] = log3(df_lu, "hh_1", "empret_1", "empsvc_1", 0.0001)
+    # # mixed use variable from buffered parcels:
+    # df_lu["mixed_use2_1"] = log2(df_lu, "hh_1", "emptot_1", 0.0001)
+    # df_lu["mixed_use2_2"] = log2(df_lu, "hh_2", "emptot_2", 0.0001)
+    # df_lu["mixed_use3_1"] = log3(df_lu, "hh_1", "empret_1", "empsvc_1", 0.0001)
 
     # Merge district from TAZ Index file
     df_taz = pd.read_csv("inputs/scenario/networks/TAZIndex.txt", sep="\t")
@@ -416,7 +412,7 @@ def run(state):
     df_hh, df_person = process_households(parcel_geog)
     df_person = process_persons(df_person)
     df_lu = process_buffered_landuse(
-            df_hh, parcel_geog, lu_aggregate_dict
+            state, df_hh, parcel_geog, lu_aggregate_dict
         )
     
     df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
