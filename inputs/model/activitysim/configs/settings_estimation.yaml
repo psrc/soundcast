@@ -116,7 +116,7 @@ input_table_list:
       - TERMINAL
       - transit_score_scaled
       - density_index
-      - buff_density_index
+      # - buff_density_index
       - GSENROLL
 
 #      - access_dist_transit

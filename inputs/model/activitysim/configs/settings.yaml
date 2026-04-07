@@ -29,7 +29,7 @@ want_dest_choice_sample_tables: False
 
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
-trace_hh_id: 1
+trace_hh_id: 1628343
 cleanup_trace_files_on_resume: True
 
 
@@ -92,7 +92,7 @@ input_table_list:
       - COLLPTE
       # - TOPOLOGY
       - TERMINAL
-      - buff_density_index
+      # - buff_density_index
       - GSENROLL
       - access_dist_transit
       - hh_1
@@ -104,7 +104,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: compute_accessibility
+#resume_after: work_from_home
 models:
   ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.

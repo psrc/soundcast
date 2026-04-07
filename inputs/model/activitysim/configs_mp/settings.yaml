@@ -1,5 +1,4 @@
 inherit_settings: True
-trace_hh_id: 1216910
 
 #MKL_NUM_THREADS: 1
 #activitysim run -c configs_mp -s settings_mp.yaml -c configs -d data/full -o output_test
@@ -45,7 +44,7 @@ multiprocess_steps:
     num_processes: 1
   - name: mp_households
     begin: auto_ownership_simulate
-    num_processes: 20
+    num_processes: 12
     slice:
       tables:
         - households
