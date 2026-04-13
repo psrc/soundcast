@@ -18,6 +18,8 @@ multiprocess: True
 #num_processes: 12
 
 multiprocess_steps:
+  - name: mp_initialize_input_checker
+    begin: input_checker
   - name: mp_initialize_proto
     begin: initialize_proto_population
     num_processes: 1
