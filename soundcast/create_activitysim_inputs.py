@@ -472,3 +472,12 @@ def run(state):
     df_maz.to_csv(os.path.join(output_dir, "maz.csv"), index=False)
     df_taz.to_csv(os.path.join(output_dir, "taz.csv"), index=False)
     # orphan_households.to_csv(os.path.join(output_dir, "orphan_households.csv"), index=False)
+
+    # MAZ-to-MAZ distance files are copied from base year input data
+    # Ensure that only MAZs that exist in land use file are included
+    valid_maz = set(df_lu["MAZ"])
+    for fname in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
+        path = os.path.join(output_dir, fname)
+        df = pd.read_csv(path)
+        df = df[df["OMAZ"].isin(valid_maz) & df["DMAZ"].isin(valid_maz)]
+        df.to_csv(path, index=False)
