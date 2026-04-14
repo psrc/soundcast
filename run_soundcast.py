@@ -323,8 +323,8 @@ def main():
     if state.input_settings.run_accessibility_calcs:
         accessibility_calcs(state)
 
-    # if state.input_settings.abm_model == "activitysim":
-    #     create_activitysim_inputs.run(state)
+    if state.input_settings.abm_model == "activitysim":
+        create_activitysim_inputs.run(state)
 
     if not os.path.exists("working"):
         os.makedirs("working")
