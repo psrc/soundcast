@@ -205,6 +205,8 @@ def daysim_assignment(iteration):
                     run_args.args.output_dir,
                     "-d",
                     run_args.args.data_dir,
+                    "--data_model",
+                    os.path.join(os.getcwd(), "soundcast/data_model")
                 ]
             )
         logger.info("End of %s iteration of ActivitySim", str(iteration))

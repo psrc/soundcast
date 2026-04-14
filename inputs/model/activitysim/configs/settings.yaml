@@ -107,6 +107,7 @@ input_table_list:
 #resume_after: work_from_home
 models:
   ## Disaggregate Accessibility steps
+  - input_checker
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility
   - initialize_landuse
