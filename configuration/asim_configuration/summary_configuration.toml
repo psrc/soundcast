@@ -273,7 +273,7 @@ PM25 = "PM25 Total"
     'trip_destination_choice',
     'school_location',
     'work_location',
-    # 'mandatory_tour_frequency',
+    'mandatory_tour_frequency',
     'mandatory_tour_scheduling',
     # 'non_mandatory_tour_frequency',
     'non_mandatory_tour_destination_choice',
@@ -285,7 +285,7 @@ PM25 = "PM25 Total"
     # 'atwork_subtours_scheduling',
     # 'atwork_subtour_mode',
     'tour_mode_choice',
-    # 'trip_mode_choice'
+    'trip_mode_choice'
 ]
 "network-validation-notebook" = [
     'JBLM',

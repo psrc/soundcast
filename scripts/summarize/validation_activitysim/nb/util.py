@@ -210,7 +210,7 @@ def get_hh_data(summary_config, uncloned=True):
 
     return hh_data.to_pandas()
 
-def get_person_data(summary_config, uncloned=True):
+def get_person_data(summary_config, uncloned=True, get_cdap=False):
         
     per_data = get_validation_data(summary_config, 
                                    "persons", 
@@ -250,7 +250,6 @@ def get_person_data(summary_config, uncloned=True):
         ]
         
     )
-
 
     return per_data.to_pandas()
 
@@ -307,6 +306,14 @@ def get_tour_data(summary_config, uncloned=False):
                                     uncloned)
     
     # data manipulation
+    tour_data = tour_data.with_columns(
+        # reassign tour category to mandatory vs non-mandatory
+        pl.when(pl.col("tour_type").is_in(["work", "school"]))
+        .then(pl.lit("mandatory"))
+        .otherwise(pl.lit("non_mandatory"))
+        .alias("tour_cat_reassign")
+    )
+
     tour_data = tour_data.with_columns(
         # number of stops in outbound and inbound direction
         pl.col("stop_frequency").cast(pl.String).str.slice(0, 1).alias("stop_frequency_out"),
