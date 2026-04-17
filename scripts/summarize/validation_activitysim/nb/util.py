@@ -173,7 +173,7 @@ def get_hh_data(summary_config, uncloned=True):
     hh_data = hh_data.\
         join(get_landuse_data(summary_config, to_pandas=False).select(['zone_id','log_emptot_1','log_hh_1']), 
             how="left",left_on='home_zone_id',right_on='zone_id').\
-        join(pl.read_csv(summary_config['p_maz_bg_lookup'])[['MAZ', 'block_group_id']], 
+        join(pl.read_csv("R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv")[['MAZ', 'block_group_id']], 
             how="left",left_on='home_zone_id',right_on='MAZ')
 
     # create landuse variable with only model values

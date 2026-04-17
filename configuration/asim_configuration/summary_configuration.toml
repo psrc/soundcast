@@ -12,7 +12,7 @@ run_network_validation = false
 run_run_comparison = false
 
 #TODO: move to input DB
-p_maz_bg_lookup = "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv"
+# p_maz_bg_lookup = "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv"
 p_acs_auto_ownership = "R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/bg_auto_ownership.csv"
 
 #################################
@@ -275,7 +275,7 @@ PM25 = "PM25 Total"
     'work_location',
     'mandatory_tour_frequency',
     'mandatory_tour_scheduling',
-    # 'non_mandatory_tour_frequency',
+    'non_mandatory_tour_frequency',
     'non_mandatory_tour_destination_choice',
     'non_mandatory_tour_scheduling',
     # 'joint_tour_frequency',

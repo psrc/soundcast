@@ -25,11 +25,11 @@ book:
         # - nb/work_location.ipynb
     # - part: "<b>MANDATORY TOUR</b>"
     #   chapters:
-    #     - nb/mandatory_tour_frequency.ipynb
-    #     - nb/mandatory_tour_scheduling.ipynb
+        - nb/mandatory_tour_frequency.ipynb
+        - nb/mandatory_tour_scheduling.ipynb
     # - part: "<b>NON-MANDATORY TOUR</b>"
     #   chapters:
-    #     - nb/non_mandatory_tour_frequency.ipynb
+        - nb/non_mandatory_tour_frequency.ipynb
     #     - nb/non_mandatory_tour_destination_choice.ipynb
     #     - nb/non_mandatory_tour_scheduling.ipynb
     # - part: "<b>JOINT TOUR</b>"
@@ -44,8 +44,8 @@ book:
     #     - nb/atwork_subtour_mode.ipynb
     # - part: "<b>MODE CHOICE</b>"
     #   chapters:
-    #     - nb/tour_mode_choice.ipynb
-    #     - nb/trip_mode_choice.ipynb
+        - nb/tour_mode_choice.ipynb
+        - nb/trip_mode_choice.ipynb
     # - part: "<b>ANALYSIS</b>"
     #   chapters:
     #     - nb/telework_analys.ipynb
