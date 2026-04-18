@@ -1,5 +1,5 @@
 inherit_settings: True
 sharrow: require
-chunk_training_mode: explicit
+#chunk_training_mode: explicit
 recode_pipeline_columns: true
 # households_sample_size: 100

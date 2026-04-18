@@ -872,7 +872,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     matrix_value = emmeMatrix_to_numpyMatrix(
                 "mf01", my_project.bank, dtype, 1, 99999
             )
-    matrix_value[:] = df_taz_district["district"].values[:, np.newaxis] 
+    matrix_value[:] = df_taz_district["district"].values[np.newaxis, :] 
     write_skims(state, matrix_value, my_store, "DISTRICT", dtype, taz_indexes)
 
     # Export park and ride skims

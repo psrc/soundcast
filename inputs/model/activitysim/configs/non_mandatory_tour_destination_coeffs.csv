@@ -15,3 +15,4 @@ coef_eatout_dist_5_plus,-0.2,F
 coef_othmaint_dist_5_plus,-0.05,F
 coef_social_dist_5_plus,-0.05,F
 coef_othdiscr_dist_5_plus,-0.15,F
+coef_Home_Dest_Kitsap_ASC,3.5,F
