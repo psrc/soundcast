@@ -783,13 +783,6 @@ def write_skims(state, matrix_data, h5_file, matrix_out_name, dtype, taz_indexes
                     )
 
     if state.input_settings.abm_model == "activitysim":
-        # # Write full skims to h5 format (?) for supplemental trip modeling
-        # h5_file["full"].create_dataset(
-        #                 matrix_out_name, 
-        #                 data=matrix_data.astype(dtype), 
-        #                 compression="gzip"
-        #             )
-
         # Write skims to OMX format for Activitysim with proper zone indexing
         # matrix_data = matrix_data[taz_indexes, :][:, taz_indexes]
         h5_file["data"].create_dataset(
