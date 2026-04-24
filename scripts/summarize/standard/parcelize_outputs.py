@@ -36,7 +36,7 @@ def prepare_inputs(state, use_sample, output_dir):
     )
 
     # Load parcel data
-    df_parcel = pd.read_csv(r"outputs/landuse/parcels_urbansim.txt", sep=" ")
+    df_parcel = pd.read_csv(r"outputs/landuse/buffered_parcels.txt", sep=" ")
 
     # Get parcel MAZ ID from soundcast inputs database
     df_parcel_geog = pd.read_sql(
@@ -45,19 +45,6 @@ def prepare_inputs(state, use_sample, output_dir):
     )
 
     df_parcel = df_parcel.merge(df_parcel_geog, left_on="parcelid", right_on="ParcelID", how="left")
-    # convert to geodataframe
-    # df_parcel["geometry"] = gpd.points_from_xy(df_parcel["xcoord_p"], df_parcel["ycoord_p"])
-    # df_parcel.crs = "EPSG:2285"
-    # gdf_parcel = gpd.GeoDataFrame(df_parcel, geometry="geometry")
-
-    # # MAZ shape from Census
-    # eg_conn = psrcelmerpy.ElmerGeoConn()
-    # gdf = eg_conn.read_geolayer("block2010")
-    # gdf.to_crs("EPSG:2285", inplace=True)
-
-    # # Intersect parcel points with gdf to get maz_id on parcels
-    # # FIXME: add this as standard geography available in db or on the parcel file itself
-    # df_parcel = gpd.sjoin(gdf_parcel, gdf[["maz_id", "geometry"]], how="left", predicate="within")
 
     parcel_col_dict = {
         "hh_p": "TOTHH",
@@ -195,7 +182,7 @@ def join_weights_to_parcels(df_parcel, df_parcel_weights):
     return df_parcel.merge(weights_wide, on="parcelid", how="left")
 
 
-def assign_parcels(df, df_parcel_weights, segment, model_selector, target_col, df_parcel):
+def assign_parcels(df, df_parcel_weights, segment, model_selector, target_col, df_parcel, mode=None):
     """Assign parcels to tours/trips/persons using precomputed purpose/model weights.
     
     Parameters:
@@ -209,14 +196,51 @@ def assign_parcels(df, df_parcel_weights, segment, model_selector, target_col, d
 
     target_col (str): The column name in df that contains the target MAZ IDs (e.g., "destination" for tours or trips, "workplace_zone_id" for persons with usual workplace).
 
+    df_parcel (pd.DataFrame): The parcel table with geography and weights.
+
+    mode (str, optional): Trip/tour mode. When "WALK_TRANSIT", parcel weights are
+        penalized by distance to transit using the precomputed transit_weight column.
+
+    
+        Returns:    pd.DataFrame: A copy of df with an additional column "assigned_parcel" containing the assigned parcel IDs.
+        
     """
     
     start_time = time.time()
 
-    segment_weights = df_parcel_weights[
-        (df_parcel_weights["segment"] == segment)
-        & (df_parcel_weights["model_selector"] == model_selector)
-    ][["parcelid", "maz_id", "weight"]]
+    segment_weights = (
+        df_parcel_weights[
+            (df_parcel_weights["segment"] == segment)
+            & (df_parcel_weights["model_selector"] == model_selector)
+        ][["parcelid", "maz_id", "weight"]]
+        .copy()
+    )
+
+    if mode == "WALK_TRANSIT":
+        # Combine employment-based weight with transit proximity by multiplying in a
+        # shifted exponential decay factor, then renormalizing within each MAZ.
+        # Shifted exponential decay: no penalty within 0.25 miles of transit, then weight
+        # halves for every additional 0.25 miles beyond that threshold. The decay rate
+        # -2.77 = -ln(2) / 0.25, chosen so that at exactly 0.5 miles (0.25 miles past the
+        # threshold) the transit factor equals 0.5, at 0.75 miles it equals 0.25, etc.
+        # Sentinel parcels with no transit access (raw_dist_transit == 999) receive
+        # a factor of effectively zero and will not be selected for walk-to-transit trips.
+        transit_dist = (
+            df_parcel[["parcelid", "raw_dist_transit"]]
+            .copy()
+            .assign(raw_dist_transit=lambda d: d["raw_dist_transit"].fillna(
+                d["raw_dist_transit"].max()
+            ))
+        )
+        segment_weights = segment_weights.merge(transit_dist, on="parcelid", how="left")
+        transit_factor = np.exp(
+            -2.77 * np.maximum(0.0, segment_weights["raw_dist_transit"].fillna(999).to_numpy() - 0.25)
+        )
+        segment_weights["weight"] = segment_weights["weight"] * transit_factor
+        # Renormalize within MAZ so weights still sum to 1.
+        maz_sum = segment_weights.groupby("maz_id")["weight"].transform("sum")
+        segment_weights["weight"] = np.where(maz_sum > 0, segment_weights["weight"] / maz_sum, 0.0)
+        segment_weights = segment_weights[["parcelid", "maz_id", "weight"]]
 
     df_to_maz = assign_to_parcel(df, target_col, segment_weights, df_parcel)
 
@@ -365,6 +389,39 @@ def assign_to_parcel(df, target_col, segment_weights, df_parcel):
     result_df.loc[assigned["_row_id"], "assigned_parcel"] = assigned["parcelid"].to_numpy()
     return result_df
 
+
+WALK_TRANSIT_MODES = {"WALK_LOC", "WALK_LR", "WALK_FRY", "WALK_COM"}
+
+
+def assign_parcels_with_mode(df, df_parcel_weights, segment, model_selector, target_col, df_parcel, mode_col):
+    """Split df by transit mode and call assign_parcels with the appropriate weight.
+
+    Walk-to-transit records (mode_col in WALK_TRANSIT_MODES) use transit-distance-
+    penalized weights in addition to employment; all other records use only employment-based weights.
+    Results are concatenated and returned in a single DataFrame.
+
+    Parameters:
+    mode_col (str): Column in df containing the mode string (e.g., "trip_mode" or "tour_mode").
+    """
+    walk_mask = df[mode_col].isin(WALK_TRANSIT_MODES)
+    results = []
+    if walk_mask.any():
+        results.append(
+            assign_parcels(
+                df[walk_mask], df_parcel_weights, segment, model_selector,
+                target_col, df_parcel, mode="WALK_TRANSIT",
+            )
+        )
+    if (~walk_mask).any():
+        results.append(
+            assign_parcels(
+                df[~walk_mask], df_parcel_weights, segment, model_selector,
+                target_col, df_parcel,
+            )
+        )
+    return pd.concat(results) if results else df.copy()
+
+
 def main(state,output_dir):
 
     script_start_time = time.perf_counter()
@@ -488,7 +545,7 @@ def main(state,output_dir):
             }.items():
             print("Assigning work tours not to usual workplace for segment:", segment_label)
             df = df_work_tours_to_assign[df_work_tours_to_assign["income_segment"]==segment_value]
-            df = assign_parcels(df, df_parcel_weights, segment_label, "workplace", "workplace_zone_id", df_parcel)
+            df = assign_parcels_with_mode(df, df_parcel_weights, segment_label, "workplace", "workplace_zone_id", df_parcel, mode_col="tour_mode")
             df_processed_work_tours = pd.concat([df_processed_work_tours, df])
 
         df_processed_work_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
@@ -519,7 +576,7 @@ def main(state,output_dir):
             }.items():
             print("Assigning usual school parcels for segment:", segment_label)
             df = df_school_tours_to_assign[df_school_tours_to_assign[segment_value]==True]
-            df = assign_parcels(df, df_parcel_weights, segment_label, "school", "school_zone_id", df_parcel)
+            df = assign_parcels_with_mode(df, df_parcel_weights, segment_label, "school", "school_zone_id", df_parcel, mode_col="tour_mode")
             df_processed_school_tours = pd.concat([df_processed_school_tours, df])
 
         df_processed_school_tours.rename(columns={"assigned_parcel": "destination_parcel"}, inplace=True)
@@ -533,7 +590,7 @@ def main(state,output_dir):
     non_mandatory_tour_results = pd.DataFrame()
     for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
         df = tour_df[tour_df["tour_type"]==purpose].copy()
-        tours_to_maz = assign_parcels(df, df_parcel_weights, purpose, "non_mandatory", "destination", df_parcel)
+        tours_to_maz = assign_parcels_with_mode(df, df_parcel_weights, purpose, "non_mandatory", "destination", df_parcel, mode_col="tour_mode")
         non_mandatory_tour_results = pd.concat([non_mandatory_tour_results, tours_to_maz])
 
     tour_results_df = pd.concat([tour_results_df, non_mandatory_tour_results])
@@ -545,7 +602,7 @@ def main(state,output_dir):
     trip_results_df = pd.DataFrame()
     for purpose in ["escort", "shopping", "eatout", "othmaint", "social", "othdiscr"]:
         df = trip_df[trip_df["purpose"]==purpose].copy()
-        trips_to_maz = assign_parcels(df, df_parcel_weights, purpose, "trip", "destination", df_parcel)
+        trips_to_maz = assign_parcels_with_mode(df, df_parcel_weights, purpose, "trip", "destination", df_parcel, mode_col="trip_mode")
         trip_results_df = pd.concat([trip_results_df, trips_to_maz])
 
     # For work trips, if the destination is the same as the workplace_zone_id, assign to the workplace parcel. 
@@ -560,7 +617,7 @@ def main(state,output_dir):
     df_work_trips_complete = df_work_trips[~df_work_trips["destination_parcel"].isnull()]
     df_work_trips_to_assign = df_work_trips[df_work_trips["destination_parcel"].isnull()]
 
-    trips_to_maz = assign_parcels(df_work_trips_to_assign, df_parcel_weights, "work", "trip", "destination", df_parcel)
+    trips_to_maz = assign_parcels_with_mode(df_work_trips_to_assign, df_parcel_weights, "work", "trip", "destination", df_parcel, mode_col="trip_mode")
     trip_results_df = pd.concat([trip_results_df,df_work_trips_complete, trips_to_maz])
 
     # For school trips, if the destination is the same as the school_zone_id, assign to the school parcel.
@@ -573,7 +630,7 @@ def main(state,output_dir):
     df_school_trips_complete = df_school_trips[~df_school_trips["destination_parcel"].isnull()]
     df_school_trips_to_assign = df_school_trips[df_school_trips["destination_parcel"].isnull()]
 
-    trips_to_maz = assign_parcels(df_school_trips_to_assign, df_parcel_weights, "school", "trip", "destination", df_parcel)
+    trips_to_maz = assign_parcels_with_mode(df_school_trips_to_assign, df_parcel_weights, "school", "trip", "destination", df_parcel, mode_col="trip_mode")
     trip_results_df = pd.concat([trip_results_df,df_school_trips_complete, trips_to_maz])
 
     ########################################
@@ -583,12 +640,12 @@ def main(state,output_dir):
     # atwork size terms are shared across tours and trips
     # process these separately from other tours/trips
     df_atwork_tours = tour_df[tour_df["tour_category"]=="atwork"].copy()
-    tours_to_maz = assign_parcels(df_atwork_tours, df_parcel_weights, "atwork", "atwork", "destination", df_parcel)
+    tours_to_maz = assign_parcels_with_mode(df_atwork_tours, df_parcel_weights, "atwork", "atwork", "destination", df_parcel, mode_col="tour_mode")
     tour_results_df = pd.concat([tour_results_df, tours_to_maz])
 
     # atwork trips
     df_atwork_trips = trip_df[trip_df["purpose"]=="atwork"].copy()
-    trips_to_maz = assign_parcels(df_atwork_trips, df_parcel_weights, "atwork", "atwork", "destination", df_parcel)
+    trips_to_maz = assign_parcels_with_mode(df_atwork_trips, df_parcel_weights, "atwork", "atwork", "destination", df_parcel, mode_col="trip_mode")
     trip_results_df = pd.concat([trip_results_df, trips_to_maz])
 
     # Set trip parcel destination for trips to home as home parcel
