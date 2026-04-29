@@ -106,7 +106,7 @@ RTP_summary_list = [
                     'RTP_mode_share',
                     'RTP_freight',
                     'RTP_transit',
-                    'RTP_conformity_analysis'
+                    # 'RTP_conformity_analysis'
                     ]
 
 # current run name and directory
