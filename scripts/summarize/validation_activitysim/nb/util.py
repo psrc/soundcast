@@ -24,6 +24,10 @@ telecommute_frequency_cat = {"No_Telecommute": "0 day",
                              "4_days_week": "4 days"}
 work_from_home_cat = {True: "wfh worker",
                       False: "on-site worker"}
+pemploy_cat = {1: "1: Full-time worker",
+               2: "2: Part-time worker",
+               3: "3: Not in labor force",
+               4: "4: Student under 16"}
 
 # trip
 outbound_cat = {True: "outbound",
@@ -81,7 +85,12 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     if df_name == "tours":
         survey_data = survey_data.rename({
             "survey_tour_id": "tour_id",
-            "tour_distance": "tour_distance_one_way"})
+            "tour_distance": "tour_distance_one_way",
+            "survey_parent_tour_id": "parent_tour_id"})
+        # FIXME: add atwork_subtour_frequency to survey data?
+        survey_data = survey_data.with_columns(
+            atwork_subtour_frequency = pl.lit(None).cast(pl.String)
+        )
     
     if df_name == "trips":
         survey_data = survey_data.rename({
@@ -230,7 +239,13 @@ def get_person_data(summary_config, uncloned=True, get_cdap=False):
 
         pl.col("work_from_home")
         .replace_strict(work_from_home_cat, default=None)
-        .alias("work_from_home_label")
+        .alias("work_from_home_label"),
+
+        pl.col("pemploy")
+        .replace_strict(pemploy_cat, default=None)
+        .alias("pemploy_label"),
+
+        
 
     )
     # distance bins
