@@ -1,11 +1,11 @@
 coefficient_name,value,constrain
 coef_cars1_auto_time_saving_per_worker,1.493375582,F
-coef_cars1_drivers_1_calib,0.0,T
+coef_cars1_drivers_1_calib,-.325,T
 coef_cars1_drivers_2,-0.6772535291840561,F
 coef_cars1_drivers_3,0.0,T
 coef_cars1_drivers_4_up,0.0,T
-coef_cars1_hh_income_0_24k,-1.7816426662065525,F
-coef_cars1_hh_income_24_43k,-1.2197479450144333,F
+coef_cars1_hh_income_0_24k,-2.75,F
+coef_cars1_hh_income_24_43k,-1.75,F
 coef_cars1_hh_income_43_82k,-0.6884116577074316,F
 coef_cars1_hh_income_82_135k,-0.30257085287110974,F
 coef_cars1_num_workers_clip_3,0.2829448986651532,F
@@ -18,7 +18,7 @@ coef_cars1_retail_non_motor,0.0,T
 coef_cars1_retail_transit,0.0,T
 coef_cars1_univ_GQ,-3.562778707,F
 coef_cars2_auto_time_saving_per_worker,1.284908912,F
-coef_cars2_drivers_1_calib,0.0,T
+coef_cars2_drivers_1_calib,-1.1,T
 coef_cars2_drivers_2,1.8562182958267508,F
 coef_cars2_drivers_3,1.9203862127542086,F
 coef_cars2_drivers_4_up,2.4424114608341303,F
@@ -35,7 +35,7 @@ coef_cars2_presence_children_5_17,0.0,T
 coef_cars2_retail_non_motor,0.0,T
 coef_cars2_retail_transit,0.0,T
 coef_cars3_auto_time_saving_per_worker,1.245178975,F
-coef_cars3_drivers_1_calib,0.0,T
+coef_cars3_drivers_1_calib,-0.1,T
 coef_cars3_drivers_2,1.6842686802469813,F
 coef_cars3_drivers_3,4.042912687642117,F
 coef_cars3_drivers_4_up,3.95265153196916,F
@@ -52,7 +52,7 @@ coef_cars34_persons_25_34,-0.9614965159109595,F
 coef_cars34_presence_children_0_4,0.0,T
 coef_cars34_presence_children_5_17,0.0,T
 coef_cars4_auto_time_saving_per_worker,1.675526609,F
-coef_cars4_drivers_1_calib,0.0,T
+coef_cars4_drivers_1_calib,-0.1,T
 coef_cars4_drivers_2,1.4663663900565083,F
 coef_cars4_drivers_3,4.060511791745777,F
 coef_cars4_drivers_4_up,6.096367930575563,F

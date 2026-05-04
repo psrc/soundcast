@@ -7,9 +7,9 @@ coef_visiting_or_social_tour,0,T
 coef_eating_out_tour,0,T
 coef_total_number_of_tours_is_0_no_prior_tours,-999,T
 coef_total_number_of_tours_is_0_prior_tours,0,T
-coef_total_number_of_tours_is_1,-7.3572,F
-coef_total_number_of_tours_is_2,-10.647,F
-coef_total_number_of_tours_is_3,-13.5005,F
+coef_total_number_of_tours_is_1,-7,F
+coef_total_number_of_tours_is_2,-11,F
+coef_total_number_of_tours_is_3,-13,F
 coef_total_number_of_tours_is_4,-16.3965,F
 coef_total_number_of_tours_is_5,-19.6843,F
 coef_total_number_of_tours_is_6_plus,-999,T

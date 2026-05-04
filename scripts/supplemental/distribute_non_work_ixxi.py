@@ -184,11 +184,12 @@ def main(state):
         state.emme_settings.trip_table_loc, index_col="taz"
     )  # total 4K Ps and As by trip purpose
 
-    # Import gravity model coefficients by trip purpose from db
-    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=state.conn)
-
     # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)
     trip_purpose_list = ["hsp"]
+
+    # Import gravity model coefficients by trip purpose from db
+    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=state.conn)
+    coeff_df = coeff_df[coeff_df["purpose"].isin(trip_purpose_list)]
 
     output_dir = os.path.join(os.getcwd(), r"outputs\supplemental")
 
@@ -217,7 +218,7 @@ def main(state):
         skims_path,
         mode_name="sov_inc2g",
         tod = state.emme_settings.am_skim_name,
-        divide_by_100=divide_by_100,
+        divide_by_100=False, # Cost skims stored as float for Activitysim and Daysim
     )
     am_dist_skim = load_skims(
         state,
@@ -231,7 +232,7 @@ def main(state):
         skims_path,
         mode_name="sov_inc2g",
         tod = state.emme_settings.pm_skim_name,
-        divide_by_100=divide_by_100,
+        divide_by_100=False, # Cost skims stored as float for Activitysim and Daysim
     )
     pm_dist_skim = load_skims(
         state,

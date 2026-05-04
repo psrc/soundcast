@@ -92,7 +92,7 @@ def get_average_jobs_transit(transit_data, geo_attr, parcel_attributes_list):
     return transit_data_groupby
 
 
-def get_transit_information(bank):
+def get_transit_information(state, bank):
     """Extract transit travel times from skim matrices, between all zones"""
 
     # Bus and rail travel times are the sum of access, wait time, and in-vehicle times; Bus and rail have separate paths
@@ -111,11 +111,12 @@ def get_transit_information(bank):
         + bank.matrix("twtwf").get_numpy_data()
         + bank.matrix("ivtwf").get_numpy_data()
     )
-    p_ferry_time = (
-        bank.matrix("auxwp").get_numpy_data()
-        + bank.matrix("twtwp").get_numpy_data()
-        + bank.matrix("ivtwp").get_numpy_data()
-    )
+    if state.input_settings.abm_model == "daysim":
+        p_ferry_time = (
+            bank.matrix("auxwp").get_numpy_data()
+            + bank.matrix("twtwp").get_numpy_data()
+            + bank.matrix("ivtwp").get_numpy_data()
+        )
     commuter_rail_time = (
         bank.matrix("auxwc").get_numpy_data()
         + bank.matrix("twtwc").get_numpy_data()
@@ -123,8 +124,11 @@ def get_transit_information(bank):
     )
     # Take the shortest transit time between bus or rail
     # transit_time = np.minimum(bus_time, rail_time)
+    transit_list = [bus_time, rail_time, ferry_time, commuter_rail_time]
+    if state.input_settings.abm_model == "daysim":
+        transit_list.append(p_ferry_time)
     transit_time = np.minimum.reduce(
-        [bus_time, rail_time, ferry_time, p_ferry_time, commuter_rail_time]
+        transit_list
     )
     transit_time = transit_time[0:3700, 0:3700]
     transit_time_df = pd.DataFrame(transit_time)
@@ -359,8 +363,9 @@ def main(state):
     dest_df["taz_p"] = dest_df["taz_p"].astype("object")
 
     # extract transit travel time from emme matrices from AM time period
-    bank = _eb.Emmebank(os.path.join(os.getcwd(), r"Banks/7to8/emmebank"))
-    transit_time_df = get_transit_information(bank)
+    reverse_dict = {value: key for key, value in state.network_settings.sound_cast_net_dict.items()}
+    bank = _eb.Emmebank(os.path.join(os.getcwd(), f"Banks/{reverse_dict['AM']}/emmebank"))
+    transit_time_df = get_transit_information(state, bank)
 
     # Set threshold travel time
     transit_time_max = 45

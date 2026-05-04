@@ -12,12 +12,12 @@ main_log_file = 'soundcast_log.txt'
 
 link_extra_attributes = ['@psrcedgeid', '@facilitytype', '@countyid', '@countid', '@corridorid', '@is_managed','@bkfac','@upslp', '@toll1', '@toll2', '@toll3', '@trkc1', '@trkc2', '@trkc3', '@fgts', '@ttf']
 node_extra_attributes = ['@lr_walk','@hdwfr','@wait','@invt']
-transit_line_extra_attributes = ['@transittype']
+transit_line_extra_attributes = ['@transittype','@frequent']
 
 
 # VOT ranges for assignment classes
-vot_1_max = 18.11    # VOT for User Class 1 < vot_1_max
-vot_2_max = 36.22    # vot_1_max < VOT for User Class 2 < vot_2_max
+vot_1_max = 10.50    # VOT for User Class 1 < vot_1_max
+vot_2_max = 25.00    # vot_1_max < VOT for User Class 2 < vot_2_max
 
 feedback_list = ['Banks/5to9/emmebank','Banks/15to18/emmebank']
 
@@ -45,7 +45,7 @@ bike_walk_skim_tod = ['5to9']
 
 # Transit Inputs:
 transit_skim_tod = ['5to9', '9to15', '15to18', '18to20', '20to5']
-transit_submodes = ['b', 'c', 'f', 'r']
+transit_submodes = ['b', 'c', 'f', 'p', 'r']
 
 # Transit Fare:
 zone_file = 'inputs/scenario/networks/fares/transit_fare_zones.grt'

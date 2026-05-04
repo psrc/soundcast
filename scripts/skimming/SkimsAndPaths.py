@@ -783,13 +783,6 @@ def write_skims(state, matrix_data, h5_file, matrix_out_name, dtype, taz_indexes
                     )
 
     if state.input_settings.abm_model == "activitysim":
-        # # Write full skims to h5 format (?) for supplemental trip modeling
-        # h5_file["full"].create_dataset(
-        #                 matrix_out_name, 
-        #                 data=matrix_data.astype(dtype), 
-        #                 compression="gzip"
-        #             )
-
         # Write skims to OMX format for Activitysim with proper zone indexing
         # matrix_data = matrix_data[taz_indexes, :][:, taz_indexes]
         h5_file["data"].create_dataset(
@@ -864,6 +857,16 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             my_store[skim_dir_name].create_dataset(
                 "indices", data=em_val.indices, compression="gzip"
             )
+
+    df_taz_district = pd.read_csv(r"inputs/scenario/networks/TAZIndex.txt", sep='\t')
+    df_taz_district.rename(columns={"External": "district"}, inplace=True)
+
+    # Get an array to fill with district data
+    matrix_value = emmeMatrix_to_numpyMatrix(
+                "mf01", my_project.bank, dtype, 1, 99999
+            )
+    matrix_value[:] = df_taz_district["district"].values[np.newaxis, :] 
+    write_skims(state, matrix_value, my_store, "DISTRICT", dtype, taz_indexes)
 
     # Export park and ride skims
     if state.input_settings.abm_model == "activitysim":
@@ -1087,7 +1090,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                     np_old_matrices[matrix_out_name], matrix_value
                 )
 
-            write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
+            # Daysim and activitysim both expect floats for generalized cost values
+            # These skims are shared for external assignment so should be consistent
+            write_skims(state, matrix_value, my_store, matrix_out_name, "float32", taz_indexes)
 
     # Add zones indeces
     if "lookup" in my_store:
@@ -2161,66 +2166,88 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
             Path("inputs/model/activitysim/skim_parameters/park_and_ride"),
             state.network_settings.sound_cast_net_dict
             )
+
+        # Fill inf with max values for park and ride matrices
+        matrix_name_list = [i.name for i in my_project.bank.matrices()]
+        for emme_matrix_name in [
+            "WLK_TRN_WLK_DEMAND",
+            "WLK_TRN_WLK_WAUX",
+            "DRV_TRN_WLK_DDIST",
+            "DRV_TRN_WLK_DTIM",
+            "DRV_TRN_WLK_WAUX",
+            "DRV_TRN_WLK_TOTIVT",
+            "DRV_TRN_WLK_WAIT",
+            "DRV_TRN_WLK_IWAIT",
+            "DRV_TRN_WLK_BOARDS",
+            "WLK_TRN_DRV_DDIST",
+            "WLK_TRN_DRV_DTIM",
+            "WLK_TRN_DRV_WAUX",
+            "WLK_TRN_DRV_TOTIVT",
+            "WLK_TRN_DRV_WAIT",
+            "WLK_TRN_DRV_IWAIT",
+            "WLK_TRN_DRV_BOARDS",
+            "WLK_TRN_WLK_TWAIT",
+            "WLK_TRN_WLK_IWAIT",
+            "WLK_TRN_WLK_IVT",
+            "WLK_TRN_WLK_TIMP",
+            "WLK_TRN_WLK_BOARDS",
+            "DRV_TRN_WLK_T_DEMAND",
+            "DRV_TRN_WLK_A_DEMAND",
+            "WLK_TRN_DRV_T_DEMAND",
+            "WLK_TRN_DRV_A_DEMAND",
+        ]:
+            if emme_matrix_name in matrix_name_list:
+                
+                matrix_value = emmeMatrix_to_numpyMatrix(
+                    emme_matrix_name, my_project.bank, "float32", 1, 99999
+                )
+                matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
+
+                # Write numpy results back to Emme
+                matrix_id = my_project.bank.matrix(str(emme_matrix_name)).id
+                full_zones = my_project.current_scenario.zone_numbers
+                emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
+                emme_matrix.from_numpy(matrix_value)
+                my_project.bank.matrix(matrix_id).set_data(
+                    emme_matrix, my_project.current_scenario
+                )
         
-    # Fill inf with max values for park and ride matrices
-    for emme_matrix_name in [
-        "DRV_TRN_WLK_A_DEMAND",
-        "WLK_TRN_DRV_T_DEMAND",
-        "DRV_TRN_WLK_T_DEMAND",
-        "WLK_TRN_DRV_A_DEMAND",
-    ]:
-
-        matrix_value = emmeMatrix_to_numpyMatrix(
-            emme_matrix_name, my_project.bank, "float32", 1, 99999
+        # Add park and ride demand to the model
+        # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
+        # Add to sov_inc2 matrix
+        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND").id
+        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND").id
+        sov_inc2_matrix = my_project.bank.matrix("sov_inc2").id
+        my_project.matrix_calculator(
+            result=sov_inc2_matrix,
+            expression=f"{sov_inc2_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
         )
-        if state.input_settings.abm_model == "activitysim":
-            matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
 
-        # Write numpy results back to Emme
-        matrix_id = my_project.bank.matrix(str(emme_matrix_name)).id
-        full_zones = my_project.current_scenario.zone_numbers
-        emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
-        emme_matrix.from_numpy(matrix_value)
-        my_project.bank.matrix(matrix_id).set_data(
-            emme_matrix, my_project.current_scenario
+        controlled_rounding = my_project.m.tool(
+                    "inro.emme.matrix_calculation.matrix_controlled_rounding"
+                )
+        controlled_rounding(
+            demand_to_round=sov_inc2_matrix,
+            rounded_demand=sov_inc2_matrix,
+            min_demand=0.1,
+            values_to_round="SMALLER_THAN_MIN",
         )
-        
-    # Add park and ride demand to the model
-    # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
-    # Add to sov_inc2 matrix
-    pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND").id
-    pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND").id
-    sov_inc2_matrix = my_project.bank.matrix("sov_inc2").id
-    my_project.matrix_calculator(
-        result=sov_inc2_matrix,
-        expression=f"{sov_inc2_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-    )
 
-    controlled_rounding = my_project.m.tool(
-                "inro.emme.matrix_calculation.matrix_controlled_rounding"
-            )
-    controlled_rounding(
-        demand_to_round=sov_inc2_matrix,
-        rounded_demand=sov_inc2_matrix,
-        min_demand=0.1,
-        values_to_round="SMALLER_THAN_MIN",
-    )
+        # DRV_TRN_WALK_T_DEMAND and WLK_TRN_DRV_A_DEMAND are transit trips, add to trnst
+        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND").id
+        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND").id
+        trnst_matrix = my_project.bank.matrix("trnst").id
+        my_project.matrix_calculator(
+            result=trnst_matrix,
+            expression=f"{trnst_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
+        )
 
-    # DRV_TRN_WALK_T_DEMAND and WLK_TRN_DRV_A_DEMAND are transit trips, add to trnst
-    pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND").id
-    pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND").id
-    trnst_matrix = my_project.bank.matrix("trnst").id
-    my_project.matrix_calculator(
-        result=trnst_matrix,
-        expression=f"{trnst_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-    )
-
-    controlled_rounding(
-        demand_to_round=trnst_matrix,
-        rounded_demand=trnst_matrix,
-        min_demand=0.1,
-        values_to_round="SMALLER_THAN_MIN",
-    )
+        controlled_rounding(
+            demand_to_round=trnst_matrix,
+            rounded_demand=trnst_matrix,
+            min_demand=0.1,
+            values_to_round="SMALLER_THAN_MIN",
+        )
 
     # Park and ride demand needs to be re-run
     # FIXME: maybe only run this once after convergence
@@ -2287,10 +2314,10 @@ def run(free_flow_skims=False, num_iterations=100):
         if os.path.exists(strat_dir):
             shutil.rmtree(strat_dir)
 
-    # # Start Daysim-Emme Equilibration
-    # # This code is organized around the time periods for which we run assignments,
-    # # often represented by the variable "tod". This variable will always
-    # # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
+    # Start Daysim-Emme Equilibration
+    # This code is organized around the time periods for which we run assignments,
+    # often represented by the variable "tod". This variable will always
+    # represent a Time of Day string, such as 6to7, 7to8, 9to10, etc.
     start_of_run = time.time()
     pool_list = []
     project_list = [
@@ -2302,10 +2329,9 @@ def run(free_flow_skims=False, num_iterations=100):
             l = project_list[i : i + state.emme_settings.parallel_instances]
             pool_list.append(start_pool(l, free_flow_skims, num_iterations))
     else:
-        run_assignments_parallel("projects/5to9/5to9.emp", free_flow_skims, num_iterations)
+        run_assignments_parallel("projects/20to5/20to5.emp", free_flow_skims, num_iterations)
 
-    ## calculate link daily volumes for use in bike model
-
+    # calculate link daily volumes for use in bike model
     daily_link_df = pd.DataFrame()
     for _df in pool_list[0]:
         daily_link_df = pd.concat([daily_link_df, _df], axis=0)
@@ -2322,7 +2348,7 @@ def run(free_flow_skims=False, num_iterations=100):
     # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
-    #if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
+    # if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
     if free_flow_skims is False:
         if (
             feedback_check(state.network_settings.feedback_list, state.emme_settings)
@@ -2341,7 +2367,7 @@ def run(free_flow_skims=False, num_iterations=100):
     for i in range(0, 12, state.emme_settings.parallel_instances):
         l = project_list[i : i + state.emme_settings.parallel_instances]
         export_to_hdf5_pool(l, free_flow_skims)
-    # average_skims_to_hdf5_concurrent(EmmeProject("projects/5to9/5to9.emp", state.model_input_dir), False)
+    # average_skims_to_hdf5_concurrent(EmmeProject("projects/20to5/20to5.emp", state.model_input_dir), False)
 
     f.close()
     end_of_run = time.time()

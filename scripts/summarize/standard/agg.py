@@ -1,11 +1,10 @@
-import numpy as np
 import pandas as pd
 import h5py
 import os, shutil
-import re
 import time
 import polars as pl
-
+from scripts.settings import run_args
+from scripts.summarize.standard import parcelize_outputs
 
 def create_dir(_dir):
     if os.path.exists(_dir):
@@ -53,13 +52,28 @@ def process_expressions(df, df_expr, table_name, survey):
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).mean())
         elif _row.aggfunc == "median":
             agg_df = df.group_by(agg_cols).agg(pl.col(values_cols).median())
-
+        elif  _row.aggfunc == "len":
+            agg_df = df.group_by(agg_cols).len()
+            # Rename len with values used for daysim for consistency
+            agg_df = agg_df.rename({"len": _row["values"]})
         if survey:
             output_path = f"outputs/agg/{_row.output_dir}/survey/{_row.target}.csv"
         else:
             output_path = f"outputs/agg/{_row.output_dir}/{_row.target}.csv"
         agg_df.write_csv(output_path)
 
+def process_variables(df, df_expr, table_name):
+    """Load and apply variable expressions from CSV."""
+    df_expr = df_expr[df_expr["table"] == table_name]
+    
+    for _index, _row in df_expr.iterrows():
+        # CSV should contain: |new_variable|expression|table|
+        # expression example: "((pl.col('hhincome') / 1000).round(0) * 1000).cast(pl.Int32)"
+        
+        expr = eval(_row["expression"], {"pl": pl})
+        df = df.with_columns(**{_row["new_variable"]: expr})
+    
+    return df
 
 def apply_labels(tablename, df, labels_df):
     """Convert model/survey data in integers to string labels."""
@@ -75,20 +89,23 @@ def apply_labels(tablename, df, labels_df):
     return df
 
 
-def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
+def create_agg_outputs(state, path_dir_base, model, survey=False):
     geography_lookup = pd.read_csv(
-        f"{state.model_input_dir}/summaries/geography_lookup.csv"
+        f"inputs/model/{model}/summaries/geography_lookup.csv"
     )
 
     expr_df = pd.read_csv(
         os.path.join(
-            os.getcwd(), f"{state.model_input_dir}/summaries/agg_expressions.csv"
+            os.getcwd(), f"inputs/model/{model}/summaries/agg_expressions.csv"
         )
     )
 
-    labels_df = pl.read_csv(
-        os.path.join(f"{state.model_input_dir}/lookup/variable_labels.csv")
-    )
+    if os.path.exists(os.path.join(f"inputs/model/{model}/lookup/variable_labels.csv")):
+        labels_df = pl.read_csv(
+            os.path.join(f"inputs/model/{model}/lookup/variable_labels.csv")
+        )
+    else:
+        labels_df = pl.DataFrame()
 
     parcel_geog = pl.read_database(
         query=f"SELECT * FROM parcel_{state.input_settings.base_year}_geography",
@@ -106,21 +123,40 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
         person_df = pl.read_csv("inputs/base_year/survey/_person.tsv", separator="\t")
         trip_df = pl.read_csv("inputs/base_year/survey/_trip.tsv", separator="\t")
         tour_df = pl.read_csv("inputs/base_year/survey/_tour.tsv", separator="\t")
-    else:
+    elif state.input_settings.abm_model == "daysim":
         daysim_h5 = h5py.File(os.path.join(path_dir_base, "daysim_outputs.h5"), "r")
-
         hh_df = h5_df(daysim_h5, "Household")
         person_df = h5_df(daysim_h5, "Person")
         trip_df = h5_df(daysim_h5, "Trip")
         tour_df = h5_df(daysim_h5, "Tour")
+    else:
+        # Parcelize MAZ-level outputs from Activitysim
+        parcelize_outputs.main(state, output_dir=run_args.args.output_dir)
+
+        hh_df = pl.read_parquet(os.path.join(run_args.args.output_dir, "final_households.parquet"))
+        person_df = pl.read_parquet(os.path.join(run_args.args.output_dir, "final_persons_with_parcels.parquet"))
+        trip_df = pl.read_parquet(os.path.join(run_args.args.output_dir, "final_trips_with_parcels.parquet"))
+        tour_df = pl.read_parquet(os.path.join(run_args.args.output_dir, "final_tours_with_parcels.parquet"))
+
+        # Ensure parcels are stored as int
+        # FIXME: use datatypes
+        trip_df = trip_df.with_columns(pl.col("origin_parcel").cast(pl.Int64))
+        trip_df = trip_df.with_columns(pl.col("destination_parcel").cast(pl.Int64))
+        tour_df = tour_df.with_columns(pl.col("origin_parcel").cast(pl.Int64))
+        tour_df = tour_df.with_columns(pl.col("destination_parcel").cast(pl.Int64))
+        person_df = person_df.with_columns(pl.col("workplace_parcel").cast(pl.Int64))
+        person_df = person_df.with_columns(pl.col("school_parcel").cast(pl.Int64))
+        hh_df = hh_df.with_columns(pl.col("hhparcel").cast(pl.Int64))
 
     # Add labels to data
-    labels_df = labels_df.with_columns(pl.col("value").cast(pl.String))
+    if labels_df.shape[0] > 0:
+        labels_df = labels_df.with_columns(pl.col("value").cast(pl.String))
 
-    hh_df = apply_labels("Household", hh_df, labels_df)
-    person_df = apply_labels("Person", person_df, labels_df)
-    trip_df = apply_labels("Trip", trip_df, labels_df)
-    tour_df = apply_labels("Tour", tour_df, labels_df)
+        hh_df = apply_labels("Household", hh_df, labels_df)
+        person_df = apply_labels("Person", person_df, labels_df)
+        trip_df = apply_labels("Trip", trip_df, labels_df)
+        tour_df = apply_labels("Tour", tour_df, labels_df)
+        
 
     # Join parcel lookup and buffered parcels data
     for geog_file_name, geog_file in {
@@ -163,92 +199,39 @@ def create_agg_outputs(state, path_dir_base, base_output_dir, survey=False):
             geog_file,
         )
 
-    # FIXME: This used to be taken care of from the variables CSV
-    # How can we specify these outside of code?
-    hh_df = hh_df.with_columns(
-        hhincome_thousands=((pl.col("hhincome") / 1000).round(0) * 1000).cast(pl.Int32)
+    # Calculate variables
+    var_expr_df = pd.read_csv(
+        os.path.join(
+            os.getcwd(), f"inputs/model/{model}/summaries/variables.csv"
+        )
     )
-    hh_df = hh_df.with_columns(
-        quarter_mile_transit=pl.when(pl.col("hh_dist_transit") <= 0.25)
-        .then(1)
-        .otherwise(0)
-    )
-    hh_df = hh_df.with_columns(
-        quarter_mile_hct=pl.when(pl.col("hh_dist_hct") <= 0.25).then(1).otherwise(0),
-        half_mile_hct=pl.when(pl.col("hh_dist_hct") <= 0.5).then(1).otherwise(0)
-    )
+    hh_df = process_variables(hh_df, var_expr_df, "household")
+    person_df = process_variables(person_df, var_expr_df, "person")
+    trip_df = process_variables(trip_df, var_expr_df, "trip")
+    tour_df = process_variables(tour_df, var_expr_df, "tour")
 
-    # Person
-    person_df = person_df.with_columns(
-        pwaudist_wt=pl.col("pwaudist") * pl.col("psexpfac")
-    )
-    person_df = person_df.with_columns(
-        psaudist_wt=pl.col("psaudist") * pl.col("psexpfac")
-    )
-    person_df = person_df.with_columns(
-        pwautime_wt=pl.col("pwautime") * pl.col("psexpfac")
-    )
-    person_df = person_df.with_columns(
-        psautime_wt=pl.col("psautime") * pl.col("psexpfac")
-    )
-    person_df = person_df.with_columns(
-        quarter_mile_transit_work=pl.when(pl.col("work_dist_transit") <= 0.25)
-        .then(1)
-        .otherwise(0)
-    )
-    person_df = person_df.with_columns(
-        quarter_mile_hct_work=pl.when(pl.col("work_dist_hct") <= 0.25)
-        .then(1)
-        .otherwise(0),
-        half_mile_hct_work=pl.when(pl.col("work_dist_hct") <= 0.5)
-        .then(1)
-        .otherwise(0)
-    )
+    # Merge data across tables; drop and duplicated columns after each merge
+    if state.input_settings.abm_model == "activitysim":
+        household_id_col = "household_id"
+        pno_col = "PNUM"
+        person_hh_df = person_df.join(hh_df, on=household_id_col, how="left", suffix="_right")
+        person_hh_df = person_hh_df.drop([col for col in person_hh_df.columns if col.endswith("_right")])
+        trip_df = trip_df.join(person_hh_df, on="person_id", how="left", suffix="_right")
+        trip_df = trip_df.drop([col for col in trip_df.columns if col.endswith("_right")])
+        trip_df = trip_df.join(tour_df, on="tour_id", how="left", suffix="_right")
+        trip_df = trip_df.drop([col for col in trip_df.columns if col.endswith("_right")])
+        tour_df = tour_df.join(person_hh_df, on="person_id", how="left", suffix="_right")
+        tour_df = tour_df.drop([col for col in tour_df.columns if col.endswith("_right")])
+    else:
+        # Merge tour columns to trips
+        tour_cols = ["hhno", "pno", "tour", "tmodetp", "pdpurp"]
 
-    # Trip
-    trip_df = trip_df.with_columns(deptm_hr=pl.col("deptm").floordiv(60))
-    trip_df = trip_df.with_columns(arrtm_hr=pl.col("arrtm").floordiv(60))
-    trip_df = trip_df.with_columns(
-        travdist_bin=pl.col("travdist").floordiv(1).cast(pl.Int32)
-    )
-    trip_df = trip_df.with_columns(
-        travcost_bin=pl.col("travcost").floordiv(1).cast(pl.Int32)
-    )
-    trip_df = trip_df.with_columns(
-        travtime_bin=pl.col("travtime").floordiv(1).cast(pl.Int32)
-    )
-    trip_df = trip_df.with_columns(travdist_wt=pl.col("travdist") * pl.col("trexpfac"))
-    trip_df = trip_df.with_columns(travcost_wt=pl.col("travcost") * pl.col("trexpfac"))
-    trip_df = trip_df.with_columns(travtime_wt=pl.col("travtime") * pl.col("trexpfac"))
-    trip_df = trip_df.with_columns(
-        sov_ff_time_wt=pl.col("sov_ff_time") / 100.0 * pl.col("trexpfac")
-    )
-
-    # Tour
-    tour_df = tour_df.with_columns(tlvorg_hr=pl.col("tlvorig").floordiv(60))
-    tour_df = tour_df.with_columns(tardest_hr=pl.col("tardest").floordiv(60))
-    tour_df = tour_df.with_columns(tlvdest_hr=pl.col("tlvdest").floordiv(60))
-    tour_df = tour_df.with_columns(tarorig_hr=pl.col("tarorig").floordiv(60))
-    tour_df = tour_df.with_columns(
-        tautotime_bin=pl.col("tautotime").floordiv(1).cast(pl.Int32)
-    )
-    tour_df = tour_df.with_columns(
-        tautocost_bin=pl.col("tautocost").floordiv(1).cast(pl.Int32)
-    )
-    tour_df = tour_df.with_columns(
-        tautodist_bin=pl.col("tautodist").floordiv(1).cast(pl.Int32)
-    )
-    tour_df = tour_df.with_columns(tour_duration=pl.col("tarorig") - pl.col("tlvorig"))
-
-    # Merge tour columns to trips
-    tour_cols = ["hhno", "pno", "tour", "tmodetp", "pdpurp"]
-
-    # When we add geography we can drop the parcel level on which is was joined
-    person_hh_df = person_df.join(hh_df, on="hhno", how="left")
-    # Join tour to trip
-    trip_df = trip_df.join(tour_df[tour_cols], on=["hhno", "pno", "tour"], how="left")
-    trip_df = trip_df.join(person_hh_df, on=["hhno", "pno"], how="left")
-    tour_df = tour_df.join(person_hh_df, on=["hhno", "pno"], how="left")
+        # When we add geography we can drop the parcel level on which is was joined
+        person_hh_df = person_df.join(hh_df, on="hhno", how="left")
+        # Join tour to trip
+        trip_df = trip_df.join(tour_df[tour_cols], on=["hhno", "pno", "tour"], how="left")
+        trip_df = trip_df.join(person_hh_df, on=["hhno", "pno"], how="left")
+        tour_df = tour_df.join(person_hh_df, on=["hhno", "pno"], how="left")
 
     # Iterate through the agg_expressions file
     process_expressions(hh_df, expr_df, "household", survey)
@@ -266,16 +249,17 @@ def main(state):
     create_agg_outputs(
         state,
         path_dir_base=os.path.join(os.getcwd(), r"outputs/daysim"),
-        base_output_dir=os.path.join(os.getcwd(), f"outputs/agg/{folder}"),
+        model=state.input_settings.abm_model,
         survey=False,
     )
 
-    create_agg_outputs(
-        state,
-        path_dir_base=os.path.join(os.getcwd(), r"inputs/base_year/survey"),
-        base_output_dir=os.path.join(os.getcwd(), f"outputs/agg/{folder}/survey"),
-        survey=True,
-    )
+    # Use daysim definitions for survey data for now
+    # create_agg_outputs(
+    #     state,
+    #     path_dir_base=os.path.join(os.getcwd(), r"inputs/base_year/survey"),
+    #     model="daysim",
+    #     survey=True,
+    # )
 
     print("--- %s seconds ---" % (time.time() - start_time))
 

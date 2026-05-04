@@ -1,5 +1,6 @@
 Label,Description,Expression,coefficient
 local_dist,,_DIST@skims['DIST'],1
+dest_district,,_DISTRICT@skims['DISTRICT'],1
 util_dist_0_1,"Distance, piecewise linear from 0 to 1 miles","@_DIST.clip(0,1)",coef_dist_0_1
 util_dist_1_2,"Distance, piecewise linear from 1 to 2 miles","@(_DIST-1).clip(0,1)",coef_dist_1_2
 util_dist_2_5,"Distance, piecewise linear from 2 to 5 miles","@(_DIST-2).clip(0,3)",coef_dist_2_5
@@ -12,3 +13,5 @@ util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'
 util_no_attractions,No attractions,@df['size_term']==0,-999
 util_mode_logsum,Mode choice logsum,mode_choice_logsum,coef_mode_logsum
 util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1
+util_Home_Work_Kitsap_ASC1,Home-Work Kitsap ASC1,"@np.where((df['home_district'].isin([9,11])) & (_DISTRICT==9), 1, 0)",coef_Home_Work_Kitsap_ASC
+util_Home_Work_Kitsap_ASC2,Home-Work Kitsap ASC2,"@np.where((df['home_district'].isin([9,11])) & (_DISTRICT==11), 1, 0)",coef_Home_Work_Kitsap_ASC

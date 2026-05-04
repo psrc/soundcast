@@ -233,23 +233,13 @@ def main(state):
     )
 
     # Load synthetic population data
-    if state.input_settings.abm_model == "activitysim":
-        hh_df = pd.read_csv(os.path.join(run_args.args.data_dir, "households.csv"))
-        person_df = pd.read_csv(os.path.join(run_args.args.data_dir, "persons.csv"))
-        person_df["hhno"] = person_df["household_id"].copy()
-        hh_taz_col = "TAZ"
-        hh_id_col = "hhno"
-        person_id_col = "PNUM"
-        # hh_df.rename(columns={'PERSONS': "hhsize"}, inplace=True)
-    else:
-        hh_persons = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r")
-        person_df = h5_to_data_frame(hh_persons, "Person")
-        hh_df = h5_to_data_frame(hh_persons, "Household")
-        hh_taz_col = "hhtaz"
-        hh_id_col = "hhno"
-        person_id_col = "pno"
-        # hh_df = build_df(h5file=daysim, h5table="Household", cols=["hhno", "hhsize", "hhtaz", "hhexpfac"])
-        # hh_df.rename(columns={'hhtaz': "TAZ"}, inplace=True)
+    hh_persons = h5py.File("inputs/scenario/landuse/hh_and_persons.h5", "r")
+    person_df = h5_to_data_frame(hh_persons, "Person")
+    hh_df = h5_to_data_frame(hh_persons, "Household")
+    hh_taz_col = "hhtaz"
+    hh_id_col = "hhno"
+    person_id_col = "pno"
+
 
     # hh_persons = h5py.File(r"inputs/scenario/landuse/hh_and_persons.h5", "r")
     parcel_grouped = parcels_urbansim.groupby("taz_p")
@@ -257,12 +247,8 @@ def main(state):
     emp_by_taz.reset_index(inplace=True)
 
     # Update the total number of workers per TAZ to account for removed military jobs
-    # person_df = h5_to_data_frame(hh_persons, "Person")
-    if state.input_settings.abm_model == "activitysim":
-        person_df = person_df.loc[(person_df["pemploy"].isin([1, 2]))]
-    else:
-        person_df = person_df.loc[(person_df.pwtyp > 0)]
-    # hh_df = h5_to_data_frame(hh_persons, "Household")
+    person_df = person_df.loc[(person_df.pwtyp > 0)]
+
     merged = person_df.merge(hh_df, how="left", on=hh_id_col)
     merged_grouped = merged.groupby(hh_taz_col)
     workers_by_taz = pd.DataFrame(merged_grouped[person_id_col].count())

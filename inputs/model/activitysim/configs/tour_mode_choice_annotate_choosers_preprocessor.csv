@@ -16,12 +16,10 @@ deal with negative durations,start,"np.where((df.duration < 0) & (df.out_period 
 ,is_joint,(df.tour_category=='joint') if 'tour_category' in df.columns else False
 ,is_indiv,~is_joint
 ,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
-,is_school,(df.tour_category=='school') if 'tour_category' in df.columns else False
+,is_school,(df.tour_type=='school') if _DF_IS_TOUR else False
 ,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
 #,,
-,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
-#,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
 ,dest_log_emptot_1,"reindex(land_use.log_emptot_1, df[dest_col_name])"
 # cost coef,,
 ,income_exponent,"np.where(tour_type == 'work', 0.6, 0.5)"
@@ -113,7 +111,6 @@ Determining Tour Destination,destination,df.destination if 'destination' in df.c
 #,,
 destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, df[dest_col_name]) < setting('cbd_threshold')) * 1"
 #,,FIXME diagnostic
-#,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])
 ,dist_walk_,od_skims['DISTWALK'] 
 ,dist_bike_,od_skims['DISTBIKE']
 ,vot_bin_da,"np.where(vot_da < vot_threshold_low, 1, np.where(vot_da < vot_threshold_med, 2, 3))"

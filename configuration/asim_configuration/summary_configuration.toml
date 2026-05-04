@@ -94,7 +94,7 @@ hh_equity_geogs = ['hh_efa_dis', 'hh_efa_older', 'hh_efa_lep', 'hh_efa_pov200', 
 sc_run_name = "current run"
 # sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-sc_run_path = '//modelstation3/c$/Workspace/sc_20251118/outputs'
+# sc_run_path = 'C:/workspace/sc_rtp_2035/soundcast'
 
 #################################
 # survey data for validation
@@ -105,7 +105,7 @@ uncloned_folder = "uncloned"
 # list all survey sources to be indluded in validation
 [survey_directories]
 # 2023 HTS dataset
-"survey" = "R:/e2projects_two/2023_base_year/2023_survey/activitysim_format/skims_attached"
+"survey" = "../../../../inputs/base_year/survey"
 # add another survey source to compare
 # "(name of dataset)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 
@@ -120,12 +120,11 @@ uncloned_folder = "uncloned"
 #################################
 
 [tod_lookup]
-5to9 = 7
-9to15 = 12
-15to18 = 17
-18to20 = 19
-20to5 = 22
-
+5to9 = 5
+9to15 = 9
+15to18 = 15
+18to20 = 18
+20to5 = 20
 
 [tod_dict]
 5to9 = 'AM'
@@ -183,28 +182,6 @@ uncloned_folder = "uncloned"
 4 = 'Arterial'
 5 = 'Connector'
 6 = 'Arterial'
-
-[purp_dict]
-0 = 'Home'
-1 = 'Work'
-2 = 'School'
-3 = 'Escort'
-4 = 'Personal Business'
-5 = 'Shopping'
-6 = 'Meal'
-7 = 'Social'
-8 = 'Recreational'
-9 = 'Medical'
-10 = 'Change Mode'
-
-[mode_dict]
-1 = 'Walk'
-2 = 'Bike'
-3 = 'SOV'
-4 = 'HOV2'
-5 = 'HOV3+'
-6 = 'Transit'
-8 = 'School Bus'
 
 [fac_type_lookup]
 0 = 0

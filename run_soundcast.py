@@ -26,6 +26,7 @@ import random
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
+from soundcast import create_activitysim_inputs
 from scripts import logcontroller
 from scripts.settings import run_args
 from scripts.settings import state
@@ -54,7 +55,7 @@ from scripts.summarize.standard import (
 state = state.generate_state(run_args.args.configs_dir)
 
 
-def accessibility_calcs():
+def accessibility_calcs(state):
     data_wrangling.copy_accessibility_files(state)
     create_ixxi_work_trips.main(state)
     
@@ -194,8 +195,8 @@ def daysim_assignment(iteration):
                     "-m",
                     "activitysim",
                     "run",
-                    # "-c",
-                    # r"C:\workspace\activitysim_dir\psrc_activitysim_pre_tele\psrc_activitysim\configs_sh",
+                    "-c",
+                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs_sh"),
                     "-c",
                     os.path.join(os.getcwd(), "inputs/model/activitysim/configs_mp"),
                     "-c",
@@ -203,8 +204,9 @@ def daysim_assignment(iteration):
                     "-o",
                     run_args.args.output_dir,
                     "-d",
-                    # os.path.join(os.getcwd(), "inputs/scenario/landuse"),
                     run_args.args.data_dir,
+                    "--data_model",
+                    os.path.join(os.getcwd(), "soundcast/data_model")
                 ]
             )
         logger.info("End of %s iteration of ActivitySim", str(iteration))
@@ -243,10 +245,10 @@ def check_convergence(iteration):
 
 @data_wrangling.timed
 def run_all_summaries():
-    daily_bank.main(state)
-    network_summary.main(state)
-    transit_summary.main(state)
-    emissions.main(state)
+    # daily_bank.main(state)
+    # network_summary.main(state)
+    # transit_summary.main(state)
+    # emissions.main(state)
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)
@@ -319,7 +321,10 @@ def main():
         state.create_main_project()
 
     if state.input_settings.run_accessibility_calcs:
-        accessibility_calcs()
+        accessibility_calcs(state)
+
+    if state.input_settings.abm_model == "activitysim":
+        create_activitysim_inputs.run(state)
 
     if not os.path.exists("working"):
         os.makedirs("working")

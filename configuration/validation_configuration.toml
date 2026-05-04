@@ -52,8 +52,8 @@ p_output_dir = "outputs/summary"
 
 # ---- model results
 # - local soundcast run
-# model_dir = '../../../..'
-model_dir = 'C:/workspace/sc_rtp_2035/soundcast'
+model_dir = '../../../..'
+#model_dir = 'C:/workspace/sc_rtp_2035/soundcast'
 
 # ---- survey results
 # attach uncloned folder path when reading uncloned data

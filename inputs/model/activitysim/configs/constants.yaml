@@ -80,8 +80,8 @@ distributed_time_factor_max: 10
 
 cost_share_s2: 2
 cost_share_s3: 3
-vot_threshold_low: 8.81
-vot_threshold_med: 18.00
+vot_threshold_low: 10.50
+vot_threshold_med: 25.00
 
 costPerMile: 18.29
 costShareSr2: 1.75
