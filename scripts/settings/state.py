@@ -29,7 +29,7 @@ class InputSettings(BaseModel):
     db_name: str
     soundcast_inputs_dir: str
     abm_model: str
-    uv_directory: str
+    # uv_directory: str
 
     ##############################
     # Initial Setup

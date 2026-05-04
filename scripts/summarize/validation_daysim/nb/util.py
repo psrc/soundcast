@@ -1,4 +1,3 @@
-import os, sys
 import numpy as np
 from sqlalchemy import create_engine
 import polars as pl
@@ -9,12 +8,12 @@ from scripts.summarize.notebook_styling import psrc_theme
 from scripts.settings.state import InputSettings, SummarySettings
 
 
-config = toml.load(Path.cwd() / "../../../../configuration/input_configuration.toml")
-summary_config = toml.load(Path.cwd() / "../../../../configuration/summary_configuration.toml")
+# config = toml.load(Path.cwd() / "../../../../configuration/input_configuration.toml")
+# summary_config = toml.load(Path.cwd() / "../../../../configuration/summary_configuration.toml")
 
-input_settings = InputSettings(**config)
-summary_settings = SummarySettings(**summary_config)
-run_path = summary_settings.sc_run_path
+# input_settings = InputSettings(**config)
+# summary_settings = SummarySettings(**summary_config)
+# run_path = summary_settings.sc_run_path
 
 # person
 pptyp_cat = {1: "1: full time worker",
@@ -54,11 +53,14 @@ mode_cat = {1: "1: walk",
             9: "9: tnc"}
 
 
-def get_validation_data(df_name, uncloned=True):
+def get_validation_data(summary_config, df_name, uncloned=True):
+
+    summary_settings = SummarySettings(**summary_config)
+    run_path = summary_settings.sc_run_path
     
     # model data
     model = pl.read_csv(
-        Path.cwd()/ run_path/ f"outputs/daysim/_{df_name}.tsv",
+        Path(run_path)/ f"outputs/daysim/_{df_name}.tsv",
         separator="\t"
     )
 
@@ -112,9 +114,9 @@ def get_validation_data(df_name, uncloned=True):
 
     return data
 
-def get_hh_data(uncloned=True, quantile_groups=None):
+def get_hh_data(summary_config, uncloned=True, quantile_groups=None):
     
-    hh_data = get_validation_data("household", uncloned)
+    hh_data = get_validation_data(summary_config, "household", uncloned)
 
     # data manipulation
     hh_data = hh_data.with_columns(
@@ -150,9 +152,10 @@ def get_hh_data(uncloned=True, quantile_groups=None):
 
     # get quantile groups for specified columns
     if quantile_groups:
-        land_use = get_parcel_landuse_data().select('parcelid','emptot_1','hh_1')
+        land_use = get_parcel_landuse_data(summary_config).select('parcelid','emptot_1','hh_1')
         hh_data = hh_data.join(land_use, left_on="hhparcel", right_on="parcelid", how="left")
 
+        # create landuse variable with only model values
         hh_data = hh_data.with_columns(
             [
                 pl.when(pl.col("source") != "model").then(None)
@@ -179,9 +182,9 @@ def get_hh_data(uncloned=True, quantile_groups=None):
 
     return hh_data
 
-def get_person_data(uncloned=True):
+def get_person_data(summary_config, uncloned=True):
         
-    per_data = get_validation_data("person", uncloned)
+    per_data = get_validation_data(summary_config, "person", uncloned)
     
     # data manipulation
     per_data = per_data.with_columns(
@@ -190,14 +193,14 @@ def get_person_data(uncloned=True):
 
     return per_data
 
-def get_person_day_data(uncloned=True):
+def get_person_day_data(summary_config, uncloned=True):
     
-    per_day_data = get_validation_data("person_day", uncloned)
+    per_day_data = get_validation_data(summary_config, "person_day", uncloned)
     return per_day_data
 
-def get_tour_data(uncloned=True):
+def get_tour_data(summary_config, uncloned=True):
         
-    tour_data = get_validation_data("tour", uncloned)
+    tour_data = get_validation_data(summary_config, "tour", uncloned)
     
     # data manipulation
     tour_data = tour_data.with_columns(
@@ -213,9 +216,9 @@ def get_tour_data(uncloned=True):
 
     return tour_data
 
-def get_trip_data(uncloned=True):
+def get_trip_data(summary_config, uncloned=True):
     
-    trip_data = get_validation_data("trip", uncloned)
+    trip_data = get_validation_data(summary_config, "trip", uncloned)
 
     # data manipulation
     trip_data = trip_data.with_columns(
@@ -228,19 +231,26 @@ def get_trip_data(uncloned=True):
 
     return trip_data
 
-def get_parcel_landuse_data():
+def get_parcel_landuse_data(summary_config):
     
+    summary_settings = SummarySettings(**summary_config)
+    run_path = summary_settings.sc_run_path
+
     # parcel land use data
     df_parcel = pl.read_csv(
-        Path.cwd()/ run_path/ "outputs/landuse/buffered_parcels.txt",
+        Path(run_path)/"outputs/landuse/buffered_parcels.txt",
         separator=" ",
     )
 
     return df_parcel
 
-def read_sqlite_db(query):
+def read_sqlite_db(input_config, summary_config, query):
     """get parcel geography data from sqlite database"""
         
+    input_settings = InputSettings(**input_config)
+    summary_settings = SummarySettings(**summary_config)
+    run_path = summary_settings.sc_run_path
+
     async_engine = create_engine('sqlite:///' + run_path + '/inputs/db/' + input_settings.db_name)
     df = pl.read_database(query= query,
                           connection=async_engine.connect()
@@ -248,10 +258,12 @@ def read_sqlite_db(query):
 
     return df
 
-def get_parcel_geog():
+def get_parcel_geog(input_config, summary_config):
     """get parcel geography data from sqlite database"""
     
-    parcel_geog = read_sqlite_db("SELECT * FROM parcel_" + input_settings.base_year + "_geography")
+    input_settings = InputSettings(**input_config)
+
+    parcel_geog = read_sqlite_db(input_config, summary_config, "SELECT * FROM parcel_" + input_settings.base_year + "_geography")
 
     return parcel_geog
 

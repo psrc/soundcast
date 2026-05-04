@@ -3,7 +3,7 @@ project:
   output-dir: "daysim-validation-notebook"
   
 book:
-  title: "Validation Summary"
+  title: "Daysim Validation"
   repo-url: https://github.com/psrc/soundcast/scripts/summarize
   search: false
   sidebar:
