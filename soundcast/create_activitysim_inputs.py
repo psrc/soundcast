@@ -329,18 +329,18 @@ def process_buffered_landuse(state, df_psrc, parcel_geog, aggregate_dict):
     df_lu = df_lu.merge(df, on="MAZ", how="left")
 
     # Distance to transit
-    # Get average
+    # Get average, but don't include parcels that have 999. If any parcels in the maz have
+    # access to transit, then the entire MAZ should. Max distance from parcel buffering is
+    # 3 miles. 
     df_parcel['access_dist_transit'] = df_parcel['raw_dist_transit'].copy()
-    df = df_parcel.groupby("MAZ")["access_dist_transit"].mean()
+    df = df_parcel[df_parcel['access_dist_transit']!=999]
+    df = df.groupby("MAZ")["access_dist_transit"].mean()
     df = df.reset_index()
 
-    # recode greater than 5 miles to 0, which means no access to transit in ActivitySim
-    df["access_dist_transit"] = np.where(
-        df["access_dist_transit"] > 5, 0, df["access_dist_transit"]
-    )
     df = df[["MAZ", "access_dist_transit"]]
 
     df_lu = df_lu.merge(df, on="MAZ", how="left")
+    df_lu['access_dist_transit'] = df_lu['access_dist_transit'].fillna(0)
 
     # Borrowed from MTC; note that they weight employment density by 2.5
     # Used to determine CBD definition
