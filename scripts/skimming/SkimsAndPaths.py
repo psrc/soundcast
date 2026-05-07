@@ -1267,6 +1267,8 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
                 dorp[x] in {int(k) for k in state.network_settings.tnc_occupancy.keys()}
             ):
                 trips = trips * state.network_settings.tnc_occupancy[str(dorp[x])]
+                # Make sure trips are rounded again after applying occupancy factor
+                trips = round(trips, 2)
                 demand_matrices[mat_name][myOtaz, myDtaz] = (
                     demand_matrices[mat_name][myOtaz, myDtaz] + trips
                 )

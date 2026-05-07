@@ -1,16 +1,16 @@
-from pydantic import BaseModel, validator, ConfigDict
-from typing import List, Optional
-import typing
+from pydantic import BaseModel, ConfigDict
 from pathlib import Path
 import toml
-import typing
 import sys
-import os
 from sqlalchemy import create_engine
 
-sys.path.append(os.path.join(os.getcwd(), "inputs"))
-sys.path.append(os.path.join(os.getcwd(), "scripts"))
-sys.path.append(os.getcwd())
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Ensure project-rooted imports work regardless of process working directory.
+for _path in (PROJECT_ROOT, PROJECT_ROOT / "scripts", PROJECT_ROOT / "inputs"):
+    _path_str = str(_path)
+    if _path_str not in sys.path:
+        sys.path.append(_path_str)
 
 class InputSettings(BaseModel):
     # toml input notes:
@@ -29,7 +29,6 @@ class InputSettings(BaseModel):
     db_name: str
     soundcast_inputs_dir: str
     abm_model: str
-    # uv_directory: str
 
     ##############################
     # Initial Setup
@@ -47,7 +46,7 @@ class InputSettings(BaseModel):
     run_skims_and_paths: bool
     run_truck_model: bool
     run_supplemental_trips: bool
-    run_abm: bool
+    run_daysim: bool
     run_summaries: bool
 
     ##############################
@@ -177,6 +176,7 @@ class NetworkSettings(BaseModel):
     # Time of day periods
     tods: list
     tod_networks: list
+    # project_list = ['Projects/' + tod + '/' + tod + '.emp' for tod in tods]
 
     emme_matrix_subgroups: list
     # Skim for time, cost
@@ -222,6 +222,11 @@ class NetworkSettings(BaseModel):
     # Bin definition of total elevation gain (per link)
     slope_bins: list
     slope_labels: list
+
+    # avg_bike_speed = 10 # miles per hour
+
+    # Multiplier for storing skim results
+    # bike_skim_mult = 100    # divide by 100 to store as int
 
     # Calibration factor for bike weights on ferry links
     ferry_bike_factor: float
@@ -289,6 +294,15 @@ class NetworkSettings(BaseModel):
 
     truck_adjustment_factor: dict
 
+
+# class State(BaseModel):
+#     input_settings: InputSettings
+#     emme_settings: EmmeSettings
+#     network_settings: NetworkSettings
+#     configs_dir: typing.Any
+#     model_input_dir: typing.Any
+
+
 class SummarySettings(BaseModel):
     #################################
     # Summary Comparisons
@@ -332,6 +346,7 @@ class SummarySettings(BaseModel):
     special_route_lookup: dict
 
 
+
 class State:
     def __init__(
         self,
@@ -346,7 +361,7 @@ class State:
         self.emme_settings = emme_settings
         self.network_settings = network_settings
         self.summary_settings = summary_settings
-        self.configs_dir = configs_dir
+        self.conifgs_dir = configs_dir
         self.model_input_dir = model_input_dir
         self.main_project_path = network_settings.main_project
         self.main_project_name = self.name_from_main_project_path()
@@ -354,8 +369,10 @@ class State:
         self.conn = self.sqlite_connect()
 
     def create_main_project(self):
+        # Import only when needed so settings-only consumers (e.g., notebooks)
+        # don't require Emme dependencies at module import time.
+        from scripts.emme_project import EmmeProject
 
-        from emme_project import EmmeProject
         self.main_project = EmmeProject(self.main_project_path, self.model_input_dir)
 
     def name_from_main_project_path(self):
@@ -366,20 +383,21 @@ class State:
         return res
 
     def sqlite_connect(self):
-        conn = create_engine("sqlite:///inputs/db/" + self.input_settings.db_name)
+        db_path = PROJECT_ROOT / "inputs" / "db" / self.input_settings.db_name
+        conn = create_engine(f"sqlite:///{db_path.as_posix()}")
         return conn
 
 
 def generate_state(configs_dir):
     # set up configs/settings:
     if configs_dir is None:
-        config = toml.load(Path.cwd() / "configuration/input_configuration.toml")
-        emme_config = toml.load(Path.cwd() / "configuration/emme_configuration.toml")
+        config = toml.load(PROJECT_ROOT / "configuration/input_configuration.toml")
+        emme_config = toml.load(PROJECT_ROOT / "configuration/emme_configuration.toml")
         network_config = toml.load(
-            Path.cwd() / "configuration/network_configuration.toml"
+            PROJECT_ROOT / "configuration/network_configuration.toml"
         )
         summary_config = toml.load(
-            Path.cwd() / "configuration/summary_configuration.toml"
+            PROJECT_ROOT / "configuration/summary_configuration.toml"
         )
     else:
         configs_dir = Path(configs_dir)
@@ -392,7 +410,7 @@ def generate_state(configs_dir):
     emme_settings = EmmeSettings(**emme_config)
     network_settings = NetworkSettings(**network_config)
     summary_settings = SummarySettings(**summary_config)
-    model_input_dir = Path(Path.cwd() / f"inputs/model/{input_settings.abm_model}/")
+    model_input_dir = PROJECT_ROOT / f"inputs/model/{input_settings.abm_model}/"
 
     return State(
         input_settings=input_settings,
@@ -402,3 +420,29 @@ def generate_state(configs_dir):
         configs_dir=configs_dir,
         model_input_dir=model_input_dir,
     )
+
+
+# def generate_settings():
+#     # set up configs/settings:
+#     configs_dir = run_args.args.configs_dir
+#     if configs_dir is None:
+#         config = toml.load(Path.cwd()/'configuration/input_configuration.toml')
+#         emme_config = toml.load(Path.cwd()/'configuration/emme_configuration.toml')
+#         network_config = toml.load(Path.cwd()/'configuration/network_configuration.toml')
+#     else :
+#         configs_dir = Path(configs_dir)
+#         config = toml.load(configs_dir/'input_configuration.toml')
+#         emme_config = toml.load(configs_dir/'emme_configuration.toml')
+#         network_config = toml.load(configs_dir/'network_configuration.toml')
+
+#     input_settings = InputSettings(**config)
+#     emme_settings = EmmeSettings(**emme_config)
+#     network_settings = NetworkSettings(**network_config)
+
+#     return Settings(input_settings=input_settings,
+#                     emme_settings=emme_settings,
+#                     network_settings= network_settings,
+#                     configs_dir= configs_dir)
+
+# if __name__ == "__main__":
+#     generate_settings()
