@@ -1,0 +1,20 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "run_soundcast.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-c", "C:/Workspace/sc_asim_01_15_26/configuration/asim_configuration", 
+                "-o", "C:/Workspace/sc_20251118/outputs_new",
+                "-d", "C:/Workspace/sc_20251118/data"]
+        }
+    ]
+}

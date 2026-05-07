@@ -26,11 +26,11 @@ run_import_networks = true
 ##############################
 # Model Procedures
 ##############################
-run_skims_and_paths_free_flow = true
+run_skims_and_paths_free_flow = false
 run_skims_and_paths = true
 run_truck_model = true
 run_supplemental_trips = true
-run_daysim = true
+run_abm = true
 run_summaries = true
 
 ##############################

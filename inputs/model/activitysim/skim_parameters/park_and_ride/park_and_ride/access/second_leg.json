@@ -1,0 +1,10 @@
+{
+    "type": "ZONAL_CHOICE_UTILITY",
+    "utility": [
+        {
+            "name": "transit",
+            "c": "-0.1",
+            "v": "WLK_TRN_WLK_TIMP"
+        }
+    ]
+}

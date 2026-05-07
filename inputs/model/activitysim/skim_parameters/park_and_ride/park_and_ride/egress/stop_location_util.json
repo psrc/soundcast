@@ -1,0 +1,10 @@
+{
+    "type": "ZONAL_CHOICE_UTILITY",
+    "utility": [
+        {
+            "name": "park_and_ride_zone",
+            "c": "1",
+            "v": "PARK_AND_RIDE_UTIL"
+        }
+    ]
+}

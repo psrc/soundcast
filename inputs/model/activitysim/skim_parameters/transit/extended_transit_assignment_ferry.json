@@ -3,9 +3,9 @@
         "b",
         "c",
         "f",
+	"p",
         "n",
         "o",
-        "p",
         "w",
         "x",
         "r"
@@ -70,16 +70,16 @@
                     "mode": "f",
                     "next_journey_level": 1
                 },
+		{
+                    "mode": "p",
+                    "next_journey_level": 1
+                },
                 {
                     "mode": "n",
                     "next_journey_level": 0
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 0
-                },
-                {
-                    "mode": "p",
                     "next_journey_level": 0
                 },
                 {
@@ -113,10 +113,6 @@
                 },
                 {
                     "mode": "o",
-                    "next_journey_level": 1
-                },
-                {
-                    "mode": "p",
                     "next_journey_level": 1
                 },
                 {

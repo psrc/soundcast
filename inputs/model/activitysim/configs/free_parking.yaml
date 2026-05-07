@@ -1,0 +1,20 @@
+
+SPEC: free_parking.csv
+COEFFICIENTS: free_parking_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+FREE_PARKING_ALT: 0
+
+CONSTANTS:
+  ID_KING: 1
+  ID_KITSAP: 2
+  ID_PIERCE: 3
+  ID_SNOHOMISH: 4
+  
+preprocessor:
+  SPEC: free_parking_annotate_persons_preprocessor
+  DF: persons
+  TABLES:
+    - land_use

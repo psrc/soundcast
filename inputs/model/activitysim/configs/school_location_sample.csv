@@ -1,0 +1,27 @@
+Label,Description,Expression,university,highschool,gradeschool,preschool
+local_dist,,_DIST@skims['DIST'],1,1,1,1
+util_Distance,Distance,@_DIST,0,coef_dist_hsch,coef_dist_gs,coef_mclogsum_ps
+util_log_Distance,log_Distance,@np.log(_DIST+1),0,coef_zero,coef_zero,coef_zero
+util_Distance_squareroot,Squareroot of distance,@_DIST**0.5,0,coef_sqrtdist_hsch,coef_sqrtdist_gs,coef_sqrtdist_ps
+util_Distance_squared,Distance_squared,@_DIST**2,0,coef_sqrddist_hsch,coef_sqrddist_gs,coef_sqrddist_ps
+util_Distance_cubed,Distance_cubed,@_DIST**3,0,coef_cubeddist_hsch,coef_cubeddist_gs,coef_cubeddist_ps
+#util_Distance_worker_univ,Distance for a worker_university specific,"@np.where(df.ptype==1, _DIST, 0)",coef_workerdist_univ,coef_zero,coef_zero,coef_zero
+#util_Distance_largeuniversity_univ,Distance for large university enrollment,"@np.where(df.COLLFTE>5000, _DIST, 0)",coef_univenrol_dist_univ,coef_zero,coef_zero,coef_zero
+#util_Distance _lowincome_prek,Distance - low income,"@np.where(df.income<60000, _DIST, 0)",coef_zero,coef_zero,coef_zero,coef_zero
+#util_Distance - age03_prek,Distance - age 0 to 3,"@np.where(df.age<3,_DIST,0)",coef_zero,coef_zero,coef_zero,coef_zero
+util_LoggedSize,Logged Size variable - University specific,@df['size_term'].apply(np.log1p),coef_lnSize,coef_lnSize,coef_lnSize,coef_lnSize
+util_no_attractions,no attractions if logged university size is zero,@df['size_term']==0,-999,-999,-999,-999
+util_sp_utility_adjustment,shadow price utility adjustment,@df['shadow_price_utility_adjustment'],1,1,1,1
+#,,,,,,
+#util_ABM2calibration_0-1miles,ABM2 calibration_0-1miles,@(_DIST<1),coef_zero,coef_abmcalib_01miles,coef_abmcalib_01miles,
+#util_ABM2calibration_1-2miles,ABM2 calibration_1-2miles,@(_DIST<2) * (_DIST>=1),coef_zero,coef_abmcalib_12miles,coef_abmcalib_12miles,
+#util_ABM2calibration_2-3miles,ABM2 calibration_2-3miles,@(_DIST<3) * (_DIST>=2),coef_zero,coef_abmcalib_23miles,coef_abmcalib_23miles,
+#util_ABM2calibration_0-20miles,ABM2 calibration_0-20miles,@(_DIST<20) * (_DIST),coef_zero,coef_abmcalib_20miles,coef_abmcalib_20miles,
+util_dist_0_1,"Distance, piecewise linear from 0 to 1 miles","@_DIST.clip(0,1)",coef_univ_dist_0_1,0,0,0
+util_dist_1_2,"Distance, piecewise linear from 1 to 2 miles","@(_DIST-1).clip(0,1)",coef_univ_dist_1_2,0,0,0
+util_dist_2_5,"Distance, piecewise linear from 2 to 5 miles","@(_DIST-2).clip(0,3)",coef_univ_dist_2_5,0,0,0
+util_dist_5_15,"Distance, piecewise linear from 5 to 15 miles","@(_DIST-5).clip(0,10)",coef_univ_dist_5_15,0,0,0
+util_dist_15_up,"Distance, piecewise linear for 15+ miles",@(_DIST-15.0).clip(0),coef_univ_dist_15_up,0,0,0
+#,,,,,,
+util_dist_child_0_5,"Distance,child 0 to 5",@(df.age<=5) * _DIST,0,coef_dist_child_0_5,coef_dist_child_0_5,coef_dist_child_0_5
+util_dist_child_6_12,"Distance,child 6 to 12",@((df.age >= 6) & (df.age <= 12)) * (_DIST),0,coef_dist_child_6_12,coef_dist_child_6_12,coef_dist_child_6_12

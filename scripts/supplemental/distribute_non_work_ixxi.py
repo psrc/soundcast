@@ -4,20 +4,11 @@ import pandas as pd
 import h5py
 import numpy as np
 import inro.emme.matrix as ematrix
+from settings import run_args
+from scripts.settings.data_wrangling import load_skims
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "scripts/trucks"))
 sys.path.append(os.getcwd())
-
-def load_skims(skim_file_loc, mode_name, divide_by_100=False):
-    """Loads H5 skim matrix for specified mode."""
-    with h5py.File(skim_file_loc, "r") as f:
-        skim_file = f["Skims"][mode_name][:]
-    # Divide by 100 since decimals were removed in H5 source file through multiplication
-    if divide_by_100:
-        return skim_file.astype(float) / 100
-    else:
-        return skim_file
-
 
 def calc_fric_fac(cost_skim, dist_skim, _coeff_df, zone_lookup, state):
     """Calculate friction factors for all trip purposes"""
@@ -187,18 +178,18 @@ def emme_matrix_to_np(trip_purp_list, state):
 
     return trips_by_purpose
 
-
 def main(state):
     # Load the trip productions and attractions
     trip_table = pd.read_csv(
         state.emme_settings.trip_table_loc, index_col="taz"
     )  # total 4K Ps and As by trip purpose
 
-    # Import gravity model coefficients by trip purpose from db
-    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=state.conn)
-
     # All Non-work external trips assumed as single purpose HSP (home-based shopping trips)
     trip_purpose_list = ["hsp"]
+
+    # Import gravity model coefficients by trip purpose from db
+    coeff_df = pd.read_sql("SELECT * FROM gravity_model_coefficients", con=state.conn)
+    coeff_df = coeff_df[coeff_df["purpose"].isin(trip_purpose_list)]
 
     output_dir = os.path.join(os.getcwd(), r"outputs\supplemental")
 
@@ -212,24 +203,43 @@ def main(state):
         for index, value in enumerate(state.main_project.current_scenario.zone_numbers)
     )
 
+    if state.input_settings.abm_model == "activitysim":
+        skims_path = run_args.args.data_dir
+        tod_tag = f"__"
+        divide_by_100 = False
+    else:
+        skims_path = "inputs/model/daysim/roster"
+        tod_tag = ""
+        divide_by_100 = True
+
     # Load skim data
     am_cost_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+        state,
+        skims_path,
         mode_name="sov_inc2g",
+        tod = state.emme_settings.am_skim_name,
+        divide_by_100=False, # Cost skims stored as float for Activitysim and Daysim
     )
     am_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.am_skim_name}.h5",
+        state,
+        skims_path,
         mode_name="sov_inc1d",
-        divide_by_100=True,
+        tod = state.emme_settings.am_skim_name,
+        divide_by_100=divide_by_100,
     )
     pm_cost_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+        state,
+        skims_path,
         mode_name="sov_inc2g",
+        tod = state.emme_settings.pm_skim_name,
+        divide_by_100=False, # Cost skims stored as float for Activitysim and Daysim
     )
     pm_dist_skim = load_skims(
-        f"inputs/model/{state.input_settings.abm_model}/roster/{state.emme_settings.pm_skim_name}.h5",
+        state,
+        skims_path,
         mode_name="sov_inc1d",
-        divide_by_100=True,
+        tod = state.emme_settings.pm_skim_name,
+        divide_by_100=divide_by_100,
     )
     # Average skims between AM and PM periods
     cost_skim = (am_cost_skim + pm_cost_skim) * 0.5

@@ -11,6 +11,8 @@ import time
 import os, sys
 import h5py
 from sqlalchemy import create_engine
+from scripts.settings import run_args
+from scripts.settings import data_wrangling
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
@@ -145,27 +147,39 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, state):
             op_cost, my_project.current_scenario
         )
 
-
 def import_skims(my_project, input_skims, zones, zonesDim, state):
     # Open GC skims from H5 container, average am/pm, import to emme:
     np_gc_skims = {}
     np_bidir_gc_skims = {}
+    if state.input_settings.abm_model == "activitysim":
+        skims_path = run_args.args.data_dir
+        divide_by_100 = False
+    else:
+        skims_path = "inputs/model/daysim/roster"
+        divide_by_100 = True
     for tod in state.network_settings.truck_generalized_cost_tod.keys():
-        hdf_file = h5py.File(
-            f"inputs/model/{state.input_settings.abm_model}/roster/" + tod + ".h5", "r"
-        )
+        
+        # hdf_file = h5py.File(
+        #     f"inputs/model/{state.input_settings.abm_model}/roster/" + tod + ".h5", "r"
+        # )
         for item in input_skims.values():
             # gc
             skim_name = item["gc_name"]
-            h5_skim = hdf_file["Skims"][skim_name]
-            np_skim = np.matrix(h5_skim)
+            # h5_skim = hdf_file["Skims"][skim_name]
+            # np_skim = np.matrix(h5_skim)
+            np_skim = data_wrangling.load_skims(
+                state, skims_path, skim_name, tod, divide_by_100
+            )
             np_gc_skims[
                 skim_name + "_" + state.network_settings.truck_generalized_cost_tod[tod]
             ] = np_skim
 
             # distance
             skim_name = item["dist_name"]
-            h5_skim = hdf_file["Skims"][skim_name]
+            # h5_skim = hdf_file["Skims"][skim_name]
+            h5_skim = data_wrangling.load_skims(
+                state, skims_path, skim_name, tod, divide_by_100
+            )
             np_skim = np.matrix(h5_skim)
             np_gc_skims[
                 skim_name + "_" + state.network_settings.truck_generalized_cost_tod[tod]
@@ -181,6 +195,7 @@ def import_skims(my_project, input_skims, zones, zonesDim, state):
         bidir_skim_name = truck_type["gc_bidir_name"]
         bi_dir_skim = np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name]
         bi_dir_skim = np.asarray(bi_dir_skim)
+
         # have sum, now get average
         bi_dir_skim *= 0.5
         bi_dir_skim = bi_dir_skim[0:zonesDim, 0:zonesDim]
@@ -190,8 +205,7 @@ def import_skims(my_project, input_skims, zones, zonesDim, state):
         am_skim_name = truck_type["dist_name"] + "_am"
         pm_skim_name = truck_type["dist_name"] + "_pm"
         bidir_skim_name = truck_type["dist_bidir_name"]
-        # distance skims are multiplied by 100 when exported by SkimsAndPaths, so we devide by 100
-        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name]) / 100.0
+        bi_dir_skim = (np_gc_skims[am_skim_name] + np_gc_skims[pm_skim_name])
         bi_dir_skim = np.asarray(bi_dir_skim)
         # have sum, now get average
         bi_dir_skim *= 0.5

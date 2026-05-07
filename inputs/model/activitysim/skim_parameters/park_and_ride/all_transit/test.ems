@@ -1,0 +1,5 @@
+{
+    "by_mode_subset": null,
+    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS",
+    "actual_total_waiting_times": "WLK_TRN_WLK_TWAIT"
+}

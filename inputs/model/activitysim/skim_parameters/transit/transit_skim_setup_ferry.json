@@ -3,43 +3,8 @@
 {
     "by_mode_subset": {
         "modes": [
-            "b"
-        ],
-        "actual_in_vehicle_times": "mfivtwfb"
-    },
-    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
-},
-{
-    "by_mode_subset": {
-        "modes": [
-            "p"
-        ],
-        "actual_in_vehicle_times": "mfivtwfp"
-    },
-    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
-},
-{
-    "by_mode_subset": {
-        "modes": [
-            "r"
-        ],
-        "actual_in_vehicle_times": "mfivtwfr"
-    },
-    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
-},
-{
-    "by_mode_subset": {
-        "modes": [
-            "c"
-        ],
-        "actual_in_vehicle_times": "mfivtwfc"
-    },
-    "type": "EXTENDED_TRANSIT_MATRIX_RESULTS"
-},
-{
-    "by_mode_subset": {
-        "modes": [
-            "f"
+            "f",
+	    "p"
         ],
         "actual_in_vehicle_times": "mfivtwff"
     },
@@ -51,7 +16,7 @@
             "b",
             "c",
             "f",
-            "p",
+	    "p",
             "r",
             "w",
             "x"
