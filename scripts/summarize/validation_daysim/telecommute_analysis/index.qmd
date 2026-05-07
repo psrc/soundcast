@@ -1,0 +1,31 @@
+---
+title: Quarto tips
+date: today
+---
+
+
+## Install Quarto
+
+https://quarto.org/docs/get-started/
+
+## Render full Quarto book
+
+use the `render` command at the project location to render all files
+``` {.bash filename="Terminal"}
+quarto render
+```
+
+## To render individual Jupyter Notebooks
+
+``` {.bash filename="Terminal"}
+quarto render notebook.ipynb
+```
+Even though you are rendering only one script in the project, the entire book is still produced using previously rendered versions of the other chapters.
+
+- Note that when rendering an `.ipynb` Quarto will not execute the cells within the notebook by default:
+    - either you already executed them while editing the notebook
+    - or you can execute the cells by passing the `--execute` flag to render:
+
+``` {.bash filename="Terminal"}
+quarto render notebook.ipynb --execute
+```

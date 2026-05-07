@@ -6,11 +6,10 @@
 protected_namespaces = '()'
 
 # run Quarto summary notebooks
+run_RTP_summary = false
+run_validation = false
+run_network_validation = true
 run_run_comparison = false
-run_RTP_summary = true
-
-# annualization factor; continuing with value used from Vision 2050
-weekday_to_annual = 320
 
 #################################
 # RELATIVE PATHS between notebooks and output/survey directories
@@ -20,6 +19,9 @@ p_output_dir = 'outputs/summary'
 
 output_folder = 'outputs'
 survey_folder = 'inputs/base_year/survey'
+
+# annualization factor; continuing with value used from Vision 2050
+weekday_to_annual = 320
 
 #################################
 # NETWORK SUMMARY
@@ -82,38 +84,26 @@ equity_geogs = ['equity_focus_areas_2023__efa_dis',
 hh_equity_geogs = ['hh_efa_dis', 'hh_efa_older', 'hh_efa_lep', 'hh_efa_pov200', 'hh_efa_poc', 'hh_efa_youth']
 
 #################################
-# run summary notebooks
+# model results
 #################################
-
-# run jupyter scripts
-summary_list = ['topsheet',
-                'population',
-                'parking',
-                'vmt', 
-                'transit']
-
-RTP_summary_list = [
-                    'RTP_index',
-                    'RTP_congestion',
-                    'RTP_topsheet',
-                    'RTP_MIC',
-                    'RTP_person',
-                    'RTP_household',
-                    'RTP_access',
-                    'RTP_costs',
-                    'RTP_walk_bike',
-                    'RTP_emissions',
-                    'RTP_mode_share',
-                    'RTP_freight',
-                    'RTP_transit',
-                    # 'RTP_conformity_analysis'
-                    ]
-
 # current run name and directory
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/Workspace/sc_2023_06_24_25'
+# sc_run_path = 'C:/workspace/sc_rtp_2035/soundcast'
+
+#################################
+# survey data for validation
+#################################
+# attach uncloned folder path when reading uncloned data
+uncloned_folder = "uncloned"
+
+# list all survey sources to be indluded in validation
+[survey_directories]
+# 2023 HTS dataset
+"survey" = "../../../../inputs/base_year/survey"
+# add another survey source to compare
+# "(name of dataset)" = "R:/e2projects_two/2023_base_year/2017_2019_survey/test/cleaned/skims_attached"
 
 # Summary Comparisons for summary-notebook: add comparison run directories
 [comparison_runs_list]
@@ -126,30 +116,16 @@ sc_run_path = '../../../../'
 #################################
 
 [tod_lookup]
-5to6 = 5
-6to7 = 6
-7to8 = 7
-8to9 = 8
-9to10 = 9
-10to14 = 10
-14to15 = 14
-15to16 = 15
-16to17 = 16
-17to18 = 17
+5to9 = 5
+9to15 = 9
+15to18 = 15
 18to20 = 18
 20to5 = 20
 
 [tod_dict]
-5to6 = 'AM'
-6to7 = 'AM'
-7to8 = 'AM'
-8to9 = 'AM'
-9to10 = 'Mid-Day'
-10to14 = 'Mid-Day'
-14to15 = 'Mid-Day'
-15to16 = 'PM'
-16to17 = 'PM'
-17to18 = 'PM'
+5to9 = 'AM'
+9to15 = 'Mid-Day'
+15to18 = 'PM'
 18to20 = 'Evening'
 20to5 = 'Night'
 
@@ -203,28 +179,6 @@ sc_run_path = '../../../../'
 5 = 'Connector'
 6 = 'Arterial'
 
-[purp_dict]
-0 = 'Home'
-1 = 'Work'
-2 = 'School'
-3 = 'Escort'
-4 = 'Personal Business'
-5 = 'Shopping'
-6 = 'Meal'
-7 = 'Social'
-8 = 'Recreational'
-9 = 'Medical'
-10 = 'Change Mode'
-
-[mode_dict]
-1 = 'Walk'
-2 = 'Bike'
-3 = 'SOV'
-4 = 'HOV2'
-5 = 'HOV3+'
-6 = 'Transit'
-8 = 'School Bus'
-
 [fac_type_lookup]
 0 = 0
 1 = 4
@@ -263,3 +217,89 @@ PM25 = "PM25 Total"
 117 = "PM25 Tirewear"
 118 = "Composite NonECPM"
 119 = "H20 Aerosol"
+
+[summary_list]
+"RTP-summary-notebook" = [
+    'RTP_index',
+    'RTP_congestion',
+    'RTP_topsheet',
+    'RTP_MIC',
+    'RTP_person',
+    'RTP_household',
+    'RTP_access',
+    'RTP_costs',
+    'RTP_walk_bike',
+    'RTP_emissions',
+    'RTP_mode_share',
+    'RTP_freight',
+    'RTP_transit',
+#    'RTP_conformity_analysis'
+    ]
+"activitysim-validation-notebook" = [
+    'work_from_home',
+    'auto_ownership', # household and tour data not working
+    'telecommute_frequency',
+    'free_parking',
+    'cdap',
+    'intermediate_stop_frequency',
+    'trip_purpose',
+    'trip_destination_choice',
+    'school_location',
+    'work_location',
+    'mandatory_tour_frequency',
+    'mandatory_tour_scheduling',
+    'non_mandatory_tour_frequency',
+    'non_mandatory_tour_destination_choice',
+    'non_mandatory_tour_scheduling',
+    'joint_tour_frequency',
+    'joint_tour_composition',
+    'atwork_subtours_frequency',
+    'atwork_subtours_destination_choice',
+    'atwork_subtours_scheduling',
+    'atwork_subtour_mode',
+    'tour_mode_choice',
+    'trip_mode_choice'
+]
+"daysim-validation-notebook" = [
+    'all_tour_mode',
+    'all_trip_mode',
+    'auto_ownership',
+    'day_pattern',
+    'escort_tour_mode',
+    'escort_trip_mode',
+    'households',
+    'intermediate_stop_generation',
+    'other_home_based_tour_mode',
+    'other_home_based_trip_mode',
+    'persons',
+    'school_location',
+    'school_tour_mode',
+    'school_trip_mode',
+    'telecommute',
+    'time_choice',
+    'tours',
+    'tour_destination',
+    'transit_pass_ownership',
+    'trips',
+    'trip_destination',
+    'workbased_subtour_generation',
+    'workbased_subtour_mode',
+    'work_location',
+    'work_tour_mode',
+    'work_trip_mode'
+]
+"network-validation-notebook" = [
+    'JBLM',
+    'supplementals',
+    'transit_validation',
+    'traffic_validation',
+    'bike_validation',
+    'link_analysis'
+    ]
+"run-comparison-notebook" = [
+    'topsheet',
+    'population',
+    'parking',
+    'vmt', 
+    'transit'
+    ]
