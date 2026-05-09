@@ -46,7 +46,7 @@ class InputSettings(BaseModel):
     run_skims_and_paths: bool
     run_truck_model: bool
     run_supplemental_trips: bool
-    run_daysim: bool
+    run_abm: bool
     run_summaries: bool
 
     ##############################

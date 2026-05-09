@@ -175,7 +175,7 @@ def daysim_assignment(iteration):
     # Run Daysim Activity Models
     ########################################
 
-    if state.input_settings.run_daysim:
+    if state.input_settings.run_abm:
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call(
             "Daysim/Daysim.exe -c Daysim/daysim_configuration.properties"
@@ -267,7 +267,7 @@ def main():
     logger.info("Using Git hash %s ", str(hash))
 
     data_wrangling.store_settings(state)
-    data_wrangling.build_output_dirs()
+    data_wrangling.build_output_dirs(state)
     data_wrangling.update_daysim_modes(state)
     data_wrangling.update_skim_parameters(state)
 
@@ -321,7 +321,7 @@ def main():
     ########################################
 
     if (
-        state.input_settings.run_daysim
+        state.input_settings.run_abm
         or state.input_settings.run_skims_and_paths
         or state.input_settings.run_supplemental_trips
         or state.input_settings.run_truck_model
