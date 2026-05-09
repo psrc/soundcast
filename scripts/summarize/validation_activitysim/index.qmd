@@ -1,6 +1,0 @@
----
-title: ActivitySim Outputs
-date: today
----
-
-Welcome to ActivitySimvalidation tool!

@@ -39,20 +39,20 @@ print("")
 
 # System Summary
 
-{{< embed nb/RTP_index.ipynb#system_summary >}}
+{{< embed summary_scripts/RTP_index.ipynb#system_summary >}}
 
 ## Total VMT, VHT, Vehicle Hours Delay by County
 
 Includes truck and external trips within bounds of the region (trips on partial links outside 4 counties are not included)
 
-{{< embed nb/RTP_index.ipynb#total_vmt_vht_delay_by_county >}}
+{{< embed summary_scripts/RTP_index.ipynb#total_vmt_vht_delay_by_county >}}
 
 ## Transit Boardings
 
-{{< embed nb/RTP_index.ipynb#transit >}}
+{{< embed summary_scripts/RTP_index.ipynb#transit >}}
 
 ## Mode Share 
 
 Resident Trips
 
-{{< embed nb/RTP_index.ipynb#mode_share >}}
+{{< embed summary_scripts/RTP_index.ipynb#mode_share >}}

@@ -1,16 +1,21 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, validator, ConfigDict
+from typing import List, Optional
+import typing
 from pathlib import Path
 import toml
+import typing
+import settings.run_args
 import sys
+import os
 from sqlalchemy import create_engine
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.append(os.path.join(os.getcwd(), "inputs"))
+sys.path.append(os.path.join(os.getcwd(), "scripts"))
+sys.path.append(os.getcwd())
+from emme_project import EmmeProject
 
-# Ensure project-rooted imports work regardless of process working directory.
-for _path in (PROJECT_ROOT, PROJECT_ROOT / "scripts", PROJECT_ROOT / "inputs"):
-    _path_str = str(_path)
-    if _path_str not in sys.path:
-        sys.path.append(_path_str)
+# from typing_extensions import Literal
+
 
 class InputSettings(BaseModel):
     # toml input notes:
@@ -304,36 +309,6 @@ class NetworkSettings(BaseModel):
 
 
 class SummarySettings(BaseModel):
-    #################################
-    # Summary Comparisons
-    #################################
-    run_run_comparison: bool
-    run_RTP_summary: bool
-    run_validation: bool
-    run_network_validation: bool
-    #################################
-    # Run Summary Notebooks
-    #################################
-    summary_list: dict
-    #################################
-    # Reletive Paths
-    #################################
-    p_output_dir: str
-    output_folder: str
-    survey_folder: str
-    uncloned_folder: str
-    #################################
-    # model results
-    #################################
-    sc_run_name: str
-    sc_run_path: str
-    # all survey sources to be included in validation
-    survey_directories: dict
-    # add comparison run directories
-    comparison_runs_list: dict
-    #################################
-    # Other Data
-    #################################
     county_map: dict
     uc_list: list
     agency_lookup: dict
@@ -343,8 +318,8 @@ class SummarySettings(BaseModel):
     fac_type_lookup: dict
     tod_lookup: dict
     summer_list: list
+    pollutant_map: dict
     special_route_lookup: dict
-
 
 
 class State:
@@ -369,10 +344,6 @@ class State:
         self.conn = self.sqlite_connect()
 
     def create_main_project(self):
-        # Import only when needed so settings-only consumers (e.g., notebooks)
-        # don't require Emme dependencies at module import time.
-        from scripts.emme_project import EmmeProject
-
         self.main_project = EmmeProject(self.main_project_path, self.model_input_dir)
 
     def name_from_main_project_path(self):
@@ -383,34 +354,35 @@ class State:
         return res
 
     def sqlite_connect(self):
-        db_path = PROJECT_ROOT / "inputs" / "db" / self.input_settings.db_name
-        conn = create_engine(f"sqlite:///{db_path.as_posix()}")
+        conn = create_engine("sqlite:///inputs/db/" + self.input_settings.db_name)
         return conn
 
 
 def generate_state(configs_dir):
     # set up configs/settings:
     if configs_dir is None:
-        config = toml.load(PROJECT_ROOT / "configuration/input_configuration.toml")
-        emme_config = toml.load(PROJECT_ROOT / "configuration/emme_configuration.toml")
+        config = toml.load(Path.cwd() / "configuration/input_configuration.toml")
+        emme_config = toml.load(Path.cwd() / "configuration/emme_configuration.toml")
         network_config = toml.load(
-            PROJECT_ROOT / "configuration/network_configuration.toml"
+            Path.cwd() / "configuration/network_configuration.toml"
         )
         summary_config = toml.load(
-            PROJECT_ROOT / "configuration/summary_configuration.toml"
+            Path.cwd() / "configuration/summary_configuration.toml"
         )
     else:
         configs_dir = Path(configs_dir)
         config = toml.load(configs_dir / "input_configuration.toml")
         emme_config = toml.load(configs_dir / "emme_configuration.toml")
         network_config = toml.load(configs_dir / "network_configuration.toml")
-        summary_config = toml.load(configs_dir / "summary_configuration.toml")
+        summary_config = toml.load(
+            Path.cwd() / "configuration/summary_configuration.toml"
+        )
 
     input_settings = InputSettings(**config)
     emme_settings = EmmeSettings(**emme_config)
     network_settings = NetworkSettings(**network_config)
     summary_settings = SummarySettings(**summary_config)
-    model_input_dir = PROJECT_ROOT / f"inputs/model/{input_settings.abm_model}/"
+    model_input_dir = Path(Path.cwd() / f"inputs/model/{input_settings.abm_model}/")
 
     return State(
         input_settings=input_settings,
