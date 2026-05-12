@@ -1,0 +1,67 @@
+project:
+  type: book
+  output-dir: "activitysim-validation-notebook"
+  
+book:
+  title: "<br>ActivitySim Validation"
+  repo-url: https://github.com/psrc/soundcast/tree/master
+  search: false
+  sidebar:
+    logo: ../notebook_styling/PSRClogo2016path.png
+
+  chapters:
+    - index.qmd
+    - nb/work_from_home.ipynb
+    # - nb/auto_ownership.ipynb
+    # - nb/telecommute_frequency.ipynb
+    - nb/free_parking.ipynb
+    - nb/cdap.ipynb
+    # - nb/intermediate_stop_frequency.ipynb
+    # - nb/trip_purpose.ipynb
+    - nb/trip_destination_choice.ipynb
+    - part: "<b>LOCATION CHOICE</b>"
+      chapters:
+        - nb/school_location.ipynb
+        # - nb/work_location.ipynb
+    # - part: "<b>MANDATORY TOUR</b>"
+    #   chapters:
+        - nb/mandatory_tour_frequency.ipynb
+        - nb/mandatory_tour_scheduling.ipynb
+    # - part: "<b>NON-MANDATORY TOUR</b>"
+    #   chapters:
+        - nb/non_mandatory_tour_frequency.ipynb
+    #     - nb/non_mandatory_tour_destination_choice.ipynb
+    #     - nb/non_mandatory_tour_scheduling.ipynb
+    # - part: "<b>JOINT TOUR</b>"
+    #   chapters:
+    #     - nb/joint_tour_frequency.ipynb
+    #     - nb/joint_tour_composition.ipynb
+    # - part: "<b>ATWORK SUBTOUR</b>"
+    #   chapters:
+    #     - nb/atwork_subtours_frequency.ipynb
+    #     - nb/atwork_subtours_destination_choice.ipynb
+    #     - nb/atwork_subtours_scheduling.ipynb
+    #     - nb/atwork_subtour_mode.ipynb
+    # - part: "<b>MODE CHOICE</b>"
+    #   chapters:
+        - nb/tour_mode_choice.ipynb
+        - nb/trip_mode_choice.ipynb
+    # - part: "<b>ANALYSIS</b>"
+    #   chapters:
+    #     - nb/telework_analys.ipynb
+
+format:
+  html:
+    mainfont: Poppins
+    theme: 
+      light: [cosmo, ../notebook_styling/custom.scss]
+      dark: [darkly, ../notebook_styling/custom.scss]
+    echo: false
+    code-tools: true
+    toc: true
+    warnings: false
+
+
+
+
+
