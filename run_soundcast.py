@@ -222,10 +222,17 @@ def run_all_summaries():
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)
-    subprocess.run(
-        "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
-        shell=True,
-    )
+    try:
+        subprocess.run(
+            [sys.executable, "scripts/summarize/create_quarto_notebooks.py"],
+            check=True,
+        )
+    except (subprocess.CalledProcessError, OSError):
+        subprocess.run(
+            "conda activate summary && python scripts/summarize/create_quarto_notebooks.py && conda deactivate",
+            shell=True,
+            check=True,
+        )
 
 
 def get_current_commit_hash():
