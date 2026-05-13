@@ -7,16 +7,16 @@ book:
   repo-url: https://github.com/psrc/soundcast/tree/base_year_2023/scripts/summarize
   search: false
   sidebar:
-    logo: PSRClogo2016path.png
+    logo: ../notebook_styling/PSRClogo2016path.png
 
   chapters:
     - index.qmd
-    - summary_scripts/traffic_validation.ipynb
-    - summary_scripts/transit_validation.ipynb
-    - summary_scripts/bike_validation.ipynb
-    - summary_scripts/link_analysis.ipynb
-    - summary_scripts/JBLM.ipynb
-    - summary_scripts/supplementals.ipynb
+    - nb/traffic_validation.ipynb
+    - nb/transit_validation.ipynb
+    - nb/bike_validation.ipynb
+    - nb/link_analysis.ipynb
+    - nb/JBLM.ipynb
+    - nb/supplementals.ipynb
 
 format:
   html:

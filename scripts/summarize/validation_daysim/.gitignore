@@ -1,0 +1,4 @@
+/.quarto/
+/.vscode/
+/validation-notebook/
+**/*.quarto_ipynb
