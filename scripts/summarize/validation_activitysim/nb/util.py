@@ -40,7 +40,7 @@ county = {1: "King",
           4: "Snohomish"}
 
 transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
-all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCH_BUS","TNC","Other"]
+all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCHBUS","TNC","Other"]
 
 def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
@@ -71,7 +71,9 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
         df = pl.read_csv(survey_path/ f"override_{df_name}.csv", 
                          # TODO: clean or remove prev_home_notwa_zip column in household table/ clean or remove string values in tour_type_id
                          schema_overrides={'prev_home_notwa_zip': pl.String,
-                                           'tour_type_id': pl.String})
+                                           'tour_type_id': pl.String,
+                                           'transit_quality_flag': pl.String},
+                         null_values="Missing Response")
 
         # Add source column
         df = df.with_columns(
@@ -80,7 +82,9 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
         survey_list.append(df)
     
-    survey_data = pl.concat(survey_list)
+    
+    common_cols = set(survey_list[0].columns).intersection(*(df.columns for df in survey_list[1:]))
+    survey_data = pl.concat([df.select(list(common_cols)) for df in survey_list], how="vertical_relaxed")
     
     if df_name == "tours":
         survey_data = survey_data.rename({
@@ -291,6 +295,8 @@ def get_trip_data(summary_config, uncloned=False):
         # aggregate transit modes
         pl.when(pl.col("trip_mode").is_in(transit_modes))
         .then(pl.lit("ALL_TRANSIT"))
+        .when(pl.col("trip_mode")=="SCH_BUS")
+        .then(pl.lit("SCHBUS"))
         .otherwise(pl.col("trip_mode"))
         .cast(pl.Enum(all_modes_transit_agg), strict=False)
         .alias("trip_mode_transit_agg"),
