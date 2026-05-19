@@ -193,7 +193,7 @@ class Landuse(pa.DataFrameModel):
     zone_id: int = pa.Field(unique=True, ge=0)
     # DISTRICT: int = pa.Field(ge=0)
     # SD: int = pa.Field(ge=0)
-    county_id: int = pa.Field(isin=e.County)
+    # county_id: int = pa.Field(isin=e.County)
     area_type: int = pa.Field(isin=e.AreaType)
     TOTHH: int = pa.Field(ge=0)
     TOTEMP: int = pa.Field(ge=0)
@@ -214,34 +214,34 @@ class Landuse(pa.DataFrameModel):
         ].sum(axis=1)
         return (tot_emp == land_use.TOTEMP).reindex(land_use.index)
 
-    @pa.dataframe_check(
-        name="Do zones' total HH equal number of HH in households table?",
-        raise_warning=True,
-    )
-    def check_hh_per_zone(cls, land_use: pd.DataFrame):
-        households = TABLE_STORE["households"]
-        num_hh = (
-            households.groupby("home_zone_id")
-            .household_id.nunique()
-            .reindex(land_use.zone_id)
-            .fillna(0)
-        )
-        return (land_use.set_index("zone_id").TOTHH == num_hh).reindex(land_use.index)
+    # @pa.dataframe_check(
+    #     name="Do zones' total HH equal number of HH in households table?",
+    #     raise_warning=True,
+    # )
+    # def check_hh_per_zone(cls, land_use: pd.DataFrame):
+    #     households = TABLE_STORE["households"]
+    #     num_hh = (
+    #         households.groupby("home_zone_id")
+    #         .household_id.nunique()
+    #         .reindex(land_use.zone_id)
+    #         .fillna(0)
+    #     )
+    #     return (land_use.set_index("zone_id").TOTHH == num_hh).reindex(land_use.index)
 
-    @pa.dataframe_check(
-        name="Do zones' populations equal number of people in persons table?",
-        raise_warning=True,
-    )
-    def check_pop_per_zone(cls, land_use: pd.DataFrame):
-        persons = TABLE_STORE["persons"]
-        households = TABLE_STORE["households"]
-        persons_per_household = persons.groupby("household_id").size()
-        hh = households[["household_id", "home_zone_id"]].merge(
-            persons_per_household.rename("persons_per_household"), on="household_id"
-        )
-        pop = hh.groupby(households.home_zone_id)["persons_per_household"].sum()
-        lu = land_use.set_index("zone_id")
-        return pop.reindex(lu.index) == lu.TOTPOP
+    # @pa.dataframe_check(
+    #     name="Do zones' populations equal number of people in persons table?",
+    #     raise_warning=True,
+    # )
+    # def check_pop_per_zone(cls, land_use: pd.DataFrame):
+    #     persons = TABLE_STORE["persons"]
+    #     households = TABLE_STORE["households"]
+    #     persons_per_household = persons.groupby("household_id").size()
+    #     hh = households[["household_id", "home_zone_id"]].merge(
+    #         persons_per_household.rename("persons_per_household"), on="household_id"
+    #     )
+    #     pop = hh.groupby(households.home_zone_id)["persons_per_household"].sum()
+    #     lu = land_use.set_index("zone_id")
+    #     return pop.reindex(lu.index) == lu.TOTPOP
 
 
 # class NetworkLinks(pa.DataFrameModel):

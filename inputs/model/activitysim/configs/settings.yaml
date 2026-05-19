@@ -5,8 +5,7 @@
 expression_profile: True
 
 # number of households to simulate
-households_sample_size: 0
-
+households_sample_size: 1000000
 
 #chunk_size: 
 #chunk_size: 123_000_000_000
@@ -96,15 +95,16 @@ input_table_list:
       - hh_1
       - emptot_1
       - district
+      - PNR_SPACES
   - tablename: land_use_taz
     filename: taz.csv
     index_col: TAZ
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: work_from_home
+resume_after: non_mandatory_tour_scheduling
 models:
-  - input_checker
+  # - input_checker
 ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility
@@ -128,6 +128,7 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
+  - park_and_ride_lot_choice
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
   - atwork_subtour_destination

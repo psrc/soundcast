@@ -414,8 +414,6 @@ def run(state):
     df_lu = process_buffered_landuse(
             state, df_hh, parcel_geog, lu_aggregate_dict
         )
-    
-    df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
 
     # Generate TAZ file from TAZ index file
     df_taz = pd.read_csv(
@@ -424,6 +422,25 @@ def run(state):
         usecols=["Zone_id"],
     )
     df_taz.rename(columns={"Zone_id": "TAZ"}, inplace=True)
+
+    # Add MAZs for park and ride zones
+    df_pnr = pd.read_csv(
+        "inputs/scenario/networks/p_r_capacities.csv",
+    )
+    df_pnr = df_pnr[df_pnr["value"]> 0]
+    df_pnr.rename(columns={"index": "TAZ", "value": "PNR_SPACES"}, inplace=True)
+    for col in df_lu.columns:
+        if col not in df_pnr.columns:
+            df_pnr[col] = 0
+    df_lu["PNR_SPACES"] = 0
+    df_pnr["MAZ"] = df_lu["MAZ"]
+    df_pnr["MAZ"] = range(df_lu["MAZ"].max()+1,df_lu["MAZ"].max()+len(df_pnr)+1)
+    df_lu = pd.concat([df_lu,df_pnr])
+
+    # Add PNR cost
+    # PNR_PRKCST
+
+    df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
 
     # df_taz = df_taz[df_taz["TAZ"].isin(df_lu.TAZ)]
     integerize_id_columns(df_taz, 'taz')
