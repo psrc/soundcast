@@ -104,7 +104,7 @@ input_table_list:
 # to resume after last successful checkpoint, specify resume_after: _
 #resume_after: work_from_home
 models:
-  - input_checker
+#  - input_checker
 ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility
