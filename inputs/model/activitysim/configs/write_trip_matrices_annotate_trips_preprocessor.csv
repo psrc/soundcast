@@ -6,6 +6,8 @@ Description,Target,Expression
 ,_sample_rate,trips.household_id.map(households.sample_rate)
 ,weightTrip,"np.where(trips.trip_mode == 'SHARED2FREE', tour_participants/OCC_SHARED2, np.where(trips.trip_mode == 'SHARED3FREE',tour_participants/OCC_SHARED3, np.where(trips.trip_mode == 'TAXI', tour_participants/OCC_TAXI,  np.where(trips.trip_mode == 'TNC_SINGLE', tour_participants/OCC_TNC_SINGLE, np.where(trips.trip_mode == 'TNC_SHARED', tour_participants/OCC_TNC_SHARED, np.where(trips.trip_mode.isin(['WALK','BIKE','EBIKE','ESCOOTER']), tour_participants, 1))))))/_sample_rate"
 ,weightPersonTrip,tour_participants/_sample_rate
+,pnr_zone_id,"reindex(tours.pnr_zone_id, df.tour_id)"
+,is_pnr,trips.trip_mode.isin(['DRIVE_TRN'])
 # code time periods,,
 ,is_ea,"(trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])) | (trips.depart > time_periods['EV']['last_hour'])"
 ,is_am,"trips.depart.between(time_periods['AM']['first_hour'], time_periods['AM']['last_hour'])"
@@ -34,8 +36,12 @@ Description,Target,Expression
 ,WALK_LR_EA,((trips.trip_mode == 'WALK_LR') & is_ea) * tour_participants
 ,WALK_FRY_EA,((trips.trip_mode == 'WALK_FRY') & is_ea) * tour_participants
 ,WALK_COM_EA,((trips.trip_mode == 'WALK_COM') & is_ea) * tour_participants
-,DRV_TRN_WLK_EA,((trips.trip_mode == 'DRIVE_TRN') & is_ea & trips.outbound) * tour_participants
-,WLK_TRN_DRV_EA,((trips.trip_mode == 'DRIVE_TRN') & is_ea & ~trips.outbound) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT1_EA,(is_pnr & trips.outbound & is_ea & vot1) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT2_EA,(is_pnr & trips.outbound & is_ea & vot2) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT3_EA,(is_pnr & trips.outbound & is_ea & vot3) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT1_EA,(is_pnr & ~trips.outbound & is_ea & vot1) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT2_EA,(is_pnr & ~trips.outbound & is_ea & vot2) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT3_EA,(is_pnr & ~trips.outbound & is_ea & vot3) * tour_participants
 ,TNC_EA_1,((trips.trip_mode == 'TNC') & is_ea & vot1) * tour_participants
 ,TNC_EA_2,((trips.trip_mode == 'TNC') & is_ea & vot2) * tour_participants
 ,TNC_EA_3,((trips.trip_mode == 'TNC') & is_ea & vot3) * tour_participants

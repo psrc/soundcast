@@ -8,7 +8,7 @@ util_xfer_wait,transfer wait time,@(ldt_skims['xfrwa'] + dlt_skims['xfrwa']),coe
 util_walk_time,walk time,@(ldt_skims['auxwa'] + dlt_skims['auxwa']),coef_xwalk_work
 util_ivtt,in vehcile transit time,@(ldt_skims['ivtwa'] + dlt_skims['ivtwa']),coef_ivt_work
 util_transfer_penalty,transfer penalty (avg boadings minus default of two boardings for both directions),@((ldt_skims['ndbwa'] + dlt_skims['ndbwa'])-2),coef_xfer_work
-#util_small_lot,Small lot penalty -- 10 min penalty,"@np.where(df['PNR_SPACES'] < 100,10,0)",coef_ivt_work
-#util_med_lot,med lot penalty -- no penalty,"@np.where((df['PNR_SPACES'] >= 100) & (df['PNR_SPACES'] < 500),1,0) * 0",coef_ivt_work
-#util_large_lot,large lot penalty -- 10 min back,"@np.where(df['PNR_SPACES'] >= 500,-10,0)",coef_ivt_work
-util_capacity,lot capacity availability,@df['pnr_lot_full'],coef_unavailable
+util_small_lot,Small lot penalty -- 10 min penalty,"@np.where(df['PNR_SPACES'] < 100,10,0)",coef_ivt_work
+util_med_lot,med lot penalty -- no penalty,"@np.where((df['PNR_SPACES'] >= 100) & (df['PNR_SPACES'] < 500),1,0) * 0",coef_ivt_work
+util_large_lot,large lot penalty -- 10 min back,"@np.where(df['PNR_SPACES'] >= 500,-10,0)",coef_ivt_work
+#util_capacity,lot capacity availability,@df['pnr_lot_full'],coef_unavailable

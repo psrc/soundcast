@@ -65,8 +65,14 @@ Determining Tour Destination,destination,df.destination if 'destination' in df.c
 ,walk_transit_available,(_origin_distance_to_transit <= walkThresh) & (_destination_distance_to_transit <= walkThresh) & (_origin_distance_to_transit > 0) & (_destination_distance_to_transit > 0)
 ,walk_local_available,walk_transit_available & (odt_skims['ivtwa']>0) & (dot_skims['ivtwa']>0) & (dot_skims['ivtwa']<600)
 ,walk_commuter_available,walk_transit_available & (odt_skims['ivtwc']>0) & (dot_skims['ivtwc']>0) & ((odt_skims['ivtwc'] + dot_skims['ivtwc'])>0) & (dot_skims['ivtwc']<600)
-,walk_ferry_available,walk_transit_available & (odt_skims['ivtwf']>0) & (dot_skims['ivtwf']>0) & ((odt_skims['ivtwf'] + dot_skims['ivtwf'])>0) & (dot_skims['ivtwf']<600)
+,viable_ferry_walk,(odt_skims['auxwf']<=60) & (dot_skims['auxwf']<=60)
+,walk_ferry_available,walk_transit_available & viable_ferry_walk & (odt_skims['ivtwf']>0) & (dot_skims['ivtwf']>0) & ((odt_skims['ivtwf'] + dot_skims['ivtwf'])>0) & (dot_skims['ivtwf']<600)
 ,walk_light_rail_available,walk_transit_available & (odt_skims['ivtwr']>0) & (dot_skims['ivtwr']>0) & ((odt_skims['ivtwr'] + dot_skims['ivtwr'])>0) & (dot_skims['ivtwr']<600)
+,_walk_local_roundtrip_ivt,odt_skims['ivtwa'] + dot_skims['ivtwa']
+,_walk_commuter_roundtrip_ivt,odt_skims['ivtwc'] + dot_skims['ivtwc']
+,_walk_ferry_roundtrip_ivt,odt_skims['ivtwf'] + dot_skims['ivtwf']
+,_walk_light_rail_roundtrip_ivt,odt_skims['ivtwr'] + dot_skims['ivtwr']
+,ferry_is_fastest_transit,walk_ferry_available & (_walk_ferry_roundtrip_ivt < _walk_local_roundtrip_ivt) & (_walk_ferry_roundtrip_ivt < _walk_commuter_roundtrip_ivt) & (_walk_ferry_roundtrip_ivt < _walk_light_rail_roundtrip_ivt)
 ,drive_transit_available,(_destination_distance_to_transit <= walkThresh) & (_destination_distance_to_transit > 0) & (odt_skims['DRV_TRN_WLK_TOTIVT']>0) & (dot_skims['WLK_TRN_DRV_TOTIVT']>0) & (dot_skims['WLK_TRN_DRV_TOTIVT']<600)
 ,origin_walk_time,_origin_distance_to_transit*60/walkSpeed
 ,destination_walk_time,_destination_distance_to_transit*60/walkSpeed
