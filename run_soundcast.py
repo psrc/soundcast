@@ -195,8 +195,8 @@ def daysim_assignment(iteration):
                     "-m",
                     "activitysim",
                     "run",
-                    "-c",
-                    os.path.join(os.getcwd(), "inputs/model/activitysim/configs_sh"),
+                    # "-c",
+                    # os.path.join(os.getcwd(), "inputs/model/activitysim/configs_sh"),
                     "-c",
                     os.path.join(os.getcwd(), "inputs/model/activitysim/configs_mp"),
                     "-c",
@@ -245,10 +245,10 @@ def check_convergence(iteration):
 
 @data_wrangling.timed
 def run_all_summaries():
-    # daily_bank.main(state)
-    # network_summary.main(state)
-    # transit_summary.main(state)
-    # emissions.main(state)
+    daily_bank.main(state)
+    network_summary.main(state)
+    transit_summary.main(state)
+    emissions.main(state)
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)

@@ -17,9 +17,10 @@ Description,Target,Expression
 ,_vot_bin_da,"np.where(trips.trip_mode.isin(['DRIVEALONEFREE']),np.where(trips.vot_da < vot_threshold_low, 1,np.where(trips.vot_da < vot_threshold_med, 2, 3)),0)"
 ,_vot_bin_s2,"np.where(trips.trip_mode.isin(['SHARED2FREE','TAXI','TNC_SINGLE']),np.where(trips.vot_s2 < vot_threshold_low,1,np.where(trips.vot_s2 < vot_threshold_med, 2, 3)),0)"
 ,_vot_bin_s3,"np.where(trips.trip_mode.isin(['SHARED3FREE','TNC_SHARED']),np.where(trips.vot_s3 < vot_threshold_low,1,np.where(trips.vot_s3 < vot_threshold_med, 2, 3)),0)"
-,vot1,"np.where((_vot_bin_da == 1) |( _vot_bin_s2 == 1) |( _vot_bin_s3 ==1),1,0)"
-,vot2,"np.where((_vot_bin_da == 2 )|( _vot_bin_s2 == 2) |( _vot_bin_s3 ==2),1,0)"
-,vot3,"np.where((_vot_bin_da == 3) | (_vot_bin_s2 == 3) | (_vot_bin_s3 ==3),1,0)"
+,_vot_bin_pnr,"np.where(is_pnr,np.where(trips.vot_da < vot_threshold_low, 1,np.where(trips.vot_da < vot_threshold_med, 2, 3)),0)"
+,vot1,"np.where((_vot_bin_da == 1) |(_vot_bin_s2 == 1) |(_vot_bin_s3 ==1) |(_vot_bin_pnr ==1),1,0)"
+,vot2,"np.where((_vot_bin_da == 2) |(_vot_bin_s2 == 2) |(_vot_bin_s3 ==2) |(_vot_bin_pnr ==2),1,0)"
+,vot3,"np.where((_vot_bin_da == 3) |(_vot_bin_s2 == 3) |(_vot_bin_s3 ==3) |(_vot_bin_pnr ==3),1,0)"
 ,outbound,trips.outbound
 ,inbound,~trips.outbound
 # ea trips,,
@@ -42,6 +43,8 @@ Description,Target,Expression
 ,PNR_INB_DRIVE_LEG_VOT1_EA,(is_pnr & ~trips.outbound & is_ea & vot1) * tour_participants
 ,PNR_INB_DRIVE_LEG_VOT2_EA,(is_pnr & ~trips.outbound & is_ea & vot2) * tour_participants
 ,PNR_INB_DRIVE_LEG_VOT3_EA,(is_pnr & ~trips.outbound & is_ea & vot3) * tour_participants
+,PNR_OUT_TRNST_LEG_EA,(is_pnr & trips.outbound & is_ea) * tour_participants
+,PNR_INB_TRNST_LEG_EA,(is_pnr & ~trips.outbound & is_ea) * tour_participants
 ,TNC_EA_1,((trips.trip_mode == 'TNC') & is_ea & vot1) * tour_participants
 ,TNC_EA_2,((trips.trip_mode == 'TNC') & is_ea & vot2) * tour_participants
 ,TNC_EA_3,((trips.trip_mode == 'TNC') & is_ea & vot3) * tour_participants
@@ -62,8 +65,14 @@ Description,Target,Expression
 ,WALK_LR_AM,((trips.trip_mode == 'WALK_LR') & is_am) * tour_participants
 ,WALK_FRY_AM,((trips.trip_mode == 'WALK_FRY') & is_am) * tour_participants
 ,WALK_COM_AM,((trips.trip_mode == 'WALK_COM') & is_am) * tour_participants
-,DRV_TRN_WLK_AM,((trips.trip_mode == 'DRIVE_TRN') & is_am & trips.outbound) * tour_participants
-,WLK_TRN_DRV_AM,((trips.trip_mode == 'DRIVE_TRN') & is_am & ~trips.outbound) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT1_AM,(is_pnr & trips.outbound & is_am & vot1) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT2_AM,(is_pnr & trips.outbound & is_am & vot2) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT3_AM,(is_pnr & trips.outbound & is_am & vot3) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT1_AM,(is_pnr & ~trips.outbound & is_am & vot1) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT2_AM,(is_pnr & ~trips.outbound & is_am & vot2) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT3_AM,(is_pnr & ~trips.outbound & is_am & vot3) * tour_participants
+,PNR_OUT_TRNST_LEG_AM,(is_pnr & trips.outbound & is_am) * tour_participants
+,PNR_INB_TRNST_LEG_AM,(is_pnr & ~trips.outbound & is_am) * tour_participants
 ,TNC_AM_1,((trips.trip_mode == 'TNC') & is_am & vot1) * tour_participants
 ,TNC_AM_2,((trips.trip_mode == 'TNC') & is_am & vot2) * tour_participants
 ,TNC_AM_3,((trips.trip_mode == 'TNC') & is_am & vot3) * tour_participants
@@ -84,8 +93,14 @@ Description,Target,Expression
 ,WALK_LR_MD,((trips.trip_mode == 'WALK_LR') & is_md) * tour_participants
 ,WALK_FRY_MD,((trips.trip_mode == 'WALK_FRY') & is_md) * tour_participants
 ,WALK_COM_MD,((trips.trip_mode == 'WALK_COM') & is_md) * tour_participants
-,DRV_TRN_WLK_MD,((trips.trip_mode == 'DRIVE_TRN') & is_md & trips.outbound) * tour_participants
-,WLK_TRN_DRV_MD,((trips.trip_mode == 'DRIVE_TRN') & is_md & ~trips.outbound) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT1_MD,(is_pnr & trips.outbound & is_md & vot1) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT2_MD,(is_pnr & trips.outbound & is_md & vot2) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT3_MD,(is_pnr & trips.outbound & is_md & vot3) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT1_MD,(is_pnr & ~trips.outbound & is_md & vot1) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT2_MD,(is_pnr & ~trips.outbound & is_md & vot2) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT3_MD,(is_pnr & ~trips.outbound & is_md & vot3) * tour_participants
+,PNR_OUT_TRNST_LEG_MD,(is_pnr & trips.outbound & is_md) * tour_participants
+,PNR_INB_TRNST_LEG_MD,(is_pnr & ~trips.outbound & is_md) * tour_participants
 ,TNC_MD_1,((trips.trip_mode == 'TNC') & is_md & vot1) * tour_participants
 ,TNC_MD_2,((trips.trip_mode == 'TNC') & is_md & vot2) * tour_participants
 ,TNC_MD_3,((trips.trip_mode == 'TNC') & is_md & vot3) * tour_participants
@@ -106,8 +121,14 @@ Description,Target,Expression
 ,WALK_LR_PM,((trips.trip_mode == 'WALK_LR') & is_pm) * tour_participants
 ,WALK_FRY_PM,((trips.trip_mode == 'WALK_FRY') & is_pm) * tour_participants
 ,WALK_COM_PM,((trips.trip_mode == 'WALK_COM') & is_pm) * tour_participants
-,DRV_TRN_WLK_PM,((trips.trip_mode == 'DRIVE_TRN') & is_pm & trips.outbound) * tour_participants
-,WLK_TRN_DRV_PM,((trips.trip_mode == 'DRIVE_TRN') & is_pm & ~trips.outbound) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT1_PM,(is_pnr & trips.outbound & is_pm & vot1) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT2_PM,(is_pnr & trips.outbound & is_pm & vot2) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT3_PM,(is_pnr & trips.outbound & is_pm & vot3) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT1_PM,(is_pnr & ~trips.outbound & is_pm & vot1) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT2_PM,(is_pnr & ~trips.outbound & is_pm & vot2) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT3_PM,(is_pnr & ~trips.outbound & is_pm & vot3) * tour_participants
+,PNR_OUT_TRNST_LEG_PM,(is_pnr & trips.outbound & is_pm) * tour_participants
+,PNR_INB_TRNST_LEG_PM,(is_pnr & ~trips.outbound & is_pm) * tour_participants
 ,TNC_PM_1,((trips.trip_mode == 'TNC') & is_pm & vot1) * tour_participants
 ,TNC_PM_2,((trips.trip_mode == 'TNC') & is_pm & vot2) * tour_participants
 ,TNC_PM_3,((trips.trip_mode == 'TNC') & is_pm & vot3) * tour_participants
@@ -128,8 +149,14 @@ Description,Target,Expression
 ,WALK_LR_EV,((trips.trip_mode == 'WALK_LR') & is_ev) * tour_participants
 ,WALK_FRY_EV,((trips.trip_mode == 'WALK_FRY') & is_ev) * tour_participants
 ,WALK_COM_EV,((trips.trip_mode == 'WALK_COM') & is_ev) * tour_participants
-,DRV_TRN_WLK_EV,((trips.trip_mode == 'DRIVE_TRN') & is_ev & trips.outbound) * tour_participants
-,WLK_TRN_DRV_EV,((trips.trip_mode == 'DRIVE_TRN') & is_ev & ~trips.outbound) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT1_EV,(is_pnr & trips.outbound & is_ev & vot1) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT2_EV,(is_pnr & trips.outbound & is_ev & vot2) * tour_participants
+,PNR_OUT_DRIVE_LEG_VOT3_EV,(is_pnr & trips.outbound & is_ev & vot3) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT1_EV,(is_pnr & ~trips.outbound & is_ev & vot1) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT2_EV,(is_pnr & ~trips.outbound & is_ev & vot2) * tour_participants
+,PNR_INB_DRIVE_LEG_VOT3_EV,(is_pnr & ~trips.outbound & is_ev & vot3) * tour_participants
+,PNR_OUT_TRNST_LEG_EV,(is_pnr & trips.outbound & is_ev) * tour_participants
+,PNR_INB_TRNST_LEG_EV,(is_pnr & ~trips.outbound & is_ev) * tour_participants
 ,TNC_EV_1,((trips.trip_mode == 'TNC') & is_ev & vot1) * tour_participants
 ,TNC_EV_2,((trips.trip_mode == 'TNC') & is_ev & vot2) * tour_participants
 ,TNC_EV_3,((trips.trip_mode == 'TNC') & is_ev & vot3) * tour_participants

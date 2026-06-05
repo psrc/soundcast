@@ -430,7 +430,7 @@ def run(state):
         usecols=["Zone_id"],
     )
     df_taz.rename(columns={"Zone_id": "TAZ"}, inplace=True)
-    if not taz_min:
+    if taz_min is not None and taz_max is not None:
         taz_min = df_taz.TAZ.min()
         taz_max = df_taz.TAZ.max()
 
@@ -449,9 +449,11 @@ def run(state):
     df_lu = pd.concat([df_lu,df_pnr])
 
     # Apply optional segmentatation
-    df_lu = df_lu[(df_lu["TAZ"] >= taz_min) & (df_lu["TAZ"] <= taz_max)]
+    if taz_min is not None and taz_max is not None:
+        df_lu = df_lu[(df_lu["TAZ"] >= taz_min) & (df_lu["TAZ"] <= taz_max)]
+        df_taz = df_taz[df_taz["TAZ"].isin(df_lu.TAZ)]
+        
     df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
-    df_taz = df_taz[df_taz["TAZ"].isin(df_lu.TAZ)]
 
     integerize_id_columns(df_taz, 'taz')
 

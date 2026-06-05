@@ -5,7 +5,7 @@
 expression_profile: True
 
 # number of households to simulate
-households_sample_size: 1000000
+households_sample_size: 0
 
 #chunk_size: 
 #chunk_size: 123_000_000_000
@@ -28,8 +28,9 @@ want_dest_choice_sample_tables: False
 
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
-trace_hh_id: 1628343
-cleanup_trace_files_on_resume: True
+# trace_hh_id: 843563
+trace_hh_id: 953336
+cleanup_trace_files_on_resume: False
 
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
@@ -102,7 +103,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-resume_after: non_mandatory_tour_scheduling
+#resume_after: track_skim_usage
 models:
   # - input_checker
 ## Disaggregate Accessibility steps

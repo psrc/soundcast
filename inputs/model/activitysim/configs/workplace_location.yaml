@@ -1,4 +1,5 @@
 SAMPLE_SIZE: 30
+explicit_chunk: 0.5
 
 SIMULATE_CHOOSER_COLUMNS:
   - income_segment
