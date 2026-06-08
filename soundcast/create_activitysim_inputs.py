@@ -2,13 +2,15 @@ import pandas as pd
 import numpy as np
 import h5py
 import os
-
-from sqlalchemy import Join
+import openmatrix as omx
 from settings import run_args
 
-# Supply a base
-# land_use_dir = r"R:\e2projects_two\SoundCast\Inputs\dev\landuse\2018\new_emp"
-# parcel_area_file = r"R:\e2projects_two\activitysim\conversion\parcel_area.csv"
+segments = {
+    'test': (518, 630),  # ensure students are included
+    'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
+    'seattle': (0, 857),  # seattle tazs
+    'full': (0, 100000),
+}
 
 lu_aggregate_dict = {
     "hh_p": "sum",
@@ -402,6 +404,12 @@ def run(state):
     
     # Write to outputs where results are stored
     output_dir = run_args.args.data_dir
+
+    # Initialize segementation bounds to None, which will default to full sample if not specified
+    taz_min = None
+    taz_max = None
+    if run_args.args.segment_name is not None:
+        taz_min, taz_max = segments[run_args.args.segment_name]
     
     # Get parcel MAZ ID from inputs database
     parcel_geog = pd.read_sql(
@@ -414,8 +422,6 @@ def run(state):
     df_lu = process_buffered_landuse(
             state, df_hh, parcel_geog, lu_aggregate_dict
         )
-    
-    df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
 
     # Generate TAZ file from TAZ index file
     df_taz = pd.read_csv(
@@ -424,8 +430,31 @@ def run(state):
         usecols=["Zone_id"],
     )
     df_taz.rename(columns={"Zone_id": "TAZ"}, inplace=True)
+    if taz_min is not None and taz_max is not None:
+        taz_min = df_taz.TAZ.min()
+        taz_max = df_taz.TAZ.max()
 
-    # df_taz = df_taz[df_taz["TAZ"].isin(df_lu.TAZ)]
+    # Add MAZs for park and ride zones
+    df_pnr = pd.read_csv(
+        "inputs/scenario/networks/p_r_capacities.csv",
+    )
+    df_pnr = df_pnr[df_pnr["value"]> 0]
+    df_pnr.rename(columns={"index": "TAZ", "value": "PNR_SPACES"}, inplace=True)
+    for col in df_lu.columns:
+        if col not in df_pnr.columns:
+            df_pnr[col] = 0
+    df_lu["PNR_SPACES"] = 0
+    df_pnr["MAZ"] = df_lu["MAZ"]
+    df_pnr["MAZ"] = range(df_lu["MAZ"].max()+1,df_lu["MAZ"].max()+len(df_pnr)+1)
+    df_lu = pd.concat([df_lu,df_pnr])
+
+    # Apply optional segmentatation
+    if taz_min is not None and taz_max is not None:
+        df_lu = df_lu[(df_lu["TAZ"] >= taz_min) & (df_lu["TAZ"] <= taz_max)]
+        df_taz = df_taz[df_taz["TAZ"].isin(df_lu.TAZ)]
+        
+    df_maz = df_lu[["MAZ", "TAZ"]].sort_values(['MAZ', 'TAZ'])
+
     integerize_id_columns(df_taz, 'taz')
 
     assert (df_lu.TAZ.isin(df_taz.TAZ).all())
@@ -481,3 +510,26 @@ def run(state):
         df = pd.read_csv(path)
         df = df[df["OMAZ"].isin(valid_maz) & df["DMAZ"].isin(valid_maz)]
         df.to_csv(path, index=False)
+
+    # Trim skims if using segmentation and skims exist
+    if run_args.args.segment_name is not None:
+        # Load any file with Skims in the name to check if they exist in the data directory
+        for fname in ["Skims_5to9.omx", "Skims_9to15.omx", "Skims_15to18.omx", "Skims_18to20.omx", "Skims_20to5.omx"]:
+            if os.path.exists(os.path.join(run_args.args.data_dir, fname)):
+                print(f"Found skim file {fname} in data directory; trimming skims to selected segment")
+                skim_omx = omx.open_file(os.path.join(run_args.args.data_dir, fname), "r")
+                
+                # Get TAZ mapping
+                taz_mapping = skim_omx.mapping("ZONE")
+                taz_index = [taz_mapping[i] for i in range(taz_min,taz_max+1)]
+
+                # Create sew skims file to save results
+                new_skim_omx = omx.open_file(os.path.join(run_args.args.data_dir, f"{fname.split('.omx')[0]}_{run_args.args.segment_name}.omx"), "w")
+                new_skim_omx.create_mapping("ZONE", [i+1 for i in taz_index])
+
+                # select only TAZs using taz_index and write to new omx file
+                for matrix_name in skim_omx.list_matrices():
+                    new_skim_omx[matrix_name] = skim_omx[matrix_name][:,taz_index][taz_index,:]
+
+                skim_omx.close()
+                new_skim_omx.close()

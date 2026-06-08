@@ -4,7 +4,7 @@
     "by_mode_subset": {
         "modes": [
             "f",
-	    "p"
+            "p"
         ],
         "actual_in_vehicle_times": "mfivtwff"
     },
@@ -16,7 +16,7 @@
             "b",
             "c",
             "f",
-	    "p",
+            "p",
             "r",
             "w",
             "x"

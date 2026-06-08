@@ -1,0 +1,10 @@
+coefficient_name,value,constrain
+coef_zero,0.0,T
+# took work coefficients from tour mode choice model,,
+coef_unavailable,-999,F
+coef_ivt_work,-0.016,F
+coef_income_work,-0.625,F
+coef_xwalk_work,-0.0780,F
+coef_wait_work,-0.024,F
+coef_xfer_work,-0.3945,F
+coef_xwait_work,-0.032,F

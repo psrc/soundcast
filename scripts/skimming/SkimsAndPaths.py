@@ -15,12 +15,10 @@ sys.path.append(os.path.join(os.getcwd(), "scripts"))
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.getcwd())
 
-from scripts import emme_project
 from scripts.emme_project import *
 from skimming.tod_parameters import *
 from skimming.user_classes import *
 from settings.data_wrangling import text_to_dictionary, json_to_dictionary
-from skimming import asim_park_and_ride
 import logcontroller
 from settings import run_args
 from scripts.settings import state
@@ -127,8 +125,7 @@ def define_matrices(my_project, user_classes, tod_parameters):
             my_project.create_matrix(user.name, user.description, "FULL")
     if state.input_settings.abm_model == "activitysim":
         # Create park and ride demand matrices
-        my_project.create_matrix("pnr_demand_access", "PNR Demand Access", "FULL")
-        my_project.create_matrix("pnr_demand_egress", "PNR Demand Egress", "FULL")
+        my_project.create_matrix("pnr_transit", "Transit leg of PNR trips", "FULL")
     # create highway skims
     for skim_type in tod_parameters.skim_types:
         for user in user_classes["Highway"].users:
@@ -868,68 +865,6 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     matrix_value[:] = df_taz_district["district"].values[np.newaxis, :] 
     write_skims(state, matrix_value, my_store, "DISTRICT", dtype, taz_indexes)
 
-    # Export park and ride skims
-    if state.input_settings.abm_model == "activitysim":
-        for matrix_name in asim_park_and_ride.matrix_dict.keys():
-            matrix_out_name = matrix_name + tod_tag
-            matrix_value = emmeMatrix_to_numpyMatrix(
-                matrix_name, my_project.bank, dtype, 1, 99999
-            )
-            if state.input_settings.abm_model == "activitysim":
-                matrix_value = fill_inf_with_max(matrix_value, dtype)
-
-            # open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(
-                    np_old_matrices[matrix_out_name], matrix_value
-                )
-            
-            write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
-
-        # Export transfer wait time matrices as difference between total wait time and initial wait time
-        for pnr_direction in ['DRV_TRN_WLK', 'WLK_TRN_DRV']:
-            total_wait_value = emmeMatrix_to_numpyMatrix(
-                f"{pnr_direction}_WAIT", my_project.bank, dtype, 1, 99999
-            )
-            initial_wait_value = emmeMatrix_to_numpyMatrix(
-                f"{pnr_direction}_IWAIT", my_project.bank, dtype, 1, 99999
-            )
-            matrix_value = total_wait_value - initial_wait_value
-            matrix_out_name = f"{pnr_direction}_XWAIT" + tod_tag
-
-            # open old skim and average
-            if average_skims:
-                matrix_value = average_matrices(
-                    np_old_matrices[matrix_out_name], matrix_value
-                )
-
-            if state.input_settings.abm_model == "activitysim":
-                matrix_value = fill_inf_with_max(matrix_value, dtype)
-
-            write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
-
-        # Export fare matrix for park and ride trips (use the same one as for all transit trips)
-        fare_dict = json_to_dictionary(
-            "transit_fare_dictionary", state.model_input_dir, "transit"
-        )
-        
-        matrix_name = "mf" + fare_dict[my_project.tod]["Names"]['fare_box_matrix']
-        matrix_out_name = "WLK_TRN_DRV_FAR" + tod_tag
-        matrix_value = emmeMatrix_to_numpyMatrix(
-            matrix_name, my_project.bank, dtype, 1, 99999
-        )
-
-        # open old skim and average
-        if average_skims:
-            matrix_value = average_matrices(
-                np_old_matrices[matrix_out_name], matrix_value
-            )
-
-        if state.input_settings.abm_model == "activitysim":
-                matrix_value = fill_inf_with_max(matrix_value, dtype)
-
-        write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
-
     # Loop through the Subgroups in the HDF5 Container
     # highway, walk, bike, transit
     # need to make sure we include Distance skims for TOD specified in distance_skim_tod
@@ -1518,6 +1453,7 @@ def run_transit(project_name):
             "light_rail": "litrat",
             "ferry": "ferry",
             "commuter_rail": "commuter_rail",
+            "pnr_transit": "pnr_transit"
         }
     if state.input_settings.abm_model == "daysim":
         mode_dict['passenger_ferry'] = "passenger_ferry"
@@ -2158,101 +2094,6 @@ def run_assignments_parallel(project_name, free_flow_skims, max_iterations):
     # Skim for distance for a single time-of-day
     if tod_parameters.skim_distance:
         attribute_based_skims(my_project, "Distance")
-
-    # Run park and ride assignment with skim results
-    if state.input_settings.abm_model == "activitysim" :
-        asim_park_and_ride.run_park_and_ride(
-            state,
-            # EmmeProject("projects/LoadTripTables/LoadTripTables.emp", state.model_input_dir),
-            my_project,
-            Path("inputs/model/activitysim/skim_parameters/park_and_ride"),
-            state.network_settings.sound_cast_net_dict
-            )
-
-        # Fill inf with max values for park and ride matrices
-        matrix_name_list = [i.name for i in my_project.bank.matrices()]
-        for emme_matrix_name in [
-            "WLK_TRN_WLK_DEMAND",
-            "WLK_TRN_WLK_WAUX",
-            "DRV_TRN_WLK_DDIST",
-            "DRV_TRN_WLK_DTIM",
-            "DRV_TRN_WLK_WAUX",
-            "DRV_TRN_WLK_TOTIVT",
-            "DRV_TRN_WLK_WAIT",
-            "DRV_TRN_WLK_IWAIT",
-            "DRV_TRN_WLK_BOARDS",
-            "WLK_TRN_DRV_DDIST",
-            "WLK_TRN_DRV_DTIM",
-            "WLK_TRN_DRV_WAUX",
-            "WLK_TRN_DRV_TOTIVT",
-            "WLK_TRN_DRV_WAIT",
-            "WLK_TRN_DRV_IWAIT",
-            "WLK_TRN_DRV_BOARDS",
-            "WLK_TRN_WLK_TWAIT",
-            "WLK_TRN_WLK_IWAIT",
-            "WLK_TRN_WLK_IVT",
-            "WLK_TRN_WLK_TIMP",
-            "WLK_TRN_WLK_BOARDS",
-            "DRV_TRN_WLK_T_DEMAND",
-            "DRV_TRN_WLK_A_DEMAND",
-            "WLK_TRN_DRV_T_DEMAND",
-            "WLK_TRN_DRV_A_DEMAND",
-        ]:
-            if emme_matrix_name in matrix_name_list:
-                
-                matrix_value = emmeMatrix_to_numpyMatrix(
-                    emme_matrix_name, my_project.bank, "float32", 1, 99999
-                )
-                matrix_value = fill_inf_with_max(matrix_value, "float32", fill_zero=False)
-
-                # Write numpy results back to Emme
-                matrix_id = my_project.bank.matrix(str(emme_matrix_name)).id
-                full_zones = my_project.current_scenario.zone_numbers
-                emme_matrix = ematrix.MatrixData(indices=[full_zones, full_zones], type="f")
-                emme_matrix.from_numpy(matrix_value)
-                my_project.bank.matrix(matrix_id).set_data(
-                    emme_matrix, my_project.current_scenario
-                )
-        
-        # Add park and ride demand to the model
-        # DRV_TRN_WALK_A_DEMAND and WLK_TRN_DRV_T_DEMAND are auto trips
-        # Add to sov_inc2 matrix
-        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_A_DEMAND").id
-        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_T_DEMAND").id
-        sov_inc2_matrix = my_project.bank.matrix("sov_inc2").id
-        my_project.matrix_calculator(
-            result=sov_inc2_matrix,
-            expression=f"{sov_inc2_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-        )
-
-        controlled_rounding = my_project.m.tool(
-                    "inro.emme.matrix_calculation.matrix_controlled_rounding"
-                )
-        controlled_rounding(
-            demand_to_round=sov_inc2_matrix,
-            rounded_demand=sov_inc2_matrix,
-            min_demand=0.1,
-            values_to_round="SMALLER_THAN_MIN",
-        )
-
-        # DRV_TRN_WALK_T_DEMAND and WLK_TRN_DRV_A_DEMAND are transit trips, add to trnst
-        pnr_access_matrix = my_project.bank.matrix("DRV_TRN_WLK_T_DEMAND").id
-        pnr_egress_matrix = my_project.bank.matrix("WLK_TRN_DRV_A_DEMAND").id
-        trnst_matrix = my_project.bank.matrix("trnst").id
-        my_project.matrix_calculator(
-            result=trnst_matrix,
-            expression=f"{trnst_matrix} + {pnr_access_matrix} + {pnr_egress_matrix}",
-        )
-
-        controlled_rounding(
-            demand_to_round=trnst_matrix,
-            rounded_demand=trnst_matrix,
-            min_demand=0.1,
-            values_to_round="SMALLER_THAN_MIN",
-        )
-
-    # Park and ride demand needs to be re-run
-    # FIXME: maybe only run this once after convergence
 
     # Generate toll skims for different user classes, and trucks
     for toll_class in ["@toll1", "@toll2", "@toll3", "@trkc2", "@trkc3"]:
