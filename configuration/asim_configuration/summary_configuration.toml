@@ -5,7 +5,7 @@
 #################################
 protected_namespaces = '()'
 
-# run Quarto notebooks
+# run Quarto summary notebooks
 run_RTP_summary = false
 run_validation = false
 run_network_validation = true
@@ -190,10 +190,34 @@ uncloned_folder = "uncloned"
 7 = 5
 8 = 0
 
+# Map pollutant name and ID
+###
+### FIXME: put in db
+###
+[pollutant_map]
+1 = "Total Gaseous HCs"
+2 = "CO"
+3 = "NOx"
+5 = "Methane"
+6 = "N20"
+79 = "Non-methane HCs"
+87 = "VOCs"
+90 = "Atmospheric CO2"
+91 = "Total Energy"
+98 = "CO2 Equivalent"
+PM10 = "PM10 Total"
+PM25 = "PM25 Total"
+100 = "PM10 Exhaust"
+106 = "PM10 Brakewear"
+107 = "PM10 Tirewear"
+110 = "PM25 Exhaust"
+112 = "Elemental Carbon"
+115 = "Sulfate Particulate"
+116 = "PM25 Brakewear"
+117 = "PM25 Tirewear"
+118 = "Composite NonECPM"
+119 = "H20 Aerosol"
 
-#################################
-# run summary notebooks
-#################################
 [summary_list]
 "RTP-summary-notebook" = [
     'RTP_index',
@@ -209,8 +233,33 @@ uncloned_folder = "uncloned"
     'RTP_mode_share',
     'RTP_freight',
     'RTP_transit',
-    'RTP_conformity_analysis'
+#    'RTP_conformity_analysis'
     ]
+"activitysim-validation-notebook" = [
+    'work_from_home',
+    'auto_ownership', # household and tour data not working
+    'telecommute_frequency',
+    'free_parking',
+    'cdap',
+    'intermediate_stop_frequency',
+    'trip_purpose',
+    'trip_destination_choice',
+    'school_location',
+    'work_location',
+    'mandatory_tour_frequency',
+    'mandatory_tour_scheduling',
+    'non_mandatory_tour_frequency',
+    'non_mandatory_tour_destination_choice',
+    'non_mandatory_tour_scheduling',
+    'joint_tour_frequency',
+    'joint_tour_composition',
+    'atwork_subtours_frequency',
+    'atwork_subtours_destination_choice',
+    'atwork_subtours_scheduling',
+    'atwork_subtour_mode',
+    'tour_mode_choice',
+    'trip_mode_choice'
+]
 "daysim-validation-notebook" = [
     'all_tour_mode',
     'all_trip_mode',
@@ -219,32 +268,32 @@ uncloned_folder = "uncloned"
     'escort_tour_mode',
     'escort_trip_mode',
     'households',
-    # 'intermediate_stop_generation',
-    # 'other_home_based_tour_mode',
-    # 'other_home_based_trip_mode',
-    # 'persons',
-    # 'school_location',
-    # 'school_tour_mode',
-    # 'school_trip_mode',
-    # 'telecommute',
-    # 'time_choice',
-    # 'tour_destination',
-    # 'tours',
-    # 'transit_pass_ownership',
-    # 'trip_destination',
-    # 'trips',
-    # 'work_location',
-    # 'work_tour_mode',
-    # 'work_trip_mode',
-    # 'workbased_subtour_mode',
-    # 'workbased_subtour_generation'
-    ]
+    'intermediate_stop_generation',
+    'other_home_based_tour_mode',
+    'other_home_based_trip_mode',
+    'persons',
+    'school_location',
+    'school_tour_mode',
+    'school_trip_mode',
+    'telecommute',
+    'time_choice',
+    'tours',
+    'tour_destination',
+    'transit_pass_ownership',
+    'trips',
+    'trip_destination',
+    'workbased_subtour_generation',
+    'workbased_subtour_mode',
+    'work_location',
+    'work_tour_mode',
+    'work_trip_mode'
+]
 "network-validation-notebook" = [
-#    'JBLM',
-#    'supplementals',
+    'JBLM',
+    'supplementals',
     'transit_validation',
     'traffic_validation',
-#    'bike_validation',
+    'bike_validation',
     'link_analysis'
     ]
 "run-comparison-notebook" = [

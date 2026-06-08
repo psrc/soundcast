@@ -26,7 +26,6 @@ import random
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
-from soundcast import create_activitysim_inputs
 from scripts import logcontroller
 from scripts.settings import run_args
 from scripts.settings import state
@@ -55,7 +54,7 @@ from scripts.summarize.standard import (
 state = state.generate_state(run_args.args.configs_dir)
 
 
-def accessibility_calcs(state):
+def accessibility_calcs():
     data_wrangling.copy_accessibility_files(state)
     create_ixxi_work_trips.main(state)
     
@@ -159,7 +158,7 @@ def build_shadow_only():
             return
 
 
-def run_truck_supplemental(iteration, state):
+def run_truck_supplemental(iteration, statwe):
     if state.input_settings.run_supplemental_trips:
         if iteration == 0:
             generation.main(state)
@@ -173,10 +172,10 @@ def run_truck_supplemental(iteration, state):
 @data_wrangling.timed
 def daysim_assignment(iteration):
     ########################################
-    # Run Daysim/Activity Models
+    # Run Daysim Activity Models
     ########################################
 
-    if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
+    if state.input_settings.run_abm:
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call(
             "Daysim/Daysim.exe -c Daysim/daysim_configuration.properties"
@@ -214,9 +213,9 @@ def daysim_assignment(iteration):
             sys.exit(1)
 
     ########################################
-    # Calculate Trucks and Supplemental Demand
+    # Calcualte Trucks and Supplemental Demand
     ########################################
-    run_truck_supplemental(iteration, state)
+    run_truck_supplemental(iteration, state.input_settings)
 
     ########################################
     # Assign Demand to Networks
@@ -252,8 +251,8 @@ def run_all_summaries():
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)
-
     create_quarto_notebooks(state.input_settings, state.summary_settings)
+
 
 
 def get_current_commit_hash():
@@ -321,10 +320,7 @@ def main():
         state.create_main_project()
 
     if state.input_settings.run_accessibility_calcs:
-        accessibility_calcs(state)
-
-    if state.input_settings.abm_model == "activitysim":
-        create_activitysim_inputs.run(state)
+        accessibility_calcs()
 
     if not os.path.exists("working"):
         os.makedirs("working")
@@ -410,7 +406,7 @@ def main():
                 print("System converged!")
                 break
             print(
-                "The system is not yet converged. ABM and assignment will be re-run."
+                "The system is not yet converged. Daysim and Assignment will be re-run."
             )
 
     # If building shadow prices, update work and school shadow prices

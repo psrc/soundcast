@@ -300,10 +300,10 @@ def copy_accessibility_files(state):
                 sys.exit(1)
 
 
-def build_output_dirs(settings):
+def build_output_dirs(state):
     for path in [
         "outputs",
-        os.path.join("outputs", settings.input_settings.abm_model),
+        os.path.join("outputs", state.input_settings.abm_model),
         # r"outputs/daysim",
         "outputs/bike",
         "outputs/network",
