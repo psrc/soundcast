@@ -42,10 +42,11 @@ county = {1: "King",
 transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
 all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCHBUS","TNC","Other"]
 
-def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
+def get_validation_data(summary_config, run_args_dict, df_name, weight_col, uncloned=True):
 
     summary_settings = SummarySettings(**summary_config)
-    run_path = summary_settings.sc_run_path
+    # run_path = summary_settings.sc_run_path
+    run_path = run_args_dict['output_dir']
 
     # model data
     model = pl.read_parquet(Path(run_path) / f"final_{df_name}.parquet")
@@ -72,7 +73,8 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
                          # TODO: clean or remove prev_home_notwa_zip column in household table/ clean or remove string values in tour_type_id
                          schema_overrides={'prev_home_notwa_zip': pl.String,
                                            'tour_type_id': pl.String,
-                                           'transit_quality_flag': pl.String},
+                                           'transit_quality_flag': pl.String,
+                                           'race_other_specify': pl.String},
                          null_values="Missing Response")
 
         # Add source column
@@ -87,38 +89,73 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     survey_data = pl.concat([df.select(list(common_cols)) for df in survey_list], how="vertical_relaxed")
     
     if df_name == "tours":
-        survey_data = survey_data.rename({
-            "survey_tour_id": "tour_id",
-            "tour_distance": "tour_distance_one_way",
-            "survey_parent_tour_id": "parent_tour_id"})
+        rename_map = {
+            old: new
+            for old, new in {
+                "survey_tour_id": "tour_id",
+                "tour_distance": "tour_distance_one_way",
+                "survey_parent_tour_id": "parent_tour_id",
+            }.items()
+            if old in survey_data.columns and new not in survey_data.columns
+        }
+        if rename_map:
+            survey_data = survey_data.rename(rename_map)
         # FIXME: add atwork_subtour_frequency to survey data?
         survey_data = survey_data.with_columns(
             atwork_subtour_frequency = pl.lit(None).cast(pl.String)
         )
     
     if df_name == "trips":
-        survey_data = survey_data.rename({
-            "trip_distance": "od_dist_drive",
-            "survey_tour_id": "tour_id"
-            })
+        rename_map = {
+            old: new
+            for old, new in {
+                "trip_distance": "od_dist_drive",
+                "survey_tour_id": "tour_id",
+            }.items()
+            if old in survey_data.columns and new not in survey_data.columns
+        }
+        if rename_map:
+            survey_data = survey_data.rename(rename_map)
+
+    # Some survey extracts omit the requested weight column (e.g., tours).
+    # Keep downstream aggregation stable by defaulting to unit weights.
+    if weight_col not in survey_data.columns:
+        survey_data = survey_data.with_columns(pl.lit(1.0).alias(weight_col))
 
     col_list = np.intersect1d(survey_data.columns, model.columns)
     survey_data = survey_data[col_list]
     model = model[col_list]
 
     # align survey data to model schema
+    # Some survey fields may be labeled strings (e.g., "1 adult") while model
+    # columns are numeric; extract the leading number before integer casting.
     model_schema = model.schema
-    survey_data = survey_data.with_columns([
-        pl.col(col_name).cast(new_type) for col_name, new_type in model_schema.items()
-    ])
+    cast_exprs = []
+    for col_name, new_type in model_schema.items():
+        col_expr = pl.col(col_name)
+        if isinstance(new_type, pl.datatypes.IntegerType):
+            col_expr = pl.when(pl.col(col_name).is_null()) \
+                .then(None) \
+                .otherwise(
+                    pl.col(col_name)
+                    .cast(pl.String, strict=False)
+                    .str.extract(r"^\s*(-?\d+)", 1)
+                ) \
+                .cast(new_type, strict=False)
+        else:
+            col_expr = col_expr.cast(new_type, strict=False)
+        cast_exprs.append(col_expr.alias(col_name))
+
+    survey_data = survey_data.with_columns(cast_exprs)
 
     data = pl.concat([survey_data,model])
 
     return data
 
-def get_hh_data(summary_config, uncloned=True):
+def get_hh_data(summary_config, run_args_dict, uncloned=True):
         
-    hh_data = get_validation_data(summary_config, 
+    hh_data = get_validation_data(summary_config,
+                                  run_args_dict, 
                                   "households", 
                                   "hh_weight", 
                                   uncloned)
@@ -184,7 +221,7 @@ def get_hh_data(summary_config, uncloned=True):
     col_list = ['log_emptot_1','log_hh_1']
 
     hh_data = hh_data.\
-        join(get_landuse_data(summary_config, to_pandas=False).select(['zone_id','log_emptot_1','log_hh_1']), 
+        join(get_landuse_data(summary_config, run_args_dict, to_pandas=False).select(['zone_id','log_emptot_1','log_hh_1']), 
             how="left",left_on='home_zone_id',right_on='zone_id').\
         join(pl.read_csv("R:/e2projects_two/activitysim/estimation/2017_2019_data/validation_data/auto_ownership/maz_bg_lookup.csv")[['MAZ', 'block_group_id']], 
             how="left",left_on='home_zone_id',right_on='MAZ')
@@ -223,9 +260,10 @@ def get_hh_data(summary_config, uncloned=True):
 
     return hh_data.to_pandas()
 
-def get_person_data(summary_config, uncloned=True, get_cdap=False):
+def get_person_data(summary_config, run_args_dict, uncloned=True, get_cdap=False):
         
-    per_data = get_validation_data(summary_config, 
+    per_data = get_validation_data(summary_config,
+                                   run_args_dict,
                                    "persons", 
                                    "person_weight", 
                                    uncloned)
@@ -272,9 +310,10 @@ def get_person_data(summary_config, uncloned=True, get_cdap=False):
 
     return per_data.to_pandas()
 
-def get_trip_data(summary_config, uncloned=False):
+def get_trip_data(summary_config, run_args_dict, uncloned=False):
         
-    trip_data = get_validation_data(summary_config, 
+    trip_data = get_validation_data(summary_config,
+                                    run_args_dict,
                                     "trips", 
                                     "trip_weight", 
                                     uncloned)
@@ -319,9 +358,10 @@ def get_trip_data(summary_config, uncloned=False):
 
     return trip_data.to_pandas()
 
-def get_tour_data(summary_config, uncloned=False):
+def get_tour_data(summary_config, run_args_dict, uncloned=False):
         
-    tour_data = get_validation_data(summary_config, 
+    tour_data = get_validation_data(summary_config,
+                                  run_args_dict,
                                     "tours", 
                                     "tour_weight", 
                                     uncloned)
@@ -372,10 +412,11 @@ def get_tour_data(summary_config, uncloned=False):
 
     return tour_data.to_pandas()
 
-def get_landuse_data(summary_config, to_pandas=True):
+def get_landuse_data(summary_config, run_args_dict, to_pandas=True):
     
     summary_settings = SummarySettings(**summary_config)
-    run_path = summary_settings.sc_run_path
+    # run_path = summary_settings.sc_run_path
+    run_path = run_args_dict['output_dir']
         
     landuse_data = pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
 

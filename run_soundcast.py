@@ -251,7 +251,7 @@ def run_all_summaries():
     agg.main(state)
     validation.main(state)
     job_accessibility.main(state)
-    create_quarto_notebooks(state.input_settings, state.summary_settings)
+    create_quarto_notebooks(state.input_settings, state.summary_settings, run_args)
 
 
 
