@@ -17,6 +17,10 @@ def add_run_args(parser, multiprocess=True):
         "-d", "--data_dir", type=str, metavar="PATH", help="path to data dir"
     )
 
+    parser.add_argument(
+        "-s", "--segment_name", type=str, metavar="SEGMENT", help="geography segmentation (e.g. full)"
+    )
+
     
 
 

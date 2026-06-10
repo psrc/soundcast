@@ -14,7 +14,8 @@ if str(PROJECT_ROOT) not in sys.path:
 def run_ipynb(input_settings,
               summary_settings,
               sheet_name: str, 
-              nb_folder: Path):
+              nb_folder: Path,
+              run_args=None):
     """Execute a Jupyter notebook using papermill."""
 
     print(f"Start executing {sheet_name}")
@@ -23,24 +24,42 @@ def run_ipynb(input_settings,
     
     input_config = input_settings.model_dump()
     summary_config = summary_settings.model_dump()
+    run_args_dict = {}
     
+    if run_args:
+        run_args_obj = getattr(run_args, "args", run_args)
+        output_dir = getattr(run_args_obj, "output_dir", None)
+        data_dir = getattr(run_args_obj, "data_dir", None)
+
+        if output_dir is not None:
+            run_args_dict["output_dir"] = output_dir
+        if data_dir is not None:
+            run_args_dict["data_dir"] = data_dir
+
+    
+    parameters = dict(
+        summary_config=summary_config,  # inject input and summary config as parameters
+        input_config=input_config,
+    )
+    parameters["run_args_dict"] = run_args_dict
+
     pm.execute_notebook(
         str(nb_path),
         str(nb_path),  # Output to same file
         kernel_name=None,
         execution_timeout=1500,
         cwd=str(nb_folder),
-        parameters=dict(summary_config = summary_config, # inject input and summary config as parameters
-                        input_config = input_config)
+        parameters=parameters,
     )
 
     end_time = time.time()
     print(f"Successfully executed {sheet_name} in {end_time - start_time:.1f} seconds")
 
-def render_quarto(input_settings,
+def  render_quarto(input_settings,
                   summary_settings,
                   notebook_name: str, 
-                  scripts_dir: Path
+                  scripts_dir: Path,
+                  run_args=None
                   ):
 
     print(f"Creating {notebook_name}...")
@@ -51,7 +70,8 @@ def render_quarto(input_settings,
         run_ipynb(input_settings,
                   summary_settings,
                   sheet_name, 
-                  scripts_dir/ "nb")
+                  scripts_dir/ "nb",
+                  run_args=run_args)
 
     # render quarto book
     text = "quarto render " + str(scripts_dir)
@@ -69,7 +89,7 @@ def render_quarto(input_settings,
     shutil.move(scripts_dir / notebook_name, output_dir)
 
 
-def create_quarto_notebooks(input_settings, summary_settings):
+def create_quarto_notebooks(input_settings, summary_settings, run_args=None):
         
     # create RTP summary notebook
     if summary_settings.run_RTP_summary:
@@ -85,7 +105,8 @@ def create_quarto_notebooks(input_settings, summary_settings):
         render_quarto(input_settings,
                       summary_settings,
                       notebook_name = f"{input_settings.abm_model}-validation-notebook",
-                      scripts_dir = PROJECT_ROOT / f"scripts/summarize/validation_{input_settings.abm_model}")
+                      scripts_dir = PROJECT_ROOT / f"scripts/summarize/validation_{input_settings.abm_model}",
+                      run_args=run_args)
 
     # create network validation notebook
     if summary_settings.run_network_validation:

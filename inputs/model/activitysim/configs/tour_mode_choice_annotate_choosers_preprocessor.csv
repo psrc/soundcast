@@ -120,3 +120,23 @@ destination in central business district,destination_in_cbd,"(reindex(land_use.a
 ,dist_walk_,od_skims['DISTWALK'] 
 ,dist_bike_,od_skims['DISTBIKE']
 ,vot_bin_da,"np.where(vot_da < vot_threshold_low, 1, np.where(vot_da < vot_threshold_med, 2, 3))"
+# PNR with lot choice known -- needs to preface expressions on available lot since -1 index on skims returns error,,,
+park and ride zone id,_CALC_PNR,"'pnr_zone_id' in df.columns"
+has valid pnr lot choice,is_valid_pnr,((df.pnr_zone_id > 0) & (ldt_skims['ivtwa']>0) & (dlt_skims['ivtwa']>0)) if _CALC_PNR else False
+outbound auto time for pnr,auto_time_pnr_out,"0 if not _CALC_PNR else np.where(is_valid_pnr, (olt_skims['sov_inc1t'] * (_vot_bin_da == 1)) + (olt_skims['sov_inc2t'] * (_vot_bin_da == 2)) + (olt_skims['sov_inc3t'] * (_vot_bin_da == 3)), 0)"
+inbound auto time for pnr,auto_time_pnr_inb,"0 if not _CALC_PNR else np.where(is_valid_pnr, (lot_skims['sov_inc1t'] * (_vot_bin_da == 1)) + (lot_skims['sov_inc2t'] * (_vot_bin_da == 2)) + (lot_skims['sov_inc3t'] * (_vot_bin_da == 3)), 0)"
+outbound auto dist for pnr,auto_dist_pnr_out,"0 if not _CALC_PNR else np.where(is_valid_pnr, (olt_skims['sov_inc1d'] * (_vot_bin_da == 1)) + (olt_skims['sov_inc2d'] * (_vot_bin_da == 2)) + (olt_skims['sov_inc3d'] * (_vot_bin_da == 3)), 0)"
+inbound auto dist for pnr,auto_dist_pnr_inb,"0 if not _CALC_PNR else np.where(is_valid_pnr, (lot_skims['sov_inc1d'] * (_vot_bin_da == 1)) + (lot_skims['sov_inc2d'] * (_vot_bin_da == 2)) + (lot_skims['sov_inc3d'] * (_vot_bin_da == 3)), 0)"
+in vehicle transit time pnr,transit_time_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['ivtwa'] + dlt_skims['ivtwa']), 0)"
+#pnr transit fare,pnr_fare,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx'] + dlt_skims['mfafarbx']), 0)"
+pnr transit fare,pnr_fare,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx']), 0)"
+transfers pnr,transfers_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['xfrwa'] + dlt_skims['xfrwa']), 0)"
+walk access times pnr,walk_dest_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['auxwa'] + dlt_skims['auxwa']), 0)"
+#transfer walk times pnr,xfer_walk_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['auxwa'] + dlt_skims['auxwa']), 0)"
+transfer wait times pnr,xfer_wait_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['xfrwa'] + dlt_skims['xfrwa']), 0)"
+first wait times pnr,iwait_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['iwtwa'] + dlt_skims['iwtwa']), 0)"
+#stop type constant pnr,stop_type_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['WTW_RST'] + dlt_skims['WTW_RST']), 0)"
+#vehicle type constant pnr,vehicle_type_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['WTW_VTC'] + dlt_skims['WTW_VTC']), 0)"
+#walking access and egress times at dest end pnr,walk_at_dest_end_pnr,"2 * dest_local_time"
+#parking cost pnr,parking_cost_pnr,"0 if not _CALC_PNR else np.where((not _CALC_PNR) | ('PNR_PRKCST' not in land_use.columns), 0, np.where(is_valid_pnr,reindex(land_use.PNR_PRKCST, df.pnr_zone_id), 0))"
+#fare pnr,fare_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx'] + dlt_skims['fare']), 0)"
