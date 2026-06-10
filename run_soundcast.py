@@ -175,7 +175,7 @@ def daysim_assignment(iteration):
     # Run Daysim Activity Models
     ########################################
 
-    if state.input_settings.run_abm:
+    if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
         logger.info("Start of %s iteration of Daysim", str(iteration))
         returncode = subprocess.call(
             "Daysim/Daysim.exe -c Daysim/daysim_configuration.properties"
