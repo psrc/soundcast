@@ -16,10 +16,12 @@ deal with negative durations,start,"np.where((df.duration < 0) & (df.out_period 
 ,is_joint,(df.tour_category=='joint') if 'tour_category' in df.columns else False
 ,is_indiv,~is_joint
 ,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
-,is_school,(df.tour_type=='school') if _DF_IS_TOUR else False
+,is_school,(df.tour_category=='school') if 'tour_category' in df.columns else False
 ,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
 #,,
+,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
 ,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
+#,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
 ,dest_log_emptot_1,"reindex(land_use.log_emptot_1, df[dest_col_name])"
 # cost coef,,
 ,income_exponent,"np.where(tour_type == 'work', 0.6, 0.5)"
@@ -65,15 +67,9 @@ Determining Tour Destination,destination,df.destination if 'destination' in df.c
 ,walk_transit_available,(_origin_distance_to_transit <= walkThresh) & (_destination_distance_to_transit <= walkThresh) & (_origin_distance_to_transit > 0) & (_destination_distance_to_transit > 0)
 ,walk_local_available,walk_transit_available & (odt_skims['ivtwa']>0) & (dot_skims['ivtwa']>0) & (dot_skims['ivtwa']<600)
 ,walk_commuter_available,walk_transit_available & (odt_skims['ivtwc']>0) & (dot_skims['ivtwc']>0) & ((odt_skims['ivtwc'] + dot_skims['ivtwc'])>0) & (dot_skims['ivtwc']<600)
-,viable_ferry_walk,(odt_skims['auxwf']<=60) & (dot_skims['auxwf']<=60)
-,walk_ferry_available,walk_transit_available & viable_ferry_walk & (odt_skims['ivtwf']>0) & (dot_skims['ivtwf']>0) & ((odt_skims['ivtwf'] + dot_skims['ivtwf'])>0) & (dot_skims['ivtwf']<600)
+,walk_ferry_available,walk_transit_available & (odt_skims['ivtwf']>0) & (dot_skims['ivtwf']>0) & ((odt_skims['ivtwf'] + dot_skims['ivtwf'])>0) & (dot_skims['ivtwf']<600)
 ,walk_light_rail_available,walk_transit_available & (odt_skims['ivtwr']>0) & (dot_skims['ivtwr']>0) & ((odt_skims['ivtwr'] + dot_skims['ivtwr'])>0) & (dot_skims['ivtwr']<600)
-,_walk_local_roundtrip_ivt,odt_skims['ivtwa'] + dot_skims['ivtwa']
-,_walk_commuter_roundtrip_ivt,odt_skims['ivtwc'] + dot_skims['ivtwc']
-,_walk_ferry_roundtrip_ivt,odt_skims['ivtwf'] + dot_skims['ivtwf']
-,_walk_light_rail_roundtrip_ivt,odt_skims['ivtwr'] + dot_skims['ivtwr']
-,ferry_is_fastest_transit,walk_ferry_available & (_walk_ferry_roundtrip_ivt < _walk_local_roundtrip_ivt) & (_walk_ferry_roundtrip_ivt < _walk_commuter_roundtrip_ivt) & (_walk_ferry_roundtrip_ivt < _walk_light_rail_roundtrip_ivt)
-,drive_transit_available,(_destination_distance_to_transit <= walkThresh) & (_destination_distance_to_transit > 0) & (odt_skims['ivtwa']>0) & (dot_skims['ivtwa']>0) & (dot_skims['ivtwa']<600)
+,drive_transit_available,(_destination_distance_to_transit <= walkThresh) & (_destination_distance_to_transit > 0) & (odt_skims['DRV_TRN_WLK_TOTIVT']>0) & (dot_skims['WLK_TRN_DRV_TOTIVT']>0) & (dot_skims['WLK_TRN_DRV_TOTIVT']<600)
 ,origin_walk_time,_origin_distance_to_transit*60/walkSpeed
 ,destination_walk_time,_destination_distance_to_transit*60/walkSpeed
 ,SCHBUS_available,(tour_type =='school') & (df.ptype!=3)
@@ -117,26 +113,7 @@ Determining Tour Destination,destination,df.destination if 'destination' in df.c
 #,,
 destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, df[dest_col_name]) < setting('cbd_threshold')) * 1"
 #,,FIXME diagnostic
+#,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])
 ,dist_walk_,od_skims['DISTWALK'] 
 ,dist_bike_,od_skims['DISTBIKE']
 ,vot_bin_da,"np.where(vot_da < vot_threshold_low, 1, np.where(vot_da < vot_threshold_med, 2, 3))"
-# PNR with lot choice known -- needs to preface expressions on available lot since -1 index on skims returns error,,,
-park and ride zone id,_CALC_PNR,"'pnr_zone_id' in df.columns"
-has valid pnr lot choice,is_valid_pnr,((df.pnr_zone_id > 0) & (ldt_skims['ivtwa']>0) & (dlt_skims['ivtwa']>0)) if _CALC_PNR else False
-outbound auto time for pnr,auto_time_pnr_out,"0 if not _CALC_PNR else np.where(is_valid_pnr, (olt_skims['sov_inc1t'] * (_vot_bin_da == 1)) + (olt_skims['sov_inc2t'] * (_vot_bin_da == 2)) + (olt_skims['sov_inc3t'] * (_vot_bin_da == 3)), 0)"
-inbound auto time for pnr,auto_time_pnr_inb,"0 if not _CALC_PNR else np.where(is_valid_pnr, (lot_skims['sov_inc1t'] * (_vot_bin_da == 1)) + (lot_skims['sov_inc2t'] * (_vot_bin_da == 2)) + (lot_skims['sov_inc3t'] * (_vot_bin_da == 3)), 0)"
-outbound auto dist for pnr,auto_dist_pnr_out,"0 if not _CALC_PNR else np.where(is_valid_pnr, (olt_skims['sov_inc1d'] * (_vot_bin_da == 1)) + (olt_skims['sov_inc2d'] * (_vot_bin_da == 2)) + (olt_skims['sov_inc3d'] * (_vot_bin_da == 3)), 0)"
-inbound auto dist for pnr,auto_dist_pnr_inb,"0 if not _CALC_PNR else np.where(is_valid_pnr, (lot_skims['sov_inc1d'] * (_vot_bin_da == 1)) + (lot_skims['sov_inc2d'] * (_vot_bin_da == 2)) + (lot_skims['sov_inc3d'] * (_vot_bin_da == 3)), 0)"
-in vehicle transit time pnr,transit_time_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['ivtwa'] + dlt_skims['ivtwa']), 0)"
-#pnr transit fare,pnr_fare,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx'] + dlt_skims['mfafarbx']), 0)"
-pnr transit fare,pnr_fare,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx']), 0)"
-transfers pnr,transfers_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['xfrwa'] + dlt_skims['xfrwa']), 0)"
-walk access times pnr,walk_dest_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['auxwa'] + dlt_skims['auxwa']), 0)"
-#transfer walk times pnr,xfer_walk_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['auxwa'] + dlt_skims['auxwa']), 0)"
-transfer wait times pnr,xfer_wait_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['xfrwa'] + dlt_skims['xfrwa']), 0)"
-first wait times pnr,iwait_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['iwtwa'] + dlt_skims['iwtwa']), 0)"
-#stop type constant pnr,stop_type_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['WTW_RST'] + dlt_skims['WTW_RST']), 0)"
-#vehicle type constant pnr,vehicle_type_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['WTW_VTC'] + dlt_skims['WTW_VTC']), 0)"
-#walking access and egress times at dest end pnr,walk_at_dest_end_pnr,"2 * dest_local_time"
-#parking cost pnr,parking_cost_pnr,"0 if not _CALC_PNR else np.where((not _CALC_PNR) | ('PNR_PRKCST' not in land_use.columns), 0, np.where(is_valid_pnr,reindex(land_use.PNR_PRKCST, df.pnr_zone_id), 0))"
-#fare pnr,fare_pnr,"0 if not _CALC_PNR else np.where(is_valid_pnr, (ldt_skims['mfafarbx'] + dlt_skims['fare']), 0)"

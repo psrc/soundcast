@@ -36,30 +36,6 @@ MATRICES:
         data_field: hov2_EA_3
       - name: hov3_inc3
         data_field: hov3_EA_3
-      - name: sov_inc1
-        data_field: PNR_OUT_DRIVE_LEG_VOT1_EA
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc2
-        data_field: PNR_OUT_DRIVE_LEG_VOT2_EA
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc3
-        data_field: PNR_OUT_DRIVE_LEG_VOT3_EA
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc1
-        data_field: PNR_INB_DRIVE_LEG_VOT1_EA
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc2
-        data_field: PNR_INB_DRIVE_LEG_VOT2_EA
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc3
-        data_field: PNR_INB_DRIVE_LEG_VOT3_EA
-        origin: pnr_zone_id
-        destination: origin
       - name: walk
         data_field: WALK_EA
       - name: bike
@@ -72,14 +48,10 @@ MATRICES:
         data_field: WALK_FRY_EA
       - name: commuter_rail
         data_field: WALK_COM_EA
-      - name: pnr_transit
-        data_field: PNR_OUT_TRNST_LEG_EA
-        origin: pnr_zone_id
-        destination: origin
-      - name: pnr_transit
-        data_field: PNR_INB_TRNST_LEG_EA
-        origin: destination
-        destination: pnr_zone_id
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_EA
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_EA
       - name: tnc_inc1
         data_field: TNC_EA_1
       - name: tnc_inc2
@@ -108,30 +80,6 @@ MATRICES:
         data_field: hov2_AM_3
       - name: hov3_inc3
         data_field: hov3_AM_3
-      - name: sov_inc1
-        data_field: PNR_OUT_DRIVE_LEG_VOT1_AM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc2
-        data_field: PNR_OUT_DRIVE_LEG_VOT2_AM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc3
-        data_field: PNR_OUT_DRIVE_LEG_VOT3_AM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc1
-        data_field: PNR_INB_DRIVE_LEG_VOT1_AM
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc2
-        data_field: PNR_INB_DRIVE_LEG_VOT2_AM
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc3
-        data_field: PNR_INB_DRIVE_LEG_VOT3_AM
-        origin: pnr_zone_id
-        destination: origin
       - name: walk
         data_field: WALK_AM
       - name: bike
@@ -144,14 +92,10 @@ MATRICES:
         data_field: WALK_FRY_AM
       - name: commuter_rail
         data_field: WALK_COM_AM
-      - name: pnr_transit
-        data_field: PNR_OUT_TRNST_LEG_AM
-        origin: pnr_zone_id
-        destination: origin
-      - name: pnr_transit
-        data_field: PNR_INB_TRNST_LEG_AM
-        origin: destination
-        destination: pnr_zone_id
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_AM
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_AM
       - name: tnc_inc1
         data_field: TNC_AM_1
       - name: tnc_inc2
@@ -180,30 +124,6 @@ MATRICES:
         data_field: hov2_MD_3
       - name: hov3_inc3
         data_field: hov3_MD_3
-      - name: sov_inc1
-        data_field: PNR_OUT_DRIVE_LEG_VOT1_MD
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc2
-        data_field: PNR_OUT_DRIVE_LEG_VOT2_MD
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc3
-        data_field: PNR_OUT_DRIVE_LEG_VOT3_MD
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc1
-        data_field: PNR_INB_DRIVE_LEG_VOT1_MD
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc2
-        data_field: PNR_INB_DRIVE_LEG_VOT2_MD
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc3
-        data_field: PNR_INB_DRIVE_LEG_VOT3_MD
-        origin: pnr_zone_id
-        destination: origin
       - name: walk
         data_field: WALK_MD
       - name: bike
@@ -216,14 +136,10 @@ MATRICES:
         data_field: WALK_FRY_MD
       - name: commuter_rail
         data_field: WALK_COM_MD
-      - name: pnr_transit
-        data_field: PNR_OUT_TRNST_LEG_MD
-        origin: pnr_zone_id
-        destination: origin
-      - name: pnr_transit
-        data_field: PNR_INB_TRNST_LEG_MD
-        origin: destination
-        destination: pnr_zone_id
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_MD
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_MD
       - name: tnc_inc1
         data_field: TNC_MD_1
       - name: tnc_inc2
@@ -252,30 +168,6 @@ MATRICES:
         data_field: hov2_PM_3
       - name: hov3_inc3
         data_field: hov3_PM_3
-      - name: sov_inc1
-        data_field: PNR_OUT_DRIVE_LEG_VOT1_PM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc2
-        data_field: PNR_OUT_DRIVE_LEG_VOT2_PM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc3
-        data_field: PNR_OUT_DRIVE_LEG_VOT3_PM
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc1
-        data_field: PNR_INB_DRIVE_LEG_VOT1_PM
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc2
-        data_field: PNR_INB_DRIVE_LEG_VOT2_PM
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc3
-        data_field: PNR_INB_DRIVE_LEG_VOT3_PM
-        origin: pnr_zone_id
-        destination: origin
       - name: walk
         data_field: WALK_PM
       - name: bike
@@ -288,14 +180,10 @@ MATRICES:
         data_field: WALK_FRY_PM
       - name: commuter_rail
         data_field: WALK_COM_PM
-      - name: pnr_transit
-        data_field: PNR_OUT_TRNST_LEG_PM
-        origin: pnr_zone_id
-        destination: origin
-      - name: pnr_transit
-        data_field: PNR_INB_TRNST_LEG_PM
-        origin: destination
-        destination: pnr_zone_id
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_PM
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_PM
       - name: tnc_inc1
         data_field: TNC_PM_1
       - name: tnc_inc2
@@ -324,30 +212,6 @@ MATRICES:
         data_field: hov2_EV_3
       - name: hov3_inc3
         data_field: hov3_EV_3
-      - name: sov_inc1
-        data_field: PNR_OUT_DRIVE_LEG_VOT1_EV
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc2
-        data_field: PNR_OUT_DRIVE_LEG_VOT2_EV
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc3
-        data_field: PNR_OUT_DRIVE_LEG_VOT3_EV
-        origin: origin
-        destination: pnr_zone_id
-      - name: sov_inc1
-        data_field: PNR_INB_DRIVE_LEG_VOT1_EV
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc2
-        data_field: PNR_INB_DRIVE_LEG_VOT2_EV
-        origin: pnr_zone_id
-        destination: origin
-      - name: sov_inc3
-        data_field: PNR_INB_DRIVE_LEG_VOT3_EV
-        origin: pnr_zone_id
-        destination: origin
       - name: walk
         data_field: WALK_EV
       - name: bike
@@ -360,14 +224,10 @@ MATRICES:
         data_field: WALK_FRY_EV
       - name: commuter_rail
         data_field: WALK_COM_EV
-      - name: pnr_transit
-        data_field: PNR_OUT_TRNST_LEG_EV
-        origin: pnr_zone_id
-        destination: origin
-      - name: pnr_transit
-        data_field: PNR_INB_TRNST_LEG_EV
-        origin: destination
-        destination: pnr_zone_id
+      - name: pnr_demand_access
+        data_field: DRV_TRN_WLK_EV
+      - name: pnr_demand_egress
+        data_field: WLK_TRN_DRV_EV
       - name: tnc_inc1
         data_field: TNC_EV_1
       - name: tnc_inc2
@@ -394,6 +254,3 @@ CONSTANTS:
     EV:
       first_hour: 18
       last_hour: 19
-# Note that logic in write_trip_matrices_annotate_trips_prepocessor.yaml 
-# adds all trips with hour > EV["last_hour"] to EA, to match 20to5 time period
-# is_ea,"(trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])) | (trips.depart > time_periods['EV']['last_hour'])

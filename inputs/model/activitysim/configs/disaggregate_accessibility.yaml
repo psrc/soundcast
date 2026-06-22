@@ -64,6 +64,7 @@ CREATE_TABLES:
             grade: 0                    # Not attending
             timeFactorWork: 1           # mean
             timeFactorNonWork: 1        # mean
+            telework_time: 0            # not teleworking
         mapped_fields:
             pnum:
                 age:
