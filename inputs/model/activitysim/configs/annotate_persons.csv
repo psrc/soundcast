@@ -38,6 +38,7 @@ school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT
 #,,
 is_worker,is_worker,"persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART])"
 ,is_out_of_home_worker,is_worker
+#,is_telecommuter,"np.where(persons.telework_time >= 3, True, False)"
 #,,
 home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"
 ,_mean_work,distributed_time_factor_work_mean

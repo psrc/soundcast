@@ -39,4 +39,5 @@ preprocessor:
   DF: persons
   TABLES:
     - tours
+    - households
 #    - accessibility
