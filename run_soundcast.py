@@ -26,6 +26,7 @@ import random
 
 sys.path.append(os.path.join(os.getcwd(), "inputs"))
 sys.path.append(os.path.join(os.getcwd(), "scripts"))
+from soundcast import create_activitysim_inputs
 from scripts import logcontroller
 from scripts.settings import run_args
 from scripts.settings import state
@@ -321,6 +322,9 @@ def main():
 
     if state.input_settings.run_accessibility_calcs:
         accessibility_calcs()
+
+    if state.input_settings.abm_model == "activitysim":
+        create_activitysim_inputs.run(state)
 
     if not os.path.exists("working"):
         os.makedirs("working")

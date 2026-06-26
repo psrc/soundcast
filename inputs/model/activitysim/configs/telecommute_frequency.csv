@@ -1,31 +1,32 @@
-Label,Description,Expression,No_Telecommute,1_day_week,2_3_days_week,4_days_week
-util_employment_density_at_work,log employment density work,@df.log_employment_density_at_work,0,coef_Emp_Density_At_Work_1day,coef_Emp_Density_At_Work_23day,coef_Emp_Density_At_Work_4day
-util_asc_KingCounty,King County constant,@df.county_id==1,0,coef_ASC_KingCounty_1day,coef_ASC_KingCounty_23day,coef_ASC_KingCounty_4day
-util_asc,asc constant,1,0,coef_ASC_1_day,coef_ASC_2_3_day,coef_ASC_4_day
-util_HasChildren0to5,Has children 0 to 5 years old,@df.has_young_children,0,coef_HasChildren0to5_1day,coef_HasChildren0to5_23day,coef_HasChildren0to5_4day
-util_HasChildren6to12,Has children 6 to 12 years old,@df.has_children_6_to_12,0,coef_HasChildren6to12_1day,coef_HasChildren6to12_23day,coef_HasChildren6to12_4day
-util_OneAdultInHH,One adult in hh,@df.num_adults==1,0,coef_OneAdultInHH_1day,coef_OneAdultInHH_23day,coef_OneAdultInHH_4day
-util_2plusAdultsInHH,2 or more adults in hh,@df.num_adults==2,0,coef_2plusAdultsInHH_1day,coef_2plusAdultsInHH_23day,coef_2plusAdultsInHH_4day
-util_Female,female,@df.sex==2,0,coef_Female_1day,coef_Female_23day,coef_Female_4day
-util_PartTimeWorker,Part-time worker,@df.pemploy==PEMPLOY_PART,0,coef_PartTimeWorker_1day,coef_PartTimeWorker_23day,coef_PartTimeWorker_4day
-util_CollegeStudent,College student,@df.ptype==PTYPE_UNIVERSITY,0,coef_CollegeStudent_1day,coef_CollegeStudent_23day,coef_CollegeStudent_4day
-util_PaysToPark,Pays to park,@df.pay_to_park_at_work,0,coef_PaysToPark_1day,coef_PaysToPark_23day,coef_PaysToPark_4day
-#util_PaysToPark,Pays to park,@~df.free_parking_at_work,0,coef_PaysToPark_1day,coef_PaysToPark_23day,coef_PaysToPark_4day
-util_missing_income,Missing Income,@df.income==-1,0,coef_MissingIncome_1day,coef_MissingIncome_23day,coef_MissingIncome_4day
-util_Income60to100k,Income 60-100k,@(df.income >= 60000) & (df.income < 100000),0,coef_Income60to100k_1day,coef_Income60to100k_23day,coef_Income60to100k_4day
-util_Income100to150k,Income 100-150k,@(df.income >= 100000) & (df.income < 150000),0,coef_Income100to150k_1day,coef_Income100to150k_23day,coef_Income100to150k_4day
-util_Income150to200k,Income 150-200k,@(df.income >= 150000) & (df.income < 200000),0,coef_Income150to200k_1day,coef_Income150to200k_23day,coef_Income150to200k_4day
-util_Income200kplus,Income 200k+,@df.income >=200000,0,coef_Income200kplus_1day,coef_Income200kplus_23day,coef_Income200kplus_4day
-util_0Autos,0 Autos,@df.auto_ownership==0,0,coef_0Autos_1day,coef_0Autos_23day,coef_0Autos_4day
-util_1Auto,1 Auto,@df.auto_ownership==1,0,coef_1Auto_1day,coef_1Auto_23day,coef_1Auto_4day
-util_3plusAutos,3+ Autos,@df.auto_ownership>=3,0,coef_3plusAutos_1day,coef_3plusAutos_23day,coef_3plusAutos_4day
-util_DistanceToWork,Distance to work,@np.log1p(df.distance_to_work),0,coef_DistanceToWork_1day,coef_DistanceToWork_23day,coef_DistanceToWork_4day
-util_workplace_AGREMPN_share,workplace AGR employment share,@df.workplace_AGREMPN_share,0,coef_WorkAGREMPNshare_1day,coef_WorkAGREMPNshare_23day,coef_WorkAGREMPNshare_4day
-util_workplace_FOOEMPN_share,workplace FOO employment share,@df.workplace_FOOEMPN_share,0,coef_WorkFOOEMPNshare_1day,coef_WorkFOOEMPNshare_23day,coef_WorkFOOEMPNshare_4day
-util_workplace_FPSEMPN_share,workplace FPS employment share,@df.workplace_FPSEMPN_share,0,coef_WorkFPSEMPNshare_1day,coef_WorkFPSEMPNshare_23day,coef_WorkFPSEMPNshare_4day
-util_workplace_HEREMPN_share,workplace HER employment share,@df.workplace_HEREMPN_share,0,coef_WorkHEREMPNshare_1day,coef_WorkHEREMPNshare_23day,coef_WorkHEREMPNshare_4day
-util_workplace_MWTEMPN_share,workplace MWT employment share,@df.workplace_MWTEMPN_share,0,coef_WorkMWTEMPNshare_1day,coef_WorkMWTEMPNshare_23day,coef_WorkMWTEMPNshare_4day
-util_workplace_OTHEMPN_share,workplace OTH employment share,@df.workplace_OTHEMPN_share,0,coef_WorkOTHEMPNshare_1day,coef_WorkOTHEMPNshare_23day,coef_WorkOTHEMPNshare_4day
-util_workplace_RETEMPN_share,workplace RET employment share,@df.workplace_RETEMPN_share,0,coef_WorkRETEMPNshare_1day,coef_WorkRETEMPNshare_23day,coef_WorkRETEMPNshare_4day
-util_Shopping_Maint_Accessibility,shopping accessiblity,@(df.shopping_accessibility + df.othdiscr_accessibility) / 2,0,coef_ShopMaintAcc_1day,coef_ShopMaint_23day,coef_ShopMaintAcc_4day
-#util_temp,temp_calibration,1,0,-4,-4.25,-6
+Label,Description,Expression,No_Telecommute,1_day_week,2_days_week,3_days_week,4_days_week
+util_employment_density_at_work,log employment density work,@df.log_employment_density_at_work,0,coef_Emp_Density_At_Work_1day,coef_Emp_Density_At_Work_23day,coef_Emp_Density_At_Work_23day,coef_Emp_Density_At_Work_4day
+util_asc_KingCounty,King County constant,@df.county_id==1,0,coef_ASC_KingCounty_1day,coef_ASC_KingCounty_23day,coef_ASC_KingCounty_23day,coef_ASC_KingCounty_4day
+util_asc,asc constant,1,0,coef_ASC_1_day,coef_ASC_2_3_day,coef_ASC_2_3_day,coef_ASC_4_day
+util_HasChildren0to5,Has children 0 to 5 years old,@df.has_young_children,0,coef_HasChildren0to5_1day,coef_HasChildren0to5_23day,coef_HasChildren0to5_23day,coef_HasChildren0to5_4day
+util_HasChildren6to12,Has children 6 to 12 years old,@df.has_children_6_to_12,0,coef_HasChildren6to12_1day,coef_HasChildren6to12_23day,coef_HasChildren6to12_23day,coef_HasChildren6to12_4day
+util_OneAdultInHH,One adult in hh,@df.num_adults==1,0,coef_OneAdultInHH_1day,coef_OneAdultInHH_23day,coef_OneAdultInHH_23day,coef_OneAdultInHH_4day
+util_2plusAdultsInHH,2 or more adults in hh,@df.num_adults==2,0,coef_2plusAdultsInHH_1day,coef_2plusAdultsInHH_23day,coef_2plusAdultsInHH_23day,coef_2plusAdultsInHH_4day
+util_Female,female,@df.sex==2,0,coef_Female_1day,coef_Female_23day,coef_Female_23day,coef_Female_4day
+util_PartTimeWorker,Part-time worker,@df.pemploy==PEMPLOY_PART,0,coef_PartTimeWorker_1day,coef_PartTimeWorker_23day,coef_PartTimeWorker_23day,coef_PartTimeWorker_4day
+util_CollegeStudent,College student,@df.ptype==PTYPE_UNIVERSITY,0,coef_CollegeStudent_1day,coef_CollegeStudent_23day,coef_CollegeStudent_23day,coef_CollegeStudent_4day
+util_PaysToPark,Pays to park,@df.pay_to_park_at_work,0,coef_PaysToPark_1day,coef_PaysToPark_23day,coef_PaysToPark_23day,coef_PaysToPark_4day
+#util_PaysToPark,Pays to park,@~df.free_parking_at_work,0,coef_PaysToPark_1day,coef_PaysToPark_23day,coef_PaysToPark_23day,coef_PaysToPark_4day
+util_missing_income,Missing Income,@df.income==-1,0,coef_MissingIncome_1day,coef_MissingIncome_23day,coef_MissingIncome_23day,coef_MissingIncome_4day
+util_Income60to100k,Income 60-100k,@(df.income >= 60000) & (df.income < 100000),0,coef_Income60to100k_1day,coef_Income60to100k_23day,coef_Income60to100k_23day,coef_Income60to100k_4day
+util_Income100to150k,Income 100-150k,@(df.income >= 100000) & (df.income < 150000),0,coef_Income100to150k_1day,coef_Income100to150k_23day,coef_Income100to150k_23day,coef_Income100to150k_4day
+util_Income150to200k,Income 150-200k,@(df.income >= 150000) & (df.income < 200000),0,coef_Income150to200k_1day,coef_Income150to200k_23day,coef_Income150to200k_23day,coef_Income150to200k_4day
+util_Income200kplus,Income 200k+,@df.income >=200000,0,coef_Income200kplus_1day,coef_Income200kplus_23day,coef_Income200kplus_23day,coef_Income200kplus_4day
+util_0Autos,0 Autos,@df.auto_ownership==0,0,coef_0Autos_1day,coef_0Autos_23day,coef_0Autos_23day,coef_0Autos_4day
+util_1Auto,1 Auto,@df.auto_ownership==1,0,coef_1Auto_1day,coef_1Auto_23day,coef_1Auto_23day,coef_1Auto_4day
+util_3plusAutos,3+ Autos,@df.auto_ownership>=3,0,coef_3plusAutos_1day,coef_3plusAutos_23day,coef_3plusAutos_23day,coef_3plusAutos_4day
+util_DistanceToWork,Distance to work,@np.log1p(df.distance_to_work),0,coef_DistanceToWork_1day,coef_DistanceToWork_23day,coef_DistanceToWork_23day,coef_DistanceToWork_4day
+util_workplace_AGREMPN_share,workplace AGR employment share,@df.workplace_AGREMPN_share,0,coef_WorkAGREMPNshare_1day,coef_WorkAGREMPNshare_23day,coef_WorkAGREMPNshare_23day,coef_WorkAGREMPNshare_4day
+util_workplace_FOOEMPN_share,workplace FOO employment share,@df.workplace_FOOEMPN_share,0,coef_WorkFOOEMPNshare_1day,coef_WorkFOOEMPNshare_23day,coef_WorkFOOEMPNshare_23day,coef_WorkFOOEMPNshare_4day
+util_workplace_FPSEMPN_share,workplace FPS employment share,@df.workplace_FPSEMPN_share,0,coef_WorkFPSEMPNshare_1day,coef_WorkFPSEMPNshare_23day,coef_WorkFPSEMPNshare_23day,coef_WorkFPSEMPNshare_4day
+util_workplace_HEREMPN_share,workplace HER employment share,@df.workplace_HEREMPN_share,0,coef_WorkHEREMPNshare_1day,coef_WorkHEREMPNshare_23day,coef_WorkHEREMPNshare_23day,coef_WorkHEREMPNshare_4day
+util_workplace_MWTEMPN_share,workplace MWT employment share,@df.workplace_MWTEMPN_share,0,coef_WorkMWTEMPNshare_1day,coef_WorkMWTEMPNshare_23day,coef_WorkMWTEMPNshare_23day,coef_WorkMWTEMPNshare_4day
+util_workplace_OTHEMPN_share,workplace OTH employment share,@df.workplace_OTHEMPN_share,0,coef_WorkOTHEMPNshare_1day,coef_WorkOTHEMPNshare_23day,coef_WorkOTHEMPNshare_23day,coef_WorkOTHEMPNshare_4day
+util_workplace_RETEMPN_share,workplace RET employment share,@df.workplace_RETEMPN_share,0,coef_WorkRETEMPNshare_1day,coef_WorkRETEMPNshare_23day,coef_WorkRETEMPNshare_23day,coef_WorkRETEMPNshare_4day
+util_Shopping_Maint_Accessibility,shopping accessiblity,@(df.shopping_accessibility + df.othdiscr_accessibility) / 2,0,coef_ShopMaintAcc_1day,coef_ShopMaint_23day,coef_ShopMaint_23day,coef_ShopMaintAcc_4day
+#util_temp,temp_calibration,1,0,-4,-4.25,-4.25,-6
+util_split_2_3_days_constant, Constant for splitting 2_3_days telecommute frequency,@np.log(0.5),,,1,1,

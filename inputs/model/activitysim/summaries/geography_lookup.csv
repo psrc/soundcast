@@ -1,8 +1,8 @@
 left_table,left_index,right_table,right_index,right_column,right_column_rename
 Tour,origin_parcel,parcel_geog,ParcelID,district_name,tour_o_district
 Tour,destination_parcel,parcel_geog,ParcelID,district_name,tour_d_district
-Trip,otaz,parcel_geog,ParcelID,district_name,trip_o_district
-Trip,dtaz,parcel_geog,ParcelID,district_name,trip_d_district
+Trip,origin,parcel_geog,ParcelID,district_name,trip_o_district
+Trip,destination,parcel_geog,ParcelID,district_name,trip_d_district
 Trip,destination_parcel,parcel_geog,ParcelID,Census2020Tract,d_tract
 Trip,origin_parcel,parcel_geog,ParcelID,Census2020Tract,o_tract
 Tour,origin_parcel,parcel_geog,ParcelID,Census2020Tract,td_tract

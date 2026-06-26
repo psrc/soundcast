@@ -50,6 +50,7 @@ input_table_list:
       - income
       - hhsize
       - num_workers
+      - HHT
   - tablename: persons
     filename: persons.csv
     index_col: person_id
@@ -103,7 +104,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: track_skim_usage
+#resume_after: stop_frequency
 models:
   # - input_checker
 ## Disaggregate Accessibility steps
@@ -118,6 +119,7 @@ models:
   - workplace_location
   - free_parking
   - telecommute_frequency
+  - telecommute_status
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling

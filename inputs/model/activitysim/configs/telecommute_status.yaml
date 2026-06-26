@@ -1,0 +1,6 @@
+SPEC: telecommute_status.csv
+COEFFICIENTS: telecommute_status_coeffs.csv
+
+LOGIT_TYPE: MNL
+
+TELECOMMUTE_ALT: 0

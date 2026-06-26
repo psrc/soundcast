@@ -1,0 +1,11 @@
+Label,Description,Expression,telecommuting,commuting
+util_no_commute,commute 0 day a week,@df.work_from_home,,coef_unavailable
+util_no_telecommute,telecommute 0 day a week,@df.telecommute_frequency=='No_Telecommute',coef_unavailable,
+util_commute_1_day_a_week,commute to work 1 day a week,@(df.telecommute_frequency=='4_days_week') * np.log(1),,coef_one
+util_telecommute_4_days_a_week,telecommute 4 days a week,@(df.telecommute_frequency=='4_days_week') * np.log(4),coef_one,
+util_commute_2_days_a_week,commute to work 2 days a week,@(df.telecommute_frequency=='3_days_week') * np.log(2),,coef_one
+util_telecommute_3_days_a_week,telecommute 3 days a week,@(df.telecommute_frequency=='3_days_week') * np.log(3),coef_one,
+util_commute_3_days_a_week,commute to work 3 days a week,@(df.telecommute_frequency=='2_days_week') * np.log(3),,coef_one
+util_telecommute_2_days_a_week,telecommute 2 days a week,@(df.telecommute_frequency=='2_days_week') * np.log(2),coef_one,
+util_commute_4_days_a_week,commute to work 4 days a week,@(df.telecommute_frequency=='1_day_week') * np.log(4),,coef_one
+util_telecommute_1_day_a_week,telecommute 1 day a week,@(df.telecommute_frequency=='1_day_week') * np.log(1),coef_one,

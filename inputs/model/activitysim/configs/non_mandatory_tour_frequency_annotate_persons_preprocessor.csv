@@ -2,9 +2,14 @@ Description,Target,Expression
 #,,
 ,max_window,person_max_window(persons)
 ,log_max_window,np.log1p(max_window)
-,medium_low_income,(persons.income_in_thousands > 20) & (persons.income_in_thousands <= 50)
-,medium_high_income,(persons.income_in_thousands > 50) & (persons.income_in_thousands <= 100)
-,high_income,(persons.income_in_thousands > 100)
+,total_hours_available_7am_to_10pm,"person_available_periods(persons, start_bin=7, end_bin=22, continuous=False) / 2"
+,max_consecutive_hours_available_7am_to_10pm,"person_available_periods(persons, start_bin=7, end_bin=22, continuous=True) / 2"
+,log_total_hours_available_7am_to_10pm,"np.log1p(total_hours_available_7am_to_10pm)"
+,log_max_consecutive_hours_available_7am_to_10pm,"np.log1p(max_consecutive_hours_available_7am_to_10pm)"
+,low_income,(persons.income_in_thousands <= 25)
+,medium_low_income,(persons.income_in_thousands > 25) & (persons.income_in_thousands <= 50)
+,medium_high_income,(persons.income_in_thousands > 100) & (persons.income_in_thousands <= 150)
+,high_income,(persons.income_in_thousands > 150)
 ,no_cars,(persons.auto_ownership == 0)
 ,car_sufficiency,persons.auto_ownership-persons.num_workers
 #,,

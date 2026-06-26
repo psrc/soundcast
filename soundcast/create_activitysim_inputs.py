@@ -165,11 +165,74 @@ def process_households(parcel_geog):
     df_psrc = df_psrc.merge(_df, on="household_id", how="left")
     df_psrc["num_workers"] = df_psrc["num_workers"].fillna(0).astype("int")
 
+    # Household Type (HHT)
+    # Integer, 1 - family household: married-couple; 
+    # 2 - family household: male householder, no wife present; 
+    # 3 - family household: female householder, no husband present; 
+    # 4 - non-family household: male householder living alone; 
+    # 5 - non-family household: male householder, not living alone; 
+    # 6 - non-family household female householder, living alone; 
+    # 7 - non-family household: female householder, not living alone
+    # TEMP REMOVE!
+    if "HHT" not in df_psrc.columns:
+        df_psrc["HHT"] = 1
+
+    # Get household race from person race
+    # Based on the composition of adults and the person-level categorization, each household was assigned to 
+    # one of the following household racial categories: 
+    # • African American – all adults are in the African American group; OR a mix of adults in the African
+    # American and White groups.i
+    # • Asian – all adults are in the Asian group; OR a mix of adults in the Asian and White groups.
+    # • Hispanic – all adults are in the Hispanic group; OR a mix of adults in the Hispanic and White
+    # groups. 
+    # • Missing – any or all adults are in the Missing group.
+    # • Non-Hispanic White – all adults are in the White group.
+    # • Other – all adults are in the American Indian or Alaska Native, Native Hawaiian or Pacific Islander,
+    # or Other Multi
+    
+    # 1	White alone non-Hispanic
+    # 2	Black or African American alone non-Hispanic
+    # 3	Asian alone non-Hispanic
+    # 4	Some Other Race alone non-Hispanic
+    # 5	Two or More Races non-Hispanic
+    # 6	White Hispanic
+    # 7	Non-white Hispanic
+
+    adult_person = df_psrc_person[df_psrc_person["pagey"] >= 18][["household_id", "prace"]].copy()
+
+    def _classify_household_race(praces):
+        unique_prace = set(praces)
+
+        if len(unique_prace) == 0:
+            return 6
+        if any((pd.isna(v)) or (v not in {1, 2, 3, 4, 5, 6, 7}) for v in unique_prace):
+            return 6
+        if unique_prace == {1}:
+            return 1
+        if unique_prace.issubset({1, 2}) and 2 in unique_prace:
+            return 2
+        if unique_prace.issubset({1, 3}) and 3 in unique_prace:
+            return 3
+        if unique_prace.issubset({1, 6, 7}) and (6 in unique_prace or 7 in unique_prace):
+            return 4
+        return 5
+
+    hh_race = (
+        adult_person.groupby("household_id")["prace"]
+        .agg(_classify_household_race)
+        .rename("hhrace")
+        .reset_index()
+    )
+
+    df_psrc = df_psrc.merge(hh_race, on="household_id", how="left")
+    df_psrc["hhrace"] = df_psrc["hhrace"].fillna(6).astype("int")
+
+
     # Get MAZ from hhparcel
     df_psrc = df_psrc.merge(parcel_geog[["ParcelID", "maz_id"]], left_on="hhparcel", right_on="ParcelID", how="left")
     df_psrc.rename(columns={"maz_id": "home_zone_id"}, inplace=True)
 
-    hh_col_list = ["household_id", "home_zone_id", "hhparcel", "income", "hhsize", "num_workers"]
+    hh_col_list = ["household_id", "home_zone_id", "hhparcel", "income", "hhsize", "num_workers", "HHT", "hhrace"]
     df_psrc = df_psrc[hh_col_list]
     
     return df_psrc, df_psrc_person
@@ -200,7 +263,7 @@ def process_persons(df):
     df["PNUM"] = df["pno"]
     df["person_id"] = range(len(df))
 
-    person_col_list = ["person_id","household_id", "age", "sex", "PNUM", "pemploy", "pstudent", "ptype"]
+    person_col_list = ["person_id","household_id", "age", "sex", "PNUM", "pemploy", "pstudent", "ptype", "prace"]
     df = df[person_col_list]
 
     return df
