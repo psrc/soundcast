@@ -20,6 +20,8 @@ ptype_cat = {1: "1: Full-Time Worker",
              8: "8: Child Age 0-4"}
 telecommute_frequency_cat = {"No_Telecommute": "0 day",
                              "1_day_week": "1 day",
+                             "2_days_week": "2-3 days",
+                             "3_days_week": "2-3 days",
                              "2_3_days_week": "2-3 days",
                              "4_days_week": "4 days"}
 work_from_home_cat = {True: "wfh worker",
@@ -44,8 +46,7 @@ all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE",
 
 def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
-    summary_settings = SummarySettings(**summary_config)
-    run_path = summary_settings.sc_run_path
+    run_path = summary_config['output_dir']
 
     # model data
     model = pl.read_parquet(Path(run_path) / f"final_{df_name}.parquet")
@@ -59,14 +60,14 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     survey_list = []
 
     # read survey data in all sources
-    for source_name in summary_settings.survey_directories.keys():
+    for source_name in summary_config['survey_directories'].keys():
         
         if uncloned:
             # get uncloned data
-            survey_path = Path(summary_settings.survey_directories[source_name])/ summary_settings.uncloned_folder
+            survey_path = Path(summary_config['survey_directories'][source_name])/ summary_config['uncloned_folder']
         else:
             # get cloned data
-            survey_path = Path(summary_settings.survey_directories[source_name])
+            survey_path = Path(summary_config['survey_directories'][source_name])
 
         df = pl.read_csv(survey_path/ f"override_{df_name}.csv", 
                          # TODO: clean or remove prev_home_notwa_zip column in household table/ clean or remove string values in tour_type_id
@@ -374,8 +375,7 @@ def get_tour_data(summary_config, uncloned=False):
 
 def get_landuse_data(summary_config, to_pandas=True):
     
-    summary_settings = SummarySettings(**summary_config)
-    run_path = summary_settings.sc_run_path
+    run_path = summary_config['output_dir']
         
     landuse_data = pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
 
@@ -397,20 +397,23 @@ def get_landuse_data(summary_config, to_pandas=True):
 def create_distance_bin(col):
     return (
         pl.when(pl.col(col) < 0).then(None)
-        .when(pl.col(col) < 1).then(pl.lit("dist_0_1"))
-        .when(pl.col(col) < 2).then(pl.lit("dist_1_2"))
+        .when(pl.col(col) < 2).then(pl.lit("dist_0_2"))
         .when(pl.col(col) < 5).then(pl.lit("dist_2_5"))
         .when(pl.col(col) < 15).then(pl.lit("dist_5_15"))
         .otherwise(pl.lit("dist_15_up"))
-        .cast(pl.Enum(["dist_0_1", "dist_1_2", "dist_2_5", "dist_5_15", "dist_15_up"]), strict=False)
+        .cast(pl.Enum(["dist_0_2", "dist_2_5", "dist_5_15", "dist_15_up"]), strict=False)
     )
 
 # Create bins: bins of 2 miles up to 60 miles
 def create_distance_bin_60mi(col):
     max_bin = 60
     bin_size = 2
+
+    bin_list = [str(i) for i in range(0, max_bin, bin_size)]
+
     return (
-        pl.col(col).cut(np.arange(bin_size, max_bin, bin_size), labels=[str(i) for i in np.arange(0, max_bin, bin_size)])
+        pl.col(col).cut(np.arange(bin_size, max_bin, bin_size), labels=bin_list)
+        .cast(pl.Enum(bin_list), strict=False)
     )
 
 # plotting functions
