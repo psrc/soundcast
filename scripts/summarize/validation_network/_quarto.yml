@@ -15,8 +15,8 @@ book:
     - nb/transit_validation.ipynb
     - nb/bike_validation.ipynb
     - nb/link_analysis.ipynb
-    - nb/JBLM.ipynb
-    - nb/supplementals.ipynb
+    # - nb/JBLM.ipynb
+    # - nb/supplementals.ipynb
 
 format:
   html:

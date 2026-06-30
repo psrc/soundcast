@@ -8,7 +8,7 @@ protected_namespaces = '()'
 # run Quarto summary notebooks
 run_RTP_summary = false
 run_validation = true
-run_network_validation = true
+run_network_validation = false
 run_run_comparison = false
 
 #################################
@@ -244,20 +244,19 @@ PM25 = "PM25 Total"
     'cdap',
     'intermediate_stop_frequency',
     'trip_purpose',
-    'trip_destination_choice',
+    'trip_destination',
     'school_location',
     'work_location',
     'mandatory_tour_frequency',
     'mandatory_tour_scheduling',
     'non_mandatory_tour_frequency',
-    'non_mandatory_tour_destination_choice',
+    'non_mandatory_tour_destination',
     'non_mandatory_tour_scheduling',
     'joint_tour_frequency',
     'joint_tour_composition',
-    'atwork_subtours_frequency',
-    'atwork_subtours_destination_choice',
-    'atwork_subtours_scheduling',
-    'atwork_subtour_mode',
+    'atwork_subtour_frequency',
+    'atwork_subtour_destination',
+    'atwork_subtour_scheduling',
     'tour_mode_choice',
     'trip_mode_choice'
 ]
