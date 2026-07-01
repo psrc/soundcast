@@ -1,6 +1,6 @@
 ---
-title: ActivitySim Outputs
+title: Welcome
 date: today
 ---
 
-Welcome to ActivitySimvalidation tool!
+Welcome to ActivitySim validation tool!
