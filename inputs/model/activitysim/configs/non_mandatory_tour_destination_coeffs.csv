@@ -1,8 +1,8 @@
 coefficient_name,value,constrain
 coef_mode_logsum,0.6755,F
-coef_escort_dist_0_2,-0.1,F
-coef_eatout_dist_0_2,0.15,F
-coef_othdiscr_dist_0_2,0.5,F
+coef_escort_dist_0_2,-0.02,F
+coef_eatout_dist_0_2,0.22,F
+coef_othdiscr_dist_0_2,1.1,F
 coef_escort_dist_2_5,-0.9,F
 coef_shopping_dist_2_5,-1.2,F
 coef_eatout_dist_2_5,-0.5,F
