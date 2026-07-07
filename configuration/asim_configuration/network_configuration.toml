@@ -21,6 +21,7 @@ vot_2_max = 25.00    # vot_1_max < VOT for User Class 2 < vot_2_max
 
 feedback_list = ['Banks/5to9/emmebank','Banks/15to18/emmebank']
 
+skim_warn_threshold = 1000000
 
 # Time of day periods
 tods = ['5to9', '9to15', '15to18', '18to20', '20to5']

@@ -116,6 +116,15 @@ def export_link_values(project):
     network_to_shapefile(export_path=shapefile_dir, transit_shapes='LINES', scenario=project.current_scenario)
 
 
+def copy_link_attribute(target_scenario, source_scenario, target_name, source_name):
+    """Copy a link attribute from one scenario to another."""
+    if target_scenario.extra_attribute(target_name):
+        target_scenario.delete_extra_attribute(target_name)
+    target_scenario.create_extra_attribute("LINK", target_name)
+    values = source_scenario.get_attribute_values("LINK", [source_name])
+    target_scenario.set_attribute_values("LINK", [target_name], values)
+
+
 def main(state):
     """Create daily Emme databank by aggregating time-of-day results.
     
@@ -154,6 +163,7 @@ def main(state):
 
     database = project.data_explorer.add_database("Banks/Daily/emmebank")
     database.open()
+    project.change_active_database(database.title())
 
     matrix_dict = text_to_dictionary("demand_matrix_dictionary", state.model_input_dir)
     uniqueMatrices = set(matrix_dict.values())
@@ -176,12 +186,25 @@ def main(state):
     time_period_list = []
 
     daily_trips_df = pd.DataFrame()
+    daily_volume_attrs = []
+    daily_delay_attrs = []
 
     for tod, time_period in state.network_settings.sound_cast_net_dict.items():
         path = os.path.join("Banks", tod, "emmebank")
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
         network = scenario.get_network()
+
+        # Calculate network delay (vehicle hours of delay [VHD])
+        project.change_active_database(tod)
+        if project.current_scenario.extra_attribute("@vhd"):
+            project.delete_extra_attribute("@vhd")
+        project.create_extra_attribute("LINK", "@vhd")
+        project.network_calculator(
+            "link_calculation",
+            result="@vhd",
+            expression="(@tveh)*((timau)-(60*length/ul2))/60",
+        )
 
         # Trip table data:
         results_dict = {}
@@ -205,6 +228,7 @@ def main(state):
             daily_network = merge_networks(daily_network, network)
             time_period_list.append(time_period)  # this line was repeated above
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
+    project.change_active_database(database.title())
 
     daily_trips_df.columns = ['trips','tod']
     daily_trips_df.to_csv('outputs/trips_by_class.csv')
@@ -217,24 +241,31 @@ def main(state):
         if extra_attribute not in ["@type"]:
             daily_scenario.delete_extra_attribute(extra_attribute)
     daily_scenario.create_extra_attribute("LINK", "@tveh")
+    daily_scenario.create_extra_attribute("LINK", "@vhd")
     daily_network = daily_scenario.get_network()
 
     for tod, time_period in state.network_settings.sound_cast_net_dict.items():
         path = os.path.join("Banks", tod, "emmebank")
         bank = _emmebank.Emmebank(path)
         scenario = bank.scenario(1002)
-        network = scenario.get_network()
-        if daily_scenario.extra_attribute("@v" + tod):
-            daily_scenario.delete_extra_attribute("@v" + tod)
-        attr = daily_scenario.create_extra_attribute("LINK", "@v" + tod)
-        values = scenario.get_attribute_values("LINK", ["@tveh"])
-        daily_scenario.set_attribute_values("LINK", [attr], values)
+        copy_link_attribute(daily_scenario, scenario, "@v" + tod, "@tveh")
+        copy_link_attribute(daily_scenario, scenario, "@vhd" + tod, "@vhd")
+        daily_volume_attrs.append("@v" + tod)
+        daily_delay_attrs.append("@vhd" + tod)
 
     daily_network = daily_scenario.get_network()
 
-    for link in daily_network.links():
-        for item in state.network_settings.tods:
-            link["@tveh"] = link["@tveh"] + link["@v" + item]
+    project.network_calculator(
+        "link_calculation",
+        result="@tveh",
+        expression=" + ".join(daily_volume_attrs),
+    )
+    project.network_calculator(
+        "link_calculation",
+        result="@vhd",
+        expression=" + ".join(daily_delay_attrs),
+    )
+    daily_network = daily_scenario.get_network()
     daily_scenario.publish_network(daily_network, resolve_attributes=True)
 
     # Write daily link-level results

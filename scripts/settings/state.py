@@ -174,6 +174,8 @@ class NetworkSettings(BaseModel):
 
     feedback_list: list
 
+    skim_warn_threshold: int
+
     # Time of day periods
     tods: list
     tod_networks: list

@@ -901,6 +901,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                     matrix_value = emmeMatrix_to_numpyMatrix(
                         matrix_name, my_project.bank, dtype, scale_value, 2000
                     )
+                # check values
+                check_extreme_values(matrix_value, matrix_out_name) # returns value and (i,j) for origin destination. 
+                
                 # open old skim and average
                 if average_skims:
                     matrix_value = average_matrices(
@@ -940,6 +943,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 matrix_name, my_project.bank, dtype, scale_value
             )
             matrix_out_name = matrix_name + tod_tag
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name) # returns value and (i,j) for origin destination.
             # open old skim and average
             if average_skims:
                 matrix_value = average_matrices(
@@ -955,6 +961,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(
                 matrix_name, my_project.bank, dtype, scale_value
             )
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name)
             # open old skim and average
             if average_skims:
                 matrix_value = average_matrices(
@@ -976,6 +985,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
                 "walkt", my_project.bank, dtype, scale_value
             ) 
             bikedist_matrix = walkt_matrix * (10.0 / 60.0)
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name)
             # open old skim and average
             if average_skims:
                 bikedist_matrix = average_matrices(
@@ -984,6 +996,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             write_skims(state, bikedist_matrix, my_store, "DISTBIKE", dtype, taz_indexes)
 
             walkdist_matrix = walkt_matrix * (3.0 / 60.0)
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name)
             # open old skim and average
             if average_skims:
                 walkdist_matrix = average_matrices(
@@ -1004,6 +1019,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(
                 matrix_name, my_project.bank, dtype, scale_value, 2000
             )
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name)
             # open old skim and average
             if average_skims:
                 matrix_value = average_matrices(
@@ -1019,6 +1037,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(
                 matrix_name, my_project.bank, dtype, 1, 2000
             )
+
+            # check for extreme values
+            check_extreme_values(matrix_value, matrix_out_name)
             # open old skim and average
             if average_skims:
                 matrix_value = average_matrices(
@@ -1047,6 +1068,55 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
     text = f"Minutes required to export skims to HDF5: {round((end_export_hdf5 - start_export_hdf5) / 60, 2)}."
     skims_logger.info(text)
 
+def check_extreme_values(matrix_value, matrix_out_name):
+    """Check for extreme values and NaN values in skim matrices and log them.
+
+    Args:
+        matrix_value: Numpy array containing skim matrix data
+        matrix_out_name: Name of the matrix being checked (for logging)
+
+    Note:
+        Identifies values that exceed expected thresholds or are NaN and logs
+        the value and its origin-destination pair for further investigation.
+    """
+    MAX_OUTPUT = 100
+
+    problem_indices = np.argwhere(
+        np.isnan(matrix_value) |
+        (matrix_value > state.network_settings.skim_warn_threshold)
+    )
+
+    if problem_indices.size > 0:
+        num_problems = len(problem_indices)
+
+        skims_logger.warning(
+            f"{num_problems} problem value(s) found in {matrix_out_name}:"
+        )
+        print(f"{num_problems} problem value(s) found in {matrix_out_name}:")
+
+        for idx in problem_indices[:MAX_OUTPUT]:
+            index_tuple = tuple(idx)
+            val = matrix_value[index_tuple]
+
+            if np.isnan(val):
+                msg = (
+                    f"NaN value found in {matrix_out_name}: "
+                    f"Value {val} at index {index_tuple}"
+                )
+            else:
+                msg = (
+                    f"Extreme value found in {matrix_out_name}: "
+                    f"Value {val} at index {index_tuple}"
+                )
+
+            skims_logger.warning(msg)
+            print(msg)
+
+        if num_problems > MAX_OUTPUT:
+            omitted = num_problems - MAX_OUTPUT
+            msg = f"... {omitted} additional problem value(s) omitted."
+            skims_logger.warning(msg)
+            print(msg)
 
 def hdf5_trips_to_Emme(my_project, hdf_filename):
     """Load trip tables from HDF5 format into Emme databank.
@@ -2187,6 +2257,10 @@ def run(free_flow_skims=False, num_iterations=100):
     # run_transit(r'projects/20to5/20to5.emp')
 
     daily_link_df = pd.read_csv("outputs/bike/daily_link_volume.csv")
+    if daily_link_df["@tveh"].max() > state.network_settings.skim_warn_threshold:
+        text = f"Daily link volume is extreme: {daily_link_df['@tveh'].max()}. Check the following link IDs for issues: {daily_link_df[daily_link_df['@tveh'] > state.network_settings.skim_warn_threshold]['link_id'].tolist()}"
+        print(text)
+        skims_logger.error(text)
     start_bike_pool(project_list, daily_link_df)
     # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
