@@ -62,7 +62,7 @@ def json_to_dictionary(dict_name, state):
 
 
 def write_truck_trips(EmmeProject, state):
-    truck_od_matrices = ["medtrk", "hvytrk", "deltrk"]
+    truck_od_matrices = ["medtrk", "hvytrk"]
 
     # if h5 exists, delete it and re-write
     try:
@@ -98,7 +98,7 @@ def create_matrices(my_project, truck_matrix_df):
 def load_data_to_emme(balanced_prod_att, my_project, zones, state):
     """Populate Emme matrices with medium and heavy truck productions and attractions."""
 
-    for truck_type in ["m", "h", "d"]:  # Loop through medium (m) and heavy (h) trucks
+    for truck_type in ["m", "h"]:  # Loop through medium (m) and heavy (h) trucks
         for datatype in ["pro", "att"]:
             col_values = np.zeros(len(zones))
             numpy_data = balanced_prod_att[truck_type + "tk" + datatype].values
@@ -129,11 +129,9 @@ def load_data_to_emme(balanced_prod_att, my_project, zones, state):
         )
         op_cost_df["cents_per_mile"] = op_cost_df["value"] * growth_rate
 
-    # Note: Using medium truck coefficients for delivery trucks
     for mat_name, truck_type in {
         "msmedop": "medium",
-        "mshvyop": "heavy",
-        "msdelop": "medium",
+        "mshvyop": "heavy"
     }.items():
         op_cost = (
             op_cost_df[op_cost_df["truck_type"] == truck_type]["cents_per_mile"]
@@ -263,26 +261,6 @@ def balance_attractions(my_project, state):
         expression="mdhtatt * ((mshtprof - mshtatfe)/(mshtattf-mshtatfe))",
     )
 
-    # Balance Delivery Attractions to productions:
-    my_project.matrix_calculator(
-        result="msdtprof", expression="modtpro", aggregation_origins="+"
-    )
-    my_project.matrix_calculator(
-        result="msdtattf", expression="mddtatt", aggregation_destinations="+"
-    )
-    my_project.matrix_calculator(
-        result="msdtatfe",
-        expression="mddtatt",
-        constraint_by_zone_destinations=str(state.network_settings.LOW_STATION)
-        + "-"
-        + str(state.network_settings.HIGH_STATION),
-        aggregation_destinations="+",
-    )
-    my_project.matrix_calculator(
-        result="mddtatt",
-        expression="mddtatt * ((msdtprof - msdtatfe)/(msdtattf-msdtatfe))",
-    )
-
 
 def float_to_string(val):
     """Return string with fixed precision, removes scientific notation for small floats."""
@@ -300,10 +278,6 @@ def calculate_impedance(my_project, state):
     hvy_coeff = float_to_string(
         coeff_df[coeff_df["truck_type"] == "heavy"]["value"].values[0]
     )
-    # Using medium truck coefficients for delivery trucks
-    del_coeff = float_to_string(
-        coeff_df[coeff_df["truck_type"] == "medium"]["value"].values[0]
-    )
 
     vot_df = pd.read_sql("SELECT * FROM truck_inputs WHERE data_type='vot'", con=state.conn)
     med_vot = float_to_string(
@@ -311,10 +285,6 @@ def calculate_impedance(my_project, state):
     )
     hvy_vot = float_to_string(
         vot_df[vot_df["truck_type"] == "heavy"]["value"].values[0]
-    )
-    # Using medium truck coefficients for delivery trucks
-    del_vot = float_to_string(
-        vot_df[vot_df["truck_type"] == "medium"]["value"].values[0]
     )
 
     # Load friction factor and value of time coefficients
@@ -352,18 +322,6 @@ def calculate_impedance(my_project, state):
         constraint_by_zone_origins="1-" + str(state.network_settings.HIGH_STATION),
     )
 
-    # calculate delivery truck impedances:
-    my_project.matrix_calculator(
-        result="mfdelimp",
-        expression="exp("
-        + hvy_coeff
-        + "*(mfbdelcs+(mfbdelds*msdelop*"
-        + del_vot
-        + ")))*mfintflg",
-        constraint_by_zone_destinations="1-" + str(state.network_settings.HIGH_STATION),
-        constraint_by_zone_origins="1-" + str(state.network_settings.HIGH_STATION),
-    )
-
 
 def balance_matrices(my_project, state):
     # Balance Medium Trucks
@@ -381,16 +339,6 @@ def balance_matrices(my_project, state):
         od_values_to_balance="mfhvyimp",
         origin_totals="mohtpro",
         destination_totals="mdhtatt",
-        constraint_by_zone_destinations="1-" + str(state.network_settings.HIGH_STATION),
-        constraint_by_zone_origins="1-" + str(state.network_settings.HIGH_STATION),
-    )
-
-    # Balance Delivery Trucks
-    state.main_project.matrix_balancing(
-        results_od_balanced_values="mfdeldis",
-        od_values_to_balance="mfdelimp",
-        origin_totals="modtpro",
-        destination_totals="mddtatt",
         constraint_by_zone_destinations="1-" + str(state.network_settings.HIGH_STATION),
         constraint_by_zone_origins="1-" + str(state.network_settings.HIGH_STATION),
     )
@@ -419,10 +367,6 @@ def calculate_daily_trips(my_project, state):
         result="mfhvyod", expression="mfhvyod + (mfhvyee + mfhvyei + mfhvyie)/264"
     )
 
-    # convert annual external delivery truck trips to daily and add to heavy od:
-    my_project.matrix_calculator(
-        result="mfdelod", expression="mfdelod + (mfdelee + mfdelei + mfdelie)/264"
-    )
 
     # apply vehicle-equivalency factors to medium and heavy trucks:
     my_project.matrix_calculator(result="mfmedod", expression="mfmedod * 1.5")
@@ -436,7 +380,6 @@ def calculate_daily_trips(my_project, state):
         for truck_type, matrix_name in {
             "medtrk": "medod",
             "hvytrk": "hvyod",
-            "deltrk": "delod",
         }.items():
             df = df_tod_factors[
                 (df_tod_factors["time_period"] == tod)

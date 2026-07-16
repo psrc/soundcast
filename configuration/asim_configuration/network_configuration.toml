@@ -113,7 +113,7 @@ EXTERNAL_DISTRICT = 'ga20'
 "@tveh" = "total vehicles"
 "@mveh" = "medium trucks"
 "@hveh" = "heavy trucks"
-"@dveh" = "delivery trucks"
+"@lveh" = "light trucks"
 "@vmt" = "vmt"
 "@vht" = "vht"
 "@trnv" = "buses in auto equivalents"
@@ -135,7 +135,7 @@ EXTERNAL_DISTRICT = 'ga20'
 medium_trucks = "metrk"
 heavy_trucks = "hvtrk"
 sov = "sov_inc2"
-delivery_trucks = "deltrk"
+light_trucks = "lighttrk"
 
 
 [transit_node_attributes]

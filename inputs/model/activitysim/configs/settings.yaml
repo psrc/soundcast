@@ -117,6 +117,7 @@ models:
   - school_location
   - work_from_home
   - workplace_location
+  - vehicle_type_choice
   - free_parking
   - telecommute_frequency
   - telecommute_status
@@ -179,6 +180,7 @@ output_tables:
         destination: land_use.zone_id
     - joint_tour_participants
     - proto_disaggregate_accessibility
+    - vehicles
 
 # area_types less than this are considered urban
 urban_threshold: 4

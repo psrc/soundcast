@@ -58,12 +58,12 @@ class InputSettings(BaseModel):
     tnc_av: bool  # T: boolNCs (if available) are AVs
     include_tnc_to_transit: bool  # AV to transit path type allowed
     include_knr_to_transit: bool  # Kiss and Ride to Transit
-    include_delivery: bool
     include_telecommute: bool
 
     ##############################
     # Other Controls
     ##############################
+    use_truck_tables: bool
     run_integrated: bool
     should_build_shadow_price: bool
     delete_banks: bool
@@ -132,9 +132,6 @@ class EmmeSettings(BaseModel):
     # Define gravity model coefficients
     autoop: float  # Auto operation costs (in hundreds of cents per mile?)
     avotda: float  # VOT
-
-    # Home delivery trips, must be > 0
-    total_delivery_trips: float
 
     # This is what you get if the model runs cleanly, but it's random:
     good_thing: list

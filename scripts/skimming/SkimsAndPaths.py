@@ -1192,7 +1192,7 @@ def hdf5_trips_to_Emme(my_project, hdf_filename):
     # create & store in-memory numpy matrices in a dictionary. Key is matrix name, value is the matrix
     demand_matrices = {}
 
-    for matrix_name in ["medium_truck", "heavy_truck", "delivery_truck"]:
+    for matrix_name in ["medium_truck", "heavy_truck", "light_truck"]:
         demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})
 
@@ -1306,7 +1306,7 @@ def load_trucks(my_project, matrix_name, zonesDim):
     
     Args:
         my_project: Emme project instance
-        matrix_name: Name of truck matrix type (medium_truck, heavy_truck, delivery_truck)
+        matrix_name: Name of truck matrix type (medium_truck, heavy_truck, light_truck)
         zonesDim: Number of transportation analysis zones
         
     Returns:
@@ -1319,26 +1319,33 @@ def load_trucks(my_project, matrix_name, zonesDim):
     """
 
     demand_matrix = np.zeros((zonesDim, zonesDim), np.float16)
-    hdf_file = h5py.File(state.network_settings.truck_trips_h5_filename, "r")
+    if state.input_settings.use_truck_tables:
+        hdf_file = h5py.File("inputs/scenario/trucks/truck_trips.h5", "r")
+    else:
+        hdf_file = h5py.File(state.network_settings.truck_trips_h5_filename, "r")
     tod = my_project.tod
 
     truck_matrix_name_dict = {
         "medium_truck": "medtrk_trips",
         "heavy_truck": "hvytrk_trips",
-        "delivery_truck": "deltrk_trips",
+        "light_truck": "lighttrk_trips",
     }
 
     truck_demand_matrix_name = (
         f"mf{tod}_{truck_matrix_name_dict[matrix_name]}"
     )
 
-    np_matrix = np.matrix(
-        hdf_file[tod][truck_demand_matrix_name]
-    ).astype(float)
+    # If name in hdf file, load it, otherwise return empty matrix
+    if truck_demand_matrix_name not in hdf_file[tod].keys():
+        return demand_matrix
+    else:
+        np_matrix = np.matrix(
+            hdf_file[tod][truck_demand_matrix_name]
+        ).astype(float)
 
-    # Apply time of day factor to convert from aggregate time periods to 12 soundcast periods
-    demand_matrix = np_matrix[0:zonesDim, 0:zonesDim]
-    demand_matrix = np.squeeze(np.asarray(demand_matrix))
+        # Apply time of day factor to convert from aggregate time periods to 12 soundcast periods
+        demand_matrix = np_matrix[0:zonesDim, 0:zonesDim]
+        demand_matrix = np.squeeze(np.asarray(demand_matrix))
 
     return demand_matrix
 
@@ -2022,7 +2029,7 @@ def load_asim_trip_matrices(state, my_project):
     demand_matrices = {}
 
     # Load truck trips to memory
-    truck_matrix_list = ["medium_truck", "heavy_truck", "delivery_truck"]
+    truck_matrix_list = ["medium_truck", "heavy_truck", "light_truck"]
     for matrix_name in truck_matrix_list:
         demand_matrix = load_trucks(my_project, matrix_name, zonesDim)
         demand_matrices.update({matrix_name: demand_matrix})

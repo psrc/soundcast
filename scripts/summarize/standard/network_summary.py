@@ -28,8 +28,8 @@ def get_intrazonal_vol(state, emmeproject, df_vol):
     iz_uc_list = [uc + str(1 + i) for i in range(3) for uc in iz_uc_list]
     if state.input_settings.include_tnc:
         iz_uc_list += ["tnc_inc1", "tnc_inc2", "tnc_inc3"]
-    if state.input_settings.include_delivery:
-        iz_uc_list += ["delivery_truck"]
+    # if state.input_settings.include_delivery:
+    #     iz_uc_list += ["delivery_truck"]
     iz_uc_list += ["medium_truck", "heavy_truck"]
 
     for uc in iz_uc_list:
@@ -52,10 +52,10 @@ def calc_total_vehicles(state, project):
     project.network_calculator(
         "link_calculation", result="@bveh", expression="@trnv3/2.0"
     )  # buses
-    if state.input_settings.include_delivery:
-        project.network_calculator(
-            "link_calculation", result="@dveh", expression="@delivery_truck/1.5"
-        )  # medium trucks
+    # if state.input_settings.include_delivery:
+    #     project.network_calculator(
+    #         "link_calculation", result="@dveh", expression="@delivery_truck/1.5"
+    #     )  # medium trucks
 
     # Calculate total vehicles as @tveh, depending on which modes are included
     str_base = (
@@ -73,8 +73,8 @@ def calc_total_vehicles(state, project):
         str_expression += av_str
     if state.input_settings.include_tnc:
         str_expression += tnc_str
-    if state.input_settings.include_delivery:
-        str_expression += " + @dveh"
+    # if state.input_settings.include_delivery:
+    #     str_expression += " + @dveh"
 
     project.network_calculator(
         "link_calculation", result="@tveh", expression=str_expression
@@ -270,8 +270,8 @@ def summarize_network(state, df, writer):
     # Update uc_list based on inclusion of TNC and AVs
     new_uc_list = []
 
-    if state.input_settings.include_delivery:
-        new_uc_list.append("@dveh")
+    # if state.input_settings.include_delivery:
+    #     new_uc_list.append("@dveh")
 
     if (not state.input_settings.include_tnc) & (not state.input_settings.include_av):
         for uc in state.summary_settings.uc_list:

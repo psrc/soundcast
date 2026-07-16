@@ -621,11 +621,6 @@ def main(state):
                 df_parcels[jobs] * df_job_production_rates.loc[jobs, purpose]
             )
 
-    # Scale delivery productions based on a target number of delivery trips
-    df_parcels["dtkpro"] = state.emme_settings.total_delivery_trips * (
-        df_parcels["dtkpro"] / df_parcels["dtkpro"].sum()
-    )
-
     ###########################################################
     # SeaTac Airport trip generation
     ###########################################################

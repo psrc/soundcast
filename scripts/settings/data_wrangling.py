@@ -362,8 +362,6 @@ def update_skim_parameters(state):
         keywords.append("av_")
     if not state.input_settings.include_tnc:
         keywords.append("tnc_")
-    if not state.input_settings.include_delivery:
-        keywords.append("delivery_")
 
     root_path = os.path.join(
         os.getcwd(), f"inputs/model/{state.input_settings.abm_model}/skim_parameters"

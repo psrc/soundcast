@@ -1,0 +1,13 @@
+coefficient_name,value,constrain
+coef_ln_nmods,0.612,F
+coef_ln_nmakes,0.247,F
+coef_mpg,0.007,F
+coef_crange,0.004,F
+coef_cprice0,-0.0001,F
+coef_cprice25,-9e-05,F
+coef_cprice50,-8e-05,F
+coef_cprice100,-7e-05,F
+coef_op_cost,-0.015,F
+asc_bev,-1.5,F
+asc_pev,-1.0,F
+asc_hyb,-0.8,F

@@ -166,14 +166,13 @@ def run_truck_supplemental(iteration, statwe):
         distribute_non_work_ixxi.main(state)
         create_airport_trips.main(state)
 
-    if state.input_settings.run_truck_model:
+    if state.input_settings.run_truck_model and not state.input_settings.use_truck_tables:
         truck_model.main(state)
 
-
 @data_wrangling.timed
-def daysim_assignment(iteration):
+def assign_demand(iteration):
     ########################################
-    # Run Daysim Activity Models
+    # Run Demand Models
     ########################################
 
     if state.input_settings.run_abm and state.input_settings.abm_model == "daysim":
@@ -402,7 +401,7 @@ def main():
                     )
 
             # Run Skimming and/or Daysim
-            daysim_assignment(iteration)
+            assign_demand(iteration)
 
             # Check Convergence
             converge = check_convergence(iteration)
@@ -421,7 +420,7 @@ def main():
             [("$SHADOW_PRICE", "true"), ("$SAMPLE", "1"), ("$RUN_ALL", "true")]
         )
         # This function needs an iteration parameter. Value of 1 is fine.
-        daysim_assignment(1)
+        assign_demand(1)
 
     # Export skims for use in Urbansim if needed
     if state.input_settings.run_integrated:
