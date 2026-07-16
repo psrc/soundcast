@@ -44,6 +44,20 @@ county = {1: "King",
 transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
 all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCHBUS","TNC","Other"]
 
+def read_sqlite_db(input_config, summary_config, query):
+    """get parcel geography data from sqlite database"""
+        
+    input_settings = InputSettings(**input_config)
+    summary_settings = SummarySettings(**summary_config)
+    run_path = summary_settings.sc_run_path
+
+    async_engine = create_engine('sqlite:///' + run_path + '/inputs/db/' + input_settings.db_name)
+    df = pl.read_database(query= query,
+                          connection=async_engine.connect()
+                          )
+
+    return df.to_pandas()
+
 def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
 
     run_path = summary_config['output_dir']
@@ -431,7 +445,7 @@ def plot_share_barchart(data, weight, share_col,
         apply(lambda x: x / float(x.sum()))
 
     fig = px.bar(df_plot, x=share_col, y="percentage", color="source",barmode="group",
-                hover_data=["sample_size"],
+                hover_data=["weighted_sum","sample_size"],
                 title=title)
     fig.for_each_annotation(lambda a: a.update(text = a.text.split("=")[-1]))
     fig.update_layout(height=height, width=width, yaxis=dict(tickformat=".1%"))
