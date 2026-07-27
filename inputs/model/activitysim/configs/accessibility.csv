@@ -19,12 +19,13 @@ auto off-peak total,auOpTotal,df.TOTEMP * _decayauOp
 #,, transit peak
 #,,
 #,, assume peak outbound transit occurs in AM
-o-d peak transit ivt,_inVehicleTime,"skim_od[('ivtwa', 'AM')]"
-o-d peak transit ovt,_outOfVehicleTime,"skim_od[('twtwa', 'AM')] + skim_od[('auxwa', 'AM')] "
+#,,pnr transit skims represent all transit assingment/skims
+o-d peak transit ivt,_inVehicleTime,"skim_od[('ivtwpnr', 'AM')]"
+o-d peak transit ovt,_outOfVehicleTime,"skim_od[('twtwpnr', 'AM')] + skim_od[('auxwpnr', 'AM')] "
 o-d peak transit time,_trPkTime_od,(_inVehicleTime + out_of_vehicle_time_weight * _outOfVehicleTime) 
 #,, assume peak inbound transit occurs in PM
-d-o peak transit ivt,_inVehicleTime,"skim_do[('ivtwa', 'PM')]"
-d-o peak transit ovt,_outOfVehicleTime,"skim_do[('twtwa', 'PM')] + skim_do[('auxwa', 'PM')] "
+d-o peak transit ivt,_inVehicleTime,"skim_do[('ivtwpnr', 'PM')]"
+d-o peak transit ovt,_outOfVehicleTime,"skim_do[('twtwpnr', 'PM')] + skim_do[('auxwpnr', 'PM')] "
 d-o peak transit time,_trPkTime_do,(_inVehicleTime + out_of_vehicle_time_weight * _outOfVehicleTime) 
 peak transit time,_trPkTime,_trPkTime_od + _trPkTime_do
 round trip path is available,_rt_available,(_trPkTime_od > 0) & (_trPkTime_do > 0)
@@ -35,12 +36,12 @@ transit peak total,trPkTotal,df.TOTEMP * _decaytrPk
 #,, transit off-peak
 #,,
 #,, assume off-peak outbound transit occurs in the MD time period
-o-d off-peak transit ivt,_inVehicleTime,"skim_od[('ivtwa', 'MD')]"
-o-d off-peak transit ovt,_outOfVehicleTime,"skim_od[('twtwa', 'MD')] + skim_od[('auxwa', 'MD')] "
+o-d off-peak transit ivt,_inVehicleTime,"skim_od[('ivtwpnr', 'MD')]"
+o-d off-peak transit ovt,_outOfVehicleTime,"skim_od[('twtwpnr', 'MD')] + skim_od[('auxwpnr', 'MD')] "
 o-d off-peak transit time,_trOpTime_od,(_inVehicleTime + out_of_vehicle_time_weight * _outOfVehicleTime) 
 #,, assume off-peak inbound transit occurs in the MD time period
-d-o off-peak transit ivt,_inVehicleTime,"skim_do[('ivtwa', 'MD')]"
-d-o off-peak transit ovt,_outOfVehicleTime,"skim_do[('twtwa', 'MD')] + skim_do[('auxwa', 'MD')] "
+d-o off-peak transit ivt,_inVehicleTime,"skim_do[('ivtwpnr', 'MD')]"
+d-o off-peak transit ovt,_outOfVehicleTime,"skim_do[('twtwpnr', 'MD')] + skim_do[('auxwpnr', 'MD')] "
 d-o off-peak transit time,_trOpTime_do,(_inVehicleTime + out_of_vehicle_time_weight * _outOfVehicleTime) 
 off-peak transit time,_trOpTime,_trOpTime_od + _trOpTime_do
 round trip path is available,_rt_available,(_trOpTime_od > 0) & (_trOpTime_do > 0)

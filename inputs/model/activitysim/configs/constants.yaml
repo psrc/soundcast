@@ -83,7 +83,7 @@ cost_share_s3: 3
 vot_threshold_low: 10.50
 vot_threshold_med: 25.00
 
-costPerMile: 18.29
+costPerMile: 32.5
 costShareSr2: 1.75
 costShareSr3: 2.50
 waitThresh: 10.00

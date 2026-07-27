@@ -11,12 +11,12 @@
             "w",
             "x"
         ],
-        "actual_in_vehicle_times": "mfivtwpnr",
-        "actual_aux_transit_times": "mfauxwpnr",
-        "avg_boardings": "mfndbwpnr"
+        "actual_in_vehicle_times": "mfivtwa",
+        "actual_aux_transit_times": "mfauxwa",
+        "avg_boardings": "mfndbwa"
     },
     "type": "EXTENDED_TRANSIT_MATRIX_RESULTS",
-    "actual_first_waiting_times": "mfiwtwpnr",
-    "actual_total_waiting_times": "mftwtwpnr"
+    "actual_first_waiting_times": "mfiwtwa",
+    "actual_total_waiting_times": "mftwtwa"
 }]
 }
