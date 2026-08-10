@@ -1,3 +1,5 @@
+explicit_chunk: 0.5
+
 SPEC: park_and_ride_lot_choice.csv
 
 COEFFICIENTS: park_and_ride_lot_choice_coeffs.csv

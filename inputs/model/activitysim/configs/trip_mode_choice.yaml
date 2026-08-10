@@ -22,19 +22,16 @@ NESTS:
           - WALK
           - BIKE
       - name: TRANSIT
-        coefficient:  coef_nest_TRANSIT
+        coefficient:  coef_nest_TRANSIT_WALKACCESS
         alternatives:
-            - name: WALKACCESS
-              coefficient: coef_nest_TRANSIT_WALKACCESS
-              alternatives:
-              - WALK_LOC
-              - WALK_LR
-              - WALK_FRY
-              - WALK_COM
-            - name: DRIVEACCESS
-              coefficient: coef_nest_TRANSIT_DRIVEACCESS
-              alternatives:
-              - DRIVE_TRN
+        - WALK_LOC
+        - WALK_LR
+        - WALK_FRY
+        - WALK_COM
+      - name: DRIVEACCESS
+        coefficient: coef_nest_TRANSIT_DRIVEACCESS
+        alternatives:
+        - DRIVE_TRN
       - name: RIDEHAIL
         coefficient: coef_nest_RIDEHAIL
         alternatives:

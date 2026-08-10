@@ -1,5 +1,4 @@
 LOGIT_TYPE: NL
-#LOGIT_TYPE: MNL
 
 run_atwork_pnr_lot_choice: True
 

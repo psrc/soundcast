@@ -133,7 +133,7 @@ util_tour_mode_is_auto,Auto tour mode availability,tour_mode_is_auto,,,,,-999,-9
 util_tour_mode_is_walk,Walk tour mode availability,tour_mode_is_walk,-999,-999,-999,,-999,-999,-999,-999,-999,-999,-999,
 util_tour_mode_is_bike,Bike tour mode availability,tour_mode_is_bike,-999,-999,-999,,,-999,-999,-999,-999,-999,-999,
 util_tour_mode_is_walk_transit,Walk to Transit tour mode availability,tour_mode_is_walk_transit,-999,,,,-999,,,,,-999,,
-util_tour_mode_is_drive_transit,Drive to Transit tour modes availability,tour_mode_is_drive_transit,-999,-999,-999,-999,-999,-999,-999,-999,-999,,,
+util_tour_mode_is_drive_transit,Drive to Transit tour modes availability,tour_mode_is_drive_transit,-999,-999,-999,-999,-999,-999,-999,-999,-999,,-999,-999
 util_tour_mode_is_ride_hail,Ride hail tour modes availability,tour_mode_is_ride_hail,-999,,,,-999,,,,,-999,,
 ,#indiv tour ASCs,,,,,,,,,,,,,
 util_Drive_Alone_tour_mode_ASC_shared_ride_2_df_is_indiv,Drive Alone tour mode ASC -- shared ride 2,@(df.is_indiv & df.tour_mode_is_SOV),,sov_ASC_sr2,,,,,,,,,,

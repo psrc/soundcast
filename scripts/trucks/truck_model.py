@@ -353,9 +353,9 @@ def calculate_daily_trips(my_project, state):
     my_project.matrix_calculator(
         result="mfhvyod", expression="0.5*mfhvydis + 0.5*mfhvydis" + "'"
     )
-    my_project.matrix_calculator(
-        result="mfdelod", expression="0.5*mfdeldis + 0.5*mfdeldis" + "'"
-    )
+    # my_project.matrix_calculator(
+    #     result="mfdelod", expression="0.5*mfdeldis + 0.5*mfdeldis" + "'"
+    # )
 
     # convert annual external medium truck trips to daily and add to medium od
     my_project.matrix_calculator(
@@ -371,7 +371,7 @@ def calculate_daily_trips(my_project, state):
     # apply vehicle-equivalency factors to medium and heavy trucks:
     my_project.matrix_calculator(result="mfmedod", expression="mfmedod * 1.5")
     my_project.matrix_calculator(result="mfhvyod", expression="mfhvyod * 2")
-    my_project.matrix_calculator(result="mfdelod", expression="mfdelod * 1.5")
+    # my_project.matrix_calculator(result="mfdelod", expression="mfdelod * 1.5")
 
     # apply time of day factors:
     df_tod_factors = pd.read_sql(f"SELECT * FROM truck_time_of_day_factors WHERE model=='{state.input_settings.abm_model}'", con=state.conn)
@@ -395,7 +395,7 @@ def write_summary(my_project):
     # Write production and attraction totals
     truck_pa = {"prod": {}, "attr": {}}
 
-    for truck_type in ["mt", "ht", "dt"]:
+    for truck_type in ["mt", "ht"]:
         truck_pa["prod"][truck_type] = (
             my_project.bank.matrix("mo" + truck_type + "pro").get_numpy_data().sum()
         )

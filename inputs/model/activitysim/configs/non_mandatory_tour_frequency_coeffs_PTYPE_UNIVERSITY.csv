@@ -7,7 +7,7 @@ coef_social_tour_asc,0.0,F
 coef_eatout_tour_asc,0.0,F
 coef_1_escort_tour_asc,-13.469777101720044,F
 coef_2_plus_escort_tours_asc,-22.935046839745844,F
-coef_1_plus_shopping_tours_asc,-3.6977940638975095,F
+coef_1_plus_shopping_tours_asc,-3.4,F
 coef_1_plus_othmaint_tours_asc,-1.7929212223722943,F
 coef_1_plus_eatout_tours_asc,-3.6756525696658215,F
 coef_1_plus_social_tours_asc,0.0,F
