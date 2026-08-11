@@ -336,6 +336,7 @@ class SummarySettings(BaseModel):
     #################################
     county_map: dict
     uc_list: list
+    mode_list: list
     agency_lookup: dict
     emissions_scenario: str
     tot_veh_model_base_year: int

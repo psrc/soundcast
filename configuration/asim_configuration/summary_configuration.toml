@@ -7,8 +7,8 @@ protected_namespaces = '()'
 
 # run Quarto summary notebooks
 run_RTP_summary = false
-run_validation = true
-run_network_validation = false
+run_validation = false
+run_network_validation = true
 run_run_comparison = false
 
 #################################
@@ -28,6 +28,7 @@ weekday_to_annual = 320
 #################################
 income_bins = [-9999,25000,100000,9999999999]
 income_bin_labels = ['low','medium','high']
+mode_list = ['sov_inc2', 'hov2_inc2', 'hov3_inc2', 'walk', 'bike', 'trnst', 'ferry', 'commuter_rail', 'litrat']
 
 
 uc_list = ['@sov_inc1','@sov_inc2','@sov_inc3',
@@ -88,9 +89,10 @@ hh_equity_geogs = ['hh_efa_dis', 'hh_efa_older', 'hh_efa_lep', 'hh_efa_pov200', 
 #################################
 # current run name and directory
 sc_run_name = "current run"
-sc_run_path = '../../../../'
+# sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = 'C:/workspace/sc_rtp_2035/soundcast'
+sc_run_path = '//modelstation2/c$/workspace/sc_7_7_26'
+
 
 #################################
 # survey data for validation
@@ -289,7 +291,7 @@ PM25 = "PM25 Total"
     'work_trip_mode'
 ]
 "network-validation-notebook" = [
-    'JBLM',
+    # 'JBLM',
     'supplementals',
     'transit_validation',
     'traffic_validation',

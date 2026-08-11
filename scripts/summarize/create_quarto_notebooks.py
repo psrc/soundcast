@@ -80,6 +80,11 @@ def create_quarto_notebooks(input_settings, summary_settings, run_args=None):
         # add output_dir and data_dir to summary_config disctionary
         summary_config["output_dir"] = output_dir
         summary_config["data_dir"] = data_dir
+    else:
+        # add output_dir and data_dir to summary_config disctionary
+        summary_config["output_dir"] = summary_config["sc_run_path"] + "/outputs"
+        summary_config["data_dir"] = summary_config["sc_run_path"] + "/inputs"
+
 
     # create RTP summary notebook
     if summary_config['run_RTP_summary']:
@@ -130,8 +135,8 @@ if __name__ == "__main__":
     # Example run_args object
     run_args = argparse.Namespace(
         args=argparse.Namespace(
-            output_dir="P:/workspace/sc_6_22_26_asim_output",
-            data_dir="P:/workspace/sc_6_22_26_asim_data",
+            output_dir="P:/workspace/sc_7_7_26_outputs",
+            data_dir="P:/workspace/sc_7_7_26_data",
         )
     )
 
