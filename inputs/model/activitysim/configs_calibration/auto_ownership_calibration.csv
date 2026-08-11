@@ -1,0 +1,5 @@
+description,coefficient,model_value,target_value,hold_fast,min,max,damping,method,tolerance
+1 auto ownership share,coef_cars1_drivers_1_calib,len(households[households.auto_ownership ==1]) / len(households),0.65,FALSE,-5,5,1,log_ratio,0.02
+2 auto ownership share,coef_cars2_drivers_1_calib,len(households[households.auto_ownership ==2]) / len(households),0.09,FALSE,-5,5,1,log_ratio,0.01
+3 auto ownership share,coef_cars3_drivers_1_calib,len(households[households.auto_ownership ==3]) / len(households),0.03,FALSE,-5,5,1,log_ratio,0.01
+4 auto ownership share,coef_cars4_drivers_1_calib,len(households[households.auto_ownership ==4]) / len(households),0.01,FALSE,-5,5,1,log_ratio,0.01
