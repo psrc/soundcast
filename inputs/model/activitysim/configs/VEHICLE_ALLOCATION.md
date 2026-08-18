@@ -20,7 +20,7 @@ that actually *consumes* `vehicle_type_choice` output — previously the `vehicl
 but never used by any behavioral model.
 
 ### Scope decision
-The **"full feedback"** option was chosen (confirmed by the modeler): the allocated vehicle's
+The **"full feedback"** option was chosen: the allocated vehicle's
 operating cost is fed back into mode choice. The alternative ("allocation only, produce
 `selected_vehicle` for reporting but leave `costPerMile` in the utilities") was not taken.
 Consequence: mode-choice results **will shift** relative to the flat-scalar version and the
