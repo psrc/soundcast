@@ -120,3 +120,15 @@ destination in central business district,destination_in_cbd,"(reindex(land_use.a
 ,dist_walk_,od_skims['DISTWALK'] 
 ,dist_bike_,od_skims['DISTBIKE']
 ,vot_bin_da,"np.where(vot_da < vot_threshold_low, 1, np.where(vot_da < vot_threshold_med, 2, 3))"
+# vehicle allocation: operating cost (cents/mi) of the allocated household vehicle by occupancy. atwork subtours use the parent tour's vehicle.,,
+,parent_tour_veh,"reindex(tours['selected_vehicle'], df['parent_tour_id']) if 'selected_vehicle' in df.columns else np.nan"
+,sov_veh_option,"np.where(is_atwork_subtour, parent_tour_veh, df.get('vehicle_occup_1', np.nan))"
+,sr2_veh_option,"np.where(is_atwork_subtour, parent_tour_veh, df.get('vehicle_occup_2', np.nan))"
+,sr3p_veh_option,"np.where(is_atwork_subtour, parent_tour_veh, df.get('vehicle_occup_3.5', np.nan))"
+,sov_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sov_veh_option, df.index)) if 'vehicle_occup_1' in df.columns else np.nan"
+,sr2_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sr2_veh_option, df.index)) if 'vehicle_occup_2' in df.columns else np.nan"
+,sr3p_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sr3p_veh_option, df.index)) if 'vehicle_occup_3.5' in df.columns else np.nan"
+# fall back to the flat costPerMile scalar for non-household vehicles and for logsum (non-tour) choosers that have no allocated vehicle,,
+,sov_auto_op_cost,"np.where(pd.isna(sov_auto_op_cost), costPerMile, sov_auto_op_cost)"
+,sr2_auto_op_cost,"np.where(pd.isna(sr2_auto_op_cost), costPerMile, sr2_auto_op_cost)"
+,sr3p_auto_op_cost,"np.where(pd.isna(sr3p_auto_op_cost), costPerMile, sr3p_auto_op_cost)"

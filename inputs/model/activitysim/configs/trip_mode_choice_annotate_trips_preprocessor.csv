@@ -99,3 +99,7 @@ Tour mode is school bus,tourSchBus,(df.tour_mode == 'SCH_BUS').astype(int)
 ,max_dist_walk,od_skims.max('DISTWALK')
 #,dist_bike,od_skims['DISTBIKE']
 ,od_dist_drive,od_skims['DIST']
+# vehicle allocation: operating cost (cents/mi) of the vehicle the parent tour used; fall back to flat costPerMile for non-household / non-auto tours,,
+,selected_tour_vehicle,"reindex(tours.selected_vehicle, df.tour_id).astype(vehicles.vehicle_type.dtype)"
+,auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(selected_tour_vehicle, df.index))"
+,auto_op_cost,"np.where(pd.isna(auto_op_cost), costPerMile, auto_op_cost)"

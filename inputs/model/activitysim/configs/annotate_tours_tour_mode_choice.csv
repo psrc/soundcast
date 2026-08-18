@@ -1,2 +1,9 @@
 Description,Target,Expression
 origin to destination distance,tour_distance_one_way,"skim_dict.lookup(df.origin, df.destination, 'DIST')"
+# resolve which allocated vehicle the tour actually used, based on the chosen tour_mode,,
+non-auto tours use no household vehicle,selected_vehicle,np.nan
+drive-alone and drive-to-transit tours use the occupancy-1 vehicle,selected_vehicle,"np.where(df.tour_mode.isin(['DRIVEALONEFREE','DRIVE_TRN']), df.get('vehicle_occup_1', np.nan), selected_vehicle)"
+shared-2 tours use the occupancy-2 vehicle,selected_vehicle,"np.where(df.tour_mode == 'SHARED2FREE', df.get('vehicle_occup_2', np.nan), selected_vehicle)"
+shared-3+ tours use the occupancy-3.5 vehicle,selected_vehicle,"np.where(df.tour_mode == 'SHARED3FREE', df.get('vehicle_occup_3.5', np.nan), selected_vehicle)"
+lookup parent tour vehicle (only after selected_vehicle exists on the tours table; atwork subtours have no allocation of their own),_parent_selected_vehicle,"reindex(df.selected_vehicle, df.parent_tour_id) if 'selected_vehicle' in df.columns else np.nan"
+atwork subtours inherit the parent tour's vehicle,selected_vehicle,"np.where(df.tour_category == 'atwork', _parent_selected_vehicle, selected_vehicle)"
