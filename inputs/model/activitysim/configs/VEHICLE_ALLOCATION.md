@@ -1,7 +1,7 @@
 # Vehicle Allocation — Implementation Notes
 
 **Date:** 2026-08-18
-**Author:** M. Oshanreh (with Claude Code)
+**Author:** M. Oshanreh
 **Model:** PSRC Soundcast / ActivitySim (`soundcast/inputs/model/activitysim/configs`)
 **ActivitySim version validated against:** `1000.dev3503` (editable dev build in `activitysim/.venv`)
 
