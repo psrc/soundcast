@@ -117,7 +117,7 @@ behaves exactly as before this change.
 
 ---
 
-## 6. Validation
+## 6. Validation (By Claude Code)
 
 **Environment:** the runnable interpreter is the uv venv at `activitysim/.venv` (Python 3.10,
 editable activitysim). It had to be rebuilt with `uv sync` (its Python had been deleted). Base
