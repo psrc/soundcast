@@ -19,7 +19,7 @@ def compute_distances(context, origins, destinations):
     # Compute distances between origins and destinations using the network level of service
     # using non-time-dependent DIST skim
     distances = context["skim_dict"].lookup(
-        origins.clip(upper=24), destinations.clip(upper=24), "DIST"
+        origins, destinations, "DIST"
     )
     # time dependent example
     # distances = skim_dict.lookup_3d(origins, destinations, 'AM', 'SOV_DIST')
@@ -31,7 +31,6 @@ def _survey_persons() -> pd.DataFrame:
     """Load survey persons once per Python process."""
     return pd.read_csv(os.path.join(SURVEY_DATA_FOLDER, "survey_persons.csv"))
 
-
 # @lru_cache(maxsize=1)
 def _survey_households() -> pd.DataFrame:
     """Load survey households once per Python process."""
@@ -42,13 +41,32 @@ def _survey_households() -> pd.DataFrame:
 def _survey_worker_distances(context):
     """Compute survey worker distances once and reuse across calibration rows."""
     survey_persons = _survey_persons()
-    survey_workers = survey_persons[survey_persons["workplace_zone_id"] > 0]
-    survey_home_zone_ids = _survey_households().set_index("household_id")[
-        "home_zone_id"
-    ]
-    survey_home_zone_ids = survey_workers["household_id"].map(survey_home_zone_ids)
+    survey_workers = survey_persons[survey_persons["workplace_zone_id"] > 0].copy()
+
+    # Exclude work from home
+    survey_workers = survey_workers[survey_workers["workplace_zone_id"] != survey_workers["home_maz"]]
+
+    survey_households = _survey_households().set_index("household_id")
+    survey_workers["hh_weight"] = survey_workers["household_id"].map(
+        survey_households["hh_weight"]
+    )
+
+    survey_home_zone_ids = survey_workers["household_id"].map(
+        survey_households["home_zone_id"]
+
+    )
+    # land_use = context["land_use"]
+    # taz_lookup = pd.Series(land_use.TAZ, index=land_use.index)
+
+    # survey_home_zone_ids = survey_home_zone_ids.map(taz_lookup).astype("int")
+    # survey_workplace_zone_ids = (
+    #     survey_workers["workplace_zone_id"].map(taz_lookup)
+    # ).astype("int")
     survey_workplace_zone_ids = survey_workers["workplace_zone_id"]
-    return compute_distances(context, survey_home_zone_ids, survey_workplace_zone_ids)
+
+    distances = compute_distances(context, survey_home_zone_ids, survey_workplace_zone_ids)
+    survey_workers["distance"] = distances
+    return survey_workers
 
 
 def summarize_model(context, min_dist=1, max_dist=2):
@@ -57,6 +75,12 @@ def summarize_model(context, min_dist=1, max_dist=2):
     workers = persons[persons["workplace_zone_id"] > 0]
     home_zone_ids = workers["home_zone_id"]
     workplace_zone_ids = workers["workplace_zone_id"]
+
+    # land_use = context["land_use"]
+    # taz_lookup = pd.Series(land_use.TAZ, index=land_use.index)
+
+    # home_zone_ids = home_zone_ids.map(taz_lookup)
+    # workplace_zone_ids = workplace_zone_ids.map(taz_lookup)
 
     distances = compute_distances(context, home_zone_ids, workplace_zone_ids)
 
@@ -71,14 +95,19 @@ def summarize_model(context, min_dist=1, max_dist=2):
 def summarize_survey(context, min_dist=1, max_dist=2):
     """Summarize the survey results for workplaces within the specified distance range."""
 
-    distances = _survey_worker_distances(context)
+    survey_workers = _survey_worker_distances(context)
+    if survey_workers.empty:
+        return 0
 
-    # Filter distances within the specified range
-    mask = (distances >= min_dist) & (distances < max_dist)
-    filtered_distances = distances[mask]
+    mask = (survey_workers["distance"] >= min_dist) & (
+        survey_workers["distance"] < max_dist
+    )
+    total_weight = survey_workers["hh_weight"].sum()
+    if total_weight == 0:
+        return 0
 
-    share = len(filtered_distances) / len(distances) if len(distances) > 0 else 0
-    return share
+    weighted_share = survey_workers.loc[mask, "hh_weight"].sum() / total_weight
+    return weighted_share
 
 
 def report_workplace_location(context):
@@ -98,7 +127,7 @@ def report_workplace_location(context):
     # Here you can add code to compare model_distances and survey_distances,
     # for example by plotting histograms or computing summary statistics.
     plt.hist(model_distances, bins=20, density=True, alpha=0.5, label="Model")
-    plt.hist(survey_distances, bins=20, density=True, alpha=0.5, label="Survey")
+    plt.hist(survey_distances["distance"], bins=20, density=True, alpha=0.5, label="Survey")
     plt.xlabel("Distance")
     plt.ylabel("Frequency")
     plt.legend()
