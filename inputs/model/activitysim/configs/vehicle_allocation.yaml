@@ -1,0 +1,25 @@
+# vehicle_allocation.yaml
+#
+# Selects a household vehicle (or a non-household vehicle) for each tour, for
+# each occupancy level below. The selected vehicle's auto_operating_cost is fed
+# back into tour and trip mode choice (replacing the flat costPerMile scalar).
+#
+# last column in spec needs to be non_hh_veh
+SPEC: vehicle_allocation.csv
+COEFFICIENTS: vehicle_allocation_coefficients.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: vehicle_allocation_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - vehicles
+
+# One column is added to the tours table per occupancy level, selecting a
+# vehicle for each: vehicle_occup_1, vehicle_occup_2, vehicle_occup_3.5
+# These map to the DRIVEALONEFREE / SHARED2FREE / SHARED3FREE modes.
+OCCUPANCY_LEVELS:
+  - 1
+  - 2
+  - 3.5

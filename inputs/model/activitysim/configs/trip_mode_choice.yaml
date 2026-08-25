@@ -76,6 +76,7 @@ preprocessor:
   TABLES:
     - land_use
     - tours
+    - vehicles
 
 #annotate_trips:
 #  SPEC: trip_mode_choice_annotate_trips_postprocessor

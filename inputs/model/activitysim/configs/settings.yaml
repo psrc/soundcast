@@ -129,6 +129,7 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
+  - vehicle_allocation
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
   - atwork_subtour_destination
