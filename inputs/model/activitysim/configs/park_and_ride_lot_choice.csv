@@ -1,14 +1,27 @@
 Label,Description,Expression,coefficient
 # Driving utilities,,,
-util_drive_time,drive time from origin to lot,@(olt_skims['sov_inc2t'] + lot_skims['sov_inc2t']),coef_ivt_work
-util_drive_cost,auto operating cost,@df.sov_auto_op_cost * (olt_skims['sov_inc2d'] + lot_skims['sov_inc2d']) / df.cost_sensitivity,coef_income_work
+#util_percent_drive, percent_drive,"@np.maximum(0, olt_skims['sov_inc2d']/ldt_skims['sov_inc2d'])",coef_percent_drive
+#util_detour_dist,excess drive distance,"@np.log((olt_skims['sov_inc2d'] + ldt_skims['sov_inc2d']) / np.maximum(od_skims['DIST'], 0.5))",coef_detour_dist
+d_pnr_time_skims_out,d_pnr_time_skims_out,_d_pnr_time_skims_out@(((olt_skims['sov_inc1t']) * (df.vot_bin_d_pnr == 1)) + ((olt_skims['sov_inc2t']) * (df.vot_bin_d_pnr == 2)) + ((olt_skims['sov_inc3t']) * (df.vot_bin_d_pnr == 3))),1
+d_pnr_time_skims_inb,d_pnr_time_skims_inb,_d_pnr_time_skims_inb@(((lot_skims['sov_inc1t']) * (df.vot_bin_d_pnr == 1)) + ((lot_skims['sov_inc2t']) * (df.vot_bin_d_pnr == 2)) + ((lot_skims['sov_inc3t']) * (df.vot_bin_d_pnr == 3))),1
+d_pnr_cost_skims_out,d_pnr_cost_skims_out,_d_pnr_cost_skims_out@(((olt_skims['sov_inc1c']) * (df.vot_bin_d_pnr == 1)) + ((olt_skims['sov_inc2c']) * (df.vot_bin_d_pnr == 2)) + ((olt_skims['sov_inc3c']) * (df.vot_bin_d_pnr == 3))),1
+d_pnr_cost_skims_inb,d_pnr_cost_skims_inb,_d_pnr_cost_skims_inb@(((lot_skims['sov_inc1c']) * (df.vot_bin_d_pnr == 1)) + ((lot_skims['sov_inc2c']) * (df.vot_bin_d_pnr == 2)) + ((lot_skims['sov_inc3c']) * (df.vot_bin_d_pnr == 3))),1
+#d_pnr_distance_skims_out,d_pnr_dist_skims_out,_d_pnr_dist_skims_out@(((olt_skims['sov_inc1d']) * (df.vot_bin_d_pnr == 1)) + ((olt_skims['sov_inc2d']) * (df.vot_bin_d_pnr == 2)) + ((olt_skims['sov_inc3d']) * (df.vot_bin_d_pnr == 3))),1
+#d_pnr_distance_skims_inb,d_pnr_dist_skims_inb,_d_pnr_dist_skims_inb@(((lot_skims['sov_inc1d']) * (df.vot_bin_d_pnr == 1)) + ((lot_skims['sov_inc2d']) * (df.vot_bin_d_pnr == 2)) + ((lot_skims['sov_inc3d']) * (df.vot_bin_d_pnr == 3))),1
+#util_drive_time,drive time from origin to lot,@(olt_skims['sov_inc2t'] + lot_skims['sov_inc2t']),coef_ivt_auto
+util_drive_time,round trip drive time from origin to lot,@_d_pnr_time_skims_out + _d_pnr_time_skims_inb,coef_ivt_auto
+#util_drive_tolls,toll costs,@_d_pnr_cost_skims_out + _d_pnr_cost_skims_inb,coef_toll_auto
+#util_drive_op_cost,auto operating cost,@df.sov_auto_op_cost * (olt_skims['sov_inc2d'] + lot_skims['sov_inc2d']) / df.cost_sensitivity,coef_auto_op_costs
 # Transit utilties,,,
-util_first_wait,first wait time,@(ldt_skims['iwtwpnr'] + dlt_skims['iwtwpnr']),coef_wait_work
-util_xfer_wait,transfer wait time,@(ldt_skims['xfrwpnr'] + dlt_skims['xfrwpnr']),coef_xwait_work
-util_walk_time,walk time,@(ldt_skims['auxwpnr'] + dlt_skims['auxwpnr']),coef_xwalk_work
-util_ivtt,in vehicle transit time,@(ldt_skims['ivtwpnr'] + dlt_skims['ivtwpnr']),coef_ivt_work
-util_transfer_penalty,transfer penalty (avg boadings minus default of two boardings for both directions),@((ldt_skims['ndbwpnr'] + dlt_skims['ndbwpnr'])-2),coef_xfer_work
-util_small_lot,Small lot penalty -- 10 min penalty,"@np.where(df['PNR_SPACES'] < 100,10,0)",coef_ivt_work
-util_med_lot,med lot penalty -- no penalty,"@np.where((df['PNR_SPACES'] >= 100) & (df['PNR_SPACES'] < 500),1,0) * 0",coef_ivt_work
-util_large_lot,large lot penalty -- 10 min back,"@np.where(df['PNR_SPACES'] >= 500,-10,0)",coef_ivt_work
+#util_transit_unavailable,too much wait time,@((ldt_skims['twtwpnr'] + dlt_skims['twtwpnr'])<=240),coef_unavailable
+#util_first_wait,first wait time,@(ldt_skims['iwtwpnr'] + dlt_skims['iwtwpnr']),coef_wait_transit
+#util_xfer_wait,transfer wait time,@(ldt_skims['xfrwpnr'] + dlt_skims['xfrwpnr']),coef_xwait_transit
+util_total_wait,total wait time,@(ldt_skims['twtwpnr'] + dlt_skims['twtwpnr']),coef_wait_transit
+util_walk_time,walk time,@(ldt_skims['auxwpnr'] + dlt_skims['auxwpnr']),coef_walk_transit
+util_ivtt,in vehcile transit time,@(ldt_skims['ivtwpnr'] + dlt_skims['ivtwpnr']),coef_ivt_transit
+#util_transfer_penalty,transfer penalty (avg boadings minus default of two boardings for both directions),"@np.maximum((ldt_skims['ndbwpnr'] + dlt_skims['ndbwpnr'])-2, 0)",coef_xfer_transit
+util_log_lot_capacity,log_lot_capacity,@np.log1p(df.PNR_SPACES),coef_lot_capacity
+#util_small_lot,Small lot penalty -- 10 min penalty,@(df.PNR_SPACES < 100),coef_small_lot
+#util_med_lot,med lot penalty -- no penalty,@(df.PNR_SPACES >= 100) & (df.PNR_SPACES < 500),coef_medium_lot
+#util_large_lot,large lot penalty -- 10 min back,"@np.where(df['PNR_SPACES'] >= 500,-10,0)",coef_ivt_work
 #util_capacity,lot capacity availability,@df['pnr_lot_full'],coef_unavailable

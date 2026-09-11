@@ -1,10 +1,16 @@
 coefficient_name,value,constrain
 coef_zero,0.0,T
-# took work coefficients from tour mode choice model,,
-coef_unavailable,-999,F
-coef_ivt_work,-0.016,F
-coef_income_work,-0.625,F
-coef_xwalk_work,-0.0780,F
-coef_wait_work,-0.024,F
-coef_xfer_work,-0.3945,F
-coef_xwait_work,-0.032,F
+coef_unavailable,-999.0,F
+coef_ivt_auto,-0.07780581270481603,F
+coef_ivt_transit,-0.0483119069083039,F
+coef_auto_op_costs,0.0,F
+coef_walk_transit,-0.11205081230183472,F
+coef_wait_transit,-0.0446906626928772,F
+coef_xfer_transit,0.0,F
+coef_xwait_transit,0.0,F
+coef_small_lot,0.0,F
+coef_medium_lot,0.0,F
+coef_detour_dist,0.0,F
+coef_percent_drive,0.0,F
+coef_lot_capacity,0.6626893089091301,F
+coef_toll_auto,0.0,F
