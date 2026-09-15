@@ -130,8 +130,8 @@ if __name__ == "__main__":
     # Example run_args object
     run_args = argparse.Namespace(
         args=argparse.Namespace(
-            output_dir="P:/workspace/sc_6_22_26_asim_output",
-            data_dir="P:/workspace/sc_6_22_26_asim_data",
+            output_dir="P:/workspace/sc_pnr_test/soundcast/outputs",
+            data_dir="P:/workspace/sc_pnr_test/soundcast/data",
         )
     )
 
