@@ -105,7 +105,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: stop_frequency
+#resume_after: auto_ownership_simulate
 models:
   # - input_checker
 ## Disaggregate Accessibility steps
@@ -175,6 +175,7 @@ output_tables:
       decode_columns:
         origin: land_use.zone_id
         destination: land_use.zone_id
+        pnr_zone_id: land_use.zone_id
     - tablename: trips
       decode_columns:
         origin: land_use.zone_id

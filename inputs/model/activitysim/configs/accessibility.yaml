@@ -2,7 +2,7 @@
 # columns from land_use table to add to df
 land_use_columns: ['RETEMPN', 'TOTEMP']
 
-explicit_chunk: 854  # 60 chunks for full scale
+explicit_chunk: 1500  # 60 chunks for full scale
 
 CONSTANTS:
   # dispersion parameters

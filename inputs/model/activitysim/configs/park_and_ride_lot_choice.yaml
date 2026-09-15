@@ -16,13 +16,13 @@ LANDUSE_PNR_SPACES_COLUMN: PNR_SPACES
 # if no transit access, then no PNR lot will be available and could get 
 # zero probabilities error
 TRANSIT_SKIMS_FOR_ELIGIBILITY:
-  - iwtwpnr__PM
-  - iwtwpnr__MD
+  - ivtwpnr__PM
+  - ivtwpnr__MD
 
 # Precompute destination eligibility for tours
 # LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST: is_pnr_eligible_destination
 
-ITERATE_WITH_TOUR_MODE_CHOICE: False
+ITERATE_WITH_TOUR_MODE_CHOICE: True
 MAX_ITERATIONS: 5
 ACCEPTED_TOLERANCE: 0.95
 RESAMPLE_STRATEGY: latest
