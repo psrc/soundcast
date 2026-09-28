@@ -11,6 +11,7 @@ preprocessor:
     - tours
 
 LANDUSE_PNR_SPACES_COLUMN: PNR_SPACES
+#CHOOSER_FILTER_EXPR: "(out_period != 'EA') & (in_period != 'EA')"
 
 # will check the tour destination to make sure transit access is available
 # if no transit access, then no PNR lot will be available and could get 

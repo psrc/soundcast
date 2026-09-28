@@ -1571,6 +1571,8 @@ def run_transit(project_name):
     submode_list = ["r", "f", "c"]
     if state.input_settings.abm_model == "daysim":
         submode_list.append("p")
+    if state.input_settings.abm_model == "activitysim":
+        submode_list.append("pnr")
     for submode in submode_list:
         total_wait_matrix = my_project.bank.matrix("twtw" + submode).id
         initial_wait_matrix = my_project.bank.matrix("iwtw" + submode).id
@@ -2260,16 +2262,20 @@ def run(free_flow_skims=False, num_iterations=100):
     daily_link_df.reset_index(level=0, inplace=True)
     daily_link_df.to_csv("outputs/bike/daily_link_volume.csv")
 
-    start_transit_pool(project_list)
-    # run_transit(r'projects/20to5/20to5.emp')
+    if not state.input_settings.debug_skims_and_paths:
+        start_transit_pool(project_list)
+    else:
+        run_transit(r'projects/20to5/20to5.emp')
 
     daily_link_df = pd.read_csv("outputs/bike/daily_link_volume.csv")
     if daily_link_df["@tveh"].max() > state.network_settings.skim_warn_threshold:
         text = f"Daily link volume is extreme: {daily_link_df['@tveh'].max()}. Check the following link IDs for issues: {daily_link_df[daily_link_df['@tveh'] > state.network_settings.skim_warn_threshold]['link_id'].tolist()}"
         print(text)
         skims_logger.error(text)
-    start_bike_pool(project_list, daily_link_df)
-    # run_bike_test("projects/18to20/18to20.emp", daily_link_df)
+    if not state.input_settings.debug_skims_and_paths:
+        start_bike_pool(project_list, daily_link_df)
+    else:
+        run_bike_test("projects/18to20/18to20.emp", daily_link_df)
 
     f = open("outputs/logs/converge.txt", "w")
     # if using seed_trips, we are starting the first iteration and do not want to compare skims from another run.
@@ -2288,10 +2294,12 @@ def run(free_flow_skims=False, num_iterations=100):
         json.dump(go, f)
     # export skims even if skims converged
 
-    for i in range(0, 12, state.emme_settings.parallel_instances):
-        l = project_list[i : i + state.emme_settings.parallel_instances]
-        export_to_hdf5_pool(l, free_flow_skims)
-    # average_skims_to_hdf5_concurrent(EmmeProject("projects/20to5/20to5.emp", state.model_input_dir), False)
+    if not state.input_settings.debug_skims_and_paths:
+        for i in range(0, 12, state.emme_settings.parallel_instances):
+            l = project_list[i : i + state.emme_settings.parallel_instances]
+            export_to_hdf5_pool(l, free_flow_skims)
+    else:
+        average_skims_to_hdf5_concurrent(EmmeProject("projects/20to5/20to5.emp", state.model_input_dir), False)
 
     f.close()
     end_of_run = time.time()

@@ -5,8 +5,9 @@
 expression_profile: True
 
 # number of households to simulate
-households_sample_size: 0
+households_sample_size: 100000
 
+#fraction_of_failed_choices_allowed: 1.0
 #chunk_size: 
 #chunk_size: 123_000_000_000
 chunk_training_mode: explicit
@@ -28,9 +29,9 @@ want_dest_choice_sample_tables: False
 
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
-# trace_hh_id: 843563
+trace_hh_id: 57011
 # trace_hh_id: 1650690 # bainbridge worker to work in fremont
-trace_hh_id: 1711401 # port orchard worker to work in bremerton
+#trace_hh_id: 1711401 # port orchard worker to work in bremerton
 cleanup_trace_files_on_resume: False
 
 
@@ -105,7 +106,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: auto_ownership_simulate
+#resume_after: non_mandatory_tour_frequency
 models:
   # - input_checker
 ## Disaggregate Accessibility steps
