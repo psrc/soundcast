@@ -314,16 +314,15 @@ def run(state):
 
     # intersections:
     # combine from and to columns
-    all_nodes = pd.DataFrame(
-        pd.concat([net.edges_df["from"], net.edges_df["to"]], axis=0),
-        columns=["node_ids"],
-    )
+    all_nodes = pd.DataFrame(net.edges_df["from"])
+    all_nodes = all_nodes.rename(columns={"from": "node_ids"})
 
     # get the frequency of each node, which is the number of intersecting ways
     intersections_df = pd.DataFrame(all_nodes["node_ids"].value_counts())
+    #intersections_df = intersections_df.rename(columns={"from": "node_ids"})
     intersections_df = intersections_df.rename(columns={"count": "edge_count"})
     intersections_df.reset_index(0, inplace=True)
-    # intersections_df = intersections_df.rename(columns={"index": "node_ids"})
+    #intersections_df = intersections_df.rename(columns={"index": "node_ids"})
 
     # add a column for each way count
     intersections_df["nodes1"] = np.where(intersections_df["edge_count"] == 1, 1, 0)
