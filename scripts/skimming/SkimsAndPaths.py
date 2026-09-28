@@ -1469,12 +1469,11 @@ def init_bike_pool(daily_link_df):
 
 
 def start_transit_pool(project_list):
-    pool = Pool(len(project_list))
     params = []
     for item in project_list:
         params.append([item])
-    pool.starmap(run_transit_wrapped, params)
-    pool.close()
+    with Pool(len(project_list)) as pool:
+        pool.starmap(run_transit_wrapped, params)
 
 
 def start_bike_pool(project_list, daily_link_df):
@@ -1487,10 +1486,7 @@ def start_bike_pool(project_list, daily_link_df):
 
 
 def run_transit_wrapped(project_name):
-    try:
-        run_transit(project_name)
-    except:
-        print("{}: {}".format(project_name, traceback.format_exc()))
+    run_transit(project_name)
 
 
 def run_bike_wrapped(project_name):
