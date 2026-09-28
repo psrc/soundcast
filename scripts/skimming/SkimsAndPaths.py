@@ -934,6 +934,9 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
             matrix_value = emmeMatrix_to_numpyMatrix(
                 matrix_name, my_project.bank, dtype, scale_value
             )
+            # Replace extreme values with 0 for PNR trips
+            if matrix_name in ["ivtwpnr", "twtwpnr", "xfrwpnr", "iwtwpnr"]:
+                matrix_value = np.where(matrix_value > 10000, 0, matrix_value)
             matrix_out_name = matrix_name + tod_tag
             write_skims(state, matrix_value, my_store, matrix_out_name, dtype, taz_indexes)
 
