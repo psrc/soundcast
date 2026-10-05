@@ -49,9 +49,9 @@ def read_sqlite_db(input_config, summary_config, query):
         
     input_settings = InputSettings(**input_config)
     summary_settings = SummarySettings(**summary_config)
-    run_path = summary_settings.sc_run_path
+    RUN_PATH = summary_settings.sc_run_path
 
-    async_engine = create_engine('sqlite:///' + run_path + '/inputs/db/' + input_settings.db_name)
+    async_engine = create_engine('sqlite:///' + RUN_PATH + '/inputs/db/' + input_settings.db_name)
     df = pl.read_database(query= query,
                           connection=async_engine.connect()
                           )
@@ -59,11 +59,11 @@ def read_sqlite_db(input_config, summary_config, query):
     return df.to_pandas()
 
 def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
-
-    run_path = summary_config['output_dir']
+        
+    RUN_PATH = Path(summary_config['output_dir'])
 
     # model data
-    model = pl.read_parquet(Path(run_path) / f"final_{df_name}.parquet")
+    model = pl.read_parquet(RUN_PATH / f"final_{df_name}.parquet")
     
     model = model.with_columns(
         pl.lit("model").alias("source"),
@@ -108,7 +108,8 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
             "survey_parent_tour_id": "parent_tour_id"})
         # FIXME: add atwork_subtour_frequency to survey data?
         survey_data = survey_data.with_columns(
-            atwork_subtour_frequency = pl.lit(None).cast(pl.String)
+            atwork_subtour_frequency = pl.lit(None, dtype=pl.String),
+            pnr_zone_id = pl.lit(0.0, dtype=pl.Float32)
         )
     
     if df_name == "trips":
@@ -388,10 +389,10 @@ def get_tour_data(summary_config, uncloned=False):
     return tour_data.to_pandas()
 
 def get_landuse_data(summary_config, to_pandas=True):
-    
-    run_path = summary_config['output_dir']
         
-    landuse_data = pl.read_parquet(Path(run_path)/ "final_land_use.parquet")
+    RUN_PATH = Path(summary_config['output_dir'])
+        
+    landuse_data = pl.read_parquet(RUN_PATH/ "final_land_use.parquet")
 
     # data manipulation
     landuse_data = landuse_data.with_columns(

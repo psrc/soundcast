@@ -54,12 +54,12 @@ def  render_quarto(input_settings: dict,
     os.system(text)
     print(notebook_name + " created")
 
-    output_summary_folder = Path(summary_settings['output_dir']) / "summary"
+    output_summary_folder = Path(summary_settings['output_dir'])
     # create output folder if not exist
     output_summary_folder.mkdir(parents=True, exist_ok=True)
     # move notebook to output folder
     # Try to remove existing data first
-    notebook_output_dir = output_summary_folder / notebook_name
+    notebook_output_dir = output_summary_folder / "summary" / notebook_name
     if notebook_output_dir.exists():
         shutil.rmtree(notebook_output_dir)
     shutil.move(scripts_dir / notebook_name, notebook_output_dir)
@@ -130,8 +130,8 @@ if __name__ == "__main__":
     # Example run_args object
     run_args = argparse.Namespace(
         args=argparse.Namespace(
-            output_dir="P:/workspace/sc_pnr_test/soundcast/outputs",
-            data_dir="P:/workspace/sc_pnr_test/soundcast/data",
+            output_dir="//modelstation3/c$/workspace/9_29_26_output_test",
+            data_dir="P:/workspace/sc_9_15_26_pnr_test_DATA",
         )
     )
 

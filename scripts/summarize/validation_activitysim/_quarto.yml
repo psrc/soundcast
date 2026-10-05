@@ -44,6 +44,7 @@ book:
     - nb/trip_destination.ipynb
     - nb/trip_mode_choice.ipynb
     - nb/trip_purpose.ipynb
+    - nb/park_and_ride.ipynb
     # - part: "<b>ANALYSIS</b>"
     #   chapters:
     #     - nb/telework_analys.ipynb
