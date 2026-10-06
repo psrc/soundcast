@@ -21,7 +21,8 @@ TRANSIT_SKIMS_FOR_ELIGIBILITY:
   - ivtwpnr__MD
 
 # Precompute destination eligibility for tours
-# LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST: is_pnr_eligible_destination
+LANDUSE_COL_FOR_PNR_ELIGIBLE_DEST: pnr_eligible_destination
+ALLOW_ZERO_PROBS: true
 
 ITERATE_WITH_TOUR_MODE_CHOICE: True
 MAX_ITERATIONS: 5

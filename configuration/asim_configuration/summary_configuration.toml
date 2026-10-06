@@ -293,8 +293,8 @@ PM25 = "PM25 Total"
     'work_trip_mode'
 ]
 "network-validation-notebook" = [
-    'JBLM',
-    'bike_validation',
+    # 'JBLM',
+    # 'bike_validation',
     'supplementals',
     'transit_validation',
     'traffic_validation',
