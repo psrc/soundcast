@@ -459,6 +459,7 @@ def plot_share_facetbar(data, weight, share_col, title,
                         height=400, orientation='h', dropna=True):
     """
     faceted bar chart showing share by segment
+    set dropna=False when you want to also include NAs in groups (ex. transit_submodes_only chart)
     """
 
     if orientation == 'h':
