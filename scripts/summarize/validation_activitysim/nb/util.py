@@ -42,7 +42,7 @@ county = {1: "King",
           4: "Snohomish"}
 
 transit_modes = ['WALK_LOC','WALK_COM','WALK_FRY','WALK_LR','DRIVE_TRN']
-all_modes_transit_agg = ["DRIVEALONEFREE", "SHARED2FREE", "SHARED3FREE", "BIKE","WALK","ALL_TRANSIT","SCHBUS","TNC","Other"]
+all_modes_transit_agg = ['DRIVEALONEFREE', 'SHARED2FREE', 'SHARED3FREE', 'WALK', 'ALL_TRANSIT', 'SCH_BUS', 'SCHBUS', 'BIKE', 'TNC', 'Other']
 
 def read_sqlite_db(input_config, summary_config, query):
     """get parcel geography data from sqlite database"""
@@ -434,16 +434,18 @@ def create_distance_bin_60mi(col):
 # plotting functions
 
 def plot_share_barchart(data, weight, share_col, 
-                        title, height=400, width=700):
+                        title, height=400, width=700, dropna=True):
     """
     simple bar chart showing share
     """
     # calculate sample size and percentages
-    df_plot = data.groupby(['source', share_col], observed=True).\
+    df_plot = data.groupby(['source', share_col], observed=True, dropna=dropna).\
         agg(sample_size=(weight, 'size'),
             weighted_sum=(weight, 'sum')).reset_index()
     df_plot['percentage'] = df_plot.groupby('source', group_keys=False, observed=True)['weighted_sum']. \
         apply(lambda x: x / float(x.sum()))
+
+    df_plot = df_plot.dropna(subset=['source', share_col])
 
     fig = px.bar(df_plot, x=share_col, y="percentage", color="source",barmode="group",
                 hover_data=["weighted_sum","sample_size"],
@@ -454,7 +456,7 @@ def plot_share_barchart(data, weight, share_col,
 
 def plot_share_facetbar(data, weight, share_col, title, 
                         facet_col, facet_col_wrap=3,
-                        height=400, orientation='h'):
+                        height=400, orientation='h', dropna=True):
     """
     faceted bar chart showing share by segment
     """
@@ -467,11 +469,13 @@ def plot_share_facetbar(data, weight, share_col, title,
         y = "percentage"
     
     # calculate sample size and percentages
-    df_plot = data.groupby(['source', facet_col, share_col], observed=True).\
+    df_plot = data.groupby(['source', facet_col, share_col], observed=True, dropna=dropna).\
         agg(sample_size=(weight, 'size'),
             weighted_sum=(weight, 'sum')).reset_index()
     df_plot['percentage'] = df_plot.groupby(['source',facet_col], group_keys=False, observed=True)['weighted_sum']. \
         apply(lambda x: x / float(x.sum()))
+
+    df_plot = df_plot.dropna(subset=['source', facet_col, share_col])
 
     fig = px.bar(df_plot, x=x, y=y, color="source",barmode="group",
                 hover_data=["sample_size"],
@@ -481,8 +485,10 @@ def plot_share_facetbar(data, weight, share_col, title,
     fig.update_layout(height=height, width=750)
 
     if orientation == 'h':
-        fig.update_layout(xaxis1=dict(tickformat=".0%"), xaxis2=dict(tickformat=".0%"))
+        fig.update_xaxes(tickformat=".0%")
+        # fig.update_layout(xaxis1=dict(tickformat=".0%"), xaxis2=dict(tickformat=".0%"))
     else:
-        fig.update_layout(yaxis1=dict(tickformat=".0%"), yaxis2=dict(tickformat=".0%"))
+        fig.update_yaxes(tickformat=".0%")
+        # fig.update_layout(yaxis1=dict(tickformat=".0%"), yaxis2=dict(tickformat=".0%"))
 
     fig.show()
