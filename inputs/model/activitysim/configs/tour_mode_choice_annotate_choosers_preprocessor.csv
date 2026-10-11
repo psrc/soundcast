@@ -79,7 +79,7 @@ Determining Tour Destination,destination,df.destination if 'destination' in df.c
 #,drive_transit_available,(_destination_distance_to_transit <= walkThresh) & (_destination_distance_to_transit > 0) & (odt_skims['ivtwpnr']>0) & (dot_skims['ivtwpnr']>0) & (dot_skims['ivtwpnr']<600)
 ,origin_walk_time,_origin_distance_to_transit*60/walkSpeed
 ,destination_walk_time,_destination_distance_to_transit*60/walkSpeed
-,SCHBUS_available,(tour_type =='school') & (df.ptype!=3)
+,SCHBUS_available,(tour_type =='school') & (df.ptype==7)
 # RIDEHAIL,,
 ,origin_density_measure,"(reindex(land_use.TOTPOP, df[orig_col_name]) + reindex(land_use.TOTEMP, df[orig_col_name])) / (reindex(land_use.TOTACRE, df[orig_col_name]) / 640).fillna(0)"
 ,dest_density_measure,"(reindex(land_use.TOTPOP, df[dest_col_name]) + reindex(land_use.TOTEMP, df[dest_col_name])) / (reindex(land_use.TOTACRE, df[dest_col_name]) / 640).fillna(0)"

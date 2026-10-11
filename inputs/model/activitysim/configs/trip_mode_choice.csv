@@ -129,12 +129,15 @@ util_School Bus - Age 6 to 12,School Bus - Age 6 to 12,@(df.age > 5) & (df.age <
 util_School Bus - Age 13 to 15,School Bus - Age 13 to 15,@(df.age > 12) & (df.age < 16),,,,,,,,,,,,coef_age1315_schb
 util_School Bus - Female,School Bus - Female,@(df.sex == 2),,,,,,,,,,,,coef_female_schb
 #,,,,,,,,,,,,,,
-util_tour_mode_is_auto,Auto tour mode availability,tour_mode_is_auto,,,,,-999,-999,-999,-999,-999,-999,-999,
-util_tour_mode_is_walk,Walk tour mode availability,tour_mode_is_walk,-999,-999,-999,,-999,-999,-999,-999,-999,-999,-999,
-util_tour_mode_is_bike,Bike tour mode availability,tour_mode_is_bike,-999,-999,-999,,,-999,-999,-999,-999,-999,-999,
-util_tour_mode_is_walk_transit,Walk to Transit tour mode availability,tour_mode_is_walk_transit,-999,,,,-999,,,,,-999,,
-util_tour_mode_is_drive_transit,Drive to Transit tour modes availability,tour_mode_is_drive_transit,-999,-999,-999,-999,-999,-999,-999,-999,-999,,-999,-999
-util_tour_mode_is_ride_hail,Ride hail tour modes availability,tour_mode_is_ride_hail,-999,,,,-999,,,,,-999,,
+util_tour_mode_is_SOV,Auto tour mode availability,tour_mode_is_SOV,,-999,-999,,-999,-999,-999,-999,-999,-999,-999,-999
+util_tour_mode_is_SR2,Auto tour mode availability,tour_mode_is_SR2,,,-999,,-999,-999,-999,-999,-999,-999,-999,-999
+util_tour_mode_is_SR3P,Auto tour mode availability,tour_mode_is_SR3P,,,,,-999,-999,-999,-999,-999,-999,-999,-999
+util_tour_mode_is_walk,Walk tour mode availability,tour_mode_is_walk,-999,-999,-999,,-999,-999,-999,-999,-999,-999,-999,-999
+util_tour_mode_is_bike,Bike tour mode availability,tour_mode_is_bike,-999,-999,-999,-999,,-999,-999,-999,-999,-999,-999,-999
+util_tour_mode_is_walk_transit,Walk to Transit tour mode availability,tour_mode_is_walk_transit,-999,,,,-999,,,,,-999,,-999
+util_tour_mode_is_drive_transit,Drive to Transit tour modes availability,tour_mode_is_drive_transit,-999,-999,-999,-999,-999,-999,-999,-999,-999,,,-999
+util_tour_mode_is_ride_hail,Ride hail tour modes availability,tour_mode_is_ride_hail,-999,,,,-999,-999,-999,-999,-999,-999,,-999
+util_tour_mode_is_schoolbus,School bus tour modes availability,tour_mode_is_schoolbus,-999,,,,-999,-999,-999,-999,-999,-999,-999,
 ,#indiv tour ASCs,,,,,,,,,,,,,
 util_Drive_Alone_tour_mode_ASC_shared_ride_2_df_is_indiv,Drive Alone tour mode ASC -- shared ride 2,@(df.is_indiv & df.tour_mode_is_SOV),,sov_ASC_sr2,,,,,,,,,,
 util_Drive_Alone_tour_mode_ASC_shared_ride_3_plus,Drive Alone tour mode ASC -- shared ride 3+,@(df.is_indiv & df.tour_mode_is_SOV),,,sov_ASC_sr3p,,,,,,,,,
@@ -192,6 +195,6 @@ util_joint_Ride_Hail_tour_mode_ASC_ride_hail_single,joint - Ride Hail tour mode 
 util_joint_Ride_Hail_tour_mode_ASC_ride_hail_shared,joint - Ride Hail tour mode ASC -- ride hail,@(df.is_joint & df.tour_mode_is_ride_hail),,,,,,,,,,,,
 #,#,,,,,,,,,,,,,
 util_Walk_not_available_for_long_distances,Walk not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTWALK'] > max_walk_distance),,,,-999,,,,,,,,
-util_Bike_not_available_for_long_distances,Bike not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTBIKE'] > max_bike_distance),,,,,-999,,,,,,,
+util_Bike_not_available_for_long_distances,Bike not available for long distances,@df.tour_mode_is_bike & (od_skims['DISTBIKE'] > max_bike_distance),,,,,-999,,,,,,,
 util_origin_density_index,Origin density index,@origin_density_applied*(origin_density_index_multiplier*df.origin_density_index).clip(origin_density_index_max),,,,,,coef_ivt,coef_ivt,coef_ivt,coef_ivt,,coef_ivt,
 util_adjust_tnc_shared,TNC shared adjustment,@adjust_tnc_shared,,,,,,,,,,,,
