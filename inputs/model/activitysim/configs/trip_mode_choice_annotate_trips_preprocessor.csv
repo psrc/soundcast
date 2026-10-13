@@ -20,6 +20,7 @@ Description,Target,Expression
 ,tour_mode_is_walk_transit,i_tour_mode.isin(I_WALK_TRANSIT_MODES)
 ,tour_mode_is_drive_transit,i_tour_mode == I_DRIVE_TRANSIT_MODES
 ,tour_mode_is_ride_hail,i_tour_mode == I_RIDE_HAIL_MODES
+,tour_mode_is_schoolbus,i_tour_mode == I_SCHOOLBUS_MODE
 #,,
 ,inbound,~df.outbound
 ,first_trip,df.trip_num == 1
