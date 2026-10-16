@@ -195,6 +195,6 @@ util_joint_Ride_Hail_tour_mode_ASC_ride_hail_single,joint - Ride Hail tour mode 
 util_joint_Ride_Hail_tour_mode_ASC_ride_hail_shared,joint - Ride Hail tour mode ASC -- ride hail,@(df.is_joint & df.tour_mode_is_ride_hail),,,,,,,,,,,,
 #,#,,,,,,,,,,,,,
 util_Walk_not_available_for_long_distances,Walk not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTWALK'] > max_walk_distance),,,,-999,,,,,,,,
-util_Bike_not_available_for_long_distances,Bike not available for long distances,@df.tour_mode_is_walk & (od_skims['DISTBIKE'] > max_bike_distance),,,,,-999,,,,,,,
+util_Bike_not_available_for_long_distances,Bike not available for long distances,@df.tour_mode_is_bike & (od_skims['DISTBIKE'] > max_bike_distance),,,,,-999,,,,,,,
 util_origin_density_index,Origin density index,@origin_density_applied*(origin_density_index_multiplier*df.origin_density_index).clip(origin_density_index_max),,,,,,coef_ivt,coef_ivt,coef_ivt,coef_ivt,,coef_ivt,
 util_adjust_tnc_shared,TNC shared adjustment,@adjust_tnc_shared,,,,,,,,,,,,
