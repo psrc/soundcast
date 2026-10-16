@@ -10,10 +10,6 @@ preprocessor:
     # - vehicles
     - tours
 
-annotate_tours:
-  SPEC: park_and_ride_lot_choice_annotate.csv
-  DF: tours
-
 LANDUSE_PNR_SPACES_COLUMN: PNR_SPACES
 #CHOOSER_FILTER_EXPR: "(out_period != 'EA') & (in_period != 'EA')"
 

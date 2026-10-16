@@ -106,7 +106,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-# resume_after: non_mandatory_tour_scheduling
+resume_after: park_and_ride_lot_choice
 models:
   # - input_checker
 ## Disaggregate Accessibility steps

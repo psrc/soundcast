@@ -64,6 +64,8 @@ annotate_tours:
   DF: choosers
   TABLES:
     - tours
+    - persons
+    - households
 
 # to reduce memory needs filter chooser table to these fields
 LOGSUM_CHOOSER_COLUMNS:
