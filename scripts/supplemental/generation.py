@@ -211,11 +211,11 @@ def main(state):
     df_gq_rates = df_rates[df_rates["group"] == "group_quarters"]
 
     for purpose in trip_productions:
+        # initialize a zero column (handles case where column doesn't exist yet)
+        total_gq_df[purpose] = 0.0
         for gq_type in ["dorms", "military", "other"]:
-            total_gq_df[purpose] = (
-                total_gq_df[gq_type]
-                * df_gq_rates[df_gq_rates["segmentation"] == gq_type][purpose].values[0]
-            )
+            rate = df_gq_rates[df_gq_rates["segmentation"] == gq_type][purpose].values[0]
+            total_gq_df[purpose] += total_gq_df[gq_type] * rate
 
     # Consolidate Group Quarters data to TAZ for output to travel model
     group_quarters_taz = total_gq_df.groupby("taz").sum()
