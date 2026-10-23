@@ -91,7 +91,7 @@ hh_equity_geogs = ['hh_efa_dis', 'hh_efa_older', 'hh_efa_lep', 'hh_efa_pov200', 
 sc_run_name = "current run"
 sc_run_path = '../../../../'
 # sc_run_name = "2023 base year"
-# sc_run_path = '//modelstation2/c$/workspace/sc_9_15_26_pnr_test/soundcast'
+# sc_run_path = '//modelstation2/c$/workspace/sc_10_16_26'
 
 
 #################################
@@ -104,7 +104,7 @@ uncloned_folder = "uncloned"
 [survey_directories]
 # 2023 HTS dataset
 # "survey" = "../../../../inputs/base_year/survey"
-"survey" = "R:/e2projects_two/2023_base_year/2023_survey/activitysim_format/skims_attached"
+"survey" = "R:/e2projects_two/2023_base_year/2023_survey/activitysim_format_20260629/skims_attached"
 # add another survey source to compare
 # "survey 2025" = "R:/e2projects_two/2023_base_year/2025_survey/activitysim_format/cleaned"
 
@@ -295,7 +295,7 @@ PM25 = "PM25 Total"
 "network-validation-notebook" = [
     # 'JBLM',
     # 'bike_validation',
-    'supplementals',
+    # 'supplementals',
     'transit_validation',
     'traffic_validation',
     'link_analysis'

@@ -13,3 +13,4 @@ soundcast_log.txt
 inputs/base_year
 /working/
 /scripts/summarize/RTP_summary/.quarto
+/scripts/summarize/validation_activitysim/activitysim-validation-notebook
