@@ -103,12 +103,12 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     
     if df_name == "tours":
         survey_data = survey_data.rename({
-            # "survey_tour_id": "tour_id",
+            "survey_tour_id": "tour_id",
             "tour_distance": "tour_distance_one_way",
-            'tour_weight_x': 'tour_weight',
-            # "survey_parent_tour_id": "parent_tour_id",
+            # 'tour_weight_x': 'tour_weight',
+            "survey_parent_tour_id": "parent_tour_id",
             # park and ride skims
-            'time_home_to_pnr_lot': 'pnr_olt_time'
+            # 'time_home_to_pnr_lot': 'pnr_olt_time'
             })
         # FIXME: add atwork_subtour_frequency to survey data?
         survey_data = survey_data.with_columns(
@@ -119,7 +119,7 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     if df_name == "trips":
         survey_data = survey_data.rename({
             "trip_distance": "od_dist_drive",
-            # "survey_tour_id": "tour_id"
+            "survey_tour_id": "tour_id"
             })
 
     col_list = np.intersect1d(survey_data.columns, model.columns)
@@ -389,8 +389,8 @@ def get_tour_data(summary_config, uncloned=False):
         create_distance_bin_60mi('tour_distance_one_way')
         .alias('tour_distance_bin_60mi'),
 
-        create_time_bin_120mins('pnr_olt_time')
-        .alias('pnr_olt_time_bin')
+        # create_time_bin_120mins('pnr_olt_time')
+        # .alias('pnr_olt_time_bin')
     )
 
     return tour_data.to_pandas()
