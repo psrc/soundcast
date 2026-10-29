@@ -14,9 +14,7 @@
 # Occupancy
 OCC_SHARED2: 2
 OCC_SHARED3: 3.33
-OCC_TAXI: 1.1
-OCC_TNC_SINGLE: 1.2
-OCC_TNC_SHARED: 2.0
+OCC_TNC: 1.2
 
 # convenience for expression files
 HHT_NONFAMILY: [4, 5, 6, 7]

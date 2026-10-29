@@ -4,7 +4,7 @@ Description,Target,Expression
 ,_is_joint,(tour_participants > 1)
 ,distance,od_skims['DIST']
 ,_sample_rate,trips.household_id.map(households.sample_rate)
-,weightTrip,"np.where(trips.trip_mode == 'SHARED2FREE', tour_participants/OCC_SHARED2, np.where(trips.trip_mode == 'SHARED3FREE',tour_participants/OCC_SHARED3, np.where(trips.trip_mode == 'TAXI', tour_participants/OCC_TAXI,  np.where(trips.trip_mode == 'TNC_SINGLE', tour_participants/OCC_TNC_SINGLE, np.where(trips.trip_mode == 'TNC_SHARED', tour_participants/OCC_TNC_SHARED, np.where(trips.trip_mode.isin(['WALK','BIKE','EBIKE','ESCOOTER']), tour_participants, 1))))))/_sample_rate"
+,weightTrip,"np.where(trips.trip_mode == 'SHARED2FREE', tour_participants/OCC_SHARED2, np.where(trips.trip_mode == 'SHARED3FREE',tour_participants/OCC_SHARED3, np.where(trips.trip_mode == 'TNC', tour_participants/OCC_TNC, np.where(trips.trip_mode.isin(['WALK','BIKE','EBIKE','ESCOOTER']), tour_participants, 1))))/_sample_rate"
 ,weightPersonTrip,tour_participants/_sample_rate
 ,pnr_zone_id,"reindex(tours.pnr_zone_id, df.tour_id)"
 ,is_pnr,trips.trip_mode.isin(['DRIVE_TRN'])
@@ -15,8 +15,8 @@ Description,Target,Expression
 ,is_pm,"trips.depart.between(time_periods['PM']['first_hour'], time_periods['PM']['last_hour'])"
 ,is_ev,"trips.depart.between(time_periods['EV']['first_hour'], time_periods['EV']['last_hour'])"
 ,_vot_bin_da,"np.where(trips.trip_mode.isin(['DRIVEALONEFREE']),np.where(trips.vot_da < vot_threshold_low, 1,np.where(trips.vot_da < vot_threshold_med, 2, 3)),0)"
-,_vot_bin_s2,"np.where(trips.trip_mode.isin(['SHARED2FREE','TAXI','TNC_SINGLE']),np.where(trips.vot_s2 < vot_threshold_low,1,np.where(trips.vot_s2 < vot_threshold_med, 2, 3)),0)"
-,_vot_bin_s3,"np.where(trips.trip_mode.isin(['SHARED3FREE','TNC_SHARED']),np.where(trips.vot_s3 < vot_threshold_low,1,np.where(trips.vot_s3 < vot_threshold_med, 2, 3)),0)"
+,_vot_bin_s2,"np.where(trips.trip_mode.isin(['SHARED2FREE','TNC']),np.where(trips.vot_s2 < vot_threshold_low,1,np.where(trips.vot_s2 < vot_threshold_med, 2, 3)),0)"
+,_vot_bin_s3,"np.where(trips.trip_mode.isin(['SHARED3FREE','TNC']),np.where(trips.vot_s3 < vot_threshold_low,1,np.where(trips.vot_s3 < vot_threshold_med, 2, 3)),0)"
 ,_vot_bin_pnr,"np.where(is_pnr,np.where(trips.vot_da < vot_threshold_low, 1,np.where(trips.vot_da < vot_threshold_med, 2, 3)),0)"
 ,vot1,"np.where((_vot_bin_da == 1) |(_vot_bin_s2 == 1) |(_vot_bin_s3 ==1) |(_vot_bin_pnr ==1),1,0)"
 ,vot2,"np.where((_vot_bin_da == 2) |(_vot_bin_s2 == 2) |(_vot_bin_s3 ==2) |(_vot_bin_pnr ==2),1,0)"
