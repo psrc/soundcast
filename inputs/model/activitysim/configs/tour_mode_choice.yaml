@@ -29,6 +29,7 @@ NESTS:
         coefficient: coef_nest_TRANSIT_DRIVEACCESS
         alternatives:
           - DRIVE_TRN
+          - KNR_TRN
       - name: RIDEHAIL
         coefficient: coef_nest_RIDEHAIL
         alternatives:       
