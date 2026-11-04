@@ -1,3 +1,4 @@
+
 # SoundCast: the PSRC Activity-Based Model
 SoundCast is a travel demand model system built for the Puget Sound Region. The model depicts diverse human travel behavior and includes travel sensitivity to land use and the built environment. 
 
@@ -8,3 +9,5 @@ Read the User's Guide to learn how to install and run Soundcast.
 Download official code releases and inputs.
 
 The most current official release is [v4.0_2026_2050_RTP_may2026]([https://github.com/psrc/soundcast/releases/tag/v4.0_2026_2050_RTP_may2026]), which was used for the 2026-2050 Regional Transportation Plan. 
+
+<img width="109" height="114" alt="soundcast_mascot" src="https://github.com/user-attachments/assets/500d046a-1fcc-4248-8840-3bfef8ee8cdd" /> 
