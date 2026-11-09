@@ -91,7 +91,8 @@ def plot_observed_modeled_scatter(df_plot, observe_var, model_var, title, hover_
 
 def table_observed_modeled_percent_diff(df_table: pd.DataFrame, 
                                         observe_vars: list, 
-                                        model_var: str):
+                                        model_var: str,
+                                        value_vars_format="{:,.0f}"):
 
     target_cols = [model_var] + observe_vars
     other_cols = [col for col in df_table.columns if col not in target_cols]
@@ -107,9 +108,9 @@ def table_observed_modeled_percent_diff(df_table: pd.DataFrame,
         final_df.loc[:, obs_var + '% diff'] = (final_df[model_var] - final_df[obs_var]) / final_df[obs_var]
 
 
-    format_dict = {model_var: "{:,.0f}"}
+    format_dict = {model_var: value_vars_format}
     for var in observe_vars:
-        format_dict[var] = "{:,.0f}"
+        format_dict[var] = value_vars_format
     for var in per_diff_vars:
         format_dict[var] = "{:+.1%}"
 
