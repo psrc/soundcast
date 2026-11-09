@@ -39,7 +39,7 @@ def get_parcel_geog(input_config, summary_config):
 
     return parcel_geog
 
-def plot_observed_modeled_scatter(df_plot, observe_var, model_var, title, hover_vars =[], height=450, width=600):
+def plot_observed_scatter(df_plot, observe_var, model_var, title, hover_vars =[], height=450, width=600):
 
     # get the max value for plot limit
     lim = df_plot[[observe_var, model_var]].max().max() * 1.05
@@ -89,7 +89,7 @@ def plot_observed_modeled_scatter(df_plot, observe_var, model_var, title, hover_
     # Display the styled table (just evaluate it at the end of a cell)
     display(styled_summary)
 
-def table_observed_modeled_percent_diff(df_table: pd.DataFrame, 
+def table_observed_percent_diff(df_table: pd.DataFrame, 
                                         observe_vars: list, 
                                         model_var: str,
                                         value_vars_format="{:,.0f}"):
