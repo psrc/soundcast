@@ -15,7 +15,7 @@ Alternative specific constant for return  stops,-2.6719999999999997,coef_alterna
 Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
 Alternative specific constant for return  stops,-3.364,coef_alternative_specific_constant_for_return_stops_0out_3in
 Alternative specific constant for outbound stops,-2.123,coef_alternative_specific_constant_for_outbound_stops_1out_0in
-Alternative specific constant for the total number of stops,0.701,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in
+Alternative specific constant for the total number of stops,2.25,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in
 Alternative specific constant for outbound stops,-3.798,coef_alternative_specific_constant_for_outbound_stops_2out_0in
 Alternative specific constant for the total number of stops,1.135,coef_alternative_specific_constant_for_the_total_number_of_stops_2out_3in
 Alternative specific constant for outbound stops,-5.85,coef_alternative_specific_constant_for_outbound_stops_3out_0in

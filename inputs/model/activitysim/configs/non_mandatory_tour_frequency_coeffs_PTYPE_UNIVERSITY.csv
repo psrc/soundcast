@@ -1,10 +1,10 @@
 coefficient_name,value,constrain
-coef_escort_tour_asc,0.2,F
-coef_othdiscr_tour_asc,0.1,F
-coef_shopping_tour_asc,0.4,F
-coef_othmaint_tour_asc,0.2,F
-coef_social_tour_asc,0.0,F
-coef_eatout_tour_asc,0.0,F
+coef_escort_tour_asc,1.8,F
+coef_othdiscr_tour_asc,1.4,F
+coef_shopping_tour_asc,2.0,F
+coef_othmaint_tour_asc,1.5,F
+coef_social_tour_asc,1.1,F
+coef_eatout_tour_asc,0.7,F
 coef_1_escort_tour_asc,-13.469777101720044,F
 coef_2_plus_escort_tours_asc,-22.935046839745844,F
 coef_1_plus_shopping_tours_asc,-3.4,F

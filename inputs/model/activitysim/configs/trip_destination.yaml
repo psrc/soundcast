@@ -1,5 +1,7 @@
 SAMPLE_SIZE: 30
 
+explicit_chunk: 0.25
+
 SAMPLE_SPEC: trip_destination_sample.csv
 SPEC: trip_destination.csv
 COEFFICIENTS: _dummy_coefficients.csv

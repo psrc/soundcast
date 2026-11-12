@@ -11,7 +11,7 @@ HH accesibility for inbound tours. Interaction,0.2481,coef_hh_accesibility_for_i
 No stops if tour mode is driveTransit,-999.0,coef_no_stops_if_tour_mode_is_drivetransit
 Alternative specific constant for return  stops,-2.003,coef_alternative_specific_constant_for_return_stops_0out_1in
 Alternative specific constant for return  stops,-3.51,coef_alternative_specific_constant_for_return_stops_0out_2in
-Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for the total number of stops,1.75,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
 Alternative specific constant for return  stops,-3.677,coef_alternative_specific_constant_for_return_stops_0out_3in
 Alternative specific constant for outbound stops,-2.628,coef_alternative_specific_constant_for_outbound_stops_1out_0in
 Alternative specific constant for the total number of stops,1.272,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in

@@ -23,10 +23,10 @@ coef_lndist_ps,4.3415,F
 coef_sqrtdist_ps,-7.38,F
 coef_sqrddist_ps,0.0125,F
 coef_cubeddist_ps,-0.0004,F
-coef_univ_dist_0_1,-4.041168201,F
-coef_univ_dist_1_2,-2.727947472,F
-coef_univ_dist_2_5,-0.803262584,F
+coef_univ_dist_0_1,-3.5,F
+coef_univ_dist_1_2,-2.4,F
+coef_univ_dist_2_5,-0.7,F
 coef_univ_dist_5_15,-0.675629241,F
-coef_univ_dist_15_up,-0.125026015,F
+coef_univ_dist_15_up,-0.2,F
 coef_dist_child_0_5,0.0236,F
 coef_dist_child_6_12,-0.0657,F

@@ -12,7 +12,7 @@ No stops if tour mode is driveTransit,-999.0,coef_no_stops_if_tour_mode_is_drive
 Alternative specific constant for return  stops,-0.968,coef_alternative_specific_constant_for_return_stops_0out_1in
 Alternative specific constant for return  stops on joint tours,-1.329,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_1in
 Alternative specific constant for return  stops,-2.41,coef_alternative_specific_constant_for_return_stops_0out_2in
-Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for the total number of stops,1.75,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
 Alternative specific constant for return  stops on joint tours,-2.7960000000000003,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_2in
 Alternative specific constant for the total number of stops on joint tours,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_0out_2in
 Alternative specific constant for return  stops,-3.0239999999999996,coef_alternative_specific_constant_for_return_stops_0out_3in
