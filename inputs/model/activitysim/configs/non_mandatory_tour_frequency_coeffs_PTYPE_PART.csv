@@ -16,9 +16,9 @@ coef_total_number_of_tours_is_0_no_prior_tours_asc,-999.0,T
 coef_total_number_of_tours_is_0_prior_tours_asc,0.0,T
 coef_total_number_of_tours_is_1_no_prior_tours_asc,0.0,T
 coef_total_number_of_tours_is_1_prior_tours_asc,-3.9169738310374114,F
-coef_total_number_of_tours_is_2_asc,-6.641673118825618,F
-coef_total_number_of_tours_is_3_asc,-8.092507051740197,F
-coef_total_number_of_tours_is_4_asc,-9.366512846163511,F
+coef_total_number_of_tours_is_2_asc,-6.0,F
+coef_total_number_of_tours_is_3_asc,-7.0,F
+coef_total_number_of_tours_is_4_asc,-8.8,F
 coef_total_number_of_tours_is_5_asc,-999.0,T
 coef_total_number_of_tours_is_6_plus_asc,-999.0,T
 coef_number_of_mandatory_tours_tour_frequency_is_0,0.0,F

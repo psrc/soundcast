@@ -7,7 +7,7 @@ expression_profile: True
 # number of households to simulate
 households_sample_size: 0
 
-#fraction_of_failed_choices_allowed: 1.0
+fraction_of_failed_choices_allowed: 0.002
 #chunk_size: 
 #chunk_size: 123_000_000_000
 chunk_training_mode: explicit
@@ -106,7 +106,7 @@ input_table_list:
     recode_columns:
       TAZ: zero-based
 # to resume after last successful checkpoint, specify resume_after: _
-resume_after: trip_purpose
+# resume_after: joint_tour_scheduling
 models:
   # - input_checker
 ## Disaggregate Accessibility steps
@@ -146,7 +146,6 @@ models:
   - trip_purpose_and_destination
   - trip_scheduling
   - trip_mode_choice
-  - write_data_dictionary
   - track_skim_usage
   - write_trip_matrices
   - write_tables

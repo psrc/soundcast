@@ -52,11 +52,5 @@ multiprocess_steps:
         - households
         - persons
   - name: mp_summarize
-    begin: write_data_dictionary
+    begin: write_trip_matrices
     num_processes: 1
-
-
-
-
- 
-
