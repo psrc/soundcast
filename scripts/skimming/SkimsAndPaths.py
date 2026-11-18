@@ -913,7 +913,7 @@ def average_skims_to_hdf5_concurrent(my_project, average_skims):
 
     # Transit Skims
     if my_project.tod in state.network_settings.transit_skim_tod:
-        # assignment path types - a: all, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
+        # assignment path types - a: local bus, r: light rail, f: ferry, c: commuter rail, p: passenger ferry
         mode_list = ["a", "r", "f", "c"]
         if state.input_settings.abm_model == "daysim":
             mode_list.append("p")  # only Daysim uses passenger ferry skims
