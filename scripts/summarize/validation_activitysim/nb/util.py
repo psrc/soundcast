@@ -88,7 +88,7 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
                          schema_overrides={'prev_home_notwa_zip': pl.String,
                                            'tour_type_id': pl.String,
                                            'transit_quality_flag': pl.String},
-                         null_values="Missing Response")
+                         null_values=["Missing Response","NA"])
 
         # Add source column
         df = df.with_columns(
@@ -103,10 +103,10 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     
     if df_name == "tours":
         survey_data = survey_data.rename({
-            "survey_tour_id": "tour_id",
+            # "survey_tour_id": "tour_id",
             "tour_distance": "tour_distance_one_way",
             # 'tour_weight_x': 'tour_weight',
-            "survey_parent_tour_id": "parent_tour_id",
+            # "survey_parent_tour_id": "parent_tour_id",
             # park and ride skims
             # 'time_home_to_pnr_lot': 'pnr_olt_time'
             })
@@ -119,7 +119,7 @@ def get_validation_data(summary_config, df_name, weight_col, uncloned=True):
     if df_name == "trips":
         survey_data = survey_data.rename({
             "trip_distance": "od_dist_drive",
-            "survey_tour_id": "tour_id"
+            # "survey_tour_id": "tour_id"
             })
 
     col_list = np.intersect1d(survey_data.columns, model.columns)

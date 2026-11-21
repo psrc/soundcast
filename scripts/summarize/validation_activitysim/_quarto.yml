@@ -12,6 +12,7 @@ book:
   chapters:
     - index.qmd
     - nb/configs.ipynb
+    - nb/topsheet.ipynb
     - part: "<b>LOCATION CHOICE</b>"
       chapters:
         - nb/school_location.ipynb
